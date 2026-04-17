@@ -1,0 +1,695 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Connection;
+use App\Models\SavedRoute;
+use App\Models\Trip;
+use App\Models\TripParticipant;
+use App\Models\TripPayment;
+use App\Models\User;
+use App\Models\UserNotification;
+use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+class TripService
+{
+    public function paginateForUser(User $user, int $perPage = 10, array $filters = []): LengthAwarePaginator
+    {
+        $this->syncLifecycleStatuses();
+
+        $query = Trip::query()
+            ->with([
+                'savedRoute',
+                'driver',
+                'participants.user',
+                'payments' => fn ($paymentQuery) => $paymentQuery->where('user_id', $user->id),
+                'returnTrip.savedRoute',
+                'returnTrip.participants.user',
+                'returnTrip.payments' => fn ($paymentQuery) => $paymentQuery->where('user_id', $user->id),
+            ])
+            ->activeOperational()
+            ->whereNull('parent_trip_id');
+
+        if ($user->role !== 'admin') {
+            $query->where(function ($builder) use ($user): void {
+                $builder->where('driver_id', $user->id)
+                    ->orWhereHas('participants', fn ($participantQuery) => $participantQuery->where('user_id', $user->id));
+            });
+        }
+
+        if (! empty($filters['date_from'])) {
+            $from = Carbon::parse((string) $filters['date_from'])->startOfDay();
+            $query->where('trip_datetime', '>=', $from);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $to = Carbon::parse((string) $filters['date_to'])->endOfDay();
+            $query->where('trip_datetime', '<=', $to);
+        }
+
+        if (! empty($filters['visibility'])) {
+            $query->where('visibility', (string) $filters['visibility']);
+        }
+
+        return $query->latest('trip_datetime')->paginate($perPage);
+    }
+
+    public function paginateExplore(User $user, int $perPage = 12, array $filters = []): LengthAwarePaginator
+    {
+        $this->syncLifecycleStatuses();
+
+        $query = Trip::query()
+            ->with(['savedRoute', 'driver', 'participants', 'joinRequests' => fn ($joinQuery) => $joinQuery->where('user_id', $user->id)])
+            ->activeOperational()
+            ->whereNull('parent_trip_id')
+            ->where('visibility', 'public')
+            ->where('is_open_for_request', true)
+            ->where('status', 'scheduled')
+            ->where('trip_datetime', '>=', now());
+
+        $query->whereRaw(
+            '(seat_limit IS NULL OR seat_limit > (SELECT COUNT(*) FROM trip_participants tp WHERE tp.trip_id = trips.id AND tp.is_driver = 0))'
+        );
+
+        if (! empty($filters['destination'])) {
+            $destination = trim((string) $filters['destination']);
+            $destinationTerms = collect(preg_split('/[\s,.;\-\/]+/', $destination) ?: [])
+                ->map(fn ($term) => trim((string) $term))
+                ->filter(fn ($term) => mb_strlen($term) >= 3)
+                ->unique()
+                ->take(6)
+                ->values();
+
+            $query->where(function ($routeTextQuery) use ($destination, $destinationTerms): void {
+                $routeTextQuery->where('destination_name', 'like', "%{$destination}%")
+                    ->orWhereHas('savedRoute', fn ($savedRouteQuery) => $savedRouteQuery->where('route_name', 'like', "%{$destination}%"));
+
+                foreach ($destinationTerms as $term) {
+                    $routeTextQuery
+                        ->orWhere('destination_name', 'like', "%{$term}%")
+                        ->orWhereHas('savedRoute', fn ($savedRouteQuery) => $savedRouteQuery->where('route_name', 'like', "%{$term}%"));
+                }
+            });
+        }
+
+        if (! empty($filters['pickup'])) {
+            $pickup = trim((string) $filters['pickup']);
+            $pickupTerms = collect(preg_split('/[\s,.;\-\/]+/', $pickup) ?: [])
+                ->map(fn ($term) => trim((string) $term))
+                ->filter(fn ($term) => mb_strlen($term) >= 3)
+                ->unique()
+                ->take(6)
+                ->values();
+
+            $query->where(function ($routeTextQuery) use ($pickup, $pickupTerms): void {
+                $routeTextQuery->where('pickup_name', 'like', "%{$pickup}%")
+                    ->orWhereHas('savedRoute', fn ($savedRouteQuery) => $savedRouteQuery->where('route_name', 'like', "%{$pickup}%"));
+
+                foreach ($pickupTerms as $term) {
+                    $routeTextQuery
+                        ->orWhere('pickup_name', 'like', "%{$term}%")
+                        ->orWhereHas('savedRoute', fn ($savedRouteQuery) => $savedRouteQuery->where('route_name', 'like', "%{$term}%"));
+                }
+            });
+        }
+
+        if (! empty($filters['driver'])) {
+            $driver = trim((string) $filters['driver']);
+            $query->whereHas('driver', fn ($driverQuery) => $driverQuery->where('name', 'like', "%{$driver}%"));
+        }
+
+        if (! empty($filters['date'])) {
+            $date = \Illuminate\Support\Carbon::parse((string) $filters['date']);
+            $query->whereBetween('trip_datetime', [$date->copy()->startOfDay(), $date->copy()->endOfDay()]);
+        }
+
+        $centerLat = isset($filters['center_lat']) ? (float) $filters['center_lat'] : null;
+        $centerLng = isset($filters['center_lng']) ? (float) $filters['center_lng'] : null;
+        if ($centerLat !== null && $centerLng !== null) {
+            $radiusKm = isset($filters['radius_km']) && (float) $filters['radius_km'] > 0
+                ? (float) $filters['radius_km']
+                : 5.0;
+
+            $query->where(function ($geoQuery) use ($centerLat, $centerLng, $radiusKm): void {
+                $geoQuery
+                    ->where(function ($destinationGeo) use ($centerLat, $centerLng, $radiusKm): void {
+                        $destinationGeo
+                            ->whereNotNull('destination_latitude')
+                            ->whereNotNull('destination_longitude')
+                            ->whereRaw(
+                                '(6371 * acos(cos(radians(?)) * cos(radians(destination_latitude)) * cos(radians(destination_longitude) - radians(?)) + sin(radians(?)) * sin(radians(destination_latitude)))) <= ?',
+                                [$centerLat, $centerLng, $centerLat, $radiusKm]
+                            );
+                    })
+                    ->orWhere(function ($pickupGeo) use ($centerLat, $centerLng, $radiusKm): void {
+                        $pickupGeo
+                            ->whereNotNull('pickup_latitude')
+                            ->whereNotNull('pickup_longitude')
+                            ->whereRaw(
+                                '(6371 * acos(cos(radians(?)) * cos(radians(pickup_latitude)) * cos(radians(pickup_longitude) - radians(?)) + sin(radians(?)) * sin(radians(pickup_latitude)))) <= ?',
+                                [$centerLat, $centerLng, $centerLat, $radiusKm]
+                            );
+                    });
+            });
+        }
+
+        $timeframe = strtolower((string) ($filters['timeframe'] ?? ''));
+        if ($timeframe === 'today') {
+            $query->whereBetween('trip_datetime', [now()->copy()->startOfDay(), now()->copy()->endOfDay()]);
+        } elseif ($timeframe === 'tomorrow') {
+            $tomorrow = now()->copy()->addDay();
+            $query->whereBetween('trip_datetime', [$tomorrow->copy()->startOfDay(), $tomorrow->copy()->endOfDay()]);
+        } elseif ($timeframe === 'weekend') {
+            $query->whereIn(\DB::raw('DAYOFWEEK(trip_datetime)'), [1, 7]);
+        }
+
+        $seatFilter = strtolower((string) ($filters['seats'] ?? ''));
+        if ($seatFilter === '1') {
+            $query->whereRaw(
+                '(seat_limit IS NULL OR (seat_limit - (SELECT COUNT(*) FROM trip_participants tp WHERE tp.trip_id = trips.id AND tp.is_driver = 0)) = 1)'
+            );
+        } elseif ($seatFilter === '2plus') {
+            $query->whereRaw(
+                '(seat_limit IS NULL OR (seat_limit - (SELECT COUNT(*) FROM trip_participants tp WHERE tp.trip_id = trips.id AND tp.is_driver = 0)) >= 2)'
+            );
+        }
+
+        $sort = strtolower((string) ($filters['sort'] ?? 'nearest'));
+        if ($sort === 'latest') {
+            $query->latest('trip_datetime');
+        } else {
+            $query->oldest('trip_datetime');
+        }
+
+        return $query->paginate($perPage)->appends($filters);
+    }
+
+    public function exploreDestinationSuggestions(int $limit = 8): Collection
+    {
+        return SavedRoute::query()
+            ->join('trips', 'trips.saved_route_id', '=', 'saved_routes.id')
+            ->where('saved_routes.is_active', true)
+            ->where('trips.visibility', 'public')
+            ->where('trips.is_open_for_request', true)
+            ->where('trips.status', 'scheduled')
+            ->whereNull('trips.parent_trip_id')
+            ->where('trips.trip_datetime', '>=', now())
+            ->whereNotNull('trips.destination_name')
+            ->where('trips.destination_name', '!=', '')
+            ->select('trips.destination_name')
+            ->distinct()
+            ->orderBy('trips.destination_name')
+            ->limit($limit)
+            ->pluck('trips.destination_name')
+            ->values();
+    }
+
+    public function getSelectableParticipants(User $user): EloquentCollection
+    {
+        return User::query()
+            ->whereIn('id', $this->acceptedConnectionIds($user))
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function create(User $driver, array $data): Trip
+    {
+        $savedRoute = $this->resolveOwnedSavedRoute($driver, (int) $data['saved_route_id']);
+        $visibility = $this->resolveVisibility($data['visibility'] ?? 'private');
+        $isPublic = $visibility === 'public';
+        $includeDriverInSplit = $this->shouldIncludeDriverInSplit($data);
+        $tripType = $this->resolveTripType($data['trip_type'] ?? null);
+        $participantIds = $this->buildParticipantIds($driver, $data['participant_ids'] ?? [], $includeDriverInSplit, $visibility);
+        $seatLimit = $this->resolveSeatLimit($data, $participantIds, $driver->id, $isPublic);
+        $splitCount = $this->resolveSplitCount($participantIds->count(), $isPublic, $seatLimit, $includeDriverInSplit);
+        $amounts = $this->buildActiveParticipantAmounts((float) $savedRoute->default_fare, $participantIds->count(), $splitCount);
+        $isOpenForRequest = $this->resolveRequestOpenState($data, $isPublic);
+
+        return DB::transaction(function () use (
+            $driver,
+            $savedRoute,
+            $data,
+            $participantIds,
+            $amounts,
+            $tripType,
+            $visibility,
+            $seatLimit,
+            $splitCount,
+            $isOpenForRequest,
+            $isPublic
+        ): Trip {
+            $status = $this->resolveStatus($data['status'] ?? null, (string) $data['trip_datetime']);
+            $tripMode = $tripType === 'two_way' ? 'two_way' : 'one_way';
+            $outboundDirection = $this->resolveDirection($savedRoute, (string) $data['outbound_pickup_key'], (string) $data['outbound_destination_key']);
+
+            $trip = Trip::query()->create([
+                'driver_id' => $driver->id,
+                'saved_route_id' => $savedRoute->id,
+                ...$outboundDirection,
+                'parent_trip_id' => null,
+                'trip_datetime' => $data['trip_datetime'],
+                'trip_mode' => $tripMode,
+                'visibility' => $visibility,
+                'is_return_trip' => false,
+                'status' => $status,
+                'fare_total' => $savedRoute->default_fare,
+                'fare_per_person' => $this->farePerPerson((float) $savedRoute->default_fare, $splitCount),
+                'participant_count' => $participantIds->count(),
+                'seat_limit' => $seatLimit,
+                'is_open_for_request' => $isPublic ? $isOpenForRequest : false,
+                'note' => $data['note'] ?? null,
+                'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
+            ]);
+
+            $this->syncParticipantsAndPayments($trip, $driver->id, $participantIds, $amounts);
+            $this->notifyParticipants($trip, $driver->name, 'Trip Created', 'trip');
+
+            if ($tripType === 'two_way') {
+                $returnAmounts = $this->buildActiveParticipantAmounts((float) $savedRoute->default_fare, $participantIds->count(), $splitCount);
+                $returnDirection = $this->resolveDirection($savedRoute, (string) $data['return_pickup_key'], (string) $data['return_destination_key']);
+
+                $returnTrip = Trip::query()->create([
+                    'driver_id' => $driver->id,
+                    'saved_route_id' => $savedRoute->id,
+                    ...$returnDirection,
+                    'parent_trip_id' => $trip->id,
+                    'trip_datetime' => $data['trip_datetime'],
+                    'trip_mode' => 'two_way',
+                    'visibility' => $visibility,
+                    'is_return_trip' => true,
+                    'status' => $status,
+                    'fare_total' => $savedRoute->default_fare,
+                    'fare_per_person' => $this->farePerPerson((float) $savedRoute->default_fare, $splitCount),
+                    'participant_count' => $participantIds->count(),
+                    'seat_limit' => $seatLimit,
+                    'is_open_for_request' => $isPublic ? $isOpenForRequest : false,
+                    'note' => $data['note'] ?? null,
+                    'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
+                ]);
+
+                $this->syncParticipantsAndPayments($returnTrip, $driver->id, $participantIds, $returnAmounts);
+                $this->notifyParticipants($returnTrip, $driver->name, 'Trip Created', 'trip');
+            }
+
+            return $trip->load(['savedRoute', 'participants.user', 'payments.user']);
+        });
+    }
+
+    public function update(User $actor, Trip $trip, array $data): Trip
+    {
+        $this->ensureTripOwner($actor, $trip);
+
+        $savedRoute = $this->resolveOwnedSavedRoute($actor, (int) $data['saved_route_id']);
+        $visibility = $this->resolveVisibility($data['visibility'] ?? $trip->visibility ?? 'private');
+        $isPublic = $visibility === 'public';
+        $includeDriverInSplit = $this->shouldIncludeDriverInSplit($data);
+        $incomingParticipantIds = $this->buildParticipantIds($actor, $data['participant_ids'] ?? [], $includeDriverInSplit, $visibility);
+        $existingParticipantIds = $isPublic
+            ? $trip->participants()->pluck('user_id')
+            : collect();
+        $participantIds = $incomingParticipantIds->merge($existingParticipantIds)->unique()->values();
+        $seatLimit = $this->resolveSeatLimit($data, $participantIds, $actor->id, $isPublic);
+        $splitCount = $this->resolveSplitCount($participantIds->count(), $isPublic, $seatLimit, $includeDriverInSplit);
+        $amounts = $this->buildActiveParticipantAmounts((float) $savedRoute->default_fare, $participantIds->count(), $splitCount);
+        $isOpenForRequest = $this->resolveRequestOpenState($data, $isPublic, (bool) $trip->is_open_for_request);
+
+        return DB::transaction(function () use ($trip, $savedRoute, $data, $participantIds, $amounts, $actor, $visibility, $seatLimit, $splitCount, $isOpenForRequest, $isPublic): Trip {
+            $status = $this->resolveStatus($data['status'] ?? null, (string) $data['trip_datetime'], $trip->status);
+            $outboundDirection = $this->resolveDirection($savedRoute, (string) $data['outbound_pickup_key'], (string) $data['outbound_destination_key']);
+
+            $trip->update([
+                'saved_route_id' => $savedRoute->id,
+                ...$outboundDirection,
+                'trip_datetime' => $data['trip_datetime'],
+                'visibility' => $visibility,
+                'status' => $status,
+                'fare_total' => $savedRoute->default_fare,
+                'fare_per_person' => $this->farePerPerson((float) $savedRoute->default_fare, $splitCount),
+                'participant_count' => $participantIds->count(),
+                'seat_limit' => $seatLimit,
+                'is_open_for_request' => $isPublic ? $isOpenForRequest : false,
+                'note' => $data['note'] ?? null,
+                'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
+            ]);
+
+            if ($trip->returnTrip) {
+                $returnDirection = $this->resolveDirection(
+                    $savedRoute,
+                    (string) ($data['return_pickup_key'] ?? 'point_b'),
+                    (string) ($data['return_destination_key'] ?? 'point_a')
+                );
+
+                $trip->returnTrip->update([
+                    'saved_route_id' => $savedRoute->id,
+                    ...$returnDirection,
+                    'trip_datetime' => $data['trip_datetime'],
+                    'visibility' => $visibility,
+                    'status' => $status,
+                    'fare_total' => $savedRoute->default_fare,
+                    'fare_per_person' => $this->farePerPerson((float) $savedRoute->default_fare, $splitCount),
+                    'participant_count' => $participantIds->count(),
+                    'seat_limit' => $seatLimit,
+                    'is_open_for_request' => $isPublic ? $isOpenForRequest : false,
+                    'note' => $data['note'] ?? null,
+                    'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
+                ]);
+
+                $this->syncParticipantsAndPayments($trip->returnTrip, $trip->driver_id, $participantIds, $amounts);
+            }
+
+            $this->syncParticipantsAndPayments($trip, $trip->driver_id, $participantIds, $amounts);
+            $this->notifyParticipants($trip, $actor->name, 'Trip Updated', 'trip');
+
+            return $trip->refresh()->load(['savedRoute', 'participants.user', 'payments.user']);
+        });
+    }
+
+    public function delete(User $actor, Trip $trip): void
+    {
+        $this->ensureTripOwner($actor, $trip);
+
+        $baseTrip = $trip->is_return_trip && $trip->parentTrip
+            ? $trip->parentTrip
+            : $trip;
+
+        DB::transaction(function () use ($baseTrip): void {
+            $tripIds = Trip::query()
+                ->where('id', $baseTrip->id)
+                ->orWhere('parent_trip_id', $baseTrip->id)
+                ->pluck('id');
+
+            UserNotification::query()
+                ->where('related_type', 'trip')
+                ->whereIn('related_id', $tripIds)
+                ->delete();
+
+            Trip::query()->whereIn('id', $tripIds)->delete();
+        });
+    }
+
+    public function ensureTripOwner(User $actor, Trip $trip): void
+    {
+        if ($actor->role !== 'admin' && $trip->driver_id !== $actor->id) {
+            abort(403);
+        }
+    }
+
+    public function ensureTripAccessible(User $actor, Trip $trip): void
+    {
+        if ($actor->role === 'admin' || $trip->driver_id === $actor->id) {
+            return;
+        }
+
+        $isParticipant = TripParticipant::query()
+            ->where('trip_id', $trip->id)
+            ->where('user_id', $actor->id)
+            ->exists();
+
+        abort_unless($isParticipant, 403);
+    }
+
+    private function resolveOwnedSavedRoute(User $driver, int $savedRouteId): SavedRoute
+    {
+        $savedRoute = SavedRoute::query()
+            ->where('id', $savedRouteId)
+            ->where('user_id', $driver->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $savedRoute) {
+            throw ValidationException::withMessages([
+                'saved_route_id' => 'Selected saved route is invalid for your account.',
+            ]);
+        }
+
+        return $savedRoute;
+    }
+
+    private function buildParticipantIds(User $driver, array $participantIds, bool $includeDriverInSplit, string $visibility = 'private'): Collection
+    {
+        $participantIds = collect($participantIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($participantIds->isNotEmpty()) {
+            $allowedIds = $this->acceptedConnectionIds($driver)->flip();
+            $invalid = $participantIds->filter(fn ($id) => ! $allowedIds->has($id));
+
+            if ($invalid->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'participant_ids' => 'Participants must be selected from accepted connections.',
+                ]);
+            }
+        }
+
+        if ($includeDriverInSplit) {
+            return $participantIds->prepend($driver->id)->unique()->values();
+        }
+
+        if ($participantIds->isEmpty() && $visibility !== 'public') {
+            throw ValidationException::withMessages([
+                'participant_ids' => 'Select at least one participant when driver is excluded from fare split.',
+            ]);
+        }
+
+        return $participantIds->values();
+    }
+
+    private function acceptedConnectionIds(User $user): Collection
+    {
+        return Connection::query()
+            ->where('status', 'accepted')
+            ->where(function ($query) use ($user): void {
+                $query->where('requester_id', $user->id)
+                    ->orWhere('receiver_id', $user->id);
+            })
+            ->selectRaw(
+                'CASE WHEN requester_id = ? THEN receiver_id ELSE requester_id END as connected_user_id',
+                [$user->id]
+            )
+            ->pluck('connected_user_id')
+            ->unique()
+            ->values();
+    }
+
+    private function distributeFare(float $fareTotal, int $participantCount): Collection
+    {
+        if ($participantCount <= 0) {
+            return collect();
+        }
+
+        $totalCents = (int) round($fareTotal * 100);
+        $baseCents = intdiv($totalCents, $participantCount);
+        $remainder = $totalCents - ($baseCents * $participantCount);
+
+        return collect(range(1, $participantCount))->map(function (int $index) use ($baseCents, $remainder): float {
+            $cents = $baseCents + ($index <= $remainder ? 1 : 0);
+
+            return $cents / 100;
+        });
+    }
+
+    private function buildActiveParticipantAmounts(float $fareTotal, int $activeCount, int $splitCount): Collection
+    {
+        if ($activeCount <= 0) {
+            return collect();
+        }
+
+        $perPerson = $this->farePerPerson($fareTotal, $splitCount);
+
+        return collect(range(1, $activeCount))
+            ->map(fn (): float => $perPerson);
+    }
+
+    private function farePerPerson(float $fareTotal, int $splitCount): float
+    {
+        if ($splitCount <= 0) {
+            return 0;
+        }
+
+        return round($fareTotal / $splitCount, 2);
+    }
+
+    private function syncParticipantsAndPayments(
+        Trip $trip,
+        int $driverId,
+        Collection $participantIds,
+        Collection $amounts
+    ): void {
+        TripParticipant::query()->where('trip_id', $trip->id)->delete();
+        TripPayment::query()->where('trip_id', $trip->id)->delete();
+
+        foreach ($participantIds as $index => $userId) {
+            $fareAmount = (float) $amounts->get($index, 0);
+
+            TripParticipant::query()->create([
+                'trip_id' => $trip->id,
+                'user_id' => $userId,
+                'is_driver' => $userId === $driverId,
+                'fare_amount' => $fareAmount,
+                'attendance_status' => 'joined',
+            ]);
+
+            TripPayment::query()->create([
+                'trip_id' => $trip->id,
+                'user_id' => $userId,
+                'amount_due' => $fareAmount,
+                'payment_status' => 'unpaid',
+            ]);
+        }
+    }
+
+    private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type): void
+    {
+        $trip->loadMissing('participants');
+
+        foreach ($trip->participants as $participant) {
+            if ($participant->user_id === $trip->driver_id) {
+                continue;
+            }
+
+            UserNotification::query()->create([
+                'user_id' => $participant->user_id,
+                'type' => $type,
+                'title' => $title,
+                'message' => "{$actorName} {$title} for trip #{$trip->id}.",
+                'related_type' => 'trip',
+                'related_id' => $trip->id,
+                'is_read' => false,
+            ]);
+        }
+    }
+
+    public function syncLifecycleStatuses(): void
+    {
+        $now = now();
+
+        Trip::query()
+            ->whereNotIn('status', ['draft', 'cancelled'])
+            ->where('trip_datetime', '>', $now)
+            ->where('status', '!=', 'scheduled')
+            ->update(['status' => 'scheduled']);
+
+        Trip::query()
+            ->whereNotIn('status', ['draft', 'cancelled'])
+            ->where('trip_datetime', '<=', $now)
+            ->where('status', '!=', 'recorded')
+            ->update(['status' => 'recorded']);
+    }
+
+    private function resolveStatus(?string $inputStatus, string $tripDateTime, ?string $currentStatus = null): string
+    {
+        $status = strtolower(trim((string) $inputStatus));
+
+        if ($status === 'confirmed') {
+            return 'scheduled';
+        }
+
+        if ($status === 'completed') {
+            return 'recorded';
+        }
+
+        if (in_array($status, ['draft', 'scheduled', 'recorded', 'cancelled'], true)) {
+            return $status;
+        }
+
+        if ($currentStatus === 'cancelled') {
+            return 'cancelled';
+        }
+
+        return now()->lt(\Illuminate\Support\Carbon::parse($tripDateTime))
+            ? 'scheduled'
+            : 'recorded';
+    }
+
+    private function shouldIncludeDriverInSplit(array $data): bool
+    {
+        return (string) ($data['include_driver_in_split'] ?? '1') === '1';
+    }
+
+    private function resolveTripType(?string $tripType): string
+    {
+        return strtolower(trim((string) $tripType)) === 'two_way' ? 'two_way' : 'one_way';
+    }
+
+    private function resolveVisibility(?string $visibility): string
+    {
+        return strtolower(trim((string) $visibility)) === 'public' ? 'public' : 'private';
+    }
+
+    private function resolveSeatLimit(array $data, Collection $participantIds, int $driverId, bool $isPublic): ?int
+    {
+        if (! $isPublic) {
+            return null;
+        }
+
+        $seatLimit = isset($data['seat_limit']) ? (int) $data['seat_limit'] : null;
+        if (! $seatLimit || $seatLimit < 1) {
+            throw ValidationException::withMessages([
+                'seat_limit' => 'Seat limit is required for public trips.',
+            ]);
+        }
+
+        $currentPassengerCount = $participantIds
+            ->filter(fn ($userId) => (int) $userId !== $driverId)
+            ->count();
+
+        if ($seatLimit < $currentPassengerCount) {
+            throw ValidationException::withMessages([
+                'seat_limit' => 'Seat limit cannot be less than current passenger count.',
+            ]);
+        }
+
+        return $seatLimit;
+    }
+
+    private function resolveSplitCount(int $participantCount, bool $isPublic, ?int $seatLimit, bool $includeDriverInSplit): int
+    {
+        if ($isPublic && $seatLimit && $seatLimit > 0) {
+            return $seatLimit + ($includeDriverInSplit ? 1 : 0);
+        }
+
+        return max(1, $participantCount);
+    }
+
+    private function resolveRequestOpenState(array $data, bool $isPublic, ?bool $currentState = null): bool
+    {
+        if (! $isPublic) {
+            return false;
+        }
+
+        if ($currentState !== null) {
+            return $currentState;
+        }
+
+        return true;
+    }
+
+    private function resolveDirection(SavedRoute $savedRoute, string $pickupKey, string $destinationKey): array
+    {
+        return [
+            'pickup_name' => $this->directionValue($savedRoute, $pickupKey, 'name'),
+            'pickup_latitude' => $this->directionValue($savedRoute, $pickupKey, 'latitude'),
+            'pickup_longitude' => $this->directionValue($savedRoute, $pickupKey, 'longitude'),
+            'destination_name' => $this->directionValue($savedRoute, $destinationKey, 'name'),
+            'destination_latitude' => $this->directionValue($savedRoute, $destinationKey, 'latitude'),
+            'destination_longitude' => $this->directionValue($savedRoute, $destinationKey, 'longitude'),
+        ];
+    }
+
+    private function directionValue(SavedRoute $savedRoute, string $pointKey, string $field): string|float|null
+    {
+        $pointKey = strtolower(trim($pointKey)) === 'point_b' ? 'point_b' : 'point_a';
+        $attribute = "{$pointKey}_{$field}";
+
+        return $savedRoute->{$attribute};
+    }
+}

@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Requests\Settings;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateProfileRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return auth()->check();
+    }
+
+    public function rules(): array
+    {
+        return [
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => [
+                'sometimes',
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($this->user()?->id),
+            ],
+            'email_visible' => ['nullable', 'string', Rule::in(['visible_public', 'visible_friend', 'unvisible'])],
+            'whatsapp_country_code' => ['nullable', 'string', 'regex:/^\+\d{1,4}$/', 'required_with:whatsapp_number'],
+            'whatsapp_number' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'phone_visible' => ['nullable', 'string', Rule::in(['visible_public', 'visible_friend', 'unvisible'])],
+            'profile_photo' => ['nullable', 'image', 'max:2048'],
+            'payment_account_name' => ['nullable', 'string', 'max:255'],
+            'payment_account_number' => ['nullable', 'string', 'max:50'],
+            'payment_bank_name' => ['nullable', 'string', 'max:255'],
+            'payment_qr_duitnow' => ['nullable', 'image', 'max:2048'],
+            'payment_qr_tng' => ['nullable', 'image', 'max:2048'],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $countryCode = (string) $this->input('whatsapp_country_code', '');
+        $number = (string) $this->input('whatsapp_number', '');
+
+        if ($countryCode !== '' || $number !== '') {
+            $normalized = $this->normalizeWhatsappPhone($countryCode, $number);
+            $this->merge([
+                'phone' => $normalized,
+            ]);
+        }
+    }
+
+    private function normalizeWhatsappPhone(string $countryCode, string $number): ?string
+    {
+        $codeDigits = preg_replace('/\D+/', '', $countryCode);
+        $numberDigits = preg_replace('/\D+/', '', $number);
+
+        if (! $numberDigits) {
+            return null;
+        }
+
+        // Local numbers usually start with 0; remove it after country code selection.
+        $numberDigits = ltrim($numberDigits, '0');
+
+        if (! $codeDigits) {
+            return null;
+        }
+
+        return '+' . $codeDigits . $numberDigits;
+    }
+}
