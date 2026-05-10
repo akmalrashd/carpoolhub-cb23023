@@ -7,63 +7,63 @@
 
         $quickActions = match ($role) {
             'passenger' => [
-                ['route' => 'explore.index', 'title' => 'Terokai Trip', 'meta' => 'Cari trip awam', 'art' => 'quick-explore-3d.svg', 'tone' => 'sky'],
-                ['route' => 'trips.index', 'title' => 'Trip Saya', 'meta' => 'Trip disertai dan dicipta', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
-                ['route' => 'connections.index', 'title' => 'Sambungan', 'meta' => 'Urus kenalan carpool', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
-                ['route' => 'payments.index', 'title' => 'Bayar Tambang', 'meta' => 'Semak dan bayar tunggakan', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
+                ['route' => 'explore.index', 'title' => 'Explore Trips', 'meta' => 'Find public trips', 'art' => 'quick-explore-3d.svg', 'tone' => 'sky'],
+                ['route' => 'trips.index', 'title' => 'My Trips', 'meta' => 'Joined and created trips', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
+                ['route' => 'connections.index', 'title' => 'Connections', 'meta' => 'Manage carpool contacts', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
+                ['route' => 'payments.index', 'title' => 'Pay Fare', 'meta' => 'Review and pay outstanding fares', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
             ],
             'admin' => [
-                ['route' => 'admin.users.index', 'title' => 'Urus Pengguna', 'meta' => 'Peranan dan status pengguna', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
-                ['route' => 'admin.reports.index', 'title' => 'Laporan', 'meta' => 'Gambaran keseluruhan sistem', 'art' => 'quick-summary-3d.svg', 'tone' => 'slate'],
-                ['route' => 'trips.index', 'title' => 'Semua Trip', 'meta' => 'Pantau rekod trip', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
-                ['route' => 'saved-routes.index', 'title' => 'Urus Laluan', 'meta' => 'Pratetap laluan', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
+                ['route' => 'admin.users.index', 'title' => 'Manage Users', 'meta' => 'User roles and status', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
+                ['route' => 'admin.reports.index', 'title' => 'Reports', 'meta' => 'System overview', 'art' => 'quick-summary-3d.svg', 'tone' => 'slate'],
+                ['route' => 'trips.index', 'title' => 'All Trips', 'meta' => 'Monitor trip records', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
+                ['route' => 'saved-routes.index', 'title' => 'Manage Routes', 'meta' => 'Route presets', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
             ],
             default => [
-                ['route' => 'trips.create', 'title' => 'Cipta Trip', 'meta' => 'Terbitkan perjalanan baharu', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
-                ['route' => 'trips.index', 'title' => 'Trip Saya', 'meta' => 'Urus senarai trip anda', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
-                ['route' => 'explore.index', 'title' => 'Terokai', 'meta' => 'Cari perjalanan berdekatan', 'art' => 'quick-explore-3d.svg', 'tone' => 'slate'],
-                ['route' => 'connections.index', 'title' => 'Sambungan', 'meta' => 'Urus rangkaian pemandu', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
-                ['route' => 'payments.index', 'title' => 'Bayar Tambang', 'meta' => 'Semak dan bayar tunggakan', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
+                ['route' => 'trips.create', 'title' => 'Create Trip', 'meta' => 'Publish a new ride', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
+                ['route' => 'trips.index', 'title' => 'My Trips', 'meta' => 'Manage your trip list', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
+                ['route' => 'explore.index', 'title' => 'Explore', 'meta' => 'Find nearby rides', 'art' => 'quick-explore-3d.svg', 'tone' => 'slate'],
+                ['route' => 'connections.index', 'title' => 'Connections', 'meta' => 'Manage your driver network', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
+                ['route' => 'payments.index', 'title' => 'Pay Fare', 'meta' => 'Review and pay outstanding fares', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
             ],
         };
 
         $managementActions = match ($role) {
             'admin' => [
-                ['route' => 'admin.users.index', 'title' => 'Pengguna', 'meta' => 'Urus peranan dan status', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
-                ['route' => 'admin.reports.index', 'title' => 'Laporan', 'meta' => 'Analitik dan eksport sistem', 'art' => 'quick-summary-3d.svg', 'tone' => 'slate'],
-                ['route' => 'trips.index', 'title' => 'Trip', 'meta' => 'Pantau semua rekod trip', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
-                ['route' => 'explore.index', 'title' => 'Terokai Trip', 'meta' => 'Semak senarai awam', 'art' => 'quick-explore-3d.svg', 'tone' => 'sky'],
-                ['route' => 'connections.index', 'title' => 'Sambungan', 'meta' => 'Rekod rangkaian pengguna', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
-                ['route' => 'saved-routes.index', 'title' => 'Laluan', 'meta' => 'Pentadbiran pratetap laluan', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
-                ['route' => 'payments.index', 'title' => 'Bayaran', 'meta' => 'Semak dan jejak status tambang', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
-                ['route' => 'billing-cycles.index', 'title' => 'Ringkasan Bulanan', 'meta' => 'Ringkasan operasi', 'art' => 'quick-summary-3d.svg', 'tone' => 'amber'],
-                ['route' => 'archive.index', 'title' => 'Arkib', 'meta' => 'Rekod kitaran lepas', 'art' => 'quick-archive-3d.svg', 'tone' => 'slate'],
-                ['route' => 'notifications.index', 'title' => 'Notifikasi', 'meta' => 'Amaran dan kemaskini sistem', 'art' => 'quick-notification-3d.svg', 'tone' => 'emerald'],
-                ['route' => 'settings.index', 'title' => 'Tetapan', 'meta' => 'Pilihan profil dan akaun', 'art' => 'quick-settings-3d.svg', 'tone' => 'slate'],
+                ['route' => 'admin.users.index', 'title' => 'Users', 'meta' => 'Manage roles and status', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
+                ['route' => 'admin.reports.index', 'title' => 'Reports', 'meta' => 'System analytics and export', 'art' => 'quick-summary-3d.svg', 'tone' => 'slate'],
+                ['route' => 'trips.index', 'title' => 'Trip', 'meta' => 'Monitor all trip records', 'art' => 'quick-trip-3d.svg', 'tone' => 'amber'],
+                ['route' => 'explore.index', 'title' => 'Explore Trips', 'meta' => 'Browse public listings', 'art' => 'quick-explore-3d.svg', 'tone' => 'sky'],
+                ['route' => 'connections.index', 'title' => 'Connections', 'meta' => 'User network records', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
+                ['route' => 'saved-routes.index', 'title' => 'Routes', 'meta' => 'Route preset administration', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
+                ['route' => 'payments.index', 'title' => 'Payments', 'meta' => 'Review and track fare status', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
+                ['route' => 'billing-cycles.index', 'title' => 'Monthly Summary', 'meta' => 'Operational summary', 'art' => 'quick-summary-3d.svg', 'tone' => 'amber'],
+                ['route' => 'archive.index', 'title' => 'Archive', 'meta' => 'Past cycle records', 'art' => 'quick-archive-3d.svg', 'tone' => 'slate'],
+                ['route' => 'notifications.index', 'title' => 'Notifications', 'meta' => 'System alerts and updates', 'art' => 'quick-notification-3d.svg', 'tone' => 'emerald'],
+                ['route' => 'settings.index', 'title' => 'Settings', 'meta' => 'Profile and account options', 'art' => 'quick-settings-3d.svg', 'tone' => 'slate'],
             ],
             'driver' => [
-                ['route' => 'saved-routes.index', 'title' => 'Laluan', 'meta' => 'Pengurusan pratetap laluan', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
-                ['route' => 'payments.index', 'url' => route('payments.index') . '#queue-summary', 'title' => 'Bayaran', 'meta' => 'Jejak status tambang', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
-                ['route' => 'billing-cycles.index', 'title' => 'Ringkasan Bulanan', 'meta' => 'Ringkasan dan penutupan kitaran', 'art' => 'quick-summary-3d.svg', 'tone' => 'slate'],
-                ['route' => 'archive.index', 'title' => 'Arkib', 'meta' => 'Rekod kitaran lepas', 'art' => 'quick-archive-3d.svg', 'tone' => 'emerald'],
+                ['route' => 'saved-routes.index', 'title' => 'Routes', 'meta' => 'Route preset management', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
+                ['route' => 'payments.index', 'url' => route('payments.index') . '#queue-summary', 'title' => 'Payments', 'meta' => 'Track fare status', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
+                ['route' => 'billing-cycles.index', 'title' => 'Monthly Summary', 'meta' => 'Cycle summary and closure', 'art' => 'quick-summary-3d.svg', 'tone' => 'slate'],
+                ['route' => 'archive.index', 'title' => 'Archive', 'meta' => 'Past cycle records', 'art' => 'quick-archive-3d.svg', 'tone' => 'emerald'],
             ],
             default => [],
         };
 
         $heroPrimary = match ($role) {
-            'passenger' => ['label' => 'Cari Trip', 'route' => 'explore.index', 'icon' => 'fa-solid fa-magnifying-glass-location'],
-            'admin' => ['label' => 'Buka Laporan', 'route' => 'admin.reports.index', 'icon' => 'fa-solid fa-chart-line'],
-            default => ['label' => 'Cipta Trip', 'route' => 'trips.create', 'icon' => 'fa-solid fa-plus'],
+            'passenger' => ['label' => 'Find Trips', 'route' => 'explore.index', 'icon' => 'fa-solid fa-magnifying-glass-location'],
+            'admin' => ['label' => 'Open Reports', 'route' => 'admin.reports.index', 'icon' => 'fa-solid fa-chart-line'],
+            default => ['label' => 'Create Trip', 'route' => 'trips.create', 'icon' => 'fa-solid fa-plus'],
         };
         $heroSecondary = match ($role) {
-            'passenger' => ['label' => 'Trip Saya', 'route' => 'trips.index', 'icon' => 'fa-solid fa-car-side'],
-            'admin' => ['label' => 'Urus Pengguna', 'route' => 'admin.users.index', 'icon' => 'fa-solid fa-users-gear'],
-            default => ['label' => 'Terokai Trip', 'route' => 'explore.index', 'icon' => 'fa-solid fa-compass'],
+            'passenger' => ['label' => 'My Trips', 'route' => 'trips.index', 'icon' => 'fa-solid fa-car-side'],
+            'admin' => ['label' => 'Manage Users', 'route' => 'admin.users.index', 'icon' => 'fa-solid fa-users-gear'],
+            default => ['label' => 'Explore Trips', 'route' => 'explore.index', 'icon' => 'fa-solid fa-compass'],
         };
         $heroKicker = match ($role) {
-            'passenger' => 'Cari perjalanan awam, jejak bayaran, dan urus trip yang disertai.',
-            'admin' => 'Pantau pengguna, trip, laporan, dan aktiviti bayaran dari satu tempat.',
-            default => 'Terbitkan perjalanan, semak permohonan, dan pastikan aliran kerja laluan anda berjalan lancar.',
+            'passenger' => 'Find public rides, track payments, and manage joined trips.',
+            'admin' => 'Monitor users, trips, reports, and payment activity from one place.',
+            default => 'Publish rides, review requests, and keep your route workflow running smoothly.',
         };
     @endphp
 
@@ -523,14 +523,14 @@
                         <a href="{{ route($heroPrimary['route']) }}" class="home-hero-route-line">
                             <span class="home-hero-route-icon"><i class="fa-solid fa-location-dot"></i></span>
                             <span class="home-hero-route-copy">
-                                <span class="home-hero-route-label">Mula</span>
+                                <span class="home-hero-route-label">Start</span>
                                 <span class="home-hero-route-value">{{ $heroPrimary['label'] }}</span>
                             </span>
                         </a>
                         <a href="{{ route($heroSecondary['route']) }}" class="home-hero-route-line">
                             <span class="home-hero-route-icon destination"><i class="fa-solid fa-flag-checkered"></i></span>
                             <span class="home-hero-route-copy">
-                                <span class="home-hero-route-label">Destinasi</span>
+                                <span class="home-hero-route-label">Destination</span>
                                 <span class="home-hero-route-value">{{ $heroSecondary['label'] }}</span>
                             </span>
                         </a>
@@ -541,7 +541,7 @@
 
         <section class="home-card">
             <div class="home-section-head">
-                <h2 class="home-section-title">Tindakan Pantas</h2>
+                <h2 class="home-section-title">Quick Actions</h2>
             </div>
             <div class="home-shortcuts">
                 @foreach($quickActions as $item)
@@ -559,7 +559,7 @@
                         <span class="home-shortcut-title">{{ $item['title'] }}</span>
                         <span class="home-shortcut-meta">{{ $item['meta'] }}</span>
                         @if($isPayFareAction && $quickUnpaidCount > 0)
-                            <span class="home-shortcut-unpaid-note">{{ $quickUnpaidCount }} tambang belum bayar</span>
+                            <span class="home-shortcut-unpaid-note">{{ $quickUnpaidCount }} unpaid fares</span>
                         @endif
                     </a>
                 @endforeach
@@ -569,7 +569,7 @@
         @if($role !== 'passenger')
             <section class="home-card">
                 <div class="home-section-head">
-                <h2 class="home-section-title">Pengurusan</h2>
+                <h2 class="home-section-title">Management</h2>
             </div>
             <div class="home-shortcuts">
                 @foreach($managementActions as $item)
@@ -587,30 +587,30 @@
 
         <section class="home-card">
             <div class="home-section-head">
-                <h2 class="home-section-title">Status Penting</h2>
+                <h2 class="home-section-title">Key Status</h2>
             </div>
             <div class="home-stats">
                 <a href="{{ route('trips.index') }}" class="home-stat-link">
                     <div class="home-stat">
-                        <span class="home-stat-label">Jumlah Trip</span>
+                        <span class="home-stat-label">Total Trips</span>
                         <span class="home-stat-value">{{ (int) ($stats['total_trips'] ?? 0) }}</span>
                     </div>
                 </a>
                 <a href="{{ route('payments.index') }}" class="home-stat-link">
                     <div class="home-stat">
-                        <span class="home-stat-label">Tunggakan (Semua Kitaran)</span>
+                        <span class="home-stat-label">Outstanding (All Cycles)</span>
                         <span class="home-stat-value">RM {{ number_format((float) ($stats['unpaid_amount'] ?? 0), 2) }}</span>
                     </div>
                 </a>
                 <a href="{{ route('notifications.index') }}" class="home-stat-link">
                     <div class="home-stat">
-                        <span class="home-stat-label">Notifikasi Belum Dibaca</span>
+                        <span class="home-stat-label">Unread Notifications</span>
                         <span class="home-stat-value">{{ (int) ($stats['unread_notifications'] ?? 0) }}</span>
                     </div>
                 </a>
                 <a href="{{ route('saved-routes.index') }}" class="home-stat-link">
                     <div class="home-stat">
-                        <span class="home-stat-label">Laluan Aktif</span>
+                        <span class="home-stat-label">Active Routes</span>
                         <span class="home-stat-value">{{ (int) ($stats['saved_routes'] ?? 0) }}</span>
                     </div>
                 </a>
@@ -621,15 +621,15 @@
                     @if($upcomingJoinedTrip)
                         <a href="{{ route('trips.index', ['focus_trip' => $upcomingJoinedTrip->id]) }}" class="home-note-link">
                             <div class="home-note-item">
-                                <span class="home-note-label">Trip Sertai Akan Datang</span>
+                                <span class="home-note-label">Upcoming Joined Trips</span>
                                 <span class="home-note-value">{{ $upcomingJoinedTrip->savedRoute?->route_name ?? ('Trip #' . $upcomingJoinedTrip->id) }}</span>
                                 <span class="home-note-meta">{{ $upcomingJoinedTrip->trip_datetime?->format('d M Y, H:i') }}</span>
                             </div>
                         </a>
                     @else
                         <div class="home-note-item">
-                            <span class="home-note-label">Trip Sertai Akan Datang</span>
-                            <span class="home-note-value">Tiada trip sertai dijadualkan lagi.</span>
+                            <span class="home-note-label">Upcoming Joined Trips</span>
+                            <span class="home-note-value">No joined trips scheduled yet.</span>
                         </div>
                     @endif
                 </div>
@@ -638,28 +638,28 @@
                     @if($upcomingCreatedTrip)
                         <a href="{{ route('trips.index', ['focus_trip' => $upcomingCreatedTrip->id]) }}" class="home-note-link">
                             <div class="home-note-item">
-                                <span class="home-note-label">Trip Dicipta Akan Datang</span>
+                                <span class="home-note-label">Upcoming Created Trips</span>
                                 <span class="home-note-value">{{ $upcomingCreatedTrip->savedRoute?->route_name ?? ('Trip #' . $upcomingCreatedTrip->id) }}</span>
                                 <span class="home-note-meta">{{ $upcomingCreatedTrip->trip_datetime?->format('d M Y, H:i') }}</span>
                             </div>
                         </a>
                     @else
                         <div class="home-note-item">
-                            <span class="home-note-label">Trip Dicipta Akan Datang</span>
-                            <span class="home-note-value">Tiada trip dicipta dijadualkan lagi.</span>
+                            <span class="home-note-label">Upcoming Created Trips</span>
+                            <span class="home-note-value">No created trips scheduled yet.</span>
                         </div>
                     @endif
                     @if($upcomingCreatedTrip)
                         <a href="{{ route('trips.requests.index', $upcomingCreatedTrip) }}" class="home-note-link">
                             <div class="home-note-item">
-                                <span class="home-note-label">Permohonan Sertai Tertangguh</span>
+                                <span class="home-note-label">Pending Join Requests</span>
                                 <span class="home-note-value">{{ (int) ($pendingJoinRequests ?? 0) }}</span>
                             </div>
                         </a>
                     @else
                         <a href="{{ route('trips.index') }}" class="home-note-link">
                             <div class="home-note-item">
-                                <span class="home-note-label">Permohonan Sertai Tertangguh</span>
+                                <span class="home-note-label">Pending Join Requests</span>
                                 <span class="home-note-value">{{ (int) ($pendingJoinRequests ?? 0) }}</span>
                             </div>
                         </a>
@@ -669,8 +669,8 @@
                 <div class="home-note">
                     <a href="{{ route('admin.reports.index') }}" class="home-note-link">
                         <div class="home-note-item">
-                            <span class="home-note-label">Fokus Admin</span>
-                            <span class="home-note-value">Semak pengguna, laporan, dan ringkasan operasi.</span>
+                            <span class="home-note-label">Admin Focus</span>
+                            <span class="home-note-value">Review users, reports, and operational summaries.</span>
                         </div>
                     </a>
                 </div>
@@ -679,9 +679,9 @@
 
         <section class="home-card">
             <div class="home-section-head">
-                <h2 class="home-section-title">Sertai Trip Awam</h2>
+                <h2 class="home-section-title">Join Public Trips</h2>
                 <div class="home-public-head-tools">
-                    <a href="{{ route('explore.index') }}" class="home-public-head-link">Terokai Trip Awam</a>
+                    <a href="{{ route('explore.index') }}" class="home-public-head-link">Explore Public Trips</a>
                 </div>
             </div>
             <div class="home-public-wrap">
@@ -693,10 +693,10 @@
                                     $routeName = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' - ' . ($trip->destination_name ?? 'Destination'));
                                     $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
                                     $availableSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;
-                                    $tripTypeText = ((string) ($trip->trip_mode ?? 'one_way')) === 'two_way' ? 'Dua Hala' : 'Sehala';
+                                    $tripTypeText = ((string) ($trip->trip_mode ?? 'one_way')) === 'two_way' ? 'Two-way' : 'One-way';
                                     $pickupText = $trip->pickup_name ?? 'Pickup';
                                     $destinationText = $trip->destination_name ?? 'Destination';
-                                    $visibilityText = ((string) ($trip->visibility ?? 'public')) === 'public' ? 'Trip Awam' : 'Trip Peribadi';
+                                    $visibilityText = ((string) ($trip->visibility ?? 'public')) === 'public' ? 'Public Trip' : 'Private Trip';
                                     $visibilityIcon = ($trip->visibility ?? 'public') === 'public' ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
                                 @endphp
                                 <a href="{{ route('explore.index', ['sort' => 'latest', 'focus_trip' => $trip->id]) }}" class="home-public-slide">
@@ -723,24 +723,24 @@
                                         </p>
                                         <p class="home-public-meta-line" title="{{ $destinationText }}">
                                             <i class="fas fa-flag-checkered"></i>
-                                            <span class="home-public-meta-label">Destinasi :</span>
+                                            <span class="home-public-meta-label">Destination :</span>
                                             <span class="home-public-meta-value">{{ $destinationText }}</span>
                                         </p>
                                         <div class="home-public-mini-grid">
                                             <div class="home-public-pill">
-                                                <span class="home-public-pill-label">Tarikh & Masa</span>
+                                                <span class="home-public-pill-label">Date & Time</span>
                                                 <span class="home-public-pill-value">{{ $trip->trip_datetime?->format('d M Y, H:i') ?? '-' }}</span>
                                             </div>
                                             <div class="home-public-pill">
-                                                <span class="home-public-pill-label">Tambang</span>
+                                                <span class="home-public-pill-label">Fare</span>
                                                 <span class="home-public-pill-value">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
                                             </div>
                                             <div class="home-public-pill">
-                                                <span class="home-public-pill-label">Tempat Duduk</span>
-                                                <span class="home-public-pill-value">{{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit) : 'Terbuka' }}</span>
+                                                <span class="home-public-pill-label">Seats</span>
+                                                <span class="home-public-pill-value">{{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit) : 'Open' }}</span>
                                             </div>
                                             <div class="home-public-pill">
-                                                <span class="home-public-pill-label">ID Trip</span>
+                                                <span class="home-public-pill-label">Trip ID</span>
                                                 <span class="home-public-pill-value">#{{ $trip->id }}</span>
                                             </div>
                                         </div>
@@ -750,12 +750,12 @@
                         </div>
                     </div>
                     <div class="home-public-controls">
-                        <button type="button" class="home-public-nav prev" data-carousel-prev aria-label="Sebelumnya"><i class="fas fa-chevron-left"></i></button>
+                        <button type="button" class="home-public-nav prev" data-carousel-prev aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
                         <div class="home-public-dots" data-carousel-dots></div>
-                        <button type="button" class="home-public-nav next" data-carousel-next aria-label="Seterusnya"><i class="fas fa-chevron-right"></i></button>
+                        <button type="button" class="home-public-nav next" data-carousel-next aria-label="Next"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 @else
-                    <div class="home-public-empty">Tiada trip awam tersedia buat masa ini.</div>
+                    <div class="home-public-empty">No public trips are available right now.</div>
                 @endif
             </div>
         </section>
@@ -837,4 +837,3 @@
         })();
     </script>
 @endsection
-

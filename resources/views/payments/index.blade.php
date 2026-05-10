@@ -1396,7 +1396,7 @@
                     </div>
                 @endif
                 <div class="payments-tool-item">
-                    <span class="payments-tool-label">Jumlah Belum Bayar</span>
+                    <span class="payments-tool-label">Total Unpaid</span>
                     <span class="payments-tool-value" id="paymentsToolUnpaidAmount">RM {{ number_format($unpaidAmt, 2) }}</span>
                 </div>
                 <div class="payments-tool-item">
@@ -1419,7 +1419,7 @@
                 <h2 class="payments-section-title">My Summary</h2>
                 <div class="payments-summary-grid">
                     <div class="summary-item">
-                        <div class="summary-label">Belum Bayar</div>
+                        <div class="summary-label">Unpaid</div>
                         <div id="paymentsMyUnpaidAmount" class="summary-value">RM {{ number_format((float) ($summary['my']['unpaid']['amount'] ?? 0), 2) }}</div>
                         <div id="paymentsMyUnpaidCount" class="summary-count">{{ $summary['my']['unpaid']['count'] ?? 0 }} records</div>
                     </div>
@@ -1429,7 +1429,7 @@
                         <div id="paymentsMyPendingCount" class="summary-count">{{ $summary['my']['pending_confirmation']['count'] ?? 0 }} records</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Sudah Bayar</div>
+                        <div class="summary-label">Paid</div>
                         <div id="paymentsMyPaidAmount" class="summary-value">RM {{ number_format((float) ($summary['my']['paid']['amount'] ?? 0), 2) }}</div>
                         <div id="paymentsMyPaidCount" class="summary-count">{{ $summary['my']['paid']['count'] ?? 0 }} records</div>
                     </div>
@@ -1438,7 +1438,7 @@
 
             <section class="payments-card" id="my-payments-list">
                 <h2 class="payments-section-title">My Payments</h2>
-                <p class="payments-section-subtitle">Tandai bayaran anda dan pantau pengesahan driver.</p>
+                <p class="payments-section-subtitle">Mark your payments and track driver confirmation.</p>
                 <div class="payments-filter-panel js-payments-filter" data-filter-scope="#my-payments-list">
                     <div class="payments-filter-head">
                         <p class="payments-filter-hint">Filters apply automatically.</p>
@@ -1465,7 +1465,7 @@
                                 </select>
                             </div>
                             <div class="payments-filter-field">
-                                <label for="myPaymentsPassengerSearch">Search Trip Or Driver</label>
+                                <label for="myPaymentsPassengerSearch">Search Trip or Driver</label>
                                 <input id="myPaymentsPassengerSearch" class="payments-filter-input" type="search" placeholder="Search trip or driver" data-filter-person>
                             </div>
                         </div>
@@ -1492,8 +1492,8 @@
                                 ? 'status-paid'
                                 : ($payment->payment_status === 'pending_confirmation' ? 'status-pending' : 'status-unpaid');
                             $statusText = $payment->payment_status === 'pending_confirmation'
-                                ? 'Menunggu Pengesahan'
-                                : ($payment->payment_status === 'paid' ? 'Sudah Bayar' : ($payment->payment_status === 'unpaid' ? 'Belum Bayar' : ucfirst($payment->payment_status)));
+                                ? 'Pending Confirmation'
+                                : ($payment->payment_status === 'paid' ? 'Paid' : ($payment->payment_status === 'unpaid' ? 'Unpaid' : ucfirst($payment->payment_status)));
                             $methodLabel = match ($payment->payment_method) {
                                 'duitnow_qr' => 'DuitNow QR',
                                 'bank_account' => 'Bank Account',
@@ -1602,17 +1602,17 @@
                                             data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                             data-driver-tng-qr="{{ $driverTngQr }}"
                                         ><i class="fa-solid fa-circle-info"></i><span>Driver Payment Details</span></button>
-                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
+                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
                                     </form>
                                 @elseif($payment->payment_status === 'pending_confirmation')
-                                    <span style="font-size:12px; color:#854d0e; font-weight:700;">Menunggu Pengesahan</span>
+                                    <span style="font-size:12px; color:#854d0e; font-weight:700;">Pending Confirmation</span>
                                 @else
-                                    <span style="font-size:12px; color:#166534; font-weight:700;">Sudah Bayar</span>
+                                    <span style="font-size:12px; color:#166534; font-weight:700;">Paid</span>
                                 @endif
                             </div>
                         </article>
                     @empty
-                        <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">Tiada rekod bayaran ditemui.</div>
+                        <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">No payment records found.</div>
                     @endforelse
                 </div>
                 <div class="payments-table-wrap">
@@ -1741,12 +1741,12 @@
                                                 data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                                 data-driver-tng-qr="{{ $driverTngQr }}"
                                             ><i class="fa-solid fa-circle-info"></i></button>
-                                            <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
+                                            <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
                                         </form>
                                     @elseif($payment->payment_status === 'pending_confirmation')
-                                        <span style="font-size:12px; color:#854d0e; font-weight:700;">Menunggu Pengesahan</span>
+                                        <span style="font-size:12px; color:#854d0e; font-weight:700;">Pending Confirmation</span>
                                     @else
-                                        <span style="font-size:12px; color:#166534; font-weight:700;">Sudah Bayar</span>
+                                        <span style="font-size:12px; color:#166534; font-weight:700;">Paid</span>
                                     @endif
                                 </td>
                             </tr>
@@ -1756,7 +1756,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="payments-filter-empty" data-filter-empty>Tiada rekod bayaran sepadan dengan penapis semasa.</div>
+                <div class="payments-filter-empty" data-filter-empty>No payment records match the current filters.</div>
                 <div style="margin-top:12px;">
                     {{ $myPayments->appends(request()->query())->links() }}
                 </div>
@@ -1894,8 +1894,8 @@
                                 ? 'status-paid'
                                 : ($payment->payment_status === 'pending_confirmation' ? 'status-pending' : 'status-unpaid');
                             $statusText = $payment->payment_status === 'pending_confirmation'
-                                ? 'Menunggu Pengesahan'
-                                : ($payment->payment_status === 'paid' ? 'Sudah Bayar' : ($payment->payment_status === 'unpaid' ? 'Belum Bayar' : ucfirst($payment->payment_status)));
+                                ? 'Pending Confirmation'
+                                : ($payment->payment_status === 'paid' ? 'Paid' : ($payment->payment_status === 'unpaid' ? 'Unpaid' : ucfirst($payment->payment_status)));
                             $methodLabel = match ($payment->payment_method) {
                                 'duitnow_qr' => 'DuitNow QR',
                                 'bank_account' => 'Bank Account',
@@ -2013,7 +2013,7 @@
                                     <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
+                                        <button type="submit" class="payments-btn payments-btn-success">Approve</button>
                                     </form>
                                     <button
                                         type="button"
@@ -2022,20 +2022,20 @@
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
                                         data-trip="#{{ $payment->trip_id }}"
                                     >
-                                        Tolak
+                                        Reject
                                     </button>
                                 @elseif($payment->payment_status === 'unpaid')
                                     <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
+                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
                                     </form>
                                 @endif
                                 </div>
                             </div>
                         </article>
                     @empty
-                        <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">Tiada rekod dalam baris gilir.</div>
+                        <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">No records in the queue.</div>
                     @endforelse
                 </div>
                 <div class="payments-table-wrap">
@@ -2068,8 +2068,8 @@
                                 ? 'status-paid'
                                 : ($payment->payment_status === 'pending_confirmation' ? 'status-pending' : 'status-unpaid');
                             $statusText = $payment->payment_status === 'pending_confirmation'
-                                ? 'Menunggu Pengesahan'
-                                : ($payment->payment_status === 'paid' ? 'Sudah Bayar' : ($payment->payment_status === 'unpaid' ? 'Belum Bayar' : ucfirst($payment->payment_status)));
+                                ? 'Pending Confirmation'
+                                : ($payment->payment_status === 'paid' ? 'Paid' : ($payment->payment_status === 'unpaid' ? 'Unpaid' : ucfirst($payment->payment_status)));
                             $methodLabel = match ($payment->payment_method) {
                                 'duitnow_qr' => 'DuitNow QR',
                                 'bank_account' => 'Bank Account',
@@ -2170,7 +2170,7 @@
                                             <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
+                                                <button type="submit" class="payments-btn payments-btn-success">Approve</button>
                                             </form>
                                             <button
                                                 type="button"
@@ -2185,7 +2185,7 @@
                                             <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
+                                                <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
                                             </form>
                                         @endif
                                         </div>
@@ -2203,7 +2203,7 @@
                         {{ $driverPayments->appends(request()->query())->links() }}
                     </div>
                 @endif
-                <div class="payments-filter-empty" data-filter-empty>Tiada rekod bayaran sepadan dengan penapis semasa.</div>
+                <div class="payments-filter-empty" data-filter-empty>No payment records match the current filters.</div>
                 <div id="archived-queue" style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:20px;">
                     <h3 class="payments-section-title" style="margin-bottom:6px;">Archived Queue</h3>
                     <p class="payments-section-subtitle">Archived records that still need driver action.</p>
@@ -2336,7 +2336,7 @@
                                             <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
+                                                <button type="submit" class="payments-btn payments-btn-success">Approve</button>
                                             </form>
                                             <button
                                                 type="button"
@@ -2351,7 +2351,7 @@
                                             <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
+                                                <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
                                             </form>
                                         @endif
                                     </div>
@@ -2490,7 +2490,7 @@
                                                     <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
+                                                        <button type="submit" class="payments-btn payments-btn-success">Approve</button>
                                                     </form>
                                                     <button
                                                         type="button"
@@ -2505,7 +2505,7 @@
                                                     <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
+                                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
                                                     </form>
                                                 @endif
                                             </div>
@@ -2564,11 +2564,11 @@
                     <form id="requestModalApproveForm" method="POST" class="payments-action-row">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
+                        <button type="submit" class="payments-btn payments-btn-success">Approve</button>
                     </form>
-                    <button type="button" class="payments-btn payments-btn-danger" id="requestModalReject">Tolak</button>
+                    <button type="button" class="payments-btn payments-btn-danger" id="requestModalReject">Reject</button>
                 </div>
-                <button type="button" class="payments-btn" id="requestModalClose">Tutup</button>
+                <button type="button" class="payments-btn" id="requestModalClose">Close</button>
             </div>
         </div>
     </div>
@@ -2663,7 +2663,7 @@
                         <span class="trip-amount-due-hint">This is the amount you need to pay for this trip.</span>
                     </div>
                     <div class="request-modal-line">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-sack-dollar"></i>Trip Fare Total</span>
+                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-sack-dollar"></i>Total Trip Fare</span>
                         <span class="request-modal-value" id="tripDetailsFareTotal">-</span>
                         <span class="trip-amount-due-hint" style="color:#64748b;">This is the full fare for the whole trip.</span>
                     </div>
@@ -2697,7 +2697,7 @@
     <div class="request-modal" id="rejectModal" aria-hidden="true">
         <div class="request-modal-card">
             <div class="request-modal-head">
-                <h3 class="request-modal-title">Tolak Bayaran</h3>
+                <h3 class="request-modal-title">Reject Payment</h3>
                 <button type="button" class="modal-close-square" id="rejectModalCloseTop" aria-label="Close">
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
@@ -2718,14 +2718,14 @@
                         class="reject-reason-input"
                         id="rejectModalReason"
                         name="rejection_reason"
-                        placeholder="Tulis sebab penolakan..."
+                        placeholder="Write the rejection reason..."
                         required
                     ></textarea>
                 </form>
             </div>
             <div class="reject-modal-actions">
-                <button type="button" class="payments-btn" id="rejectModalCancel">Batal</button>
-                <button type="submit" class="payments-btn payments-btn-danger" form="rejectModalForm">Tolak</button>
+                <button type="button" class="payments-btn" id="rejectModalCancel">Cancel</button>
+                <button type="submit" class="payments-btn payments-btn-danger" form="rejectModalForm">Reject</button>
             </div>
         </div>
     </div>
@@ -3575,6 +3575,4 @@
         })();
     </script>
 @endsection
-
-
 

@@ -495,44 +495,44 @@
 
     <div class="page-shell">
         <section class="page-card title-card">
-            <h1 class="page-title">Sunting Laluan Tersimpan</h1>
-            <p class="page-subtitle">Kemaskini butiran laluan dan titik peta anda.</p>
+            <h1 class="page-title">Edit Saved Route</h1>
+            <p class="page-subtitle">Update your route details and map points.</p>
         </section>
 
         <section class="page-card">
             <div class="map-card">
                 <div class="route-section-head">
-                    <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup dan drop-off</span>
-                    <p class="route-section-hint">Cari, pratonton, atau ketuk peta untuk sahkan Pickup Titik A dan Drop-off Titik B.</p>
+                    <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup and drop-off</span>
+                    <p class="route-section-hint">Search, preview, or tap the map to confirm Pickup Point A and Drop-off Point B.</p>
                 </div>
                 <div class="map-tools">
                     <div class="map-search-row">
-                        <input type="text" id="mapSearchInput" placeholder="Cari alamat atau tempat">
-                        <button type="button" id="mapSearchBtn">Cari</button>
-                        <button type="button" id="mapLocateBtn">Lokasi Semasa</button>
+                        <input type="text" id="mapSearchInput" placeholder="Search address or place">
+                        <button type="button" id="mapSearchBtn">Search</button>
+                        <button type="button" id="mapLocateBtn">Current Location</button>
                     </div>
                 </div>
-                <p class="map-help">Ketuk sekali untuk tetapkan Titik A, ketuk sekali lagi untuk Titik B. Garis laluan akan dilukis secara automatik.</p>
+                <p class="map-help">Tap once to set Point A, then tap again to set Point B. The route line will be drawn automatically.</p>
                 <div class="map-status">
                     <div class="map-step-title">
                         <span class="map-step-badge" id="mapStepNumber">1/3</span>
-                        Kemajuan Tetapan Laluan
+                        Route Setup Progress
                     </div>
-                    <div class="map-step-text" id="mapStepText">Ketuk pada peta untuk tetapkan Titik A.</div>
-                    <div class="map-step-hint" id="mapStepHint">Kemudian ketuk sekali lagi untuk tetapkan Titik B dan lihat pilihan laluan.</div>
+                    <div class="map-step-text" id="mapStepText">Tap the map to set Point A.</div>
+                    <div class="map-step-hint" id="mapStepHint">Then tap again to set Point B and view route options.</div>
                     <div class="map-step-actions">
-                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Set Semula Laluan</span></button>
+                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Reset Route</span></button>
                     </div>
                 </div>
                 <div id="routeMap"></div>
                 <div class="route-options" id="routeOptions">
-                    <div class="route-empty">Tetapkan Titik A dan Titik B untuk lihat pilihan laluan dengan jarak dan ETA.</div>
+                    <div class="route-empty">Set Point A and Point B to view route options with distance and ETA.</div>
                 </div>
             </div>
 
             <form action="{{ route('saved-routes.update', $savedRoute) }}" method="POST">
                 @method('PUT')
-                @include('saved-routes._form', ['submitLabel' => 'Kemaskini Laluan'])
+                @include('saved-routes._form', ['submitLabel' => 'Update Route'])
             </form>
         </section>
     </div>
@@ -984,4 +984,3 @@
         })();
     </script>
 @endsection
-

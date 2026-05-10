@@ -24,31 +24,31 @@
 </head>
 <body>
 <div class="no-print" style="margin-bottom:12px;">
-    <button onclick="window.print()">Cetak / Simpan sebagai PDF</button>
+    <button onclick="window.print()">Print / Save as PDF</button>
 </div>
 
-<h1>Laporan Admin CarpoolHub</h1>
-<div class="meta">Dijana pada: {{ now()->format('Y-m-d H:i:s') }}</div>
+<h1>Reports Admin CarpoolHub</h1>
+<div class="meta">Generated at: {{ now()->format('Y-m-d H:i:s') }}</div>
 
 <h2>Gambaran Keseluruhan</h2>
 <div class="grid">
-    <div class="card"><div class="label">Jumlah Pengguna</div><div class="value">{{ $overview['users_total'] }}</div></div>
-    <div class="card"><div class="label">Pemandu</div><div class="value">{{ $overview['drivers_total'] }}</div></div>
-    <div class="card"><div class="label">Penumpang</div><div class="value">{{ $overview['passengers_total'] }}</div></div>
-    <div class="card"><div class="label">Pengguna Aktif</div><div class="value">{{ $overview['active_users_total'] }}</div></div>
-    <div class="card"><div class="label">Jumlah Trip</div><div class="value">{{ $overview['trips_total'] }}</div></div>
-    <div class="card"><div class="label">Trip Selesai</div><div class="value">{{ $overview['trips_completed'] }}</div></div>
-    <div class="card"><div class="label">Jumlah Tambang</div><div class="value">RM {{ number_format((float) $overview['fare_total'], 2) }}</div></div>
-    <div class="card"><div class="label">Jumlah Pembayaran</div><div class="value">RM {{ number_format((float) $overview['payments_total'], 2) }}</div></div>
+    <div class="card"><div class="label">Total Users</div><div class="value">{{ $overview['users_total'] }}</div></div>
+    <div class="card"><div class="label">Driver</div><div class="value">{{ $overview['drivers_total'] }}</div></div>
+    <div class="card"><div class="label">Passengers</div><div class="value">{{ $overview['passengers_total'] }}</div></div>
+    <div class="card"><div class="label">Active Users</div><div class="value">{{ $overview['active_users_total'] }}</div></div>
+    <div class="card"><div class="label">Total Trips</div><div class="value">{{ $overview['trips_total'] }}</div></div>
+    <div class="card"><div class="label">Completed Trips</div><div class="value">{{ $overview['trips_completed'] }}</div></div>
+    <div class="card"><div class="label">Total Fare</div><div class="value">RM {{ number_format((float) $overview['fare_total'], 2) }}</div></div>
+    <div class="card"><div class="label">Total Payments</div><div class="value">RM {{ number_format((float) $overview['payments_total'], 2) }}</div></div>
 </div>
 
-<h2>Pecahan Pembayaran</h2>
+<h2>Pecahan Payments</h2>
 <table>
     <thead>
     <tr>
         <th>Status</th>
         <th class="right">Bilangan</th>
-        <th class="right">Amaun</th>
+        <th class="right">Amount</th>
     </tr>
     </thead>
     <tbody>
@@ -62,16 +62,16 @@
     </tbody>
 </table>
 
-<h2>Ringkasan Kewangan Kitaran Bil</h2>
+<h2>Billing Cycle Financial Summary</h2>
 <table>
     <thead>
     <tr>
-        <th>Bulan</th>
+        <th>Month</th>
         <th>Status</th>
         <th class="right">Trip</th>
-        <th class="right">Jumlah Tambang</th>
-        <th class="right">Dibayar</th>
-        <th class="right">Tertangguh/Belum Bayar</th>
+        <th class="right">Total Fare</th>
+        <th class="right">Paid</th>
+        <th class="right">Pending/Unpaid</th>
     </tr>
     </thead>
     <tbody>
@@ -86,7 +86,7 @@
         </tr>
     @empty
         <tr>
-            <td colspan="6">Tiada data kitaran.</td>
+            <td colspan="6">No cycle data.</td>
         </tr>
     @endforelse
     </tbody>
@@ -99,4 +99,3 @@
 </script>
 </body>
 </html>
-

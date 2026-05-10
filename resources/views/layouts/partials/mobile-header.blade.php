@@ -5,14 +5,14 @@
                 type="button"
                 class="mobile-back-btn"
                 id="mobileBackBtn"
-                aria-label="Kembali"
-                title="Kembali"
+                aria-label="Back"
+                title="Back"
                 data-fallback-url="{{ route('home') }}"
             >
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
         @endif
-        <a href="{{ route('home') }}" class="header-logo-link" aria-label="Pergi ke Laman Utama">
+        <a href="{{ route('home') }}" class="header-logo-link" aria-label="Go to Home">
             <img src="{{ asset('build/assets/branding/logo-horizontal-b.png') }}" alt="CarpoolHub" class="mobile-brand-logo">
         </a>
     </div>
@@ -27,11 +27,11 @@
             </summary>
             <div class="notification-dropdown">
                 <div class="notification-dropdown-head">
-                    <strong>Notifikasi</strong>
+                    <strong>Notifications</strong>
                     <form method="POST" action="{{ route('notifications.read-all') }}">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="link-action">Tandakan Semua</button>
+                        <button type="submit" class="link-action">Mark All</button>
                     </form>
                 </div>
                 <div class="notification-items" data-notification-items>
@@ -47,18 +47,18 @@
                                     <form method="POST" action="{{ route('notifications.read', $notification) }}">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="link-action">Baca</button>
+                                        <button type="submit" class="link-action">Read</button>
                                     </form>
                                 @endif
                             </div>
                         </div>
                     @empty
-                        <div class="notification-empty">Tiada notifikasi.</div>
+                        <div class="notification-empty">No notifications.</div>
                     @endforelse
                 </div>
 
                 <div class="notification-footer">
-                    <a href="{{ route('notifications.index') }}" class="notification-view-all">Lihat Semua</a>
+                    <a href="{{ route('notifications.index') }}" class="notification-view-all">View All</a>
                 </div>
             </div>
         </details>
@@ -70,13 +70,13 @@
             <div class="profile-dropdown">
                 <a href="{{ route('profile.index') }}" class="profile-menu-link">
                     <i class="fa-solid fa-user-gear"></i>
-                    <span>Profil</span>
+                    <span>Profile</span>
                 </a>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="profile-menu-btn">
                         <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Log Keluar</span>
+                        <span>Logout</span>
                     </button>
                 </form>
             </div>

@@ -605,20 +605,20 @@
     <div class="route-page">
         <section class="route-title-card">
             <div>
-                <h1 class="route-title">Laluan Tersimpan</h1>
-                <p class="route-subtitle">Urus laluan Titik A dan Titik B yang boleh diguna semula.</p>
+                <h1 class="route-title">Saved Routes</h1>
+                <p class="route-subtitle">Manage reusable Point A and Point B routes.</p>
             </div>
             <a href="{{ route('saved-routes.create') }}" class="add-route-btn">
                 <i class="fa-solid fa-plus"></i>
-                <span>Tambah Laluan</span>
+                <span>Add Route</span>
             </a>
         </section>
 
         <section class="route-info-note">
             <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>
-            Simpan laluan sehala sahaja — tiada perlu tambah kedua-dua arah.
-            Tambang yang ditunjukkan adalah untuk perjalanan sehala.
-            Semasa mencipta trip, pilih Sehala atau Dua Hala dan sistem akan kira jumlah tambang dua hala secara automatik.
+            Save one-way routes only. There is no need to add both directions.
+            Displayed fares are for one-way trips.
+            When creating a trip, choose One-way or Two-way and the system will calculate the two-way total automatically.
         </section>
 
         <section class="route-data-card">
@@ -626,7 +626,7 @@
                 <div class="route-toolbar">
                     <div class="route-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input id="routeSearchInput" type="search" placeholder="Cari nama laluan..." autocomplete="off">
+                        <input id="routeSearchInput" type="search" placeholder="Search route name..." autocomplete="off">
                     </div>
                 </div>
             @endif
@@ -634,19 +634,19 @@
             @if($savedRoutes->isEmpty())
                 <div class="empty-state">
                     <i class="fa-solid fa-route empty-state-icon"></i>
-                    <p class="empty-state-title">Tiada laluan tersimpan</p>
-                    <p class="empty-state-copy">Tambah laluan pertama anda untuk mula merancang trip.</p>
+                    <p class="empty-state-title">No saved routes</p>
+                    <p class="empty-state-copy">Add your first route to start planning trips.</p>
                 </div>
             @else
                 <div class="route-mobile-list">
                     @foreach($savedRoutes as $savedRoute)
-                        <article class="route-mobile-item" data-route-name="{{ strtolower($savedRoute->route_name ?: 'Laluan Tidak Bertajuk') }}">
+                        <article class="route-mobile-item" data-route-name="{{ strtolower($savedRoute->route_name ?: 'Untitled Route') }}">
                             <div class="route-mobile-head">
-                                <h2 class="route-item-title">{{ $savedRoute->route_name ?: 'Laluan Tidak Bertajuk' }}</h2>
+                                <h2 class="route-item-title">{{ $savedRoute->route_name ?: 'Untitled Route' }}</h2>
                                 <div class="fare-card">
                                     <span class="fare-head">
                                         <i class="fa-solid fa-coins"></i>
-                                        <span class="fare-label">Tambang</span>
+                                        <span class="fare-label">Fare</span>
                                     </span>
                                     <span class="fare-value">RM {{ number_format((float) $savedRoute->default_fare, 2) }}</span>
                                 </div>
@@ -655,14 +655,14 @@
                                 <div class="route-line">
                                     <span class="point-dot pickup">A</span>
                                     <div class="route-line-text">
-                                        <small>Titik A</small>
+                                        <small>Point A</small>
                                         <strong>{{ $savedRoute->point_a_name }}</strong>
                                     </div>
                                 </div>
                                 <div class="route-line">
                                     <span class="point-dot destination">B</span>
                                     <div class="route-line-text">
-                                        <small>Titik B</small>
+                                        <small>Point B</small>
                                         <strong>{{ $savedRoute->point_b_name }}</strong>
                                     </div>
                                 </div>
@@ -683,14 +683,14 @@
                                     <label for="toggle-mobile-{{ $savedRoute->id }}" class="toggle-track">
                                         <span class="toggle-thumb"></span>
                                     </label>
-                                    <span class="status-text">{{ $savedRoute->is_active ? 'Hidup' : 'Mati' }}</span>
+                                    <span class="status-text">{{ $savedRoute->is_active ? 'Active' : 'Inactive' }}</span>
                                 </form>
                                 <div class="route-head-actions">
-                                    <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="route-edit-chip">Sunting</a>
-                                    <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Padam laluan ini? Semua trip yang menggunakan laluan ini akan turut dipadam.');">
+                                    <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="route-edit-chip">Edit</a>
+                                    <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Delete this route? All trips using this route will also be deleted.');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="route-edit-chip action-btn-danger">Padam</button>
+                                        <button type="submit" class="route-edit-chip action-btn-danger">Delete</button>
                                     </form>
                                 </div>
                             </div>
@@ -702,20 +702,20 @@
                     <table class="route-table">
                         <thead>
                         <tr>
-                            <th>Laluan</th>
-                            <th>Titik A</th>
-                            <th>Titik B</th>
-                            <th>Tambang</th>
+                            <th>Route</th>
+                            <th>Point A</th>
+                            <th>Point B</th>
+                            <th>Fare</th>
                             <th>Status</th>
-                            <th>Tindakan</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody id="routeTableBody">
                         @foreach($savedRoutes as $savedRoute)
-                            <tr data-route-name="{{ strtolower($savedRoute->route_name ?: 'Laluan Tidak Bertajuk') }}">
+                            <tr data-route-name="{{ strtolower($savedRoute->route_name ?: 'Untitled Route') }}">
                                 <td>
-                                    <span class="route-name-main">{{ $savedRoute->route_name ?: 'Laluan Tidak Bertajuk' }}</span>
-                                    <span class="route-name-sub">Laluan tersimpan</span>
+                                    <span class="route-name-main">{{ $savedRoute->route_name ?: 'Untitled Route' }}</span>
+                                    <span class="route-name-sub">Saved route</span>
                                 </td>
                                 <td>
                                     <div class="route-line">
@@ -750,16 +750,16 @@
                                         <label for="toggle-desktop-{{ $savedRoute->id }}" class="toggle-track">
                                             <span class="toggle-thumb"></span>
                                         </label>
-                                        <span class="status-text">{{ $savedRoute->is_active ? 'Hidup' : 'Mati' }}</span>
+                                        <span class="status-text">{{ $savedRoute->is_active ? 'Active' : 'Inactive' }}</span>
                                     </form>
                                 </td>
                                 <td class="desktop-actions-col">
                                     <div class="route-actions">
-                                        <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="action-link desktop-edit-btn">Sunting</a>
-                                        <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Padam laluan ini? Semua trip yang menggunakan laluan ini akan turut dipadam.');">
+                                        <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="action-link desktop-edit-btn">Edit</a>
+                                        <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Delete this route? All trips using this route will also be deleted.');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="action-link action-btn-danger">Padam</button>
+                                            <button type="submit" class="action-link action-btn-danger">Delete</button>
                                         </form>
                                     </div>
                                 </td>
@@ -771,8 +771,8 @@
 
                 <div id="routeSearchEmpty" class="empty-state" style="display:none; margin-top:10px; padding: 32px 24px;">
                     <i class="fa-solid fa-magnifying-glass empty-state-icon"></i>
-                    <p class="empty-state-title">Tiada laluan ditemui</p>
-                    <p class="empty-state-copy">Cuba cari dengan nama laluan yang lain.</p>
+                    <p class="empty-state-title">No routes found</p>
+                    <p class="empty-state-copy">Try searching with another route name.</p>
                 </div>
             @endif
         </section>
@@ -821,4 +821,3 @@
         })();
     </script>
 @endsection
-

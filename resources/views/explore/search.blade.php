@@ -190,8 +190,8 @@
         <section class="explore-search-card">
             <div class="explore-search-head">
                 <div>
-                    <h1 class="explore-search-title">Cari Destinasi</h1>
-                    <p class="explore-search-subtitle">Cari trip awam mengikut destinasi, tarikh, dan pilihan tempat duduk.</p>
+                    <h1 class="explore-search-title">Search Destination</h1>
+                    <p class="explore-search-subtitle">Find public trips by destination, date, and seat preference.</p>
                 </div>
             </div>
 
@@ -205,7 +205,7 @@
                             name="destination"
                             class="search-main-input"
                             value="{{ old('destination', $prefill) }}"
-                            placeholder="Cari destinasi"
+                            placeholder="Search destination"
                             autocomplete="off"
                             autofocus
                         >
@@ -215,33 +215,33 @@
 
                 <div class="search-grid">
                     <div class="search-field">
-                        <label class="search-label" for="search_date">Tarikh</label>
+                        <label class="search-label" for="search_date">Date</label>
                         <input id="search_date" class="search-input" type="date" name="date" value="{{ request('date') }}">
                     </div>
                     <div class="search-field">
-                        <label class="search-label" for="search_pickup">Kawasan pickup (pilihan)</label>
+                        <label class="search-label" for="search_pickup">Pickup area (optional)</label>
                         <div class="search-auto-wrap">
                             <input id="search_pickup" class="search-input" type="text" name="pickup" value="{{ request('pickup') }}" placeholder="Kawasan pickup" autocomplete="off">
                             <div class="search-suggest-list" id="pickupSuggestList"></div>
                         </div>
                     </div>
                     <div class="search-field">
-                        <label class="search-label" for="search_seats">Tempat Duduk</label>
+                        <label class="search-label" for="search_seats">Seats</label>
                         <select id="search_seats" class="search-input" name="seats">
-                            <option value="">Mana-mana tempat</option>
-                            <option value="1" {{ request('seats') === '1' ? 'selected' : '' }}>1 tempat</option>
-                            <option value="2plus" {{ request('seats') === '2plus' ? 'selected' : '' }}>2+ tempat</option>
+                            <option value="">Any seat</option>
+                            <option value="1" {{ request('seats') === '1' ? 'selected' : '' }}>1 seat</option>
+                            <option value="2plus" {{ request('seats') === '2plus' ? 'selected' : '' }}>2+ seats</option>
                         </select>
                     </div>
                     <div class="search-field">
                         <label class="search-label" for="search_sort">Susun</label>
                         <select id="search_sort" class="search-input" name="sort">
-                            <option value="nearest" {{ request('sort', 'nearest') === 'nearest' ? 'selected' : '' }}>Tarikh terdekat</option>
-                            <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>Tarikh terbaru</option>
+                            <option value="nearest" {{ request('sort', 'nearest') === 'nearest' ? 'selected' : '' }}>Nearest date</option>
+                            <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>Latest date</option>
                         </select>
                     </div>
                     <div class="search-field">
-                        <label class="search-label" for="search_radius_km">Radius (km dari pin)</label>
+                        <label class="search-label" for="search_radius_km">Radius (km from pin)</label>
                         <input id="search_radius_km" class="search-input" type="number" name="radius_km" min="0.5" step="0.5" value="{{ request('radius_km', 5) }}">
                     </div>
                 </div>
@@ -255,28 +255,28 @@
 
                 <div class="search-map-card">
                     <div class="search-map-head">
-                        <p class="search-map-title">Pin Lokasi pada Peta</p>
-                        <p class="search-map-hint">Pilih sasaran, kemudian ketuk peta untuk laras pin.</p>
+                        <p class="search-map-title">Pin Location on Map</p>
+                        <p class="search-map-hint">Choose a target, then tap the map to adjust the pin.</p>
                     </div>
                     <div class="search-map-targets">
-                        <button type="button" class="search-map-target-btn active" id="targetDestinationBtn">Laras Destinasi</button>
+                        <button type="button" class="search-map-target-btn active" id="targetDestinationBtn">Laras Destination</button>
                         <button type="button" class="search-map-target-btn" id="targetPickupBtn">Laras Pickup</button>
                     </div>
-                    <div class="search-map-status" id="searchMapStatus">Tiada pin destinasi lagi.</div>
+                    <div class="search-map-status" id="searchMapStatus">No destination pin yet.</div>
                     <div id="exploreSearchMap"></div>
                 </div>
 
                 <div class="search-actions">
-                    <button type="submit" class="search-btn primary"><i class="fa-solid fa-magnifying-glass"></i>Cari Trip</button>
-                    <a href="{{ route('explore.search') }}" class="search-btn"><i class="fa-solid fa-rotate-left"></i>Kosongkan Semua</a>
+                    <button type="submit" class="search-btn primary"><i class="fa-solid fa-magnifying-glass"></i>Find Trips</button>
+                    <a href="{{ route('explore.search') }}" class="search-btn"><i class="fa-solid fa-rotate-left"></i>Clear All</a>
                 </div>
             </form>
         </section>
 
         <section class="explore-search-card">
-            <h2 class="search-section-title">Carian Terkini</h2>
+            <h2 class="search-section-title">Recent Searches</h2>
             @if($recentSearches->isEmpty())
-                <p class="search-empty">Tiada carian terkini lagi.</p>
+                <p class="search-empty">No recent searches yet.</p>
             @else
                 <div class="search-tag-list">
                     @foreach($recentSearches as $item)
@@ -287,9 +287,9 @@
         </section>
 
         <section class="explore-search-card">
-            <h2 class="search-section-title">Destinasi Dicadangkan</h2>
+            <h2 class="search-section-title">Suggested Destinations</h2>
             @if($suggestedDestinations->isEmpty())
-                <p class="search-empty">Tiada cadangan destinasi buat masa ini.</p>
+                <p class="search-empty">No suggested destinations yet.</p>
             @else
                 <div class="search-suggested-list">
                     @foreach($suggestedDestinations as $item)
@@ -567,4 +567,3 @@
         })();
     </script>
 @endsection
-

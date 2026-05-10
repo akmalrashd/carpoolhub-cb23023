@@ -1,8 +1,8 @@
 @if($requests->isEmpty())
     <div class="empty-state">
         <i class="fa-solid fa-inbox empty-state-icon"></i>
-        <p class="empty-state-title">Tiada permohonan lagi</p>
-        <p class="empty-state-copy">Belum ada penumpang yang menghantar permohonan untuk trip ini.</p>
+        <p class="empty-state-title">No requests yet</p>
+        <p class="empty-state-copy">No passengers have submitted requests for this trip yet.</p>
     </div>
 @else
     <div class="request-list">
@@ -48,12 +48,12 @@
                 $routePoint = $requestRow->routePoint;
                 $routeFitDisplay = $routePoint && $routePoint->route_fit_score !== null
                     ? ((int) $routePoint->route_fit_score . '% sesuai')
-                    : 'Semakan laluan';
+                    : 'Route review';
                 $statusLabel = match ($requestRow->status) {
-                    'approved' => 'Diluluskan',
-                    'rejected' => 'Ditolak',
-                    'cancelled' => 'Dibatalkan',
-                    default => 'Tertangguh',
+                    'approved' => 'Approved',
+                    'rejected' => 'Rejected',
+                    'cancelled' => 'Cancelled',
+                    default => 'Pending',
                 };
             @endphp
             <article class="request-item" data-request-status="{{ strtolower((string) $requestRow->status) }}" data-request-search="{{ strtolower(trim($requesterName . ' ' . ($requestRow->user?->email ?? '') . ' ' . ($requestRow->status ?? '') . ' ' . ($requestRow->request_note ?? '') . ' ' . ($requestRow->response_note ?? '') . ' ' . ($routePoint?->route_fit_label ?? '') . ' ' . ($routePoint?->pickup_name ?? '') . ' ' . ($routePoint?->dropoff_name ?? ''))) }}">
@@ -76,7 +76,7 @@
                 <div class="request-reliability">
                     <div class="request-reliability-top">
                         <span class="request-reliability-title-group">
-                            <span class="request-reliability-title">Risiko Penumpang AI</span>
+                            <span class="request-reliability-title">AI Passenger Risk</span>
                             <button type="button" class="rating-info-btn open-rating-info-btn" aria-label="Cara pemarkahan risiko AI berfungsi">
                                 <i class="fas fa-circle-info"></i>
                             </button>
@@ -98,11 +98,11 @@
                             </span>
                             <span class="request-reliability-item">
                                 <i class="fas fa-clock"></i>
-                                Permohonan dibatalkan: {{ (int) ($aiRisk['features']['cancelled_request_count'] ?? 0) }}
+                                Cancelled requests: {{ (int) ($aiRisk['features']['cancelled_request_count'] ?? 0) }}
                             </span>
                             <span class="request-reliability-item">
                                 <i class="fas fa-user-clock"></i>
-                                Sejarah ketidakhadiran: {{ (int) ($aiRisk['features']['attendance_absent_count'] ?? 0) }}
+                                Absence history: {{ (int) ($aiRisk['features']['attendance_absent_count'] ?? 0) }}
                             </span>
                         </span>
                     </div>
@@ -116,55 +116,55 @@
                     @php
                         $distanceSummary = collect([
                             $routePoint->uses_default_pickup ? null : ($routePoint->pickup_distance_km !== null ? ('pickup ' . number_format((float) $routePoint->pickup_distance_km, 2) . ' km') : null),
-                            $routePoint->uses_default_dropoff ? null : ($routePoint->dropoff_distance_km !== null ? ('hantar ' . number_format((float) $routePoint->dropoff_distance_km, 2) . ' km') : null),
+                            $routePoint->uses_default_dropoff ? null : ($routePoint->dropoff_distance_km !== null ? ('drop-off ' . number_format((float) $routePoint->dropoff_distance_km, 2) . ' km') : null),
                         ])->filter()->implode(' / ');
                     @endphp
                     <div class="request-route-point-card">
                         <div class="request-route-point-head">
                             <span class="request-route-point-title">
                                 <i class="fas fa-route"></i>
-                                Pilihan laluan
+                                Route option
                             </span>
-                            <span class="request-route-fit">{{ $routeFitDisplay }} · {{ $routePoint->route_fit_label ?: 'Semakan pemandu diperlukan' }}</span>
+                            <span class="request-route-fit">{{ $routeFitDisplay }} · {{ $routePoint->route_fit_label ?: 'Driver review required' }}</span>
                         </div>
                         <div class="request-route-point-grid">
                             <div class="request-route-point-item">
                                 <span class="request-route-point-label">Pickup</span>
-                                <span class="request-route-point-value">{{ $routePoint->uses_default_pickup ? 'Titik A Lalai' : 'Pickup tersuai' }}</span>
-                                <span class="request-route-point-meta">{{ $routePoint->uses_default_pickup ? 'Guna titik mula laluan pemandu' : 'Lihat pin peta bernombor' }}</span>
+                                <span class="request-route-point-value">{{ $routePoint->uses_default_pickup ? 'Default Point A' : 'Custom pickup' }}</span>
+                                <span class="request-route-point-meta">{{ $routePoint->uses_default_pickup ? 'Use driver's route starting point' : 'View numbered map pin' }}</span>
                             </div>
                             <div class="request-route-point-item">
-                                <span class="request-route-point-label">Hantar</span>
-                                <span class="request-route-point-value">{{ $routePoint->uses_default_dropoff ? 'Titik B Lalai' : 'Hantar tersuai' }}</span>
-                                <span class="request-route-point-meta">{{ $routePoint->uses_default_dropoff ? 'Guna titik akhir laluan pemandu' : 'Lihat pin peta bernombor' }}</span>
+                                <span class="request-route-point-label">Drop-off</span>
+                                <span class="request-route-point-value">{{ $routePoint->uses_default_dropoff ? 'Default Point B' : 'Custom drop-off' }}</span>
+                                <span class="request-route-point-meta">{{ $routePoint->uses_default_dropoff ? 'Use driver's route ending point' : 'View numbered map pin' }}</span>
                             </div>
                             <div class="request-route-point-item">
-                                <span class="request-route-point-label">Tambang dicadangkan</span>
+                                <span class="request-route-point-label">Suggested Fare</span>
                                 <span class="request-route-point-value">{{ $routePoint->fare_override_amount !== null ? ('RM ' . number_format((float) $routePoint->fare_override_amount, 2)) : 'Agihan biasa' }}</span>
                             <span class="request-route-point-meta">
-                                {{ $routePoint->detour_distance_km !== null ? ('Sisihan ' . number_format((float) $routePoint->detour_distance_km, 2) . ' km dari laluan asal') : 'Pratonton sahaja, semakan pemandu sebelum lulus' }}
-                                {{ $distanceSummary ? (' - ' . $distanceSummary . ' dari laluan') : '' }}
+                                {{ $routePoint->detour_distance_km !== null ? ('Detour ' . number_format((float) $routePoint->detour_distance_km, 2) . ' km from original route') : 'Preview only, driver review before approval' }}
+                                {{ $distanceSummary ? (' - ' . $distanceSummary . ' from route') : '' }}
                             </span>
                             </div>
                             <div class="request-route-point-item route-check-redundant">
-                                <span class="request-route-point-label">Semakan laluan</span>
+                                <span class="request-route-point-label">Route review</span>
                                 <span class="request-route-point-value">
                                     @if($routePoint->pickup_distance_km !== null || $routePoint->dropoff_distance_km !== null)
-                                        Pickup {{ $routePoint->pickup_distance_km ?? '-' }} km · Hantar {{ $routePoint->dropoff_distance_km ?? '-' }} km
+                                        Pickup {{ $routePoint->pickup_distance_km ?? '-' }} km · Drop-off {{ $routePoint->dropoff_distance_km ?? '-' }} km
                                     @else
-                                        Tiada semakan koordinat
+                                        No coordinate review
                                     @endif
                                 </span>
-                                <span class="request-route-point-meta">Masa boleh disahkan selepas kelulusan</span>
+                                <span class="request-route-point-meta">Time can be confirmed after approval</span>
                             </div>
                         </div>
                     </div>
                 @endif
                 @if($requestRow->request_note)
-                    <div class="request-note">Nota penumpang: {{ $requestRow->request_note }}</div>
+                    <div class="request-note">Passenger note: {{ $requestRow->request_note }}</div>
                 @endif
                 @if($requestRow->response_note)
-                    <div class="request-note">Nota respons: {{ $requestRow->response_note }}</div>
+                    <div class="request-note">Note respons: {{ $requestRow->response_note }}</div>
                 @endif
 
                 @if($requestRow->status === 'pending')
@@ -175,14 +175,14 @@
                             data-action="{{ route('trips.join-requests.respond', $requestRow) }}"
                             data-passenger="{{ $requesterName }}"
                             data-trip="#{{ $trip->id }}"
-                        ><i class="fas fa-solid fa-check"></i>Luluskan</button>
+                        ><i class="fas fa-solid fa-check"></i>Approve</button>
                         <button
                             type="button"
                             class="btn danger open-reject-btn"
                             data-action="{{ route('trips.join-requests.respond', $requestRow) }}"
                             data-passenger="{{ $requesterName }}"
                             data-trip="#{{ $trip->id }}"
-                        ><i class="fas fa-solid fa-xmark"></i>Tolak</button>
+                        ><i class="fas fa-solid fa-xmark"></i>Reject</button>
                     </div>
                 @endif
             </article>

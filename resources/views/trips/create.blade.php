@@ -55,13 +55,13 @@
 
     <div class="trip-create-page">
         <section class="trip-create-card trip-title-card">
-            <h1 class="trip-title">Cipta Trip</h1>
-            <p class="trip-subtitle">Tetapkan laluan, jadual, dan penumpang untuk trip baharu.</p>
+            <h1 class="trip-title">Create Trip</h1>
+            <p class="trip-subtitle">Set the route, schedule, and passengers for a new trip.</p>
         </section>
 
         <section class="trip-create-card">
             <form action="{{ route('trips.store') }}" method="POST">
-                @include('trips._form', ['submitLabel' => 'Cipta Trip', 'trip' => null, 'selectedParticipants' => []])
+                @include('trips._form', ['submitLabel' => 'Create Trip', 'trip' => null, 'selectedParticipants' => []])
             </form>
         </section>
     </div>

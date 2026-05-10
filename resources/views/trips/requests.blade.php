@@ -829,7 +829,7 @@
         $hasReturn = (bool) $trip->returnTrip;
         $directionText = $pickupName . ' -> ' . $destinationName;
         $returnDirectionText = $destinationName . ' -> ' . $pickupName;
-        $modeText = $hasReturn ? 'Dua Hala' : 'Sehala';
+        $modeText = $hasReturn ? 'Two-way' : 'One-way';
         $combinedFare = (float) $trip->fare_total + (float) ($trip->returnTrip?->fare_total ?? 0);
         $myFare = (float) ($trip->payments->first()?->amount_due ?? 0)
             + (float) ($trip->returnTrip?->payments?->first()?->amount_due ?? 0);
@@ -853,8 +853,8 @@
             $passengerCount = (int) $trip->participant_count;
         }
         $splitType = ((int) $trip->participant_count > $passengerCount)
-            ? 'Termasuk Pemandu dalam Agihan Tambang'
-            : 'Tidak Termasuk Pemandu dalam Agihan Tambang';
+            ? 'Driver Included in Fare Split'
+            : 'Driver Excluded from Fare Split';
         $summaryRouteRequests = $requests
             ->filter(fn ($requestRow) => in_array((string) $requestRow->status, ['pending', 'approved'], true) && $requestRow->routePoint)
             ->map(function ($requestRow) use ($trip) {
@@ -883,12 +883,12 @@
             'driverPickup' => [
                 'lat' => $trip->pickup_latitude !== null ? (float) $trip->pickup_latitude : null,
                 'lng' => $trip->pickup_longitude !== null ? (float) $trip->pickup_longitude : null,
-                'label' => 'Pickup Pemandu',
+                'label' => 'Pickup Driver',
             ],
             'driverDropoff' => [
                 'lat' => $trip->destination_latitude !== null ? (float) $trip->destination_latitude : null,
                 'lng' => $trip->destination_longitude !== null ? (float) $trip->destination_longitude : null,
-                'label' => 'Penghantaran Pemandu',
+                'label' => 'Driver Drop-off',
             ],
             'baseFareTotal' => (float) $trip->fare_total,
             'baseFarePerPerson' => (float) $trip->fare_per_person,
@@ -911,7 +911,7 @@
         <section class="trip-requests-card">
             <div class="trip-requests-top">
                 <div>
-                    <h1 class="trip-requests-title">Permohonan Sertai</h1>
+                    <h1 class="trip-requests-title">Join Requests</h1>
                     <p class="trip-requests-subtitle">
                         <span class="trip-route-meta">
                             <span class="trip-route-item">
@@ -929,7 +929,7 @@
                             <span class="trip-sub-meta">
                                 <span id="tripPublicJoinMeta" class="trip-sub-meta-item {{ $trip->is_open_for_request ? 'public-open' : 'public-closed' }}">
                                     <i id="tripPublicJoinIcon" class="fas {{ $trip->is_open_for_request ? 'fa-lock-open' : 'fa-lock' }}"></i>
-                                    <span id="tripPublicJoinText">Sertai Awam: {{ $trip->is_open_for_request ? 'Buka' : 'Tutup' }}</span>
+                                    <span id="tripPublicJoinText">Public Join: {{ $trip->is_open_for_request ? 'Open' : 'Close' }}</span>
                                 </span>
                             </span>
                         </p>
@@ -938,7 +938,7 @@
                         <span class="trip-sub-meta">
                             <span class="trip-sub-meta-item">
                                 <i class="fas fa-chair"></i>
-                                <span>Tempat Duduk: <span id="tripSeatText">{{ $availableSeats !== null ? ($availableSeats . ' tersedia / ' . (int) $trip->seat_limit) : 'Terbuka' }}</span></span>
+                                <span>Seats: <span id="tripSeatText">{{ $availableSeats !== null ? ($availableSeats . ' available / ' . (int) $trip->seat_limit) : 'Open' }}</span></span>
                             </span>
                             <span class="trip-sub-meta-item">
                                 <i class="fas fa-circle-check"></i>
@@ -965,7 +965,7 @@
                         data-return-datetime="{{ $trip->returnTrip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
                         data-outbound-route="{{ $directionText }}"
                         data-return-route="{{ $returnDirectionText }}"
-                        data-fare-label="Tambang"
+                        data-fare-label="Fare"
                         data-fare-display="RM {{ number_format($displayFare, 2) }}"
                         data-pickup-name="{{ $pickupName }}"
                         data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
@@ -977,7 +977,7 @@
                         data-split-type="{{ $splitType }}"
                         data-participants-b64="{{ $participantPayloadB64 }}"
                         data-route-points-b64="{{ $modalRoutePointPayloadB64 }}"
-                    ><i class="fa-regular fa-eye"></i><span>Butiran Trip</span></button>
+                    ><i class="fa-regular fa-eye"></i><span>Trip Details</span></button>
                     @if($trip->visibility === 'public')
                         <form method="POST" action="{{ route('trips.requests.toggle-open', $trip) }}">
                             @csrf
@@ -985,7 +985,7 @@
                             <input type="hidden" name="is_open_for_request" value="{{ $trip->is_open_for_request ? '0' : '1' }}">
                             <button type="submit" class="btn {{ $trip->is_open_for_request ? 'danger' : 'success' }}">
                                 <i class="fas {{ $trip->is_open_for_request ? 'fa-lock' : 'fa-lock-open' }}"></i>
-                                {{ $trip->is_open_for_request ? 'Tutup Sertai Awam' : 'Buka Sertai Awam' }}
+                                {{ $trip->is_open_for_request ? 'Close Public Join' : 'Open Public Join' }}
                             </button>
                         </form>
                     @endif
@@ -996,65 +996,65 @@
         <section class="trip-requests-card request-route-summary-card">
             <div class="request-route-summary-head">
                 <div>
-                    <h2 class="request-route-summary-title">Ringkasan Laluan Penumpang</h2>
-                    <p class="request-route-summary-subtitle">Hentian tersuai yang tertangguh dan diluluskan dengan laluan tengah terpendek sebagai rujukan pemandu. Pickup dan penghantaran pemandu kekal tetap.</p>
+                    <h2 class="request-route-summary-title">Passenger Route Summary</h2>
+                    <p class="request-route-summary-subtitle">Pending and approved custom stops with the shortest middle route as driver reference. Driver pickup and drop-off remain fixed.</p>
                 </div>
-                <span class="request-route-summary-badge">{{ $summaryRouteRequests->count() }} permohonan aktif</span>
+                <span class="request-route-summary-badge">{{ $summaryRouteRequests->count() }} active requests</span>
             </div>
             @if($summaryRouteRequests->isNotEmpty())
                 <div id="requestRouteSummaryMap" class="request-route-summary-map" data-route-summary='@json($summaryRoutePayload)'></div>
                 <div class="request-route-summary-legend">
-                    <span><i class="summary-original-line"></i>Laluan asal</span>
-                    <span><i class="summary-optimized-line"></i>Laluan dicadangkan</span>
+                    <span><i class="summary-original-line"></i>Original route</span>
+                    <span><i class="summary-optimized-line"></i>Suggested route</span>
                 </div>
                 <div id="requestRouteSummaryStops" class="summary-stop-list"></div>
                 <div id="requestRouteSummaryMetrics" class="summary-metrics-grid">
                     <div class="summary-metric-item">
-                        <span class="summary-metric-label">Jarak laluan</span>
+                        <span class="summary-metric-label">Route distance</span>
                         <span class="summary-metric-value">-</span>
-                        <span class="summary-metric-meta">Laluan asal vs dicadangkan</span>
+                        <span class="summary-metric-meta">Original vs suggested route</span>
                     </div>
                     <div class="summary-metric-item">
-                        <span class="summary-metric-label">Anggaran masa</span>
+                        <span class="summary-metric-label">Estimated time</span>
                         <span class="summary-metric-value">-</span>
-                        <span class="summary-metric-meta">Berdasarkan pratonton laluan</span>
+                        <span class="summary-metric-meta">Based on route preview</span>
                     </div>
                     <div class="summary-metric-item">
-                        <span class="summary-metric-label">Tambang dicadangkan</span>
+                        <span class="summary-metric-label">Suggested Fare</span>
                         <span class="summary-metric-value">-</span>
-                        <span class="summary-metric-meta">Permohonan tertangguh dan diluluskan</span>
+                        <span class="summary-metric-meta">Pending and approved requests</span>
                     </div>
                 </div>
                 <div class="summary-map-actions">
                     <a id="openSummaryGoogleMaps" class="btn primary summary-map-action" href="#" target="_blank" rel="noopener" aria-disabled="true">
                         <i class="fas fa-map-location-dot"></i>
-                        Buka dalam Google Maps
+                        Open in Google Maps
                     </a>
                 </div>
             @else
-                <div class="summary-empty">Tiada titik laluan tertangguh atau diluluskan untuk dipratonton lagi.</div>
+                <div class="summary-empty">No pending or approved route points to preview yet.</div>
             @endif
         </section>
 
         <section class="trip-requests-card">
             <div class="request-list-section-head">
-                <h2 class="request-list-section-title">Permohonan Penumpang</h2>
-                <p class="request-list-section-subtitle">Semak penumpang tertangguh dan diluluskan, pilihan laluan, pratonton tambang, dan isyarat risiko.</p>
+                <h2 class="request-list-section-title">Passenger Requests</h2>
+                <p class="request-list-section-subtitle">Review pending and approved passengers, route preferences, fare preview, and risk signals.</p>
                 <div class="request-list-tools">
-                    <input id="requestSearchInput" class="request-list-tool" type="search" placeholder="Cari penumpang, e-mel, nota, laluan...">
+                    <input id="requestSearchInput" class="request-list-tool" type="search" placeholder="Search passenger, email, note, or route...">
                     <select id="requestStatusFilter" class="request-list-tool">
-                        <option value="all">Semua status</option>
-                        <option value="pending">Tertangguh</option>
-                        <option value="approved">Diluluskan</option>
-                        <option value="rejected">Ditolak</option>
-                        <option value="cancelled">Dibatalkan</option>
+                        <option value="all">All statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
             </div>
             <div id="tripRequestsListContainer">
                 @include('trips.partials.requests-list', ['requests' => $requests, 'reliabilityMap' => $reliabilityMap, 'aiRiskMap' => $aiRiskMap, 'trip' => $trip])
             </div>
-            <div id="requestFilterEmpty" class="request-list-empty-filter" hidden>Tiada permohonan penumpang sepadan dengan carian atau status semasa.</div>
+            <div id="requestFilterEmpty" class="request-list-empty-filter" hidden>No passenger requests match the current search or status.</div>
         </section>
 
         <div id="tripRequestsPaginationContainer">{{ $requests->links() }}</div>
@@ -1063,8 +1063,8 @@
     <div class="trip-modal" id="tripDetailsModal" aria-hidden="true">
         <div class="trip-modal-card">
             <div class="trip-modal-head">
-                <h3 class="trip-modal-title">Butiran Trip</h3>
-                <button type="button" class="trip-modal-close" id="tripDetailsCloseBtn" aria-label="Tutup">
+                <h3 class="trip-modal-title">Trip Details</h3>
+                <button type="button" class="trip-modal-close" id="tripDetailsCloseBtn" aria-label="Close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -1072,32 +1072,32 @@
                 <div class="trip-modal-grid">
                     <div class="trip-details-pairs">
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>ID Trip</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip ID</span>
                             <span class="trip-modal-value" id="tripModalTripIds">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Tarikh & Masa</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Date & Time</span>
                             <span class="trip-modal-value" id="tripModalOutboundTime">-</span>
                         </div>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Nama Laluan</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Route Name</span>
                         <span class="trip-modal-value" id="tripModalRouteName">-</span>
                     </div>
                     <div class="trip-point-cards">
                         <div class="trip-point-card pickup">
-                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
+                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
                             <span class="trip-point-value" id="tripModalPickupPoint">-</span>
                         </div>
                         <div class="trip-point-card destination">
-                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
+                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
                             <span class="trip-point-value" id="tripModalDestinationPoint">-</span>
                         </div>
                     </div>
                     <div class="trip-map-card">
                         <div class="trip-map-head">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-map"></i>Pratonton Laluan</span>
-                            <span class="trip-map-hint">Baca sahaja</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-map"></i>Route Preview</span>
+                            <span class="trip-map-hint">Read-only</span>
                         </div>
                         <div class="trip-modal-map" id="tripModalMap"></div>
                     </div>
@@ -1113,14 +1113,14 @@
                     </div>
                     <div class="trip-modal-line">
                         <div class="trip-passenger-header">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Penumpang</span>
-                            <span class="trip-passenger-count" id="tripModalPassengerCount">0 penumpang</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Passengers</span>
+                            <span class="trip-passenger-count" id="tripModalPassengerCount">0 passengers</span>
                         </div>
                         <div class="trip-passenger-list" id="tripModalPassengerList"></div>
                     </div>
                     <div class="trip-details-pairs">
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Jenis Trip</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Trip Type</span>
                             <span class="trip-modal-value" id="tripModalMode">-</span>
                             <span class="trip-modal-hint" id="tripModalPairHint" style="display:none;"></span>
                         </div>
@@ -1129,22 +1129,22 @@
                             <span class="trip-modal-value trip-status-badge" id="tripModalStatus">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Jumlah Penumpang</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Total Passengers</span>
                             <span class="trip-modal-value" id="tripModalTotalPassengers">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Jenis Agihan Tambang</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Fare Split Type</span>
                             <span class="trip-modal-value" id="tripModalSplitType">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Tambang</span></span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Fare</span></span>
                             <span class="trip-modal-value" id="tripModalFareValue">-</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="trip-contact-bar">
-                <p class="trip-contact-text">Ada masalah dengan trip ini? Sila hubungi pemandu.</p>
+                <p class="trip-contact-text">Having an issue with this trip? Please contact the driver.</p>
                 <div class="trip-contact-actions">
                     <a href="#" target="_blank" rel="noopener" class="trip-contact-link whatsapp is-disabled" id="tripModalWhatsapp">
                         <i class="fa-brands fa-whatsapp"></i>
@@ -1152,7 +1152,7 @@
                     </a>
                     <a href="#" class="trip-contact-link email is-disabled" id="tripModalEmail">
                         <i class="fa-regular fa-envelope"></i>
-                        <span>E-mel Pemandu</span>
+                        <span>Driver Email</span>
                     </a>
                 </div>
             </div>
@@ -1162,10 +1162,10 @@
     <div class="request-modal" id="rejectModal" aria-hidden="true">
         <div class="request-modal-card">
             <button type="button" class="modal-close-x" id="rejectModalCloseTop" aria-label="Close">&times;</button>
-            <h3 class="request-modal-title">Tolak Permohonan Sertai</h3>
+            <h3 class="request-modal-title">Reject Join Requests</h3>
             <div class="request-modal-grid">
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Penumpang</span>
+                    <span class="request-modal-label">Passenger</span>
                     <span class="request-modal-value" id="rejectModalPassenger">-</span>
                 </div>
                 <div class="request-modal-line">
@@ -1180,14 +1180,14 @@
                         class="reject-reason-input"
                         id="rejectModalReason"
                         name="response_note"
-                        placeholder="Tulis sebab penolakan..."
+                        placeholder="Write the rejection reason..."
                         required
                     ></textarea>
                 </form>
             </div>
             <div class="reject-modal-actions">
-                <button type="button" class="btn" id="rejectModalCancel">Batal</button>
-                <button type="submit" class="btn danger" form="rejectModalForm"><i class="fas fa-solid fa-xmark"></i>Tolak</button>
+                <button type="button" class="btn" id="rejectModalCancel">Cancel</button>
+                <button type="submit" class="btn danger" form="rejectModalForm"><i class="fas fa-solid fa-xmark"></i>Reject</button>
             </div>
         </div>
     </div>
@@ -1195,10 +1195,10 @@
     <div class="request-modal" id="approveModal" aria-hidden="true">
         <div class="request-modal-card">
             <button type="button" class="modal-close-x" id="approveModalCloseTop" aria-label="Close">&times;</button>
-            <h3 class="request-modal-title">Luluskan Permohonan Sertai</h3>
+            <h3 class="request-modal-title">Approve Join Requests</h3>
             <div class="request-modal-grid">
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Penumpang</span>
+                    <span class="request-modal-label">Passenger</span>
                     <span class="request-modal-value" id="approveModalPassenger">-</span>
                 </div>
                 <div class="request-modal-line">
@@ -1213,13 +1213,13 @@
                         class="approve-reason-input"
                         id="approveModalReason"
                         name="response_note"
-                        placeholder="Tulis nota kelulusan (pilihan)..."
+                        placeholder="Write an approval note (optional)..."
                     ></textarea>
                 </form>
             </div>
             <div class="approve-modal-actions">
-                <button type="button" class="btn" id="approveModalCancel">Batal</button>
-                <button type="submit" class="btn success" form="approveModalForm"><i class="fas fa-solid fa-check"></i>Luluskan</button>
+                <button type="button" class="btn" id="approveModalCancel">Cancel</button>
+                <button type="submit" class="btn success" form="approveModalForm"><i class="fas fa-solid fa-check"></i>Approve</button>
             </div>
         </div>
     </div>
@@ -1227,23 +1227,23 @@
     <div class="request-modal" id="ratingInfoModal" aria-hidden="true">
         <div class="request-modal-card">
             <button type="button" class="modal-close-x" id="ratingInfoCloseTop" aria-label="Close">&times;</button>
-            <h3 class="request-modal-title">Butiran Risiko & Kebolehpercayaan AI</h3>
+            <h3 class="request-modal-title">AI Risk & Reliability Details</h3>
             <div class="request-modal-grid">
                 <div class="rating-info-formula">
                     <strong>Skor risiko AI:</strong>
-                    Bermula dari skor asas dan diselaraskan menggunakan kebolehpercayaan pembayaran, hutang belum bayar, pembatalan, dan sejarah kehadiran.
+                    Starts from a base score and adjusts using payment reliability, unpaid debt, cancellations, and attendance history.
                     <br>
                     <strong>Formula:</strong>
                     Skor = Asas ({{ number_format((float) ($reliabilityScoreConfig['base'] ?? 5.0), 1) }})
-                    - Penalti Amaun - Penalti Tertunggak - Penalti Kes,
-                    kemudian ditetapkan kepada {{ number_format((float) ($reliabilityScoreConfig['min'] ?? 1.0), 1) }} - {{ number_format((float) ($reliabilityScoreConfig['max'] ?? 5.0), 1) }}.
+                    - Amount Penalty - Overdue Penalty - Case Penalty,
+                    then clamped to {{ number_format((float) ($reliabilityScoreConfig['min'] ?? 1.0), 1) }} - {{ number_format((float) ($reliabilityScoreConfig['max'] ?? 5.0), 1) }}.
                     <br>
-                    <strong>Tunggakan tertangguh</strong> termasuk pembayaran <code>unpaid</code> + <code>pending_confirmation</code> dari trip bukan draf dan bukan dijadualkan.
+                    <strong>Overdue outstanding</strong> includes <code>unpaid</code> and <code>pending_confirmation</code> payments from non-draft and non-scheduled trips.
                 </div>
 
                 <div class="rating-info-groups">
                     <div class="rating-info-group">
-                        <div class="rating-info-group-title"><i class="fas fa-wallet"></i>Penalti Amaun</div>
+                        <div class="rating-info-group-title"><i class="fas fa-wallet"></i>Amount Penalty</div>
                         <ul class="rating-info-list">
                             @foreach($amountPenaltyConfig as $range)
                                 @php
@@ -1262,15 +1262,15 @@
                     </div>
 
                     <div class="rating-info-group">
-                        <div class="rating-info-group-title"><i class="fas fa-clock"></i>Penalti Tertunggak</div>
+                        <div class="rating-info-group-title"><i class="fas fa-clock"></i>Overdue Penalty</div>
                         <ul class="rating-info-list">
                             @foreach($overduePenaltyConfig as $range)
                                 @php
                                     $min = (int) ($range['min'] ?? 0);
                                     $max = $range['max'] ?? null;
                                     $rangeText = $max === null
-                                        ? ($min . '+ hari')
-                                        : ($min . ' - ' . (int) $max . ' hari');
+                                        ? ($min . '+ days')
+                                        : ($min . ' - ' . (int) $max . ' days');
                                 @endphp
                                 <li>
                                     <span class="rating-info-range">{{ $rangeText }}</span>
@@ -1281,7 +1281,7 @@
                     </div>
 
                     <div class="rating-info-group">
-                        <div class="rating-info-group-title"><i class="fas fa-file-invoice-dollar"></i>Penalti Bilangan Kes</div>
+                        <div class="rating-info-group-title"><i class="fas fa-file-invoice-dollar"></i>Case Count Penalty</div>
                         <ul class="rating-info-list">
                             @foreach($casePenaltyConfig as $range)
                                 @php
@@ -1317,7 +1317,7 @@
                 </div>
             </div>
             <div class="approve-modal-actions">
-                <button type="button" class="btn" id="ratingInfoCloseBtn">Tutup</button>
+                <button type="button" class="btn" id="ratingInfoCloseBtn">Close</button>
             </div>
         </div>
     </div>
@@ -1528,7 +1528,7 @@
                 const list = document.getElementById('requestRouteSummaryStops');
                 if (!list) return;
                 const rows = [
-                    { marker: 'A', label: 'Pickup Pemandu', meta: 'titik pemandu', className: 'driver-pickup' },
+                    { marker: 'A', label: 'Driver Pickup', meta: 'driver point', className: 'driver-pickup' },
                     ...stops.map((stop) => ({
                         marker: stop.marker,
                         label: stop.label,
@@ -1537,7 +1537,7 @@
                         color: stop.color,
                         requestId: String(stop.requestId),
                     })),
-                    { marker: 'B', label: 'Penghantaran Pemandu', meta: 'titik pemandu', className: 'driver-dropoff' },
+                    { marker: 'B', label: 'Driver Drop-off', meta: 'driver point', className: 'driver-dropoff' },
                 ];
 
                 list.innerHTML = rows.map((row) => `
@@ -1626,8 +1626,8 @@
                 const driverShare = includesDriver ? (Number(payload.baseFarePerPerson) || 0) : 0;
                 const totalFare = passengerFareTotal + driverShare;
                 const splitText = includesDriver
-                    ? `termasuk bahagian pemandu ${formatMoney(driverShare)}`
-                    : 'tidak termasuk bahagian pemandu';
+                    ? `includes driver share ${formatMoney(driverShare)}`
+                    : 'tidak includes driver share';
                 const totalDeviation = activeRequests.reduce((sum, request) => sum + (Number(request.deviationKm) || 0), 0);
                 const customStops = activeStops.length;
                 const approvedCount = activeRequests.filter((request) => request.status === 'approved').length;
@@ -1635,19 +1635,19 @@
 
                 grid.innerHTML = `
                     <div class="summary-metric-item">
-                        <span class="summary-metric-label">Jarak laluan</span>
+                        <span class="summary-metric-label">Route distance</span>
                         <span class="summary-metric-value">${formatKm(suggestedKm)}</span>
-                        <span class="summary-metric-meta">Asal ${formatKm(originalKm)} / tambahan ${formatKm(extraKm)}</span>
+                        <span class="summary-metric-meta">Original ${formatKm(originalKm)} / extra ${formatKm(extraKm)}</span>
                     </div>
                     <div class="summary-metric-item">
-                        <span class="summary-metric-label">Anggaran masa</span>
+                        <span class="summary-metric-label">Estimated time</span>
                         <span class="summary-metric-value">${formatMinutes(suggestedMinutes)}</span>
-                        <span class="summary-metric-meta">Asal ${formatMinutes(originalMinutes)} / tambahan ${formatMinutes(extraMinutes)}</span>
+                        <span class="summary-metric-meta">Original ${formatMinutes(originalMinutes)} / extra ${formatMinutes(extraMinutes)}</span>
                     </div>
                     <div class="summary-metric-item">
-                        <span class="summary-metric-label">Tambang dicadangkan</span>
+                        <span class="summary-metric-label">Suggested Fare</span>
                         <span class="summary-metric-value">${formatMoney(totalFare)}</span>
-                        <span class="summary-metric-meta">${splitText} / ${approvedCount} diluluskan / ${pendingCount} tertangguh / ${customStops} hentian tersuai / ${formatKm(totalDeviation)} sisihan</span>
+                        <span class="summary-metric-meta">${splitText} / ${approvedCount} approved / ${pendingCount} pending / ${customStops} custom stops / ${formatKm(totalDeviation)} deviation</span>
                     </div>
                 `;
             };
@@ -1684,8 +1684,8 @@
                         }).addTo(summaryLayer);
                     }
 
-                    addDriverPoint(driverPickup, 'pickup', 'Pickup Pemandu', 'A');
-                    addDriverPoint(driverDropoff, 'dropoff', 'Penghantaran Pemandu', 'B');
+                    addDriverPoint(driverPickup, 'pickup', 'Pickup Driver', 'A');
+                    addDriverPoint(driverDropoff, 'dropoff', 'Driver Drop-off', 'B');
                     activeStops.forEach(addPassengerPin);
                     renderStopList();
                     setGoogleMapsLink(suggestedRoute?.order || activeStops);
@@ -1772,10 +1772,10 @@
                     return true;
                 });
 
-                passengerCountEl.textContent = `${passengers.length} penumpang`;
+                passengerCountEl.textContent = `${passengers.length} passengers`;
 
                 if (passengers.length === 0) {
-                    passengerListEl.innerHTML = '<div class="trip-passenger-email">Tiada rekod penumpang dijumpai untuk trip ini.</div>';
+                    passengerListEl.innerHTML = '<div class="trip-passenger-email">No passenger records found for this trip.</div>';
                     return;
                 }
 
@@ -1793,7 +1793,7 @@
                                 <span class="trip-passenger-name">${name}</span>
                                 <span class="trip-passenger-email">${email || '-'}</span>
                             </div>
-                            <span class="trip-passenger-role">Penumpang</span>
+                            <span class="trip-passenger-role">Passenger</span>
                         </div>
                     `;
                 }).join('');
@@ -1840,7 +1840,7 @@
                             sequence,
                             lat: pickupLat,
                             lng: pickupLng,
-                            label: pickup?.label || `${item?.name || 'Penumpang'} pickup`,
+                            label: pickup?.label || `${item?.name || 'Passenger'} pickup`,
                         });
                     }
                     if (dropoffLat !== null && dropoffLng !== null) {
@@ -1849,7 +1849,7 @@
                             sequence,
                             lat: dropoffLat,
                             lng: dropoffLng,
-                            label: dropoff?.label || `${item?.name || 'Penumpang'} hantar`,
+                            label: dropoff?.label || `${item?.name || 'Passenger'} drop-off`,
                         });
                     }
                 });
@@ -1869,10 +1869,10 @@
                 const markerLayers = [
                     window.L.circleMarker([pickupLat, pickupLng], {
                         radius: 6, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1
-                    }).bindTooltip('Pickup Pemandu', { direction: 'top', offset: [0, -8] }),
+                    }).bindTooltip('Pickup Driver', { direction: 'top', offset: [0, -8] }),
                     window.L.circleMarker([destinationLat, destinationLng], {
                         radius: 6, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1
-                    }).bindTooltip('Penghantaran Pemandu', { direction: 'top', offset: [0, -8] }),
+                    }).bindTooltip('Driver Drop-off', { direction: 'top', offset: [0, -8] }),
                 ];
 
                 passengerStops.forEach((stop) => {
@@ -1932,7 +1932,7 @@
                 btn.addEventListener('click', () => {
                     const tripId = String(btn.dataset.tripId || '-');
                     const pairedTripId = String(btn.dataset.pairedTripId || '').trim();
-                    const isTwoWay = String(btn.dataset.mode || '').toLowerCase().includes('dua hala');
+                    const isTwoWay = String(btn.dataset.mode || '').toLowerCase().includes('two-way');
                     const driverId = Number.parseInt(String(btn.dataset.driverId || ''), 10);
                     const driverEmail = String(btn.dataset.driverEmail || '').trim();
                     const driverWhatsappUrl = String(btn.dataset.driverWhatsappUrl || '').trim();
@@ -1968,7 +1968,7 @@
                     if (modeEl) modeEl.textContent = btn.dataset.mode || '-';
                     if (pairHintEl) {
                         if (isTwoWay && pairedTripId) {
-                            pairHintEl.textContent = `Trip berpasangan: Trip #${pairedTripId}`;
+                            pairHintEl.textContent = `Paired trip: Trip #${pairedTripId}`;
                             pairHintEl.style.display = 'block';
                         } else {
                             pairHintEl.textContent = '';
@@ -1986,7 +1986,7 @@
                         statusEl.className = `trip-modal-value trip-status-badge trip-status-${slug || 'draft'}`;
                     }
                     if (outboundTimeEl) outboundTimeEl.textContent = btn.dataset.outboundDatetime || '-';
-                    if (fareLabelEl) fareLabelEl.textContent = btn.dataset.fareLabel || 'Tambang';
+                    if (fareLabelEl) fareLabelEl.textContent = btn.dataset.fareLabel || 'Fare';
                     if (fareValueEl) fareValueEl.textContent = btn.dataset.fareDisplay || '-';
                     const totalPassengersText = btn.dataset.totalPassengers || '0';
                     if (totalPassengersEl) totalPassengersEl.textContent = totalPassengersText;
@@ -1995,14 +1995,14 @@
                     if (passengerCountEl && (!participantsPayload || participantsPayload.length === 0)) {
                         const n = Number.parseInt(totalPassengersText, 10);
                         if (Number.isFinite(n) && n > 0) {
-                            passengerCountEl.textContent = `${n} penumpang`;
+                            passengerCountEl.textContent = `${n} passengers`;
                         }
                     }
                     if (pointALabelEl) {
-                        pointALabelEl.innerHTML = '<i class="fa-solid fa-location-dot"></i>Titik Pickup';
+                        pointALabelEl.innerHTML = '<i class="fa-solid fa-location-dot"></i>Pickup Point';
                     }
                     if (pointBLabelEl) {
-                        pointBLabelEl.innerHTML = '<i class="fa-solid fa-flag-checkered"></i>Titik Destinasi';
+                        pointBLabelEl.innerHTML = '<i class="fa-solid fa-flag-checkered"></i>Destination Point';
                     }
                     if (pickupPointEl) pickupPointEl.textContent = btn.dataset.pickupName || '-';
                     if (destinationPointEl) destinationPointEl.textContent = btn.dataset.destinationName || '-';
@@ -2187,7 +2187,7 @@
                 }
                 if (publicJoinTextEl && publicJoinMetaEl && publicJoinIconEl && tripPayload.visibility === 'public') {
                     const open = !!tripPayload.is_open_for_request;
-                    publicJoinTextEl.textContent = `Sertai Awam: ${open ? 'Buka' : 'Tutup'}`;
+                    publicJoinTextEl.textContent = `Public Join: ${open ? 'Open' : 'Close'}`;
                     publicJoinIconEl.className = `fas ${open ? 'fa-lock-open' : 'fa-lock'}`;
                     publicJoinMetaEl.classList.toggle('public-open', open);
                     publicJoinMetaEl.classList.toggle('public-closed', !open);
@@ -2247,7 +2247,3 @@
         })();
     </script>
 @endsection
-
-
-
-

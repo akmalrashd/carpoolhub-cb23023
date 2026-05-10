@@ -655,72 +655,72 @@
 
     <div class="page-shell">
         <section class="page-card title-card">
-            <h1 class="page-title">Cipta Laluan Tersimpan</h1>
-            <p class="page-subtitle">Sedia laluan boleh guna semula untuk mencipta trip dengan lebih cepat.</p>
+            <h1 class="page-title">Create Saved Route</h1>
+            <p class="page-subtitle">Prepare reusable routes to create trips faster.</p>
         </section>
 
         <section class="page-card route-info-note">
             <i class="fa-solid fa-circle-info"></i>
-            Simpan laluan sehala sahaja. Tidak perlu cipta kedua-dua arah.
-            Tetapkan tambang untuk sehala sahaja. Semasa mencipta trip, pilih Sehala atau Dua Hala.
-            Jika pilih Dua Hala, sistem akan automatik termasukkan tambang balik.
+            Save one-way routes only. There is no need to create both directions.
+            Set the fare for one-way travel only. When creating a trip, choose One-way or Two-way.
+            If Two-way is selected, the system will automatically include the return fare.
         </section>
 
         <section class="page-card">
             <div class="map-card">
                 <div class="route-section-head">
-                    <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup dan drop-off</span>
-                    <p class="route-section-hint">Cari, pratonton, atau ketuk peta untuk sahkan Pickup Titik A dan Drop-off Titik B.</p>
+                    <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup and drop-off</span>
+                    <p class="route-section-hint">Search, preview, or tap the map to confirm Pickup Point A and Drop-off Point B.</p>
                 </div>
                 <div class="map-tools">
                     <div class="map-search-row">
                         <div class="map-search-input-wrap">
-                            <input type="text" id="mapSearchInput" placeholder="Cari alamat, tempat, fakulti, taman di Malaysia..." autocomplete="off">
+                            <input type="text" id="mapSearchInput" placeholder="Search address, place, faculty, or neighbourhood in Malaysia..." autocomplete="off">
                             <div class="map-search-suggest" id="mapSearchSuggest"></div>
                         </div>
-                        <button type="button" id="mapSearchBtn">Cari</button>
-                        <button type="button" id="mapLocateBtn" title="Guna lokasi semasa" aria-label="Guna lokasi semasa">
+                        <button type="button" id="mapSearchBtn">Search</button>
+                        <button type="button" id="mapLocateBtn" title="Use current location" aria-label="Use current location">
                             <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
                 <div class="map-target-switch" aria-label="Route point target">
-                    <button type="button" class="map-target-btn active" data-map-target="pickup"><i class="fa-solid fa-location-dot"></i>Pickup Titik A</button>
-                    <button type="button" class="map-target-btn" data-map-target="destination"><i class="fa-solid fa-flag-checkered"></i>Drop-off Titik B</button>
+                    <button type="button" class="map-target-btn active" data-map-target="pickup"><i class="fa-solid fa-location-dot"></i>Pickup Point A</button>
+                    <button type="button" class="map-target-btn" data-map-target="destination"><i class="fa-solid fa-flag-checkered"></i>Drop-off Point B</button>
                 </div>
                 <div class="map-search-preview" id="mapSearchPreview">
                     <div class="map-search-preview-top">
                         <div>
-                            <div class="map-search-preview-title" id="mapSearchPreviewTitle">Pratonton lokasi</div>
-                            <div class="map-search-preview-sub" id="mapSearchPreviewSub">Gerakkan peta dan sahkan titik yang betul.</div>
+                            <div class="map-search-preview-title" id="mapSearchPreviewTitle">Location Preview</div>
+                            <div class="map-search-preview-sub" id="mapSearchPreviewSub">Move the map and confirm the correct point.</div>
                         </div>
-                        <span class="map-search-preview-badge">Pratonton sahaja</span>
+                        <span class="map-search-preview-badge">Preview only</span>
                     </div>
                     <div class="map-search-preview-actions">
-                        <button type="button" class="map-preview-use-btn primary" id="mapPreviewUseBtn">Guna sebagai titik dipilih</button>
-                        <button type="button" class="map-preview-close-btn" id="mapPreviewCloseBtn">Buang pratonton</button>
+                        <button type="button" class="map-preview-use-btn primary" id="mapPreviewUseBtn">Use as selected point</button>
+                        <button type="button" class="map-preview-close-btn" id="mapPreviewCloseBtn">Discard preview</button>
                     </div>
                 </div>
-                <p class="map-help">Carian hanya pratonton tempat dahulu. Sahkan dengan butang, atau ketuk titik tepat pada peta.</p>
+                <p class="map-help">Search results are previews only. Confirm with the button, or tap the exact point on the map.</p>
                 <div class="map-status">
                     <div class="map-step-title">
                         <span class="map-step-badge" id="mapStepNumber">1/3</span>
-                        Kemajuan Tetapan Laluan
+                        Route Setup Progress
                     </div>
-                    <div class="map-step-text" id="mapStepText">Ketuk pada peta untuk tetapkan Titik A.</div>
-                    <div class="map-step-hint" id="mapStepHint">Kemudian ketuk sekali lagi untuk tetapkan Titik B dan lihat pilihan laluan.</div>
+                    <div class="map-step-text" id="mapStepText">Tap the map to set Point A.</div>
+                    <div class="map-step-hint" id="mapStepHint">Then tap again to set Point B and view route options.</div>
                     <div class="map-step-actions">
-                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Set Semula Laluan</span></button>
+                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Reset Route</span></button>
                     </div>
                 </div>
                 <div id="routeMap"></div>
                 <div class="route-options" id="routeOptions">
-                    <div class="route-empty">Tetapkan Titik A dan Titik B untuk lihat pilihan laluan dengan jarak dan ETA.</div>
+                    <div class="route-empty">Set Point A and Point B to view route options with distance and ETA.</div>
                 </div>
             </div>
 
             <form action="{{ route('saved-routes.store') }}" method="POST">
-                @include('saved-routes._form', ['submitLabel' => 'Simpan Laluan'])
+                @include('saved-routes._form', ['submitLabel' => 'Save Route'])
             </form>
         </section>
     </div>
@@ -795,8 +795,8 @@
                     btn.classList.toggle('active', btn.getAttribute('data-map-target') === nextTarget);
                 });
                 if (!pickupMarker && nextTarget === 'destination') {
-                    mapStepText.textContent = 'Titik B dipilih. Tetapkan Titik A dahulu jika ini laluan baharu.';
-                    mapStepHint.textContent = 'Anda masih boleh pratonton tempat, tetapi laluan memerlukan kedua-dua titik.';
+                    mapStepText.textContent = 'Point B selected. Set Point A first if this is a new route.';
+                    mapStepHint.textContent = 'You can still preview places, but the route requires both points.';
                 }
             }
 
@@ -827,11 +827,11 @@
                     syncTargetButtons();
                     mapStepNumber.textContent = '1/3';
                     mapStepText.textContent = nextTarget === 'destination'
-                        ? 'Sasaran Titik B dipilih.'
-                        : 'Ketuk pada peta untuk tetapkan Titik A.';
+                        ? 'Point B target selected.'
+                        : 'Tap the map to set Point A.';
                     mapStepHint.textContent = nextTarget === 'destination'
-                        ? 'Anda boleh tetapkan Titik B dahulu, tetapi laluan tetap memerlukan Titik A sebelum pilihan muncul.'
-                        : 'Carian boleh pratonton tempat dahulu. Sahkan hanya apabila pin sudah betul.';
+                        ? 'You can set Point B first, but the route still requires Point A before options appear.'
+                        : 'Search results can preview a place first. Confirm only when the pin is correct.';
                     mapResetBtn.classList.remove('show');
                     return;
                 }
@@ -840,19 +840,19 @@
                     syncTargetButtons();
                     mapStepNumber.textContent = '2/3';
                     mapStepText.textContent = nextTarget === 'pickup'
-                        ? 'Titik A ditetapkan. Anda boleh laraskan atau tukar ke Titik B.'
-                        : 'Ketuk sekarang untuk tetapkan Titik B.';
+                        ? 'Point A is set. You can adjust it or switch to Point B.'
+                        : 'Tap now to set Point B.';
                     mapStepHint.textContent = nextTarget === 'pickup'
-                        ? 'Pratonton carian akan gantikan Titik A dan set semula Titik B.'
-                        : 'Guna pratonton carian atau ketuk titik penghantaran yang tepat.';
+                        ? 'The search preview will replace Point A and reset Point B.'
+                        : 'Use the search preview or tap the exact drop-off point.';
                     mapResetBtn.classList.remove('show');
                     return;
                 }
 
                 syncTargetButtons();
                 mapStepNumber.textContent = '3/3';
-                mapStepText.textContent = 'Laluan lengkap. Semak dan pilih pilihan yang dikehendaki.';
-                mapStepHint.textContent = 'Ketuk peta semula bila-bila masa untuk set semula dan mulakan Titik A baharu.';
+                mapStepText.textContent = 'Route complete. Review and choose the preferred option.';
+                mapStepHint.textContent = 'Tap the map again anytime to reset and start a new Point A.';
                 mapResetBtn.classList.add('show');
             }
 
@@ -960,7 +960,7 @@
                 var minutes = Math.round((route.duration || 0) / 60);
                 var timeBuffer = (route.duration || 0) >= 1800 ? 1.2 : ((route.duration || 0) >= 900 ? 0.6 : 0.3);
 
-                return 'Sebab AI: tambang asas + jarak (' + distanceKm.toFixed(1) + ' km) + penimbal masa untuk ~' + minutes + ' min perjalanan. Masa mempengaruhi tambang, tetapi jarak tetap faktor utama.';
+                return 'AI reason: base fare + distance (' + distanceKm.toFixed(1) + ' km) + buffer time for ~' + minutes + ' min travel. Time affects the fare, but distance remains the main factor.';
             }
 
             function summarizeRoads(route) {
@@ -976,7 +976,7 @@
                     }
                 });
 
-                return names.slice(0, 3).join(' • ') || 'Laluan utama';
+                return names.slice(0, 3).join(' • ') || 'Main route';
             }
 
             function drawSelectedRoute() {
@@ -1009,7 +1009,7 @@
 
             function renderRouteOptions() {
                 if (!fetchedRoutes.length) {
-                    clearRouteOptions('Tiada pilihan laluan dijumpai. Cuba titik lain.');
+                    clearRouteOptions('No route options found. Try another point.');
                     return;
                 }
 
@@ -1019,11 +1019,11 @@
                     return ''
                         + '<button type="button" class="route-option-btn' + activeClass + '" data-route-index="' + index + '">'
                         + '  <div class="route-option-top">'
-                        + '    <span class="route-option-name">Pilihan ' + (index + 1) + '</span>'
+                        + '    <span class="route-option-name">Option ' + (index + 1) + '</span>'
                         + '    <span class="route-option-meta">' + formatDistance(route.distance) + ' • ' + formatDuration(route.duration) + '</span>'
                         + '  </div>'
                         + '  <div class="route-option-road">' + roadSummary + '</div>'
-                        + '  <div class="route-option-suggestion">Tambang dicadangkan RM ' + suggestedFare(route.distance, route.duration).toFixed(2) + '</div>'
+                        + '  <div class="route-option-suggestion">Suggested Fare RM ' + suggestedFare(route.distance, route.duration).toFixed(2) + '</div>'
                         + '  <div class="route-option-reason">' + suggestionReason(route) + '</div>'
                         + '</button>';
                 }).join('');
@@ -1053,7 +1053,7 @@
 
             function fetchRouteOptions() {
                 if (!pickupMarker || !destinationMarker) {
-                    clearRouteOptions('Tetapkan Titik A dan Titik B untuk melihat pilihan laluan dengan jarak dan ETA.');
+                    clearRouteOptions('Set Point A and Point B to view route options with distance and ETA.');
                     return;
                 }
 
@@ -1069,7 +1069,7 @@
                     .then(function (data) {
                         if (!data || !data.routes || !data.routes.length) {
                             drawStraightLine();
-                            routeOptionsEl.innerHTML = '<div class="route-empty">Perkhidmatan laluan tidak tersedia. Menunjukkan garis lurus sahaja.</div>';
+                            routeOptionsEl.innerHTML = '<div class="route-empty">Routing service is unavailable. Showing a straight line only.</div>';
                             return;
                         }
                         fetchedRoutes = data.routes.slice(0, 3);
@@ -1080,7 +1080,7 @@
                     })
                     .catch(function () {
                         drawStraightLine();
-                        routeOptionsEl.innerHTML = '<div class="route-empty">Gagal mendapatkan pilihan laluan. Menunjukkan garis lurus sahaja.</div>';
+                        routeOptionsEl.innerHTML = '<div class="route-empty">Could not fetch route options. Showing a straight line only.</div>';
                     });
             }
 
@@ -1109,7 +1109,7 @@
                 clearMarker('destination');
                 clearSearchPreview();
                 nextTarget = 'pickup';
-                clearRouteOptions('Tetapkan Titik A dan Titik B untuk melihat pilihan laluan dengan jarak dan ETA.');
+                clearRouteOptions('Set Point A and Point B to view route options with distance and ETA.');
                 updateStepIndicator();
             }
 
@@ -1164,7 +1164,7 @@
                         iconAnchor: [12, 12]
                     })
                 }).addTo(map);
-                previewMarker.bindTooltip('Pin pratonton', {
+                previewMarker.bindTooltip('Preview pin', {
                     permanent: true,
                     direction: 'top',
                     offset: [0, -12],
@@ -1189,11 +1189,11 @@
 
             function updatePreviewCard() {
                 if (!previewPlace || !previewCard) return;
-                var targetText = nextTarget === 'pickup' ? 'pickup Titik A' : 'penghantaran Titik B';
-                var title = String(previewPlace.name || 'Lokasi dipilih').split(',')[0] || 'Lokasi dipilih';
+                var targetText = nextTarget === 'pickup' ? 'pickup Point A' : 'drop-off Point B';
+                var title = String(previewPlace.name || 'Selected location').split(',')[0] || 'Selected location';
                 previewTitle.textContent = title;
-                previewSub.textContent = String(previewPlace.name || '').trim() || 'Seret pin pratonton atau sahkan titik ini.';
-                previewUseBtn.textContent = 'Guna sebagai ' + targetText;
+                previewSub.textContent = String(previewPlace.name || '').trim() || 'Drag the preview pin or confirm this point.';
+                previewUseBtn.textContent = 'Use as ' + targetText;
                 previewCard.classList.add('show');
             }
 
@@ -1238,7 +1238,7 @@
 
                 searchSuggest.innerHTML = items.map(function (item, index) {
                     var display = String(item.display_name || '').trim();
-                    var main = display.split(',')[0] || 'Pilih lokasi';
+                    var main = display.split(',')[0] || 'Select location';
                     return (
                         '<button type=\"button\" class=\"map-search-suggest-btn\" data-index=\"' + index + '\">' +
                         '<span class=\"map-search-suggest-main\">' + escapeText(main) + '</span>' +
@@ -1316,7 +1316,7 @@
 
                 return {
                     provider: 'Photon',
-                    display_name: parts.join(', ') || props.name || 'Lokasi dipilih',
+                    display_name: parts.join(', ') || props.name || 'Selected location',
                     lat: String(lat),
                     lon: String(lng),
                     type: props.type || props.osm_value || 'place',

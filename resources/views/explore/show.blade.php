@@ -18,8 +18,8 @@
         $passengers = $trip->participants->filter(fn ($participant) => ! $participant->is_driver)->values();
         $passengerCount = $passengers->count();
         $splitTypeText = ((int) ($trip->participant_count ?? 0) > $passengerCount)
-            ? 'Termasuk Pemandu'
-            : 'Tidak Termasuk Pemandu';
+            ? 'Driver Included'
+            : 'Driver Excluded';
         $currentPassengerName = auth()->user()?->name ?: 'Passenger';
     @endphp
 
@@ -244,7 +244,7 @@
         <section class="trip-show-card">
             <div class="trip-show-head">
                 <div>
-                    <h1 class="trip-show-title">Butiran Trip</h1>
+                    <h1 class="trip-show-title">Trip Details</h1>
                     <p class="trip-show-subtitle">{{ $routeName }}</p>
                 </div>
             </div>
@@ -262,28 +262,28 @@
                     <span class="trip-modal-value">{{ $tripIdDisplay }}</span>
                 </div>
                 <div class="trip-modal-line">
-                    <span class="trip-modal-label">Tarikh & Masa</span>
+                    <span class="trip-modal-label">Date & Time</span>
                     <span class="trip-modal-value">{{ $trip->trip_datetime?->format('Y-m-d H:i') ?: '-' }}</span>
                 </div>
                 @if($isTwoWay)
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label">Jenis Trip</span>
-                        <span class="trip-modal-value">Dua Hala</span>
+                        <span class="trip-modal-label">Trip Type</span>
+                        <span class="trip-modal-value">Two-way</span>
                     </div>
 @endif
                 <div class="trip-point-cards">
                     <div class="trip-point-card pickup">
-                        <span class="trip-point-label"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
+                        <span class="trip-point-label"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
                         <span class="trip-point-value">{{ $pickupName }}</span>
                     </div>
                     <div class="trip-point-card destination">
-                        <span class="trip-point-label"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
+                        <span class="trip-point-label"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
                         <span class="trip-point-value">{{ $destinationName }}</span>
                     </div>
                 </div>
 
                 <div class="trip-modal-line">
-                    <span class="trip-modal-label">Pemandu</span>
+                    <span class="trip-modal-label">Driver</span>
                     <div class="trip-driver-content">
                         <span class="trip-driver-avatar">{{ strtoupper(substr((string) ($trip->driver?->name ?? 'D'), 0, 1)) }}</span>
                         <span class="trip-driver-meta">
@@ -295,8 +295,8 @@
 
                 <div class="trip-modal-line">
                     <div class="trip-passenger-header">
-                        <span class="trip-modal-label">Penumpang</span>
-                        <span class="trip-passenger-count">{{ $passengerCount }} penumpang</span>
+                        <span class="trip-modal-label">Passengers</span>
+                        <span class="trip-passenger-count">{{ $passengerCount }} passengers</span>
                     </div>
                     <div class="trip-passenger-list">
                         @forelse($passengers as $participant)
@@ -308,7 +308,7 @@
                                 </span>
                             </div>
                         @empty
-                            <span class="trip-passenger-email">Tiada rekod penumpang untuk trip ini.</span>
+                            <span class="trip-passenger-email">No passenger records for this trip.</span>
                         @endforelse
                     </div>
                 </div>
@@ -321,18 +321,18 @@
                 </div>
                 <div class="trip-rollup-item">
                     <div class="trip-rollup-title">Seats</div>
-                    <div class="trip-rollup-value">{{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit) : 'Terbuka' }}</div>
+                    <div class="trip-rollup-value">{{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit) : 'Open' }}</div>
                 </div>
                 <div class="trip-rollup-item">
-                    <div class="trip-rollup-title">Tambang / Orang</div>
+                    <div class="trip-rollup-title">Fare / Person</div>
                     <div class="trip-rollup-value">RM {{ number_format((float) $trip->fare_per_person, 2) }}</div>
                 </div>
                 <div class="trip-rollup-item">
-                    <div class="trip-rollup-title">Keterlihatan</div>
-                    <div class="trip-rollup-value">Awam</div>
+                    <div class="trip-rollup-title">Visibility</div>
+                    <div class="trip-rollup-value">Public</div>
                 </div>
                 <div class="trip-rollup-item">
-                    <div class="trip-rollup-title">Agihan Tambang</div>
+                    <div class="trip-rollup-title">Fare Split</div>
                     <div class="trip-rollup-value">{{ $splitTypeText }}</div>
                 </div>
             </div>
@@ -367,15 +367,15 @@
                 @if($isJoined)
                     <div class="request-action-bar">
                         <div class="request-action-right">
-                            <a href="{{ route('explore.index') }}" class="trip-show-btn">Kembali</a>
-                            <span class="trip-show-btn success disabled">Telah Sertai</span>
+                            <a href="{{ route('explore.index') }}" class="trip-show-btn">Back</a>
+                            <span class="trip-show-btn success disabled">Already Joined</span>
                         </div>
                     </div>
                 @elseif($myRequest && $myRequest->status === 'pending')
                     <div class="request-sent-card">
                         <div class="request-sent-head">
-                            <h2 class="request-sent-title">Permohonan Dihantar</h2>
-                            <p class="request-sent-subtitle">Permohonan anda sedang menunggu kelulusan driver.</p>
+                            <h2 class="request-sent-title">Request Sent</h2>
+                            <p class="request-sent-subtitle">Your request is waiting for driver approval.</p>
                         </div>
                         @if($myRequest->routePoint)
                             <div class="request-sent-map-card">
@@ -400,19 +400,19 @@
                     </div>
                     <div class="request-action-bar">
                         <div class="request-action-right">
-                            <a href="{{ route('explore.index') }}" class="trip-show-btn">Kembali</a>
+                            <a href="{{ route('explore.index') }}" class="trip-show-btn">Back</a>
                             <form method="POST" action="{{ route('explore.join-requests.cancel', $myRequest) }}">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="trip-show-btn danger">Batal Permohonan</button>
+                                <button type="submit" class="trip-show-btn danger">Cancel Request</button>
                             </form>
                         </div>
                     </div>
                 @elseif($isFull || ! $trip->is_open_for_request)
                     <div class="request-action-bar">
                         <div class="request-action-right">
-                            <a href="{{ route('explore.index') }}" class="trip-show-btn">Kembali</a>
-                            <span class="trip-show-btn disabled">Tidak Tersedia</span>
+                            <a href="{{ route('explore.index') }}" class="trip-show-btn">Back</a>
+                            <span class="trip-show-btn disabled">Not Available</span>
                         </div>
                     </div>
                 @else
@@ -423,19 +423,19 @@
                                 <div class="request-route-title-block">
                                     <div class="request-route-title">
                                         <i class="fa-solid fa-route"></i>
-                                        <span>Tetapan laluan sertai</span>
+                                        <span>Join Route Settings</span>
                                     </div>
-                                    <p class="request-route-subtitle">Gunakan titik trip biasa atau pin perhentian berdekatan di sepanjang laluan semasa. Pemandu akan semak permohonan anda sebelum meluluskan.</p>
+                                    <p class="request-route-subtitle">Use the standard trip points or pin nearby stops along the current route. The driver will review your request before approval.</p>
                                 </div>
-                                <span class="request-route-badge">Permohonan awam</span>
+                                <span class="request-route-badge">Public request</span>
                             </div>
 
                             <div class="request-main-grid">
                                 <div class="request-control-column">
                                     <div class="request-section">
                                         <div class="request-section-head">
-                                            <span class="request-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup dan drop-off</span>
-                                            <span class="request-section-hint">Gunakan titik trip lalai atau pilih tersuai dan pin perhentian berdekatan pada peta.</span>
+                                            <span class="request-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup and drop-off</span>
+                                            <span class="request-section-hint">Use the default trip points or choose custom and pin nearby stops on the map.</span>
                                         </div>
                                         <div class="request-mode-grid">
                                             <div class="request-option-group">
@@ -443,11 +443,11 @@
                                                 <div class="request-radio-row">
                                                     <label class="request-option">
                                                         <input type="radio" name="pickup_mode" value="default" {{ old('pickup_mode', 'default') === 'default' ? 'checked' : '' }}>
-                                                        <span>Guna pickup trip</span>
+                                                        <span>Use trip pickup</span>
                                                     </label>
                                                     <label class="request-option">
                                                         <input type="radio" name="pickup_mode" value="custom" {{ old('pickup_mode') === 'custom' ? 'checked' : '' }}>
-                                                        <span>Pickup tersuai</span>
+                                                        <span>Custom pickup</span>
                                                     </label>
                                                 </div>
                                                 <input type="hidden" name="pickup_name" value="{{ old('pickup_name') }}">
@@ -459,11 +459,11 @@
                                                 <div class="request-radio-row">
                                                     <label class="request-option">
                                                         <input type="radio" name="dropoff_mode" value="default" {{ old('dropoff_mode', 'default') === 'default' ? 'checked' : '' }}>
-                                                        <span>Guna destinasi</span>
+                                                        <span>Use destination</span>
                                                     </label>
                                                     <label class="request-option">
                                                         <input type="radio" name="dropoff_mode" value="custom" {{ old('dropoff_mode') === 'custom' ? 'checked' : '' }}>
-                                                        <span>Drop-off tersuai</span>
+                                                        <span>Custom drop-off</span>
                                                     </label>
                                                 </div>
                                                 <input type="hidden" name="dropoff_name" value="{{ old('dropoff_name') }}">
@@ -480,12 +480,12 @@
                                 <div class="request-map-column">
                                     <div class="request-section" data-preview-section>
                                         <div class="request-section-head">
-                                            <span class="request-section-title"><i class="fa-solid fa-route"></i>Pratonton laluan & tambang</span>
-                                            <span class="request-section-hint">Tambang normal kekal sebagai asas; harga tersuai dikira berdasarkan jarak dari laluan asal pemandu.</span>
+                                            <span class="request-section-title"><i class="fa-solid fa-route"></i>Route & Fare Preview</span>
+                                            <span class="request-section-hint">The normal fare remains the base; custom pricing is calculated from the driver's original route distance.</span>
                                         </div>
                                         <div class="request-map-card" data-route-picker>
                                             <div class="request-map-head">
-                                                <span class="request-map-title">Pin perhentian tersuai</span>
+                                                <span class="request-map-title">Pin percustom stops</span>
                                                 <span class="request-map-targets">
                                                     <button type="button" class="request-map-target active" data-map-target="pickup" hidden>Pin Pickup</button>
                                                     <button type="button" class="request-map-target" data-map-target="dropoff" hidden>Pin Drop-off</button>
@@ -493,12 +493,12 @@
                                             </div>
                                             <div id="requestRouteMap" class="request-route-map"></div>
                                             <div class="request-map-legend">
-                                                <span><i class="legend-route"></i>Laluan semasa</span>
-                                                <span><i class="legend-preview"></i>Laluan sertai cadangan</span>
+                                                <span><i class="legend-route"></i>Current route</span>
+                                                <span><i class="legend-preview"></i>Suggested join route</span>
                                                 <span><i class="legend-zone"></i><span id="routeAllowedLabel">Kawasan dibenarkan</span></span>
-                                                <span><i class="legend-pin"></i>Pin anda</span>
+                                                <span><i class="legend-pin"></i>Your pin</span>
                                             </div>
-                                            <div id="requestMapStatus" class="request-map-status">Titik trip lalai dipilih. Pilih pickup atau drop-off tersuai untuk pin perhentian berdekatan.</div>
+                                            <div id="requestMapStatus" class="request-map-status">Default trip points selected. Choose custom pickup or drop-off to pin a nearby stop.</div>
                                             <div class="request-fare-preview" id="requestFarePreview">
                                                 <div class="request-fare-preview-head">
                                                     <span class="request-fare-preview-title">
@@ -509,15 +509,15 @@
                                                 </div>
                                                 <div class="request-fare-grid">
                                                     <div class="request-fare-item">
-                                                        <span class="request-fare-label">Laluan asas</span>
+                                                        <span class="request-fare-label">Base route</span>
                                                         <span class="request-fare-value" id="farePreviewRoute">-</span>
                                                     </div>
                                                     <div class="request-fare-item">
-                                                        <span class="request-fare-label">Penyelewengan laluan</span>
+                                                        <span class="request-fare-label">Route detour</span>
                                                         <span class="request-fare-value" id="farePreviewSegment">-</span>
                                                     </div>
                                                     <div class="request-fare-item">
-                                                        <span class="request-fare-label">Tambang anda</span>
+                                                        <span class="request-fare-label">Your fare</span>
                                                         <span class="request-fare-value" id="farePreviewPassenger">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
                                                     </div>
                                                     <div class="request-fare-item">
@@ -525,19 +525,19 @@
                                                         <span class="request-fare-value" id="farePreviewOthers">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
                                                     </div>
                                                 </div>
-                                                <p class="request-fare-note" id="farePreviewNote">Tambang normal kekal sebagai asas. Pickup/drop-off tersuai hanya menambah caj ekstra berdasarkan jarak dari laluan asal.</p>
+                                                <p class="request-fare-note" id="farePreviewNote">The normal fare remains the base. Custom pickup/drop-off only adds an extra charge based on distance from the original route.</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="request-submit-row">
-                                <input class="request-input" type="text" name="request_note" placeholder="Nota permohonan (pilihan)">
-                                <p class="request-help">Selepas kelulusan, aturkan masa dan koordinasi akhir dengan pemandu melalui WhatsApp atau e-mel.</p>
+                                <input class="request-input" type="text" name="request_note" placeholder="Request note (optional)">
+                                <p class="request-help">After approval, arrange final timing and coordination with the driver through WhatsApp or email.</p>
                                 <div class="request-action-bar">
                                     <div class="request-action-right">
-                                        <a href="{{ route('explore.index') }}" class="trip-show-btn">Kembali</a>
-                                        <button type="submit" class="trip-show-btn primary">Mohon Sertai</button>
+                                        <a href="{{ route('explore.index') }}" class="trip-show-btn">Back</a>
+                                        <button type="submit" class="trip-show-btn primary">Request to Join</button>
                                     </div>
                                 </div>
                             </div>

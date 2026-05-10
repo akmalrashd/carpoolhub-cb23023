@@ -683,25 +683,25 @@
 <div class="trip-form-grid">
     <div class="trip-field">
         <div class="saved-route-tools">
-            <label class="trip-label" for="saved_route_id">Laluan Tersimpan</label>
+            <label class="trip-label" for="saved_route_id">Saved Routes</label>
             <div class="saved-route-toolbar">
                 <a href="{{ route('saved-routes.create') }}" class="add-route-btn">
                     <i class="fa-solid fa-plus"></i>
-                    <span>Tambah Laluan</span>
+                    <span>Add Route</span>
                 </a>
             </div>
         </div>
         <div class="route-picker" id="savedRoutePicker">
             <button type="button" class="route-picker-trigger" id="savedRouteTrigger">
-                <span id="savedRouteTriggerText" class="route-picker-placeholder">-- Cari atau pilih laluan --</span>
+                <span id="savedRouteTriggerText" class="route-picker-placeholder">-- Search or select a route --</span>
                 <i class="fa-solid fa-chevron-down"></i>
             </button>
             <div class="route-picker-panel" id="savedRoutePanel">
-                <input id="savedRouteSearchInput" class="route-picker-search" type="text" placeholder="Cari laluan..." autocomplete="off">
+                <input id="savedRouteSearchInput" class="route-picker-search" type="text" placeholder="Search routes..." autocomplete="off">
                 <div class="route-picker-list" id="savedRouteList"></div>
             </div>
             <select id="saved_route_id" class="trip-select route-select-native" name="saved_route_id" required>
-                <option value="">Pilih laluan</option>
+                <option value="">Select a route</option>
                 @foreach($savedRoutes as $savedRoute)
                     <option
                         value="{{ $savedRoute->id }}"
@@ -722,7 +722,7 @@
     </div>
 
     <div class="trip-field">
-        <label class="trip-label" for="trip_datetime">Tarikh & Masa Trip</label>
+        <label class="trip-label" for="trip_datetime">Trip Date & Time</label>
         <input
             id="trip_datetime"
             class="trip-input"
@@ -734,7 +734,7 @@
     </div>
 
     <div class="trip-field">
-        <label class="trip-label">Keterlihatan</label>
+        <label class="trip-label">Visibility</label>
         <div class="trip-choice-grid">
             <label class="trip-choice-item" for="visibility_private">
                 <input
@@ -745,7 +745,7 @@
                     {{ old('visibility', $trip->visibility ?? 'private') === 'private' ? 'checked' : '' }}
                     required
                 >
-                <span>Peribadi</span>
+                <span>Private</span>
             </label>
             <label class="trip-choice-item" for="visibility_public">
                 <input
@@ -757,8 +757,8 @@
                     required
                 >
                 <span class="trip-choice-text">
-                    <span>Awam</span>
-                    <span class="trip-choice-hint">(Tunjuk di Explore)</span>
+                    <span>Public</span>
+                    <span class="trip-choice-hint">(Shown in Explore)</span>
                 </span>
             </label>
         </div>
@@ -766,7 +766,7 @@
 
     @if(!isset($trip) || !$trip)
         <div class="trip-field">
-            <label class="trip-label">Jenis Trip</label>
+            <label class="trip-label">Trip Type</label>
             <div class="trip-choice-grid">
                 <label class="trip-choice-item" for="trip_type_one_way">
                     <input
@@ -777,7 +777,7 @@
                         {{ old('trip_type') === 'one_way' ? 'checked' : '' }}
                         required
                     >
-                    <span>Sehala</span>
+                    <span>One-way</span>
                 </label>
                 <label class="trip-choice-item" for="trip_type_two_way">
                     <input
@@ -789,8 +789,8 @@
                         required
                     >
                     <span class="trip-choice-text">
-                        <span>Dua Hala</span>
-                        <span class="trip-choice-hint">(Auto cipta trip balik)</span>
+                        <span>Two-way</span>
+                        <span class="trip-choice-hint">(Automatically creates return trip)</span>
                     </span>
                 </label>
             </div>
@@ -806,41 +806,41 @@
         <div class="direction-section" id="outboundDirectionSection">
             <div class="direction-section-head">
                 <div>
-                    <p class="direction-title">Arah Trip</p>
-                    <p class="trip-help-text" id="directionHelpText">Pilih laluan tersimpan dan jenis trip dahulu. Kemudian tetapkan pickup dan destinasi sebenar di sini.</p>
+                    <p class="direction-title">Trip Direction</p>
+                    <p class="trip-help-text" id="directionHelpText">Select a saved route and trip type first. Then set the actual pickup and destination here.</p>
                 </div>
                 <button type="button" class="direction-swap-btn" id="swapOutboundDirectionBtn">
                     <i class="fa-solid fa-right-left"></i>
-                    <span>Tukar</span>
+                    <span>Switch</span>
                 </button>
             </div>
             <div class="direction-points">
                 <div class="direction-point-card pickup">
-                    <span class="direction-point-label"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
-                    <span class="direction-point-value" id="outboundPickupPreview">Pilih laluan tersimpan dahulu.</span>
+                    <span class="direction-point-label"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
+                    <span class="direction-point-value" id="outboundPickupPreview">Select a saved route first.</span>
                 </div>
                 <div class="direction-point-card destination">
-                    <span class="direction-point-label"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
-                    <span class="direction-point-value" id="outboundDestinationPreview">Pilih laluan tersimpan dahulu.</span>
+                    <span class="direction-point-label"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
+                    <span class="direction-point-value" id="outboundDestinationPreview">Select a saved route first.</span>
                 </div>
             </div>
             <div class="direction-return-block" id="returnDirectionBlock" hidden>
-                <p class="direction-title">Trip Balik</p>
+                <p class="direction-title">Return Trip</p>
                 <div class="direction-points">
                     <div class="direction-point-card pickup">
-                        <span class="direction-point-label"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
-                        <span class="direction-point-value" id="returnPickupPreview">Pilih laluan tersimpan dahulu.</span>
+                        <span class="direction-point-label"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
+                        <span class="direction-point-value" id="returnPickupPreview">Select a saved route first.</span>
                     </div>
                     <div class="direction-point-card destination">
-                        <span class="direction-point-label"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
-                        <span class="direction-point-value" id="returnDestinationPreview">Pilih laluan tersimpan dahulu.</span>
+                        <span class="direction-point-label"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
+                        <span class="direction-point-value" id="returnDestinationPreview">Select a saved route first.</span>
                     </div>
                 </div>
             </div>
         </div>
 
     <div class="trip-field">
-        <label class="trip-label" for="include_driver_in_split">Agihan Tambang</label>
+        <label class="trip-label" for="include_driver_in_split">Fare Split</label>
         <input type="hidden" name="include_driver_in_split" value="0">
         <label class="trip-toggle-row" for="include_driver_in_split">
             <input
@@ -850,14 +850,14 @@
                 value="1"
                 {{ (string) old('include_driver_in_split', '1') === '1' ? 'checked' : '' }}
             >
-            <span>Termasuk pemandu dalam agihan tambang</span>
+            <span>Include driver in fare split</span>
         </label>
-        <p class="trip-help-text">Untuk trip awam, bilangan bahagi ikut had tempat duduk (penumpang sahaja). Tandakan ini untuk turut masukkan pemandu dalam agihan.</p>
+        <p class="trip-help-text">For public trips, the split count follows the passenger seat limit. Tick this to include the driver in the fare split.</p>
     </div>
 
     <div class="trip-field trip-field-full trip-conditional-group" id="publicTripFields">
         <div class="trip-field">
-            <label class="trip-label" for="seat_limit">Had Tempat Duduk</label>
+            <label class="trip-label" for="seat_limit">Seat Limit</label>
             <input
                 id="seat_limit"
                 class="trip-input"
@@ -867,20 +867,20 @@
                 max="20"
                 value="{{ old('seat_limit', $trip->seat_limit ?? '') }}"
             >
-            <p class="trip-help-text">Had tempat duduk untuk penumpang sahaja (pemandu tidak termasuk). Penumpang pra-pilih akan guna had ini, dan tempat yang tinggal dikurangkan selepas trip dicipta.</p>
+            <p class="trip-help-text">Seat limit is for passengers only. Preselected passengers use this limit, and remaining seats are reduced after the trip is created.</p>
         </div>
 
         <div class="trip-field">
-            <label class="trip-label" for="public_note">Nota Awam</label>
+            <label class="trip-label" for="public_note">Public Note</label>
             <textarea id="public_note" class="trip-textarea" name="public_note" rows="2">{{ old('public_note', $trip->public_note ?? '') }}</textarea>
-            <p class="trip-help-text">Nota pendek yang ditunjuk pada kad trip Explore.</p>
+            <p class="trip-help-text">A short note shown on the Explore trip card.</p>
         </div>
     </div>
 
     <input id="status_system_input" type="hidden" name="status" value="">
 
     <div class="trip-field trip-field-full">
-        <label class="trip-label" id="passengerSelectionLabel">Penumpang (Sambungan Diterima)</label>
+        <label class="trip-label" id="passengerSelectionLabel">Passengers (Accepted Connections)</label>
         <div class="participants-card">
             @forelse($selectableParticipants as $participant)
                 <label class="participant-card">
@@ -897,26 +897,26 @@
                     </span>
                 </label>
             @empty
-                <p class="participants-empty">Tiada sambungan diterima lagi.</p>
+                <p class="participants-empty">No accepted connections yet.</p>
             @endforelse
         </div>
-        <p class="participants-connection-help">Tak jumpa rakan anda di sini? <a href="{{ route('connections.index') }}">Klik di sini untuk buka Sambungan dan tambah mereka dahulu.</a></p>
-        <p class="trip-help-text" id="passengerSelectionHint">Pilih penumpang dipercayai untuk trip peribadi. Trip awam boleh terima permohonan sertai dari Explore.</p>
-        <p class="trip-help-text" id="privateRoutePointHint">Penumpang peribadi menggunakan tarikh/masa trip dan titik laluan secara lalai. Pickup/drop-off tersuai boleh guna semula data pilihan laluan yang sama kemudian.</p>
+        <p class="participants-connection-help">Do not see your friend here? <a href="{{ route('connections.index') }}">Click here to open Connections and add them first.</a></p>
+        <p class="trip-help-text" id="passengerSelectionHint">Select trusted passengers for a private trip. Public trips can receive join requests from Explore.</p>
+        <p class="trip-help-text" id="privateRoutePointHint">Private passengers use the trip date/time and route points by default. Custom pickup/drop-off can reuse the same route preference data later.</p>
     </div>
 
     <div class="trip-field trip-field-full">
-        <label class="trip-label" for="note">Nota</label>
+        <label class="trip-label" for="note">Note</label>
         <textarea id="note" class="trip-textarea" name="note" rows="3">{{ old('note', $trip->note ?? '') }}</textarea>
     </div>
 
     <div class="trip-field trip-field-full">
         <div class="fare-preview-card">
-            <p class="fare-preview-title">Pratonton Tambang</p>
-            <p class="trip-help-text" id="fare_preview_hint">Pratonton tambang sehala.</p>
+            <p class="fare-preview-title">Fare Preview</p>
+            <p class="trip-help-text" id="fare_preview_hint">One-way fare preview.</p>
             <div class="fare-preview-grid">
                 <div class="fare-preview-item">
-                    <span class="fare-preview-label">Tambang Jumlah</span>
+                    <span class="fare-preview-label">Total Fare</span>
                     <span class="fare-preview-value" id="fare_total_preview">RM 0.00</span>
                 </div>
                 <div class="fare-preview-item">
@@ -924,7 +924,7 @@
                     <span class="fare-preview-value" id="participant_count_preview">1</span>
                 </div>
                 <div class="fare-preview-item">
-                    <span class="fare-preview-label">Tambang / Orang</span>
+                    <span class="fare-preview-label">Fare / Person</span>
                     <span class="fare-preview-value" id="fare_per_person_preview">RM 0.00</span>
                 </div>
             </div>
@@ -939,18 +939,18 @@
 @endif
 
 <div class="trip-form-actions">
-    <button type="button" class="trip-btn-secondary" id="tripCancelBtn">Batal</button>
+    <button type="button" class="trip-btn-secondary" id="tripCancelBtn">Cancel</button>
     <button type="submit" class="trip-btn-primary">{{ $submitLabel }}</button>
 </div>
 
 <div class="trip-cancel-modal" id="tripCancelModal" aria-hidden="true">
     <div class="trip-cancel-card" role="dialog" aria-modal="true" aria-labelledby="tripCancelTitle">
-        <h3 class="trip-cancel-title" id="tripCancelTitle">Batal perubahan?</h3>
-        <p class="trip-cancel-text">Anda telah mengisi butiran trip. Adakah anda mahu simpan sebagai draf atau buang borang ini?</p>
+        <h3 class="trip-cancel-title" id="tripCancelTitle">Cancel perubahan?</h3>
+        <p class="trip-cancel-text">You have entered trip details. Do you want to save them as a draft or discard this form?</p>
         <div class="trip-cancel-actions">
             <button type="button" class="trip-btn-secondary" id="tripKeepEditingBtn">Terus Edit</button>
-            <button type="button" class="trip-btn-danger" id="tripDiscardBtn">Buang</button>
-            <button type="button" class="trip-btn-primary" id="tripSaveDraftBtn">Simpan Draf</button>
+            <button type="button" class="trip-btn-danger" id="tripDiscardBtn">Discard</button>
+            <button type="button" class="trip-btn-primary" id="tripSaveDraftBtn">Save Draft</button>
         </div>
     </div>
 </div>
@@ -1063,11 +1063,11 @@
             farePerPersonEl.textContent = `RM ${perPerson.toFixed(2)}`;
             if (farePreviewHint) {
                 const publicHint = selectedVisibility() === 'public'
-                    ? ' Bilangan bahagi awam ikut had tempat duduk (penumpang sahaja).'
+                    ? ' Public split count follows the passenger seat limit.'
                     : '';
                 farePreviewHint.textContent = tripMultiplier() === 2
-                    ? `Dua hala dipilih: jumlah termasuk tambang trip balik.${publicHint}`
-                    : `Pratonton tambang sehala.${publicHint}`;
+                    ? `Two-way selected: total includes the return trip fare.${publicHint}`
+                    : `One-way fare preview.${publicHint}`;
             }
             updateDirectionVisibility();
         }
@@ -1122,13 +1122,13 @@
             }
             if (passengerSelectionLabel) {
                 passengerSelectionLabel.textContent = isPublic
-                    ? 'Penumpang Pra-pilih (Pilihan)'
-                    : 'Penumpang (Sambungan Diterima)';
+                    ? 'Preselected Passengers (Optional)'
+                    : 'Passengers (Accepted Connections)';
             }
             if (passengerSelectionHint) {
                 passengerSelectionHint.textContent = isPublic
-                    ? 'Pilihan: tambah penumpang dipercayai terlebih dahulu. Penumpang pra-pilih menggunakan had tempat duduk, dan tempat yang tinggal terbuka untuk permohonan Explore.'
-                    : 'Pilih penumpang dipercayai untuk trip peribadi.';
+                    ? 'Optional: add trusted passengers first. Preselected passengers use the seat limit, and remaining seats stay open for Explore requests.'
+                    : 'Select trusted passengers for a private trip.';
             }
         }
 
@@ -1180,14 +1180,14 @@
             const tripType = selectedTripType();
             const isReady = hasDirectionPrerequisites();
             if (!isReady) {
-                const waitingText = routeData ? 'Pilih jenis trip dahulu.' : 'Pilih laluan tersimpan dahulu.';
+                const waitingText = routeData ? 'Select a trip type first.' : 'Select a saved route first.';
                 if (outboundPickupPreview) outboundPickupPreview.textContent = waitingText;
                 if (outboundDestinationPreview) outboundDestinationPreview.textContent = waitingText;
                 if (returnPickupPreview) returnPickupPreview.textContent = waitingText;
                 if (returnDestinationPreview) returnDestinationPreview.textContent = waitingText;
                 if (outboundDirectionSection) outboundDirectionSection.classList.add('is-disabled');
                 if (swapOutboundDirectionBtn) swapOutboundDirectionBtn.disabled = true;
-                if (directionHelpText) directionHelpText.textContent = 'Pilih laluan tersimpan dan jenis trip dahulu. Kemudian tetapkan pickup dan destinasi sebenar di sini.';
+                if (directionHelpText) directionHelpText.textContent = 'Select a saved route and trip type first. Then set the actual pickup and destination here.';
                 return;
             }
 
@@ -1206,8 +1206,8 @@
             if (swapOutboundDirectionBtn) swapOutboundDirectionBtn.disabled = !isReady;
             if (directionHelpText) {
                 directionHelpText.textContent = tripType === 'two_way'
-                    ? 'Laluan tersimpan hanya menyimpan alamat. Kad ini menunjukkan arah pergi dan balik bersama.'
-                    : 'Laluan tersimpan hanya menyimpan alamat. Tetapkan pickup dan destinasi sebenar di sini.';
+                    ? 'Saved routes only store addresses. This card shows outbound and return directions together.'
+                    : 'Saved routes only store addresses. Set the actual pickup and destination here.';
             }
         }
 
@@ -1249,7 +1249,7 @@
 
         function selectedRouteText() {
             const option = routeSelect.options[routeSelect.selectedIndex];
-            if (!option || !option.value) return '-- Cari atau pilih laluan --';
+            if (!option || !option.value) return '-- Search or select a route --';
             return (option.textContent || '').trim();
         }
 
@@ -1257,7 +1257,7 @@
             if (!routeTriggerText) return;
             const text = selectedRouteText();
             routeTriggerText.textContent = text;
-            routeTriggerText.classList.toggle('route-picker-placeholder', text === '-- Cari atau pilih laluan --');
+            routeTriggerText.classList.toggle('route-picker-placeholder', text === '-- Search or select a route --');
         }
 
         function getRouteOptions() {
@@ -1274,7 +1274,7 @@
             });
 
             if (!options.length) {
-                routeList.innerHTML = '<div class="route-picker-empty">Tiada laluan dijumpai. Cuba kata kunci lain.</div>';
+                routeList.innerHTML = '<div class="route-picker-empty">No routes found. Try another keyword.</div>';
                 return;
             }
 
@@ -1414,7 +1414,7 @@
                 return;
             }
             event.preventDefault();
-            event.returnValue = 'Anda mempunyai data trip yang belum disimpan. Jika anda keluar sekarang, input anda akan hilang.';
+            event.returnValue = 'You have unsaved trip data. If you leave now, your input will be lost.';
         });
 
         if (modal) {

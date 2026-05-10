@@ -126,65 +126,65 @@
         <section class="archive-card">
             <div class="archive-topbar">
                 <div>
-                    <h1 class="archive-title">Pembayaran Diarkib</h1>
-                    <p class="archive-subtitle">Sejarah pembayaran baca sahaja untuk kitaran bil diarkib.</p>
+                    <h1 class="archive-title">Archived Payments</h1>
+                    <p class="archive-subtitle">Read-only payment history for archived billing cycles.</p>
                 </div>
-                <a href="{{ route('archive.index', ['month' => $monthKey]) }}" class="archive-btn"><i class="fa-solid fa-arrow-left"></i>Kembali ke Arkib</a>
+                <a href="{{ route('archive.index', ['month' => $monthKey]) }}" class="archive-btn"><i class="fa-solid fa-arrow-left"></i>Back ke Archive</a>
             </div>
         </section>
 
         <section class="archive-card">
             <form method="GET" action="{{ route('archive.payments.index') }}" class="archive-filter-row">
                 <div>
-                    <label class="archive-label" for="month">Bulan</label>
+                    <label class="archive-label" for="month">Month</label>
                     <select class="archive-select" name="month" id="month">
-                        <option value="" disabled {{ $monthKey ? '' : 'selected' }}>Pilih bulan arkib</option>
+                        <option value="" disabled {{ $monthKey ? '' : 'selected' }}>Select archive month</option>
                         @foreach($months as $month)
                             <option value="{{ $month['value'] }}" {{ $monthKey === $month['value'] ? 'selected' : '' }}>{{ $month['label'] }}</option>
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="archive-btn primary"><i class="fa-solid fa-filter"></i>Guna</button>
-                <a href="{{ route('archive.payments.index') }}" class="archive-btn">Set Semula</a>
+                <button type="submit" class="archive-btn primary"><i class="fa-solid fa-filter"></i>Apply</button>
+                <a href="{{ route('archive.payments.index') }}" class="archive-btn">Reset</a>
             </form>
         </section>
 
         @if(! $monthKey)
             <section class="archive-card">
-                <div class="archive-empty">Pilih bulan arkib dahulu untuk memuatkan ringkasan pembayaran dan rekod.</div>
+                <div class="archive-empty">Select an archive month first to load payment summaries and records.</div>
             </section>
         @else
             <section class="archive-card">
-                <h2 class="archive-section-title">Ringkasan Pembayaran</h2>
+                <h2 class="archive-section-title">Payment Summary</h2>
                 <div class="archive-summary-grid">
                     <div class="archive-summary-item">
-                        <span class="archive-summary-label">Belum Bayar Saya</span>
+                        <span class="archive-summary-label">My Unpaid</span>
                         <span class="archive-summary-value">RM {{ number_format((float) ($summary['my']['unpaid']['amount'] ?? 0), 2) }}</span>
-                        <span class="archive-summary-count">{{ $summary['my']['unpaid']['count'] ?? 0 }} rekod</span>
+                        <span class="archive-summary-count">{{ $summary['my']['unpaid']['count'] ?? 0 }} records</span>
                     </div>
                     <div class="archive-summary-item">
-                        <span class="archive-summary-label">Tertangguh Saya</span>
+                        <span class="archive-summary-label">My Pending</span>
                         <span class="archive-summary-value">RM {{ number_format((float) ($summary['my']['pending_confirmation']['amount'] ?? 0), 2) }}</span>
-                        <span class="archive-summary-count">{{ $summary['my']['pending_confirmation']['count'] ?? 0 }} rekod</span>
+                        <span class="archive-summary-count">{{ $summary['my']['pending_confirmation']['count'] ?? 0 }} records</span>
                     </div>
                     <div class="archive-summary-item">
-                        <span class="archive-summary-label">Dibayar Saya</span>
+                        <span class="archive-summary-label">Paid Saya</span>
                         <span class="archive-summary-value">RM {{ number_format((float) ($summary['my']['paid']['amount'] ?? 0), 2) }}</span>
-                        <span class="archive-summary-count">{{ $summary['my']['paid']['count'] ?? 0 }} rekod</span>
+                        <span class="archive-summary-count">{{ $summary['my']['paid']['count'] ?? 0 }} records</span>
                     </div>
                     <div class="archive-summary-item">
-                        <span class="archive-summary-label">Baris Semakan</span>
+                        <span class="archive-summary-label">Review Queue</span>
                         <span class="archive-summary-value">RM {{ number_format((float) ($summary['driver']['total']['amount'] ?? 0), 2) }}</span>
-                        <span class="archive-summary-count">{{ $summary['driver']['total']['count'] ?? 0 }} rekod</span>
+                        <span class="archive-summary-count">{{ $summary['driver']['total']['count'] ?? 0 }} records</span>
                     </div>
                 </div>
             </section>
 
             <section class="archive-card">
-                <h2 class="archive-section-title">Pembayaran Diarkib Saya</h2>
-                <p class="archive-section-subtitle">Tandakan rekod belum bayar diarkib anda dan pantau pengesahan.</p>
+                <h2 class="archive-section-title">My Archived Payments</h2>
+                <p class="archive-section-subtitle">Mark your archived unpaid records and track confirmation.</p>
                 @if($myPayments->isEmpty())
-                    <div class="archive-empty">Tiada rekod pembayaran diarkib dijumpai untuk akaun anda.</div>
+                    <div class="archive-empty">No archived payment records found for your account.</div>
                 @else
                 <div class="archive-payments-mobile-list">
                     @foreach($myPayments as $payment)
@@ -198,7 +198,7 @@
                             $destinationLng = $trip?->destination_longitude ?? '';
                             $routeName = $trip?->savedRoute?->route_name ?: ($pickupName . ' -> ' . $destinationName);
                             $statusSlug = strtolower((string) $payment->payment_status);
-                            $statusTextMap = ['unpaid' => 'Belum Bayar', 'pending_confirmation' => 'Menunggu Pengesahan', 'paid' => 'Dibayar'];
+                            $statusTextMap = ['unpaid' => 'Unpaid', 'pending_confirmation' => 'Pending Confirmation', 'paid' => 'Paid'];
                             $statusText = $statusTextMap[$payment->payment_status] ?? ucfirst((string) $payment->payment_status);
                             $driverPhotoUrl = $trip?->driver?->profile_photo
                                 ? \Illuminate\Support\Facades\Storage::disk('public')->url($trip->driver->profile_photo)
@@ -223,15 +223,15 @@
                                         data-datetime="{{ $trip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
                                         data-pickup="{{ $pickupName }}"
                                         data-destination="{{ $destinationName }}"
-                                        data-mode="{{ ((string) ($trip?->trip_mode ?? 'one_way')) === 'two_way' ? 'Dua Hala' : 'Sehala' }}"
+                                        data-mode="{{ ((string) ($trip?->trip_mode ?? 'one_way')) === 'two_way' ? 'Two-way' : 'One-way' }}"
                                         data-fare="RM {{ number_format((float) (($trip?->fare_total ?? 0) + ($trip?->returnTrip?->fare_total ?? 0)), 2) }}"
-                                    ><i class="fa-regular fa-eye"></i><span>Lihat Butiran</span></button>
+                                    ><i class="fa-regular fa-eye"></i><span>View Details</span></button>
                                 </div>
                                 <span class="status-chip status-{{ $statusSlug }}">{{ $statusText }}</span>
                             </div>
                             <div class="archive-payments-grid">
-                                <div class="archive-payments-line"><span>Pemandu</span><strong>{{ $trip?->driver?->name ?: '-' }}</strong></div>
-                                <div class="archive-payments-line"><span>Amaun Perlu Dibayar</span><strong>RM {{ number_format((float) $payment->amount_due, 2) }}</strong></div>
+                                <div class="archive-payments-line"><span>Driver</span><strong>{{ $trip?->driver?->name ?: '-' }}</strong></div>
+                                <div class="archive-payments-line"><span>Amount Due</span><strong>RM {{ number_format((float) $payment->amount_due, 2) }}</strong></div>
                             </div>
                             <div class="archive-payments-action-row">
                                 @if($payment->payment_status === 'unpaid')
@@ -241,10 +241,10 @@
                                         <input type="hidden" name="month" value="{{ $monthKey }}">
                                         <div class="archive-payments-action-group">
                                             <select class="archive-select" name="payment_method" required>
-                                                <option value="" disabled selected>Pilih kaedah</option>
+                                                <option value="" disabled selected>Select method</option>
                                                 <option value="duitnow_qr">DuitNow QR</option>
-                                                <option value="bank_account">Akaun Bank</option>
-                                                <option value="digital_wallet">Dompet Digital</option>
+                                                <option value="bank_account">Bank Account</option>
+                                                <option value="digital_wallet">Digital Wallet</option>
                                                 <option value="others">Lain-lain</option>
                                             </select>
                                             <input class="archive-input" type="text" name="remarks" placeholder="Catatan">
@@ -263,13 +263,13 @@
                                             ><i class="fa-solid fa-circle-info"></i></button>
                                         </div>
                                         <div class="archive-payments-submit-wrap">
-                                            <button type="submit" class="archive-btn primary">Tandakan Dibayar</button>
+                                            <button type="submit" class="archive-btn primary">Tandakan Paid</button>
                                         </div>
                                     </form>
                                 @elseif($payment->payment_status === 'pending_confirmation')
-                                    <span class="archive-payments-status-note pending">Menunggu Pemandu</span>
+                                    <span class="archive-payments-status-note pending">Waiting for Driver</span>
                                 @else
-                                    <span class="archive-payments-status-note done">Selesai</span>
+                                    <span class="archive-payments-status-note done">Completed</span>
                                 @endif
                             </div>
                         </article>
@@ -280,10 +280,10 @@
                         <thead>
                         <tr>
                             <th>Trip</th>
-                            <th>Pemandu</th>
-                            <th class="right">Amaun Perlu Dibayar</th>
+                            <th>Driver</th>
+                            <th class="right">Amount Due</th>
                             <th>Status</th>
-                            <th class="right">Tindakan</th>
+                            <th class="right">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -319,9 +319,9 @@
                                         data-datetime="{{ $trip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
                                         data-pickup="{{ $pickupName }}"
                                         data-destination="{{ $destinationName }}"
-                                        data-mode="{{ ((string) ($trip?->trip_mode ?? 'one_way')) === 'two_way' ? 'Dua Hala' : 'Sehala' }}"
+                                        data-mode="{{ ((string) ($trip?->trip_mode ?? 'one_way')) === 'two_way' ? 'Two-way' : 'One-way' }}"
                                         data-fare="RM {{ number_format((float) (($trip?->fare_total ?? 0) + ($trip?->returnTrip?->fare_total ?? 0)), 2) }}"
-                                    ><i class="fa-regular fa-eye"></i><span>Lihat Butiran</span></button>
+                                    ><i class="fa-regular fa-eye"></i><span>View Details</span></button>
                                 </td>
                                 <td>{{ $trip?->driver?->name ?: '-' }}</td>
                                 <td class="right">RM {{ number_format((float) $payment->amount_due, 2) }}</td>
@@ -354,13 +354,13 @@
                                                     data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                                     data-driver-tng-qr="{{ $driverTngQr }}"
                                                 ><i class="fa-solid fa-circle-info"></i></button>
-                                                <button type="submit" class="archive-btn primary">Tandakan Dibayar</button>
+                                                <button type="submit" class="archive-btn primary">Tandakan Paid</button>
                                             </div>
                                         </form>
                                     @elseif($payment->payment_status === 'pending_confirmation')
-                                        <span class="archive-payments-status-note pending">Menunggu Pemandu</span>
+                                        <span class="archive-payments-status-note pending">Waiting for Driver</span>
                                     @else
-                                        <span class="archive-payments-status-note done">Selesai</span>
+                                        <span class="archive-payments-status-note done">Completed</span>
                                     @endif
                                 </td>
                             </tr>
@@ -374,16 +374,16 @@
 
             @if($driverPayments)
                 <section class="archive-card">
-                    <h2 class="archive-section-title">Tindakan Baris Arkib</h2>
-                    <p class="archive-section-subtitle">Kelulusan pemandu, tandakan dibayar, notifikasi, dan tolak untuk rekod diarkib kini tersedia di baris pembayaran.</p>
+                    <h2 class="archive-section-title">Archived Row Actions</h2>
+                    <p class="archive-section-subtitle">Driver approval, mark paid, notifications, and rejection for archived records are now available in each payment row.</p>
                     <div class="archive-summary-grid" style="grid-template-columns: repeat(1, minmax(0, 1fr));">
                         <div class="archive-summary-item" style="gap:10px;">
-                            <span class="archive-summary-label">Buka Baris Pembayaran</span>
-                            <span class="archive-summary-value">{{ $summary['driver']['total']['count'] ?? 0 }} rekod baris arkib</span>
-                            <span class="archive-summary-count">Gunakan halaman pembayaran untuk tindakan baris arkib.</span>
+                            <span class="archive-summary-label">Open Payment Rows</span>
+                            <span class="archive-summary-value">{{ $summary['driver']['total']['count'] ?? 0 }} archived row records</span>
+                            <span class="archive-summary-count">Use the payment page for archived row actions.</span>
                             <div>
                                 <a href="{{ route('payments.index') }}#archived-queue" class="archive-btn primary">
-                                    <i class="fa-solid fa-wallet"></i>Pergi ke Baris Pembayaran
+                                    <i class="fa-solid fa-wallet"></i>Go to Payment Row
                                 </a>
                             </div>
                         </div>
@@ -396,7 +396,7 @@
     <div class="archive-modal" id="archiveDriverPaymentDetailsModal" aria-hidden="true">
         <div class="archive-modal-card">
             <div class="archive-modal-head">
-                <h3 class="archive-modal-title">Butiran Pembayaran Pemandu</h3>
+                <h3 class="archive-modal-title">Driver Payment Details</h3>
                 <button type="button" class="archive-modal-close" id="archiveDriverPaymentDetailsModalClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="archive-driver-scroll">
@@ -409,15 +409,15 @@
                 </div>
                 <div class="archive-driver-grid">
                     <div class="archive-driver-line">
-                        <span class="archive-driver-label"><i class="fa-solid fa-building-columns"></i>Bank / Dompet</span>
+                        <span class="archive-driver-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
                         <span class="archive-driver-value" id="archiveDriverPaymentBank">-</span>
                     </div>
                     <div class="archive-driver-line">
-                        <span class="archive-driver-label"><i class="fa-solid fa-user"></i>Nama Pemegang Akaun</span>
+                        <span class="archive-driver-label"><i class="fa-solid fa-user"></i>Account Holder Name</span>
                         <span class="archive-driver-value" id="archiveDriverPaymentAccountName">-</span>
                     </div>
                     <div class="archive-driver-line">
-                        <span class="archive-driver-label"><i class="fa-solid fa-hashtag"></i>Nombor Akaun</span>
+                        <span class="archive-driver-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
                         <span class="archive-driver-value" id="archiveDriverPaymentAccountNumber">-</span>
                     </div>
                 </div>
@@ -425,19 +425,19 @@
                     <div class="archive-driver-qr-card">
                         <span class="archive-driver-qr-title"><i class="fa-solid fa-qrcode"></i>DuitNow QR</span>
                         <div class="archive-driver-qr-preview" id="archiveDriverPaymentDuitnowWrap">
-                            <span class="archive-driver-qr-empty">Tiada QR dimuat naik</span>
+                            <span class="archive-driver-qr-empty">No QR uploaded</span>
                         </div>
                     </div>
                     <div class="archive-driver-qr-card">
                         <span class="archive-driver-qr-title"><i class="fa-solid fa-qrcode"></i>Touch 'n Go QR</span>
                         <div class="archive-driver-qr-preview" id="archiveDriverPaymentTngWrap">
-                            <span class="archive-driver-qr-empty">Tiada QR dimuat naik</span>
+                            <span class="archive-driver-qr-empty">No QR uploaded</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="archive-action-row" style="justify-content:flex-end;">
-                <button type="button" class="archive-btn" id="archiveDriverPaymentDetailsClose">Tutup</button>
+                <button type="button" class="archive-btn" id="archiveDriverPaymentDetailsClose">Close</button>
             </div>
         </div>
     </div>
@@ -445,41 +445,41 @@
     <div class="archive-modal" id="archivePaymentTripModal" aria-hidden="true">
         <div class="archive-modal-card">
             <div class="archive-modal-head">
-                <h3 class="archive-modal-title">Butiran Trip Diarkib</h3>
+                <h3 class="archive-modal-title">Archived Trip Details</h3>
                 <button type="button" class="archive-modal-close" id="archivePaymentTripModalClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="archive-modal-line">
-                <span class="archive-modal-label">ID Trip</span>
+                <span class="archive-modal-label">Trip ID</span>
                 <span class="archive-modal-value" id="archivePaymentTripIds">-</span>
             </div>
             <div class="archive-modal-line">
-                <span class="archive-modal-label">Laluan</span>
+                <span class="archive-modal-label">Routes</span>
                 <span class="archive-modal-value" id="archivePaymentRouteName">-</span>
             </div>
             <div class="archive-modal-line">
-                <span class="archive-modal-label">Tarikh & Masa</span>
+                <span class="archive-modal-label">Date & Time</span>
                 <span class="archive-modal-value" id="archivePaymentTripDatetime">-</span>
             </div>
             <div class="archive-modal-line">
-                <span class="archive-modal-label">Pemandu</span>
+                <span class="archive-modal-label">Driver</span>
                 <span class="archive-modal-value" id="archivePaymentTripDriver">-</span>
             </div>
             <div class="archive-point-grid">
                 <div class="archive-point-card pickup">
-                    <span class="archive-point-label"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
+                    <span class="archive-point-label"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
                     <span class="archive-point-value" id="archivePaymentTripPickup">-</span>
                 </div>
                 <div class="archive-point-card destination">
-                    <span class="archive-point-label"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
+                    <span class="archive-point-label"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
                     <span class="archive-point-value" id="archivePaymentTripDestination">-</span>
                 </div>
             </div>
             <div class="archive-modal-line">
-                <span class="archive-modal-label">Jenis Trip</span>
+                <span class="archive-modal-label">Trip Type</span>
                 <span class="archive-modal-value" id="archivePaymentTripMode">-</span>
             </div>
             <div class="archive-modal-line">
-                <span class="archive-modal-label">Tambang Gabungan</span>
+                <span class="archive-modal-label">Combined Fare</span>
                 <span class="archive-modal-value" id="archivePaymentTripFare">-</span>
             </div>
         </div>
@@ -508,7 +508,7 @@
                     if (!wrapEl) return;
                     const url = String(qrUrl || '').trim();
                     if (!url) {
-                        wrapEl.innerHTML = '<span class="archive-driver-qr-empty">Tiada QR dimuat naik</span>';
+                        wrapEl.innerHTML = '<span class="archive-driver-qr-empty">No QR uploaded</span>';
                         return;
                     }
                     wrapEl.innerHTML = `<img src="${url}" alt="${label}">`;

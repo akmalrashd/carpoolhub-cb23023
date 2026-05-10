@@ -395,10 +395,10 @@
     <div class="billing-page">
         <section class="billing-hero">
             <div>
-                <h1 class="billing-title">Ringkasan Bulanan</h1>
-                <p class="billing-subtitle">Gambaran keseluruhan kitaran bil dan arkib.</p>
+                <h1 class="billing-title">Monthly Summary</h1>
+                <p class="billing-subtitle">Overview of billing cycles and archives.</p>
             </div>
-            <span class="billing-badge"><i class="fa-solid fa-rotate"></i> Auto-tutup setiap hari pada 00:05</span>
+            <span class="billing-badge"><i class="fa-solid fa-rotate"></i> Auto-closes daily at 00:05</span>
         </section>
 
         @if($errors->any())
@@ -410,28 +410,28 @@
         <section class="billing-card">
             <div class="billing-open-head">
                 <div>
-                    <h2 class="billing-open-title">Kitaran Terbuka: {{ $openCycle->month_key }}</h2>
+                    <h2 class="billing-open-title">Open Cycle: {{ $openCycle->month_key }}</h2>
                     <div class="billing-open-range">{{ $openCycle->start_date?->format('Y-m-d') }} hingga {{ $openCycle->end_date?->format('Y-m-d') }}</div>
-                    <div class="billing-open-note"><i class="fa-solid fa-circle-info"></i> Tutup manual adalah pilihan. Kitaran tertunggak akan ditutup secara automatik.</div>
+                    <div class="billing-open-note"><i class="fa-solid fa-circle-info"></i> Manual closing is optional. Overdue cycles will be closed automatically.</div>
                 </div>
 
                 @if(auth()->user()->role === 'admin' && $openCycle->status === 'open')
                     <div class="billing-action-row">
-                        <form method="POST" action="{{ route('billing-cycles.close', $openCycle) }}" onsubmit="return confirm('Tutup kitaran ini dan arkibkan trip-tripnya?');" style="margin:0;">
+                        <form method="POST" action="{{ route('billing-cycles.close', $openCycle) }}" onsubmit="return confirm('Close this cycle and archive its trips?');" style="margin:0;">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="billing-close-btn"><i class="fa-solid fa-box-archive"></i> Tutup & Arkib</button>
+                            <button type="submit" class="billing-close-btn"><i class="fa-solid fa-box-archive"></i> Close & Archive</button>
                         </form>
                         @if(($canUndoLatestClose ?? false) && isset($latestClosedCycle))
                             <form method="POST"
                                   action="{{ route('billing-cycles.undo-last-close') }}"
-                                  onsubmit="return confirm('Batalkan arkib terakhir untuk kitaran {{ $latestClosedCycle->month_key }}?');"
+                                  onsubmit="return confirm('Undo the last archive for cycle {{ $latestClosedCycle->month_key }}?');"
                                   style="margin:0;">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="billing-fallback-btn" title="Fallback kitaran {{ $latestClosedCycle->month_key }}">
+                                <button type="submit" class="billing-fallback-btn" title="Fallback cycle {{ $latestClosedCycle->month_key }}">
                                     <i class="fa-solid fa-rotate-left"></i>
-                                    Batalkan Arkib Terakhir
+                                    Cancelkan Archive Terakhir
                                 </button>
                             </form>
                         @endif
@@ -445,37 +445,37 @@
                     <div class="billing-kpi-value">{{ (int) ($openSummary['trip_count'] ?? 0) }}</div>
                 </article>
                 <article class="billing-kpi">
-                    <div class="billing-kpi-label">Jumlah Tambang</div>
+                    <div class="billing-kpi-label">Total Fare</div>
                     <div class="billing-kpi-value">RM {{ number_format((float) ($openSummary['fare_total'] ?? 0), 2) }}</div>
                 </article>
                 <article class="billing-kpi">
-                    <div class="billing-kpi-label">Belum Bayar + Tertangguh</div>
+                    <div class="billing-kpi-label">Unpaid + Pending</div>
                     <div class="billing-kpi-value warning">RM {{ number_format((float) ($openSummary['unpaid_pending_total'] ?? 0), 2) }}</div>
                 </article>
                 <article class="billing-kpi">
-                    <div class="billing-kpi-label">Jumlah Dibayar</div>
+                    <div class="billing-kpi-label">Total Paid</div>
                     <div class="billing-kpi-value success">RM {{ number_format((float) ($openSummary['paid_total'] ?? 0), 2) }}</div>
                 </article>
             </div>
         </section>
 
         <section class="billing-card">
-            <h2 class="billing-history-head">Sejarah Kitaran</h2>
+            <h2 class="billing-history-head">Cycle History</h2>
 
             <div class="billing-table-wrap">
                 <table class="billing-table">
                     <thead>
                     <tr>
-                        <th>Bulan</th>
-                        <th>Julat Tarikh</th>
+                        <th>Month</th>
+                        <th>Date Range</th>
                         <th>Status</th>
-                        <th>Ditutup Oleh</th>
-                        <th>Mod Tutup</th>
+                        <th>Closed By</th>
+                        <th>Close Mode</th>
                         <th class="numeric">Trip</th>
-                        <th class="numeric">Jumlah Tambang</th>
-                        <th class="numeric">Tertangguh/Belum Bayar</th>
-                        <th class="numeric">Dibayar</th>
-                        <th>Ditutup Pada</th>
+                        <th class="numeric">Total Fare</th>
+                        <th class="numeric">Pending/Unpaid</th>
+                        <th class="numeric">Paid</th>
+                        <th>Closed At</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -487,7 +487,7 @@
                             <td>
                                 <span class="billing-status {{ $cycle->status === 'open' ? 'open' : 'closed' }}">{{ ucfirst($cycle->status) }}</span>
                             </td>
-                            <td>{{ $cycle->closer?->name ?? ($cycle->status === 'closed' ? 'Sistem' : '-') }}</td>
+                            <td>{{ $cycle->closer?->name ?? ($cycle->status === 'closed' ? 'System' : '-') }}</td>
                             <td>
                                 @if($cycle->status !== 'closed')
                                     <span class="billing-empty">-</span>
@@ -505,7 +505,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="billing-empty">Tiada kitaran dijumpai.</td>
+                            <td colspan="10" class="billing-empty">No cycles found.</td>
                         </tr>
                     @endforelse
                     </tbody>
@@ -526,7 +526,7 @@
 
                         <div>
                             @if($cycle->status !== 'closed')
-                                <span class="billing-empty">Mod tutup: -</span>
+                                <span class="billing-empty">Close mode: -</span>
                             @elseif($cycle->closed_by)
                                 <span class="billing-mode manual">Manual</span>
                             @else
@@ -540,26 +540,26 @@
                                 <div class="billing-history-stat-value">{{ (int) $cycleSummary['trip_count'] }}</div>
                             </div>
                             <div class="billing-history-stat">
-                                <div class="billing-history-stat-label">Jumlah Tambang</div>
+                                <div class="billing-history-stat-label">Total Fare</div>
                                 <div class="billing-history-stat-value">RM {{ number_format((float) $cycleSummary['fare_total'], 2) }}</div>
                             </div>
                             <div class="billing-history-stat">
-                                <div class="billing-history-stat-label">Tertangguh/Belum Bayar</div>
+                                <div class="billing-history-stat-label">Pending/Unpaid</div>
                                 <div class="billing-history-stat-value">RM {{ number_format((float) $cycleSummary['unpaid_pending_total'], 2) }}</div>
                             </div>
                             <div class="billing-history-stat">
-                                <div class="billing-history-stat-label">Dibayar</div>
+                                <div class="billing-history-stat-label">Paid</div>
                                 <div class="billing-history-stat-value">RM {{ number_format((float) $cycleSummary['paid_total'], 2) }}</div>
                             </div>
                         </div>
 
                         <div class="billing-history-meta">
-                            <div>Ditutup oleh: {{ $cycle->closer?->name ?? ($cycle->status === 'closed' ? 'Sistem' : '-') }}</div>
-                            <div>Ditutup pada: {{ $cycle->closed_at?->format('Y-m-d H:i') ?: '-' }}</div>
+                            <div>Closed by: {{ $cycle->closer?->name ?? ($cycle->status === 'closed' ? 'System' : '-') }}</div>
+                            <div>Closed at: {{ $cycle->closed_at?->format('Y-m-d H:i') ?: '-' }}</div>
                         </div>
                     </article>
                 @empty
-                    <div class="billing-empty">Tiada kitaran dijumpai.</div>
+                    <div class="billing-empty">No cycles found.</div>
                 @endforelse
             </div>
 

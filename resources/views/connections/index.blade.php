@@ -399,11 +399,11 @@
             .ui-table td:first-child::before {
                 display: none;
             }
-            .ui-table td[data-label="Tindakan"] {
+            .ui-table td[data-label="Actions"] {
                 padding-top: 10px;
             }
-            .ui-table td[data-label="Tindakan"] form,
-            .ui-table td[data-label="Tindakan"] .btn {
+            .ui-table td[data-label="Actions"] form,
+            .ui-table td[data-label="Actions"] .btn {
                 width: 100%;
             }
             .person-avatar {
@@ -420,28 +420,28 @@
         <section class="connections-card">
             <div class="connections-header">
                 <div>
-                    <h1 class="connections-title">Sambungan</h1>
-                    <p class="connections-subtitle">Bina dan urus rangkaian penumpang dipercayai anda.</p>
+                    <h1 class="connections-title">Connections</h1>
+                    <p class="connections-subtitle">Build and manage your trusted passenger network.</p>
                 </div>
                 <div class="connections-badges">
-                    <span class="count-chip"><i class="fa-solid fa-inbox"></i> Masuk {{ $incomingRequests->count() }}</span>
-                    <span class="count-chip"><i class="fa-regular fa-paper-plane"></i> Keluar {{ $outgoingRequests->count() }}</span>
-                    <span class="count-chip"><i class="fa-solid fa-user-check"></i> Diterima {{ $acceptedConnections->count() }}</span>
+                    <span class="count-chip"><i class="fa-solid fa-inbox"></i> Incoming {{ $incomingRequests->count() }}</span>
+                    <span class="count-chip"><i class="fa-regular fa-paper-plane"></i> Outgoing {{ $outgoingRequests->count() }}</span>
+                    <span class="count-chip"><i class="fa-solid fa-user-check"></i> Accepted {{ $acceptedConnections->count() }}</span>
                 </div>
             </div>
         </section>
 
         <section class="connections-card">
-            <h2 class="section-title"><i class="fa-solid fa-user-plus"></i> Cari Pengguna</h2>
+            <h2 class="section-title"><i class="fa-solid fa-user-plus"></i> Search Users</h2>
             <form method="GET" action="{{ route('connections.index') }}" class="search-row">
                 <input
                     class="search-input"
                     type="text"
                     name="q"
                     value="{{ $q }}"
-                    placeholder="Cari mengikut nama atau e-mel"
+                    placeholder="Search by name or email"
                 >
-                <button type="submit" class="btn btn-dark">Cari</button>
+                <button type="submit" class="btn btn-dark">Search</button>
             </form>
 
             @if($errors->has('receiver_id'))
@@ -453,28 +453,28 @@
                     <table class="ui-table">
                         <thead>
                         <tr>
-                            <th>Nama</th>
-                            <th>E-mel</th>
+                            <th>Name</th>
+                            <th>Email</th>
                             <th>Status</th>
-                            <th>Tindakan</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         @foreach($searchResults as $user)
                             @php
                                 $statusMap = [
-                                    'accepted' => 'Diterima',
-                                    'outgoing_pending' => 'Tertangguh (Keluar)',
-                                    'incoming_pending' => 'Tertangguh (Masuk)',
-                                    'rejected_by_you' => 'Ditolak (Anda)',
-                                    'rejected_you' => 'Ditolak (Mereka)',
+                                    'accepted' => 'Accepted',
+                                    'outgoing_pending' => 'Pending (Outgoing)',
+                                    'incoming_pending' => 'Pending (Incoming)',
+                                    'rejected_by_you' => 'Rejected (You)',
+                                    'rejected_you' => 'Rejected (Them)',
                                     'blocked' => 'Disekat',
-                                    'none' => 'Tiada Sambungan',
+                                    'none' => 'No Connections',
                                 ];
-                                $statusLabel = $statusMap[$user->relationship_status] ?? 'Tidak Diketahui';
+                                $statusLabel = $statusMap[$user->relationship_status] ?? 'Unknown';
                             @endphp
                             <tr>
-                                <td data-label="Nama">
+                                <td data-label="Name">
                                     <div class="person-cell">
                                         <span class="person-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
                                         <div class="person-meta">
@@ -483,16 +483,16 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td data-label="E-mel"><span class="person-sub" style="max-width:280px; display:inline-block;">{{ $user->email }}</span></td>
+                                <td data-label="Email"><span class="person-sub" style="max-width:280px; display:inline-block;">{{ $user->email }}</span></td>
                                 <td data-label="Status">
                                     <span class="status-chip status-{{ $user->relationship_status }}">{{ $statusLabel }}</span>
                                 </td>
-                                <td data-label="Tindakan">
+                                <td data-label="Actions">
                                     @if(in_array($user->relationship_status, ['none', 'rejected_by_you', 'rejected_you'], true))
                                         <form method="POST" action="{{ route('connections.requests.store') }}">
                                             @csrf
                                             <input type="hidden" name="receiver_id" value="{{ $user->id }}">
-                                            <button type="submit" class="btn btn-dark btn-sm">Hantar Permohonan</button>
+                                            <button type="submit" class="btn btn-dark btn-sm">Send Request</button>
                                         </form>
                                     @elseif($user->relationship_status === 'incoming_pending')
                                         <span class="hint-text" style="margin:0;">Respon di bawah</span>
@@ -506,15 +506,15 @@
                     </table>
                 </div>
             @elseif($q !== '')
-                <p class="hint-text">Tiada pengguna dijumpai untuk "{{ $q }}".</p>
+                <p class="hint-text">No users found for "{{ $q }}".</p>
             @endif
         </section>
 
         <section class="panel-grid">
             <div class="connections-card">
-                <h2 class="section-title"><i class="fa-solid fa-inbox"></i> Permohonan Masuk</h2>
+                <h2 class="section-title"><i class="fa-solid fa-inbox"></i> Incoming Requests</h2>
                 @if($incomingRequests->isEmpty())
-                    <p class="empty">Tiada permohonan masuk.</p>
+                    <p class="empty">No incoming requests.</p>
                 @else
                     <div class="request-list">
                         @foreach($incomingRequests as $connection)
@@ -526,13 +526,13 @@
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="accept">
-                                        <button type="submit" class="btn btn-success btn-sm">Terima</button>
+                                        <button type="submit" class="btn btn-success btn-sm">Accept</button>
                                     </form>
                                     <form method="POST" action="{{ route('connections.respond', $connection) }}">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="reject">
-                                        <button type="submit" class="btn btn-danger btn-sm">Tolak</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                                     </form>
                                 </div>
                             </article>
@@ -542,9 +542,9 @@
             </div>
 
             <div class="connections-card">
-                <h2 class="section-title"><i class="fa-regular fa-paper-plane"></i> Permohonan Keluar</h2>
+                <h2 class="section-title"><i class="fa-regular fa-paper-plane"></i> Outgoing Requests</h2>
                 @if($outgoingRequests->isEmpty())
-                    <p class="empty">Tiada permohonan keluar.</p>
+                    <p class="empty">No outgoing requests.</p>
                 @else
                     <div class="request-list">
                         @foreach($outgoingRequests as $connection)
@@ -552,7 +552,7 @@
                                 <h3 class="request-name">{{ $connection->receiver->name }}</h3>
                                 <p class="request-email">{{ $connection->receiver->email }}</p>
                                 <div class="request-actions">
-                                    <span class="status-chip status-outgoing_pending">Tertangguh</span>
+                                    <span class="status-chip status-outgoing_pending">Pending</span>
                                 </div>
                             </article>
                         @endforeach
@@ -562,24 +562,24 @@
         </section>
 
         <section class="connections-card">
-            <h2 class="section-title"><i class="fa-solid fa-user-check"></i> Sambungan Diterima</h2>
+            <h2 class="section-title"><i class="fa-solid fa-user-check"></i> Connections Accepted</h2>
             @if($acceptedConnections->isEmpty())
-                <p class="empty">Tiada sambungan diterima lagi.</p>
+                <p class="empty">No accepted connections yet.</p>
             @else
                 <div class="table-wrap">
                     <table class="ui-table">
                         <thead>
                         <tr>
-                            <th>Nama</th>
-                            <th>E-mel</th>
+                            <th>Name</th>
+                            <th>Email</th>
                             <th>Peranan</th>
-                            <th>Tindakan</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         @foreach($acceptedConnections as $connectionUser)
                             <tr>
-                                <td data-label="Nama">
+                                <td data-label="Name">
                                     <div class="person-cell">
                                         <span class="person-avatar">{{ strtoupper(substr($connectionUser->name, 0, 1)) }}</span>
                                         <div class="person-meta">
@@ -588,15 +588,15 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td data-label="E-mel"><span class="connection-email">{{ $connectionUser->email }}</span></td>
+                                <td data-label="Email"><span class="connection-email">{{ $connectionUser->email }}</span></td>
                                 <td data-label="Peranan"><span class="role-pill">{{ ucfirst($connectionUser->role) }}</span></td>
-                                <td data-label="Tindakan">
-                                    <form method="POST" action="{{ route('connections.remove', $connectionUser) }}" onsubmit="return confirm('Buang sambungan ini?');">
+                                <td data-label="Actions">
+                                    <form method="POST" action="{{ route('connections.remove', $connectionUser) }}" onsubmit="return confirm('Remove this connection?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger-soft btn-sm">
                                             <i class="fa-solid fa-user-minus"></i>
-                                            <span>Buang</span>
+                                            <span>Discard</span>
                                         </button>
                                     </form>
                                 </td>

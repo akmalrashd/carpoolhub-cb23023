@@ -37,14 +37,14 @@
 
     <div class="trip-edit-page">
         <section class="trip-edit-card">
-            <h1 class="trip-edit-title">Sunting Trip #{{ $trip->id }}</h1>
-            <p class="trip-edit-subtitle">Kemaskini jadual, penumpang, atau butiran laluan untuk trip ini.</p>
+            <h1 class="trip-edit-title">Edit Trip #{{ $trip->id }}</h1>
+            <p class="trip-edit-subtitle">Update the schedule, passengers, or route details for this trip.</p>
         </section>
 
         <section class="trip-edit-card">
             <form action="{{ route('trips.update', $trip) }}" method="POST">
                 @method('PUT')
-                @include('trips._form', ['submitLabel' => 'Kemaskini Trip', 'trip' => $trip, 'selectedParticipants' => $selectedParticipants])
+                @include('trips._form', ['submitLabel' => 'Update Trip', 'trip' => $trip, 'selectedParticipants' => $selectedParticipants])
             </form>
         </section>
     </div>

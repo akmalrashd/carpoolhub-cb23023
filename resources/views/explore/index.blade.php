@@ -817,7 +817,7 @@
                         <span class="explore-search-hint">{{ $searchSummaryText }}</span>
                     </span>
                 </span>
-                <span class="explore-search-right">Cari <i class="fa-solid fa-arrow-right"></i></span>
+                <span class="explore-search-right">Search <i class="fa-solid fa-arrow-right"></i></span>
             </a>
 
             <div class="explore-chip-row">
@@ -843,15 +843,15 @@
         <section class="explore-card">
             <div class="explore-section-head">
                 <h2 class="explore-section-title">Upcoming Public Trips</h2>
-                <a href="{{ route('explore.search', $searchEditQuery) }}" class="explore-section-link">Carian Lanjutan</a>
+                <a href="{{ route('explore.search', $searchEditQuery) }}" class="explore-section-link">Advanced Search</a>
             </div>
             <p class="explore-subtitle" style="margin:0 0 10px;">AI matching ranks route fit, usual timing, seat availability, fare, and connection trust.</p>
 
             @if($trips->isEmpty())
                 <div class="empty-state">
                     <i class="fa-solid fa-compass empty-state-icon"></i>
-                    <p class="empty-state-title">Tiada trip tersedia</p>
-                    <p class="empty-state-copy">Tiada trip awam buat masa ini. Cuba semak semula kemudian atau guna carian lanjutan.</p>
+                    <p class="empty-state-title">No trips available</p>
+                    <p class="empty-state-copy">No public trips are available right now. Check again later or use advanced search.</p>
                 </div>
             @else
                 <div class="explore-grid domino-float" style="--domino-count: {{ max($trips->count(), 1) }};">
@@ -995,18 +995,18 @@
                             <div class="explore-actions">
                                 <a href="{{ route('explore.show', $trip) }}" class="explore-btn">
                                     <i class="fa-regular fa-eye"></i>
-                                    Lihat Butiran
+                                    View Details
                                 </a>
                                 @if($isJoined)
-                                    <span class="explore-btn success disabled"><i class="fa-solid fa-check"></i> Telah Sertai</span>
+                                    <span class="explore-btn success disabled"><i class="fa-solid fa-check"></i> Already Joined</span>
                                 @elseif($myRequest && $myRequest->status === 'pending')
-                                    <span class="explore-btn warning disabled"><i class="fa-regular fa-clock"></i> Permohonan Dihantar</span>
+                                    <span class="explore-btn warning disabled"><i class="fa-regular fa-clock"></i> Request Sent</span>
                                 @elseif($availableSeats !== null && $availableSeats <= 0)
                                     <span class="explore-btn disabled"><i class="fa-solid fa-ban"></i> Penuh</span>
                                 @else
                                     <a href="{{ route('explore.show', $trip) }}#join-request" class="explore-btn primary">
                                         <i class="fa-solid fa-user-plus"></i>
-                                        Mohon Sertai
+                                        Request to Join
                                     </a>
                                 @endif
                             </div>
@@ -1058,4 +1058,3 @@
         })();
     </script>
 @endsection
-
