@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Connection;
 use App\Models\SavedRoute;
 use App\Models\Trip;
+use App\Models\TripPassengerRoutePoint;
 use App\Models\TripParticipant;
 use App\Models\TripPayment;
 use App\Models\User;
@@ -31,6 +32,8 @@ class TripService
                 'returnTrip.savedRoute',
                 'returnTrip.participants.user',
                 'returnTrip.payments' => fn ($paymentQuery) => $paymentQuery->where('user_id', $user->id),
+                'passengerRoutePoints.user',
+                'returnTrip.passengerRoutePoints.user',
             ])
             ->activeOperational()
             ->whereNull('parent_trip_id');
@@ -526,11 +529,20 @@ class TripService
     ): void {
         TripParticipant::query()->where('trip_id', $trip->id)->delete();
         TripPayment::query()->where('trip_id', $trip->id)->delete();
+        if ($trip->visibility === 'private') {
+            TripPassengerRoutePoint::query()
+                ->where('trip_id', $trip->id)
+                ->whereNull('trip_join_request_id')
+                ->update([
+                    'trip_participant_id' => null,
+                    'status' => 'removed',
+                ]);
+        }
 
         foreach ($participantIds as $index => $userId) {
             $fareAmount = (float) $amounts->get($index, 0);
 
-            TripParticipant::query()->create([
+            $participant = TripParticipant::query()->create([
                 'trip_id' => $trip->id,
                 'user_id' => $userId,
                 'is_driver' => $userId === $driverId,
@@ -544,6 +556,36 @@ class TripService
                 'amount_due' => $fareAmount,
                 'payment_status' => 'unpaid',
             ]);
+
+            if ($trip->visibility === 'private' && $userId !== $driverId) {
+                TripPassengerRoutePoint::query()->updateOrCreate(
+                    [
+                        'trip_id' => $trip->id,
+                        'user_id' => $userId,
+                        'trip_join_request_id' => null,
+                    ],
+                    [
+                        'trip_participant_id' => $participant->id,
+                        'pickup_name' => $trip->pickup_name,
+                        'pickup_latitude' => $trip->pickup_latitude,
+                        'pickup_longitude' => $trip->pickup_longitude,
+                        'dropoff_name' => $trip->destination_name,
+                        'dropoff_latitude' => $trip->destination_latitude,
+                        'dropoff_longitude' => $trip->destination_longitude,
+                        'uses_default_pickup' => true,
+                        'uses_default_dropoff' => true,
+                        'requested_pickup_time' => $trip->trip_datetime,
+                        'route_fit_score' => 100,
+                        'route_fit_label' => 'Private trip default pickup and destination',
+                        'pickup_distance_km' => 0,
+                        'dropoff_distance_km' => 0,
+                        'detour_distance_km' => null,
+                        'detour_duration_minutes' => null,
+                        'fare_override_amount' => null,
+                        'status' => 'accepted',
+                    ]
+                );
+            }
         }
     }
 

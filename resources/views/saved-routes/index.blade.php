@@ -4,7 +4,7 @@
     <style>
         .route-page {
             display: grid;
-            gap: 12px;
+            gap: 14px;
         }
 
         .route-title-card {
@@ -12,6 +12,7 @@
             border: 1px solid #dbe2ea;
             border-radius: 16px;
             padding: 14px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -22,9 +23,9 @@
         .route-title {
             margin: 0;
             font-family: Poppins, sans-serif;
-            font-size: 30px;
+            font-size: 28px;
             color: #0f172a;
-            line-height: 1.05;
+            line-height: 1.08;
         }
 
         .route-subtitle {
@@ -61,17 +62,17 @@
             background: #fff;
             border: 1px solid #dbe2ea;
             border-radius: 16px;
-            padding: 10px;
+            padding: 14px;
             box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
         }
 
         .route-toolbar {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .route-search {
             position: relative;
-            max-width: 360px;
+            max-width: 480px;
         }
 
         .route-search i {
@@ -103,29 +104,39 @@
 
         .route-mobile-list {
             display: grid;
-            gap: 8px;
+            gap: 12px;
         }
 
         .route-mobile-item {
             border: 1px solid #dbe2ea;
             border-radius: 14px;
             background: #fff;
-            padding: 12px;
+            padding: 14px;
             display: grid;
             gap: 10px;
+            box-shadow: 0 5px 14px rgba(15, 23, 42, 0.04);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .route-mobile-item:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
         }
 
         .route-mobile-head {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             align-items: flex-start;
-            justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
         }
 
         .route-head-actions {
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
         }
 
         .route-edit-chip {
@@ -150,24 +161,38 @@
             line-height: 1.3;
             color: #0f172a;
             font-weight: 700;
-            flex: 1;
+            min-width: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .route-points {
             display: grid;
-            gap: 6px;
+            gap: 7px;
+            padding: 8px 10px;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            background: #fbfdff;
         }
 
         .route-line {
             font-size: 12px;
             color: #64748b;
-            display: flex;
-            gap: 7px;
-            align-items: flex-start;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 8px 9px;
+            display: grid;
+            grid-template-columns: 22px minmax(0, 1fr);
+            gap: 8px;
+            align-items: center;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+        }
+
+        .route-line + .route-line {
+            padding-top: 7px;
+            border-top: 1px solid #eef2f7;
         }
 
         .route-line strong {
@@ -176,32 +201,50 @@
         }
 
         .point-dot {
-            width: 8px;
-            height: 8px;
+            width: 22px;
+            height: 22px;
             border-radius: 999px;
-            margin-top: 4px;
+            border: 1px solid transparent;
             flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
         }
 
         .point-dot.pickup {
-            background: #16a34a;
+            color: #15803d;
+            background: #dcfce7;
+            border-color: #86efac;
         }
 
         .point-dot.destination {
-            background: #dc2626;
+            color: #b45309;
+            background: #fffbeb;
+            border-color: #fde68a;
         }
 
         .route-line-text {
             min-width: 0;
-            word-break: break-word;
+            word-break: normal;
         }
 
         .route-line-text small {
             display: block;
             color: #94a3b8;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
             margin-bottom: 1px;
+        }
+
+        .route-line-text strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .route-item-row {
@@ -222,12 +265,14 @@
         }
 
         .fare-card {
-            border: 1px solid #bfdbfe;
-            background: #eff6ff;
-            border-radius: 10px;
-            padding: 8px 9px;
+            border: 0;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
             display: grid;
-            gap: 2px;
+            gap: 1px;
+            justify-items: end;
+            white-space: nowrap;
         }
 
         .fare-head {
@@ -237,27 +282,22 @@
         }
 
         .fare-head i {
-            font-size: 10px;
-            color: #1d4ed8;
-            width: 12px;
-            text-align: center;
-            flex-shrink: 0;
+            display: none;
         }
 
         .fare-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            color: #1e3a8a;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: .02em;
         }
 
         .fare-value {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1e3a8a;
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
             line-height: 1.1;
-            padding-left: 18px;
         }
 
         .status-pill {
@@ -361,14 +401,50 @@
             color: #b91c1c;
         }
 
+        @media (max-width: 520px) {
+            .route-mobile-head {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .fare-card {
+                justify-items: start;
+                grid-template-columns: auto auto;
+                align-items: baseline;
+                gap: 6px;
+            }
+
+            .route-item-row {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .route-head-actions {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+            }
+
+            .route-head-actions form,
+            .route-head-actions .route-edit-chip {
+                width: 100%;
+            }
+
+            .route-head-actions .route-edit-chip,
+            .route-head-actions button {
+                display: inline-flex;
+                justify-content: center;
+            }
+        }
+
         .route-table-wrap {
             display: none;
-            overflow: auto;
+            overflow-x: hidden;
         }
 
         .route-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .route-table th,
@@ -383,29 +459,43 @@
             font-size: 12px;
             color: #64748b;
             font-weight: 700;
-            white-space: nowrap;
             text-transform: uppercase;
             letter-spacing: .02em;
         }
 
-        .route-table td:last-child,
-        .route-table th:last-child {
-            text-align: right;
+        .route-table td {
+            word-break: break-word;
+        }
+
+        .route-table td:nth-child(1),
+        .route-table th:nth-child(1) {
+            width: 18%;
+        }
+
+        .route-table td:nth-child(2),
+        .route-table th:nth-child(2) {
+            width: 27%;
+        }
+
+        .route-table td:nth-child(3),
+        .route-table th:nth-child(3) {
+            width: 27%;
         }
 
         .route-table td:nth-child(4),
         .route-table th:nth-child(4) {
-            width: 112px;
+            width: 10%;
         }
 
         .route-table td:nth-child(5),
         .route-table th:nth-child(5) {
-            width: 124px;
+            width: 8%;
         }
 
         .route-table td:nth-child(6),
         .route-table th:nth-child(6) {
-            width: 92px;
+            width: 10%;
+            text-align: right;
         }
 
         .route-table tbody tr {
@@ -417,24 +507,27 @@
         }
 
         .route-table .route-line {
-            padding: 10px 12px;
-            border-radius: 12px;
+            padding: 0;
+            border-radius: 0;
             max-width: 100%;
+            border: 0;
+            background: transparent;
         }
 
         .route-table .route-line strong {
             line-height: 1.35;
+            white-space: normal;
         }
 
         .desktop-fare-card {
-            border: 1px solid #fde68a;
-            background: #fffbeb;
-            border-radius: 10px;
-            padding: 8px 10px;
+            border: 0;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 96px;
+            min-width: 0;
             text-align: left;
         }
 
@@ -442,7 +535,7 @@
             font-size: 16px;
             line-height: 1.2;
             font-weight: 700;
-            color: #92400e;
+            color: #0f172a;
             white-space: nowrap;
         }
 
@@ -481,11 +574,14 @@
             border: 1px dashed #dbe2ea;
             border-radius: 12px;
             background: #f8fafc;
-            padding: 14px;
+            padding: 48px 24px;
             color: #64748b;
             font-size: 14px;
             text-align: center;
         }
+        .empty-state-icon { font-size: 32px; color: #cbd5e1; margin-bottom: 12px; display: block; }
+        .empty-state-title { font-size: 15px; font-weight: 700; color: #475569; margin: 0 0 4px; }
+        .empty-state-copy { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
 
         .pagination-wrap {
             margin-top: 12px;
@@ -498,85 +594,10 @@
 
             .route-table-wrap {
                 display: block;
-                border: 0;
-                border-radius: 0;
-                padding: 0;
-                background: transparent;
             }
 
             .route-data-card {
                 padding: 14px;
-            }
-
-            .route-table {
-                border-collapse: collapse;
-                border-spacing: 0;
-            }
-
-            .route-table thead th {
-                border-bottom: 1px solid #e2e8f0;
-                background: transparent;
-                color: #64748b;
-            }
-
-            .route-table thead th:first-child {
-                border-top-left-radius: 0;
-                border-bottom-left-radius: 0;
-                padding-left: 11px;
-            }
-
-            .route-table thead th:last-child {
-                border-top-right-radius: 0;
-                border-bottom-right-radius: 0;
-                padding-right: 11px;
-            }
-
-            .route-table tbody tr td {
-                background: transparent;
-                border-top: 0;
-                border-bottom: 1px solid #e2e8f0;
-                border-left: 0 !important;
-                border-right: 0 !important;
-                padding-top: 11px;
-                padding-bottom: 11px;
-            }
-
-            .route-table tbody tr td:first-child {
-                border-left: 0;
-                border-top-left-radius: 0;
-                border-bottom-left-radius: 0;
-                padding-left: 11px;
-            }
-
-            .route-table tbody tr td:last-child {
-                border-right: 0;
-                border-top-right-radius: 0;
-                border-bottom-right-radius: 0;
-                padding-right: 11px;
-            }
-
-            .route-table tbody tr:hover td {
-                background: #f8fafc;
-                border-color: #e2e8f0;
-            }
-
-            .route-table .route-line {
-                background: transparent;
-                border: 0;
-                padding: 0;
-                border-radius: 0;
-            }
-
-            .desktop-fare-card {
-                border: 0;
-                background: transparent;
-                border-radius: 0;
-                padding: 0;
-                min-width: 0;
-            }
-
-            .desktop-fare-value {
-                color: #0f172a;
             }
         }
     </style>
@@ -584,19 +605,20 @@
     <div class="route-page">
         <section class="route-title-card">
             <div>
-                <h1 class="route-title">Saved Routes</h1>
-                <p class="route-subtitle">Manage your reusable Point A and Point B routes.</p>
+                <h1 class="route-title">Laluan Tersimpan</h1>
+                <p class="route-subtitle">Urus laluan Titik A dan Titik B yang boleh diguna semula.</p>
             </div>
             <a href="{{ route('saved-routes.create') }}" class="add-route-btn">
                 <i class="fa-solid fa-plus"></i>
-                <span>Add Route</span>
+                <span>Tambah Laluan</span>
             </a>
         </section>
 
         <section class="route-info-note">
-            Save one-way route only. No need to add both directions.
-            Fare here is for one-way trip.
-            During Create Trip, choose One Way or Two Way and system will auto calculate two-way total if selected.
+            <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>
+            Simpan laluan sehala sahaja — tiada perlu tambah kedua-dua arah.
+            Tambang yang ditunjukkan adalah untuk perjalanan sehala.
+            Semasa mencipta trip, pilih Sehala atau Dua Hala dan sistem akan kira jumlah tambang dua hala secara automatik.
         </section>
 
         <section class="route-data-card">
@@ -604,66 +626,73 @@
                 <div class="route-toolbar">
                     <div class="route-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input id="routeSearchInput" type="search" placeholder="Search route name..." autocomplete="off">
+                        <input id="routeSearchInput" type="search" placeholder="Cari nama laluan..." autocomplete="off">
                     </div>
                 </div>
             @endif
 
             @if($savedRoutes->isEmpty())
-                <div class="empty-state">No saved routes yet. Add your first route to get started.</div>
+                <div class="empty-state">
+                    <i class="fa-solid fa-route empty-state-icon"></i>
+                    <p class="empty-state-title">Tiada laluan tersimpan</p>
+                    <p class="empty-state-copy">Tambah laluan pertama anda untuk mula merancang trip.</p>
+                </div>
             @else
                 <div class="route-mobile-list">
                     @foreach($savedRoutes as $savedRoute)
-                        <article class="route-mobile-item" data-route-name="{{ strtolower($savedRoute->route_name ?: 'Untitled Route') }}">
+                        <article class="route-mobile-item" data-route-name="{{ strtolower($savedRoute->route_name ?: 'Laluan Tidak Bertajuk') }}">
                             <div class="route-mobile-head">
-                                <h2 class="route-item-title">{{ $savedRoute->route_name ?: 'Untitled Route' }}</h2>
-                                <div class="route-head-actions">
-                                    <form method="POST" action="{{ route('saved-routes.toggle-status', $savedRoute) }}" class="status-toggle">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input
-                                            id="toggle-mobile-{{ $savedRoute->id }}"
-                                            type="checkbox"
-                                            class="toggle-input"
-                                            name="is_active"
-                                            value="1"
-                                            {{ $savedRoute->is_active ? 'checked' : '' }}
-                                            onchange="this.form.submit()"
-                                        >
-                                        <label for="toggle-mobile-{{ $savedRoute->id }}" class="toggle-track">
-                                            <span class="toggle-thumb"></span>
-                                        </label>
-                                    </form>
-                                    <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="route-edit-chip">Edit</a>
-                                    <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Delete this route? All trips using this route will be deleted too.');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="route-edit-chip action-btn-danger">Delete</button>
-                                    </form>
+                                <h2 class="route-item-title">{{ $savedRoute->route_name ?: 'Laluan Tidak Bertajuk' }}</h2>
+                                <div class="fare-card">
+                                    <span class="fare-head">
+                                        <i class="fa-solid fa-coins"></i>
+                                        <span class="fare-label">Tambang</span>
+                                    </span>
+                                    <span class="fare-value">RM {{ number_format((float) $savedRoute->default_fare, 2) }}</span>
                                 </div>
                             </div>
                             <div class="route-points">
                                 <div class="route-line">
-                                    <span class="point-dot pickup"></span>
+                                    <span class="point-dot pickup">A</span>
                                     <div class="route-line-text">
-                                        <small>Point A</small>
+                                        <small>Titik A</small>
                                         <strong>{{ $savedRoute->point_a_name }}</strong>
                                     </div>
                                 </div>
                                 <div class="route-line">
-                                    <span class="point-dot destination"></span>
+                                    <span class="point-dot destination">B</span>
                                     <div class="route-line-text">
-                                        <small>Point B</small>
+                                        <small>Titik B</small>
                                         <strong>{{ $savedRoute->point_b_name }}</strong>
                                     </div>
                                 </div>
                             </div>
-                            <div class="fare-card">
-                                <span class="fare-head">
-                                    <i class="fa-solid fa-coins"></i>
-                                    <span class="fare-label">Fare</span>
-                                </span>
-                                <span class="fare-value">RM {{ number_format((float) $savedRoute->default_fare, 2) }}</span>
+                            <div class="route-item-row">
+                                <form method="POST" action="{{ route('saved-routes.toggle-status', $savedRoute) }}" class="status-toggle">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input
+                                        id="toggle-mobile-{{ $savedRoute->id }}"
+                                        type="checkbox"
+                                        class="toggle-input"
+                                        name="is_active"
+                                        value="1"
+                                        {{ $savedRoute->is_active ? 'checked' : '' }}
+                                        onchange="this.form.submit()"
+                                    >
+                                    <label for="toggle-mobile-{{ $savedRoute->id }}" class="toggle-track">
+                                        <span class="toggle-thumb"></span>
+                                    </label>
+                                    <span class="status-text">{{ $savedRoute->is_active ? 'Hidup' : 'Mati' }}</span>
+                                </form>
+                                <div class="route-head-actions">
+                                    <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="route-edit-chip">Sunting</a>
+                                    <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Padam laluan ini? Semua trip yang menggunakan laluan ini akan turut dipadam.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="route-edit-chip action-btn-danger">Padam</button>
+                                    </form>
+                                </div>
                             </div>
                         </article>
                     @endforeach
@@ -673,30 +702,30 @@
                     <table class="route-table">
                         <thead>
                         <tr>
-                            <th>Route</th>
-                            <th>Point A</th>
-                            <th>Point B</th>
-                            <th>Fare</th>
+                            <th>Laluan</th>
+                            <th>Titik A</th>
+                            <th>Titik B</th>
+                            <th>Tambang</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th>Tindakan</th>
                         </tr>
                         </thead>
                         <tbody id="routeTableBody">
                         @foreach($savedRoutes as $savedRoute)
-                            <tr data-route-name="{{ strtolower($savedRoute->route_name ?: 'Untitled Route') }}">
+                            <tr data-route-name="{{ strtolower($savedRoute->route_name ?: 'Laluan Tidak Bertajuk') }}">
                                 <td>
-                                    <span class="route-name-main">{{ $savedRoute->route_name ?: 'Untitled Route' }}</span>
-                                    <span class="route-name-sub">Saved route</span>
+                                    <span class="route-name-main">{{ $savedRoute->route_name ?: 'Laluan Tidak Bertajuk' }}</span>
+                                    <span class="route-name-sub">Laluan tersimpan</span>
                                 </td>
                                 <td>
                                     <div class="route-line">
-                                        <span class="point-dot pickup"></span>
+                                        <span class="point-dot pickup">A</span>
                                         <div class="route-line-text"><strong>{{ $savedRoute->point_a_name }}</strong></div>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="route-line">
-                                        <span class="point-dot destination"></span>
+                                        <span class="point-dot destination">B</span>
                                         <div class="route-line-text"><strong>{{ $savedRoute->point_b_name }}</strong></div>
                                     </div>
                                 </td>
@@ -721,16 +750,16 @@
                                         <label for="toggle-desktop-{{ $savedRoute->id }}" class="toggle-track">
                                             <span class="toggle-thumb"></span>
                                         </label>
-                                        <span class="status-text">{{ $savedRoute->is_active ? 'On' : 'Off' }}</span>
+                                        <span class="status-text">{{ $savedRoute->is_active ? 'Hidup' : 'Mati' }}</span>
                                     </form>
                                 </td>
                                 <td class="desktop-actions-col">
                                     <div class="route-actions">
-                                        <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="action-link desktop-edit-btn">Edit</a>
-                                        <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Delete this route? All trips using this route will be deleted too.');">
+                                        <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="action-link desktop-edit-btn">Sunting</a>
+                                        <form method="POST" action="{{ route('saved-routes.destroy', $savedRoute) }}" onsubmit="return confirm('Padam laluan ini? Semua trip yang menggunakan laluan ini akan turut dipadam.');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="action-link action-btn-danger">Delete</button>
+                                            <button type="submit" class="action-link action-btn-danger">Padam</button>
                                         </form>
                                     </div>
                                 </td>
@@ -740,8 +769,10 @@
                     </table>
                 </div>
 
-                <div id="routeSearchEmpty" class="empty-state" style="display:none; margin-top:10px;">
-                    No route found for your search.
+                <div id="routeSearchEmpty" class="empty-state" style="display:none; margin-top:10px; padding: 32px 24px;">
+                    <i class="fa-solid fa-magnifying-glass empty-state-icon"></i>
+                    <p class="empty-state-title">Tiada laluan ditemui</p>
+                    <p class="empty-state-copy">Cuba cari dengan nama laluan yang lain.</p>
                 </div>
             @endif
         </section>

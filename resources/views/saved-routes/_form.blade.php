@@ -1,44 +1,67 @@
 @csrf
 <div class="route-form-grid">
-    <div class="field-block field-block-full">
-        <label for="route_name">Route Name</label>
-        <input id="route_name" type="text" name="route_name" value="{{ old('route_name', $savedRoute->route_name ?? '') }}" placeholder="e.g. Home to Office">
+    <div class="field-block">
+        <label for="route_name">Nama Laluan</label>
+        <input id="route_name" type="text" name="route_name" value="{{ old('route_name', $savedRoute->route_name ?? '') }}" placeholder="cth. Rumah ke Pejabat">
     </div>
     <div class="field-block">
-        <label for="default_fare">Default Fare (RM)</label>
+        <label for="default_fare">Tambang Lalai (RM)</label>
         <input id="default_fare" type="number" step="0.01" min="0" name="default_fare" value="{{ old('default_fare', $savedRoute->default_fare ?? '0.00') }}" required>
     </div>
-    <div class="field-block">
-        <label for="point_a_name">Point A Name</label>
-        <input id="point_a_name" type="text" name="point_a_name" value="{{ old('point_a_name', $savedRoute->point_a_name ?? '') }}" placeholder="e.g. UMP Main Gate" required>
-    </div>
-    <div class="field-block field-block-full">
-        <div class="coords-head">Point A Coordinates</div>
-        <div class="coords-grid">
-            <div>
-                <label for="point_a_latitude">Latitude</label>
-                <input id="point_a_latitude" type="number" step="0.0000001" name="point_a_latitude" value="{{ old('point_a_latitude', $savedRoute->point_a_latitude ?? '') }}" required>
-            </div>
-            <div>
-                <label for="point_a_longitude">Longitude</label>
-                <input id="point_a_longitude" type="number" step="0.0000001" name="point_a_longitude" value="{{ old('point_a_longitude', $savedRoute->point_a_longitude ?? '') }}" required>
-            </div>
+
+    <div class="field-block field-block-full route-preference-card">
+        <div class="route-section-head">
+            <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup dan drop-off</span>
+            <p class="route-section-hint">Gunakan peta di atas untuk pin Titik A dan Titik B, kemudian semak atau perhalusi butiran laluan di bawah.</p>
         </div>
-    </div>
-    <div class="field-block">
-        <label for="point_b_name">Point B Name</label>
-        <input id="point_b_name" type="text" name="point_b_name" value="{{ old('point_b_name', $savedRoute->point_b_name ?? '') }}" placeholder="e.g. Library" required>
-    </div>
-    <div class="field-block field-block-full">
-        <div class="coords-head">Point B Coordinates</div>
-        <div class="coords-grid">
-            <div>
-                <label for="point_b_latitude">Latitude</label>
-                <input id="point_b_latitude" type="number" step="0.0000001" name="point_b_latitude" value="{{ old('point_b_latitude', $savedRoute->point_b_latitude ?? '') }}" required>
+
+        <div class="route-point-grid">
+            <div class="route-point-group pickup">
+                <div class="route-point-group-head">
+                    <span class="route-point-group-title"><i class="fa-solid fa-location-dot"></i>Pickup Titik A</span>
+                    <span class="route-point-group-badge">Mula</span>
+                </div>
+
+                <div class="field-block">
+                    <label for="point_a_name">Nama Titik A</label>
+                    <input id="point_a_name" type="text" name="point_a_name" value="{{ old('point_a_name', $savedRoute->point_a_name ?? '') }}" placeholder="cth. Pintu Gerbang Utama UMP" required>
+                </div>
+
+                <div class="coords-head">Koordinat Titik A</div>
+                <div class="coords-grid">
+                    <div>
+                        <label for="point_a_latitude">Latitude</label>
+                        <input id="point_a_latitude" type="number" step="0.0000001" name="point_a_latitude" value="{{ old('point_a_latitude', $savedRoute->point_a_latitude ?? '') }}" required>
+                    </div>
+                    <div>
+                        <label for="point_a_longitude">Longitude</label>
+                        <input id="point_a_longitude" type="number" step="0.0000001" name="point_a_longitude" value="{{ old('point_a_longitude', $savedRoute->point_a_longitude ?? '') }}" required>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="point_b_longitude">Longitude</label>
-                <input id="point_b_longitude" type="number" step="0.0000001" name="point_b_longitude" value="{{ old('point_b_longitude', $savedRoute->point_b_longitude ?? '') }}" required>
+
+            <div class="route-point-group destination">
+                <div class="route-point-group-head">
+                    <span class="route-point-group-title"><i class="fa-solid fa-flag-checkered"></i>Drop-off Titik B</span>
+                    <span class="route-point-group-badge">Akhir</span>
+                </div>
+
+                <div class="field-block">
+                    <label for="point_b_name">Nama Titik B</label>
+                    <input id="point_b_name" type="text" name="point_b_name" value="{{ old('point_b_name', $savedRoute->point_b_name ?? '') }}" placeholder="cth. Perpustakaan" required>
+                </div>
+
+                <div class="coords-head">Koordinat Titik B</div>
+                <div class="coords-grid">
+                    <div>
+                        <label for="point_b_latitude">Latitude</label>
+                        <input id="point_b_latitude" type="number" step="0.0000001" name="point_b_latitude" value="{{ old('point_b_latitude', $savedRoute->point_b_latitude ?? '') }}" required>
+                    </div>
+                    <div>
+                        <label for="point_b_longitude">Longitude</label>
+                        <input id="point_b_longitude" type="number" step="0.0000001" name="point_b_longitude" value="{{ old('point_b_longitude', $savedRoute->point_b_longitude ?? '') }}" required>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -46,7 +69,7 @@
 
 <label class="active-toggle">
     <input type="checkbox" name="is_active" value="1" {{ old('is_active', $savedRoute->is_active ?? true) ? 'checked' : '' }}>
-    Active route
+    Laluan aktif
 </label>
 
 @if($errors->any())
@@ -56,6 +79,6 @@
 @endif
 
 <div class="form-actions">
-    <a href="{{ route('saved-routes.index') }}" class="btn-secondary">Cancel</a>
+    <a href="{{ route('saved-routes.index') }}" class="btn-secondary">Batal</a>
     <button type="submit" class="btn-primary">{{ $submitLabel }}</button>
 </div>

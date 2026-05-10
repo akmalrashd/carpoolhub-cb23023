@@ -89,6 +89,17 @@
             grid-template-columns: repeat(1, minmax(0, 1fr));
             gap: 8px;
             align-items: end;
+            border: 1px solid #dbe2ea;
+            border-radius: 14px;
+            background: #f8fafc;
+            padding: 12px;
+        }
+
+        .trips-filter-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         .trips-filter-field {
@@ -135,12 +146,6 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .trips-filter-btn.primary {
-            background: #0f172a;
-            border-color: #0f172a;
-            color: #fff;
         }
 
         .trips-tools-grid {
@@ -612,11 +617,14 @@
             border: 1px dashed #dbe2ea;
             border-radius: 12px;
             background: #f8fafc;
-            padding: 14px;
+            padding: 48px 24px;
             color: #64748b;
             font-size: 14px;
             text-align: center;
         }
+        .empty-state-icon { font-size: 32px; color: #cbd5e1; margin-bottom: 12px; display: block; }
+        .empty-state-title { font-size: 15px; font-weight: 700; color: #475569; margin: 0 0 4px; }
+        .empty-state-copy { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
 
         .pagination-wrap {
             margin-top: 12px;
@@ -954,6 +962,21 @@
         }
         .trip-modal-map .leaflet-container { width: 100%; height: 100%; }
         .trip-modal-map .leaflet-control-attribution { display: none; }
+        .trip-passenger-map-pin {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: 2px solid #fff;
+            background: #7c3aed;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            box-shadow: 0 3px 9px rgba(15, 23, 42, .32);
+        }
+        .trip-passenger-map-pin.dropoff { background: #ea580c; }
         .trip-contact-bar {
             margin: 0 -14px -14px;
             padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
@@ -1050,6 +1073,10 @@
             .trips-filter-row {
                 grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(170px, 220px) auto;
             }
+
+            .trips-filter-hint {
+                grid-column: 1 / -1;
+            }
         }
     </style>
 
@@ -1063,13 +1090,13 @@
     <div class="trips-page">
         <section class="trips-title-card">
             <div>
-                <h1 class="trips-title">Trips</h1>
-                <p class="trips-subtitle">Plan, track, and manage your active trip schedules.</p>
+                <h1 class="trips-title">Trip</h1>
+                <p class="trips-subtitle">Rancang, jejak, dan urus jadual trip aktif anda.</p>
             </div>
             @if(in_array(auth()->user()->role, ['admin', 'driver'], true))
                 <a href="{{ route('trips.create') }}" class="create-trip-btn">
                     <i class="fa-solid fa-plus"></i>
-                    <span>Create Trip</span>
+                    <span>Cipta Trip</span>
                 </a>
             @endif
         </section>
@@ -1077,37 +1104,38 @@
         <section class="trips-tools-card">
             <div class="trips-tools-grid">
                 <div class="trips-tool-item">
-                    <span class="trips-tool-label">Draft</span>
+                    <span class="trips-tool-label">Draf</span>
                     <span class="trips-tool-value">{{ $draftCount }}</span>
                 </div>
                 <div class="trips-tool-item">
-                    <span class="trips-tool-label">Scheduled</span>
+                    <span class="trips-tool-label">Dijadualkan</span>
                     <span class="trips-tool-value">{{ $scheduledCount }}</span>
                 </div>
                 <div class="trips-tool-item">
-                    <span class="trips-tool-label">Recorded</span>
+                    <span class="trips-tool-label">Direkodkan</span>
                     <span class="trips-tool-value">{{ $recordedCount }}</span>
                 </div>
                 <div class="trips-tool-item">
-                    <span class="trips-tool-label">Current List</span>
+                    <span class="trips-tool-label">Senarai Semasa</span>
                     <span class="trips-tool-value">{{ $tripCount }}</span>
                 </div>
             </div>
             <p class="trips-tools-hint">
-                Two-way trips are shown as one combined item. Fare shown here follows your role view (admin sees total, others see personal share).
+                Trip dua hala ditunjukkan sebagai satu item gabungan. Tambang yang ditunjukkan mengikut peranan anda (admin melihat jumlah, lain-lain melihat bahagian peribadi).
             </p>
         </section>
 
         <section class="trips-data-card">
             <div class="trips-list-header">
                 <div>
-                    <h2 class="trips-list-title">Trip List</h2>
+                    <h2 class="trips-list-title">Senarai Trip</h2>
                 </div>
             </div>
 
             <form method="GET" action="{{ route('trips.index') }}" class="trips-filter-row" style="margin-bottom:10px;">
+                <p class="trips-filter-hint">Penapis digunakan secara automatik.</p>
                 <div class="trips-filter-field">
-                    <label class="trips-filter-label" for="trip_date_from">From Date</label>
+                    <label class="trips-filter-label" for="trip_date_from">Dari Tarikh</label>
                     <input
                         id="trip_date_from"
                         name="date_from"
@@ -1117,7 +1145,7 @@
                     >
                 </div>
                 <div class="trips-filter-field">
-                    <label class="trips-filter-label" for="trip_date_to">To Date</label>
+                    <label class="trips-filter-label" for="trip_date_to">Hingga Tarikh</label>
                     <input
                         id="trip_date_to"
                         name="date_to"
@@ -1127,21 +1155,24 @@
                     >
                 </div>
                 <div class="trips-filter-field">
-                    <label class="trips-filter-label" for="trip_visibility">Visibility</label>
+                    <label class="trips-filter-label" for="trip_visibility">Keterlihatan</label>
                     <select id="trip_visibility" name="visibility" class="trips-filter-input">
-                        <option value="">All</option>
-                        <option value="public" {{ ($filters['visibility'] ?? request('visibility')) === 'public' ? 'selected' : '' }}>Public</option>
-                        <option value="private" {{ ($filters['visibility'] ?? request('visibility')) === 'private' ? 'selected' : '' }}>Private</option>
+                        <option value="">Semua</option>
+                        <option value="public" {{ ($filters['visibility'] ?? request('visibility')) === 'public' ? 'selected' : '' }}>Awam</option>
+                        <option value="private" {{ ($filters['visibility'] ?? request('visibility')) === 'private' ? 'selected' : '' }}>Peribadi</option>
                     </select>
                 </div>
                 <div class="trips-filter-actions">
-                    <button type="submit" class="trips-filter-btn primary">Filter</button>
-                    <a href="{{ route('trips.index') }}" class="trips-filter-btn">Reset</a>
+                    <a href="{{ route('trips.index') }}" class="trips-filter-btn">Set Semula</a>
                 </div>
             </form>
 
             @if($trips->isEmpty())
-                <div class="empty-state">No trips yet. Create your first trip to get started.</div>
+                <div class="empty-state">
+                    <i class="fa-solid fa-car-side empty-state-icon"></i>
+                    <p class="empty-state-title">Tiada trip lagi</p>
+                    <p class="empty-state-copy">Mulakan dengan mencipta trip pertama anda.</p>
+                </div>
             @else
                 <div class="trip-mobile-list">
                     @foreach($trips as $trip)
@@ -1159,7 +1190,7 @@
                             $myFare = (float) ($trip->payments->first()?->amount_due ?? 0)
                                 + (float) ($trip->returnTrip?->payments?->first()?->amount_due ?? 0);
                             $showTotalFare = auth()->user()->role === 'admin';
-                            $fareLabel = 'Fare';
+                            $fareLabel = 'Tambang';
                             $displayFare = $showTotalFare ? $combinedFare : $myFare;
                             $pairedTripId = $trip->returnTrip?->id;
                             $paymentFocusIds = array_values(array_filter([
@@ -1177,13 +1208,31 @@
                                 ])
                                 ->values();
                             $participantPayloadB64 = base64_encode($participantPayload->toJson());
+                            $routePointPayload = $trip->passengerRoutePoints
+                                ->filter(fn ($point) => in_array((string) $point->status, ['accepted', 'approved'], true))
+                                ->filter(fn ($point) => ! $point->uses_default_pickup || ! $point->uses_default_dropoff)
+                                ->map(fn ($point) => [
+                                    'name' => $point->user?->name ?? 'Passenger',
+                                    'pickup' => $point->uses_default_pickup ? null : [
+                                        'lat' => $point->pickup_latitude !== null ? (float) $point->pickup_latitude : null,
+                                        'lng' => $point->pickup_longitude !== null ? (float) $point->pickup_longitude : null,
+                                        'label' => ($point->user?->name ?? 'Passenger') . ' pickup',
+                                    ],
+                                    'dropoff' => $point->uses_default_dropoff ? null : [
+                                        'lat' => $point->dropoff_latitude !== null ? (float) $point->dropoff_latitude : null,
+                                        'lng' => $point->dropoff_longitude !== null ? (float) $point->dropoff_longitude : null,
+                                        'label' => ($point->user?->name ?? 'Passenger') . ' drop-off',
+                                    ],
+                                ])
+                                ->values();
+                            $routePointPayloadB64 = base64_encode($routePointPayload->toJson());
                             $passengerCount = (int) $trip->participants->where('is_driver', false)->count();
                             if ($passengerCount === 0 && (int) $trip->participant_count > 0) {
                                 $passengerCount = (int) $trip->participant_count;
                             }
                             $splitType = ((int) $trip->participant_count > $passengerCount)
-                                ? 'Include Driver in Fare Split'
-                                : 'Exclude Driver from Fare Split';
+                                ? 'Termasuk Pemandu dalam Agihan Tambang'
+                                : 'Tidak Termasuk Pemandu dalam Agihan Tambang';
                         @endphp
                         <article class="trip-mobile-item open-trip-card" data-trip-anchor="{{ $trip->id }}">
                             <div class="trip-mobile-head">
@@ -1231,9 +1280,10 @@
                                         data-total-passengers="{{ $passengerCount }}"
                                         data-split-type="{{ $splitType }}"
                                         data-participants-b64="{{ $participantPayloadB64 }}"
+                                        data-route-points-b64="{{ $routePointPayloadB64 }}"
                                     >
                                         <i class="fa-regular fa-eye"></i>
-                                        <span>See Details</span>
+                                        <span>Lihat Butiran</span>
                                     </button>
                                 </div>
                                 <span class="status-chip status-{{ strtolower($trip->status) }}">{{ ucfirst($trip->status) }}</span>
@@ -1241,7 +1291,7 @@
 
                             <div class="trip-detail-grid">
                                 <div class="trip-detail-line">
-                                    <span class="trip-detail-label">Date & Time</span>
+                                    <span class="trip-detail-label">Tarikh & Masa</span>
                                     <span class="trip-detail-value">{{ $trip->trip_datetime?->format('Y-m-d H:i') ?: '-' }}</span>
                                 </div>
                             </div>
@@ -1253,22 +1303,22 @@
                                 </div>
                                 <div class="trip-actions">
                                     @if($trip->status === 'draft')
-                                        <span class="trip-action-btn disabled" title="Draft trip has no payment yet">Payments</span>
+                                        <span class="trip-action-btn disabled" title="Trip draf tiada bayaran lagi">Bayaran</span>
                                     @elseif($trip->status === 'scheduled')
                                         @if(($trip->visibility === 'public') && (auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id))
-                                            <a href="{{ route('trips.requests.index', $trip) }}" class="trip-action-btn">Manage Requests</a>
+                                            <a href="{{ route('trips.requests.index', $trip) }}" class="trip-action-btn">Urus Permohonan</a>
                                         @else
-                                            <span class="trip-action-btn disabled" title="Payment opens after trip time">Payments</span>
+                                            <span class="trip-action-btn disabled" title="Bayaran dibuka selepas trip">Bayaran</span>
                                         @endif
                                     @else
-                                        <a href="{{ route('payments.index', ['trip_id' => $trip->id, 'trip_ids' => $paymentFocusQuery]) }}" class="trip-action-btn">Payments</a>
+                                        <a href="{{ route('payments.index', ['trip_id' => $trip->id, 'trip_ids' => $paymentFocusQuery]) }}" class="trip-action-btn">Bayaran</a>
                                     @endif
                                     @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
-                                        <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn">Edit</a>
-                                        <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Delete this trip and all related records?');">
+                                        <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn">Sunting</a>
+                                        <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Padam trip ini dan semua rekod berkaitan?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="trip-action-btn trip-action-btn-danger">Delete</button>
+                                            <button type="submit" class="trip-action-btn trip-action-btn-danger">Padam</button>
                                         </form>
                                     @endif
                                 </div>
@@ -1281,12 +1331,12 @@
                     <table class="trip-table">
                         <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Route</th>
-                            <th>Driver</th>
+                            <th>Tarikh</th>
+                            <th>Laluan</th>
+                            <th>Pemandu</th>
                             <th>Status</th>
-                            <th>Fare</th>
-                            <th>Actions</th>
+                            <th>Tambang</th>
+                            <th>Tindakan</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -1298,8 +1348,8 @@
                                 $directionText = $pickupName . ' -> ' . $destinationName;
                                 $returnDirectionText = $destinationName . ' -> ' . $pickupName;
                                 $routeName = $trip->savedRoute?->route_name ?: $directionText;
-                                $modeText = $hasReturn ? 'Two Way' : 'One Way';
-                                $visibilityText = ucfirst((string) ($trip->visibility ?? 'private')) . ' Trip';
+                                $modeText = $hasReturn ? 'Dua Hala' : 'Sehala';
+                                $visibilityText = ($trip->visibility ?? 'private') === 'public' ? 'Trip Awam' : 'Trip Peribadi';
                                 $visibilityIcon = ($trip->visibility ?? 'private') === 'public' ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
                                 $combinedFare = (float) $trip->fare_total + (float) ($trip->returnTrip?->fare_total ?? 0);
                                 $myFare = (float) ($trip->payments->first()?->amount_due ?? 0)
@@ -1324,13 +1374,31 @@
                                     ])
                                     ->values();
                                 $participantPayloadB64 = base64_encode($participantPayload->toJson());
+                                $routePointPayload = $trip->passengerRoutePoints
+                                    ->filter(fn ($point) => in_array((string) $point->status, ['accepted', 'approved'], true))
+                                    ->filter(fn ($point) => ! $point->uses_default_pickup || ! $point->uses_default_dropoff)
+                                    ->map(fn ($point) => [
+                                        'name' => $point->user?->name ?? 'Passenger',
+                                        'pickup' => $point->uses_default_pickup ? null : [
+                                            'lat' => $point->pickup_latitude !== null ? (float) $point->pickup_latitude : null,
+                                            'lng' => $point->pickup_longitude !== null ? (float) $point->pickup_longitude : null,
+                                            'label' => ($point->user?->name ?? 'Passenger') . ' pickup',
+                                        ],
+                                        'dropoff' => $point->uses_default_dropoff ? null : [
+                                            'lat' => $point->dropoff_latitude !== null ? (float) $point->dropoff_latitude : null,
+                                            'lng' => $point->dropoff_longitude !== null ? (float) $point->dropoff_longitude : null,
+                                            'label' => ($point->user?->name ?? 'Passenger') . ' drop-off',
+                                        ],
+                                    ])
+                                    ->values();
+                                $routePointPayloadB64 = base64_encode($routePointPayload->toJson());
                                 $passengerCount = (int) $trip->participants->where('is_driver', false)->count();
                                 if ($passengerCount === 0 && (int) $trip->participant_count > 0) {
                                     $passengerCount = (int) $trip->participant_count;
                                 }
                                 $splitType = ((int) $trip->participant_count > $passengerCount)
-                                    ? 'Include Driver in Fare Split'
-                                    : 'Exclude Driver from Fare Split';
+                                    ? 'Termasuk Pemandu dalam Agihan Tambang'
+                                    : 'Tidak Termasuk Pemandu dalam Agihan Tambang';
                             @endphp
                             <tr class="open-trip-card" data-trip-anchor="{{ $trip->id }}">
                                 <td>
@@ -1368,7 +1436,7 @@
                                         data-return-datetime="{{ $trip->returnTrip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
                                         data-outbound-route="{{ $directionText }}"
                                         data-return-route="{{ $returnDirectionText }}"
-                                        data-fare-label="Fare"
+                                        data-fare-label="Tambang"
                                         data-fare-display="RM {{ number_format($displayFare, 2) }}"
                                         data-pickup-name="{{ $pickupName }}"
                                         data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
@@ -1379,9 +1447,10 @@
                                         data-total-passengers="{{ $passengerCount }}"
                                         data-split-type="{{ $splitType }}"
                                         data-participants-b64="{{ $participantPayloadB64 }}"
+                                        data-route-points-b64="{{ $routePointPayloadB64 }}"
                                     >
                                         <i class="fa-regular fa-eye"></i>
-                                        <span>See Details</span>
+                                        <span>Lihat Butiran</span>
                                     </button>
                                 </td>
                                 <td><span class="trip-table-driver">{{ $trip->driver?->name ?: '-' }}</span></td>
@@ -1390,22 +1459,22 @@
                                 <td>
                                     <div class="trip-actions" style="justify-content:flex-end;">
                                         @if($trip->status === 'draft')
-                                            <span class="trip-action-btn disabled" title="Draft trip has no payment yet">Payments</span>
+                                            <span class="trip-action-btn disabled" title="Trip draf tiada bayaran lagi">Bayaran</span>
                                         @elseif($trip->status === 'scheduled')
                                             @if(($trip->visibility === 'public') && (auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id))
-                                                <a href="{{ route('trips.requests.index', $trip) }}" class="trip-action-btn">Manage Requests</a>
+                                                <a href="{{ route('trips.requests.index', $trip) }}" class="trip-action-btn">Urus Permohonan</a>
                                             @else
-                                                <span class="trip-action-btn disabled" title="Payment opens after trip time">Payments</span>
+                                                <span class="trip-action-btn disabled" title="Bayaran dibuka selepas trip">Bayaran</span>
                                             @endif
                                         @else
-                                            <a href="{{ route('payments.index', ['trip_id' => $trip->id, 'trip_ids' => $paymentFocusQuery]) }}" class="trip-action-btn">Payments</a>
+                                            <a href="{{ route('payments.index', ['trip_id' => $trip->id, 'trip_ids' => $paymentFocusQuery]) }}" class="trip-action-btn">Bayaran</a>
                                         @endif
                                         @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
-                                            <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn">Edit</a>
-                                            <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Delete this trip and all related records?');">
+                                            <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn">Sunting</a>
+                                            <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Padam trip ini dan semua rekod berkaitan?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="trip-action-btn trip-action-btn-danger">Delete</button>
+                                                <button type="submit" class="trip-action-btn trip-action-btn-danger">Padam</button>
                                             </form>
                                         @endif
                                     </div>
@@ -1426,8 +1495,8 @@
     <div class="trip-modal" id="tripDetailsModal" aria-hidden="true">
         <div class="trip-modal-card">
             <div class="trip-modal-head">
-                <h3 class="trip-modal-title">Trip Details</h3>
-                <button type="button" class="trip-modal-close" id="tripDetailsCloseBtn" aria-label="Close">
+                <h3 class="trip-modal-title">Butiran Trip</h3>
+                <button type="button" class="trip-modal-close" id="tripDetailsCloseBtn" aria-label="Tutup">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -1435,37 +1504,37 @@
                 <div class="trip-modal-grid">
                     <div class="trip-details-pairs">
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip ID</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>ID Trip</span>
                             <span class="trip-modal-value" id="tripModalTripIds">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Date & Time</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Tarikh & Masa</span>
                             <span class="trip-modal-value" id="tripModalOutboundTime">-</span>
                         </div>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Route Name</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Nama Laluan</span>
                         <span class="trip-modal-value" id="tripModalRouteName">-</span>
                     </div>
                     <div class="trip-point-cards">
                         <div class="trip-point-card pickup">
-                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
+                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
                             <span class="trip-point-value" id="tripModalPickupPoint">-</span>
                         </div>
                         <div class="trip-point-card destination">
-                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
+                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
                             <span class="trip-point-value" id="tripModalDestinationPoint">-</span>
                         </div>
                     </div>
                     <div class="trip-map-card">
                         <div class="trip-map-head">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-map"></i>Route Preview</span>
-                            <span class="trip-map-hint">View only</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-map"></i>Pratonton Laluan</span>
+                            <span class="trip-map-hint">Baca sahaja</span>
                         </div>
                         <div class="trip-modal-map" id="tripModalMap"></div>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Driver</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Pemandu</span>
                         <div class="trip-modal-driver">
                             <span class="trip-modal-driver-avatar" id="tripModalDriverAvatar">D</span>
                             <span class="trip-modal-driver-meta">
@@ -1476,14 +1545,14 @@
                     </div>
                     <div class="trip-modal-line">
                         <div class="trip-passenger-header">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Passengers</span>
-                            <span class="trip-passenger-count" id="tripModalPassengerCount">0 passengers</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Penumpang</span>
+                            <span class="trip-passenger-count" id="tripModalPassengerCount">0 penumpang</span>
                         </div>
                         <div class="trip-passenger-list" id="tripModalPassengerList"></div>
                     </div>
                     <div class="trip-details-pairs">
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Trip Type</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Jenis Trip</span>
                             <span class="trip-modal-value" id="tripModalMode">-</span>
                             <span class="trip-modal-hint" id="tripModalPairHint" style="display:none;"></span>
                         </div>
@@ -1492,22 +1561,22 @@
                             <span class="trip-modal-value trip-status-badge" id="tripModalStatus">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Total Passengers</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Jumlah Penumpang</span>
                             <span class="trip-modal-value" id="tripModalTotalPassengers">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Fare Split Type</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Jenis Agihan Tambang</span>
                             <span class="trip-modal-value" id="tripModalSplitType">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Fare</span></span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Tambang</span></span>
                             <span class="trip-modal-value" id="tripModalFareValue">-</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="trip-contact-bar">
-                <p class="trip-contact-text">Having issues with this trip? Please contact the driver.</p>
+                <p class="trip-contact-text">Ada masalah dengan trip ini? Sila hubungi pemandu.</p>
                 <div class="trip-contact-actions">
                     <a href="#" target="_blank" rel="noopener" class="trip-contact-link whatsapp is-disabled" id="tripModalWhatsapp">
                         <i class="fa-brands fa-whatsapp"></i>
@@ -1515,7 +1584,7 @@
                     </a>
                     <a href="#" class="trip-contact-link email is-disabled" id="tripModalEmail">
                         <i class="fa-regular fa-envelope"></i>
-                        <span>Email Driver</span>
+                        <span>E-mel Pemandu</span>
                     </a>
                 </div>
             </div>
@@ -1523,6 +1592,21 @@
     </div>
 
     <script>
+        (() => {
+            const filterForm = document.querySelector('.trips-filter-row');
+            if (!filterForm) return;
+
+            let submitTimer = null;
+            const autoSubmit = () => {
+                window.clearTimeout(submitTimer);
+                submitTimer = window.setTimeout(() => filterForm.requestSubmit(), 250);
+            };
+
+            filterForm.querySelectorAll('input, select').forEach((field) => {
+                field.addEventListener('change', autoSubmit);
+            });
+        })();
+
         (() => {
             const params = new URLSearchParams(window.location.search);
             const focusTrip = String(params.get('focus_trip') || '').trim();
@@ -1606,10 +1690,10 @@
                     return true;
                 });
 
-                passengerCountEl.textContent = `${passengers.length} passenger${passengers.length === 1 ? '' : 's'}`;
+                passengerCountEl.textContent = `${passengers.length} penumpang`;
 
                 if (passengers.length === 0) {
-                    passengerListEl.innerHTML = '<div class="trip-passenger-email">No passenger records found for this trip.</div>';
+                    passengerListEl.innerHTML = '<div class="trip-passenger-email">Tiada rekod penumpang dijumpai untuk trip ini.</div>';
                     return;
                 }
 
@@ -1627,7 +1711,7 @@
                                 <span class="trip-passenger-name">${name}</span>
                                 <span class="trip-passenger-email">${email || '-'}</span>
                             </div>
-                            <span class="trip-passenger-role">Passenger</span>
+                            <span class="trip-passenger-role">Penumpang</span>
                         </div>
                     `;
                 }).join('');
@@ -1657,7 +1741,41 @@
                 return miniMap;
             };
 
-            const drawMap = async (pickupLat, pickupLng, destinationLat, destinationLng) => {
+            const passengerStopsFromPayload = (routePointsPayload) => {
+                const stops = [];
+                (Array.isArray(routePointsPayload) ? routePointsPayload : []).forEach((item, index) => {
+                    const sequence = index + 1;
+                    const pickup = item?.pickup || null;
+                    const dropoff = item?.dropoff || null;
+                    const pickupLat = toNum(pickup?.lat);
+                    const pickupLng = toNum(pickup?.lng);
+                    const dropoffLat = toNum(dropoff?.lat);
+                    const dropoffLng = toNum(dropoff?.lng);
+
+                    if (pickupLat !== null && pickupLng !== null) {
+                        stops.push({
+                            type: 'pickup',
+                            sequence,
+                            lat: pickupLat,
+                            lng: pickupLng,
+                            label: pickup?.label || `${item?.name || 'Passenger'} pickup`,
+                        });
+                    }
+                    if (dropoffLat !== null && dropoffLng !== null) {
+                        stops.push({
+                            type: 'dropoff',
+                            sequence,
+                            lat: dropoffLat,
+                            lng: dropoffLng,
+                            label: dropoff?.label || `${item?.name || 'Passenger'} drop-off`,
+                        });
+                    }
+                });
+
+                return stops;
+            };
+
+            const drawMap = async (pickupLat, pickupLng, destinationLat, destinationLng, routePointsPayload = []) => {
                 const map = ensureMap();
                 if (!map) return;
                 if ([pickupLat, pickupLng, destinationLat, destinationLng].some((v) => v === null)) return;
@@ -1665,20 +1783,43 @@
                 if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
                 if (markerLayer) { map.removeLayer(markerLayer); markerLayer = null; }
 
-                markerLayer = window.L.layerGroup([
+                const passengerStops = passengerStopsFromPayload(routePointsPayload);
+                const markerLayers = [
                     window.L.circleMarker([pickupLat, pickupLng], {
                         radius: 6, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1
-                    }),
+                    }).bindTooltip('Pickup Pemandu', { direction: 'top', offset: [0, -8] }),
                     window.L.circleMarker([destinationLat, destinationLng], {
                         radius: 6, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1
-                    }),
-                ]).addTo(map);
+                    }).bindTooltip('Penghantaran Pemandu', { direction: 'top', offset: [0, -8] }),
+                ];
 
-                map.fitBounds(window.L.latLngBounds([[pickupLat, pickupLng], [destinationLat, destinationLng]]), { padding: [16, 16] });
+                passengerStops.forEach((stop) => {
+                    const icon = window.L.divIcon({
+                        className: '',
+                        html: `<span class="trip-passenger-map-pin ${stop.type === 'dropoff' ? 'dropoff' : 'pickup'}">${stop.sequence}</span>`,
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10],
+                    });
+                    markerLayers.push(
+                        window.L.marker([stop.lat, stop.lng], { icon, interactive: true })
+                            .bindTooltip(stop.label, { direction: 'top', offset: [0, -10] })
+                    );
+                });
+
+                markerLayer = window.L.layerGroup(markerLayers).addTo(map);
+
+                const waypointPoints = [
+                    [pickupLat, pickupLng],
+                    ...passengerStops.map((stop) => [stop.lat, stop.lng]),
+                    [destinationLat, destinationLng],
+                ];
+
+                map.fitBounds(window.L.latLngBounds(waypointPoints), { padding: [16, 16] });
 
                 const url = 'https://router.project-osrm.org/route/v1/driving/'
-                    + `${encodeURIComponent(pickupLng)},${encodeURIComponent(pickupLat)};`
-                    + `${encodeURIComponent(destinationLng)},${encodeURIComponent(destinationLat)}`
+                    + waypointPoints
+                        .map((point) => `${encodeURIComponent(point[1])},${encodeURIComponent(point[0])}`)
+                        .join(';')
                     + '?overview=full&geometries=geojson&alternatives=false&steps=false';
 
                 try {
@@ -1694,12 +1835,12 @@
                         routeLayer = window.L.polyline(latLngs, { color: '#1d4ed8', weight: 4, opacity: 0.95 }).addTo(map);
                         map.fitBounds(routeLayer.getBounds(), { padding: [16, 16] });
                     } else {
-                        routeLayer = window.L.polyline([[pickupLat, pickupLng], [destinationLat, destinationLng]], {
+                        routeLayer = window.L.polyline(waypointPoints, {
                             color: '#60a5fa', weight: 3, opacity: 0.9, dashArray: '8 6'
                         }).addTo(map);
                     }
                 } catch (_e) {
-                    routeLayer = window.L.polyline([[pickupLat, pickupLng], [destinationLat, destinationLng]], {
+                    routeLayer = window.L.polyline(waypointPoints, {
                         color: '#60a5fa', weight: 3, opacity: 0.9, dashArray: '8 6'
                     }).addTo(map);
                 }
@@ -1709,7 +1850,7 @@
                 btn.addEventListener('click', () => {
                     const tripId = String(btn.dataset.tripId || '-');
                     const pairedTripId = String(btn.dataset.pairedTripId || '').trim();
-                    const isTwoWay = String(btn.dataset.mode || '').toLowerCase().includes('two way');
+                    const isTwoWay = String(btn.dataset.mode || '').toLowerCase().includes('dua hala');
                     const driverId = Number.parseInt(String(btn.dataset.driverId || ''), 10);
                     const driverEmail = String(btn.dataset.driverEmail || '').trim();
                     const driverWhatsappUrl = String(btn.dataset.driverWhatsappUrl || '').trim();
@@ -1725,6 +1866,13 @@
                     } catch (_e) {
                         participantsPayload = [];
                     }
+                    let routePointsPayload = [];
+                    try {
+                        const encoded = String(btn.dataset.routePointsB64 || '').trim();
+                        routePointsPayload = encoded ? JSON.parse(atob(encoded)) : [];
+                    } catch (_e) {
+                        routePointsPayload = [];
+                    }
                     const digitsRaw = driverPhoneRaw.replace(/\D+/g, '');
                     let waDigits = digitsRaw.replace(/^00+/, '');
                     if (/^01\d{8,9}$/.test(waDigits)) {
@@ -1738,7 +1886,7 @@
                     if (modeEl) modeEl.textContent = btn.dataset.mode || '-';
                     if (pairHintEl) {
                         if (isTwoWay && pairedTripId) {
-                            pairHintEl.textContent = `Paired trip: Trip #${pairedTripId}`;
+                            pairHintEl.textContent = `Trip berpasangan: Trip #${pairedTripId}`;
                             pairHintEl.style.display = 'block';
                         } else {
                             pairHintEl.textContent = '';
@@ -1756,7 +1904,7 @@
                         statusEl.className = `trip-modal-value trip-status-badge trip-status-${slug || 'draft'}`;
                     }
                     if (outboundTimeEl) outboundTimeEl.textContent = btn.dataset.outboundDatetime || '-';
-                    if (fareLabelEl) fareLabelEl.textContent = btn.dataset.fareLabel || 'Fare';
+                    if (fareLabelEl) fareLabelEl.textContent = btn.dataset.fareLabel || 'Tambang';
                     if (fareValueEl) fareValueEl.textContent = btn.dataset.fareDisplay || '-';
                     const totalPassengersText = btn.dataset.totalPassengers || '0';
                     if (totalPassengersEl) totalPassengersEl.textContent = totalPassengersText;
@@ -1765,14 +1913,14 @@
                     if (passengerCountEl && (!participantsPayload || participantsPayload.length === 0)) {
                         const n = Number.parseInt(totalPassengersText, 10);
                         if (Number.isFinite(n) && n > 0) {
-                            passengerCountEl.textContent = `${n} passenger${n === 1 ? '' : 's'}`;
+                            passengerCountEl.textContent = `${n} penumpang`;
                         }
                     }
                     if (pointALabelEl) {
-                        pointALabelEl.innerHTML = '<i class="fa-solid fa-location-dot"></i>Pickup Point';
+                        pointALabelEl.innerHTML = '<i class="fa-solid fa-location-dot"></i>Titik Pickup';
                     }
                     if (pointBLabelEl) {
-                        pointBLabelEl.innerHTML = '<i class="fa-solid fa-flag-checkered"></i>Destination Point';
+                        pointBLabelEl.innerHTML = '<i class="fa-solid fa-flag-checkered"></i>Titik Destinasi';
                     }
                     if (pickupPointEl) pickupPointEl.textContent = btn.dataset.pickupName || '-';
                     if (destinationPointEl) destinationPointEl.textContent = btn.dataset.destinationName || '-';
@@ -1805,7 +1953,7 @@
                     const destinationLng = toNum(btn.dataset.destinationLng);
 
                     setTimeout(() => {
-                        drawMap(pickupLat, pickupLng, destinationLat, destinationLng).then(() => {
+                        drawMap(pickupLat, pickupLng, destinationLat, destinationLng, routePointsPayload).then(() => {
                             if (miniMap) miniMap.invalidateSize();
                         });
                     }, 40);

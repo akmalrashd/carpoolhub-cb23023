@@ -55,32 +55,32 @@
         <section class="archive-card">
             <div class="archive-topbar">
                 <div>
-                    <h1 class="archive-title">Archived Trips</h1>
-                    <p class="archive-subtitle">Read-only trip history for the selected archive month.</p>
+                    <h1 class="archive-title">Trip Diarkib</h1>
+                    <p class="archive-subtitle">Sejarah trip baca sahaja untuk bulan arkib dipilih.</p>
                 </div>
-                <a href="{{ route('archive.index', ['month' => $monthKey]) }}" class="archive-btn"><i class="fa-solid fa-arrow-left"></i>Back to Archive</a>
+                <a href="{{ route('archive.index', ['month' => $monthKey]) }}" class="archive-btn"><i class="fa-solid fa-arrow-left"></i>Kembali ke Arkib</a>
             </div>
         </section>
 
         <section class="archive-card">
             <form method="GET" action="{{ route('archive.trips.index') }}" class="archive-filter-row">
                 <div>
-                    <label class="archive-label" for="month">Month</label>
+                    <label class="archive-label" for="month">Bulan</label>
                     <select class="archive-select" name="month" id="month">
-                        <option value="" disabled {{ $monthKey ? '' : 'selected' }}>Choose archived month</option>
+                        <option value="" disabled {{ $monthKey ? '' : 'selected' }}>Pilih bulan arkib</option>
                         @foreach($months as $month)
                             <option value="{{ $month }}" {{ $monthKey === $month ? 'selected' : '' }}>{{ $month }}</option>
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="archive-btn primary"><i class="fa-solid fa-filter"></i>Apply</button>
-                <a href="{{ route('archive.trips.index') }}" class="archive-btn">Reset</a>
+                <button type="submit" class="archive-btn primary"><i class="fa-solid fa-filter"></i>Guna</button>
+                <a href="{{ route('archive.trips.index') }}" class="archive-btn">Set Semula</a>
             </form>
         </section>
 
         <section class="archive-card">
             @if($archivedTrips->isEmpty())
-                <div class="archive-empty">No archived trips found for this month.</div>
+                <div class="archive-empty">Tiada trip diarkib dijumpai untuk bulan ini.</div>
             @else
                 <div class="archive-grid">
                     @foreach($archivedTrips as $trip)
@@ -101,13 +101,13 @@
                                     <h2 class="archive-route-title">{{ $routeName }}</h2>
                                     <p class="archive-route-sub">{{ $trip->trip_datetime?->format('Y-m-d H:i') ?: '-' }} | {{ $trip->billingCycle?->month_key ?: '-' }}</p>
                                 </div>
-                                <span class="archive-chip mode">{{ $hasReturn ? 'Two Way' : 'One Way' }}</span>
+                                <span class="archive-chip mode">{{ $hasReturn ? 'Dua Hala' : 'Sehala' }}</span>
                             </div>
                             <div class="archive-trip-grid">
-                                <div class="archive-line"><span>Driver</span><strong>{{ $trip->driver?->name ?: '-' }}</strong></div>
+                                <div class="archive-line"><span>Pemandu</span><strong>{{ $trip->driver?->name ?: '-' }}</strong></div>
                                 <div class="archive-line"><span>Pickup</span><strong>{{ $pickupName }}</strong></div>
-                                <div class="archive-line"><span>Destination</span><strong>{{ $destinationName }}</strong></div>
-                                <div class="archive-line"><span>Fare Total</span><strong>RM {{ number_format((float) $trip->fare_total, 2) }}</strong></div>
+                                <div class="archive-line"><span>Destinasi</span><strong>{{ $destinationName }}</strong></div>
+                                <div class="archive-line"><span>Jumlah Tambang</span><strong>RM {{ number_format((float) $trip->fare_total, 2) }}</strong></div>
                             </div>
                             <button
                                 type="button"
@@ -118,11 +118,11 @@
                                 data-driver="{{ $trip->driver?->name ?: '-' }}"
                                 data-pickup="{{ $pickupName }}"
                                 data-destination="{{ $destinationName }}"
-                                data-mode="{{ $hasReturn ? 'Two Way' : 'One Way' }}"
+                                data-mode="{{ $hasReturn ? 'Dua Hala' : 'Sehala' }}"
                                 data-fare="RM {{ number_format((float) (($trip->fare_total ?? 0) + ($trip->returnTrip?->fare_total ?? 0)), 2) }}"
                                 data-participants='@json($participantPayload)'
                             >
-                                <i class="fa-regular fa-eye"></i>View Details
+                                <i class="fa-regular fa-eye"></i>Lihat Butiran
                             </button>
                         </article>
                     @endforeach
@@ -135,42 +135,42 @@
     <div class="archive-modal" id="archiveTripModal" aria-hidden="true">
         <div class="archive-modal-card">
             <div class="archive-modal-head">
-                <h3 class="archive-modal-title">Archived Trip Details</h3>
+                <h3 class="archive-modal-title">Butiran Trip Diarkib</h3>
                 <button type="button" class="archive-modal-close" id="archiveTripModalClose"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="archive-modal-grid">
                 <div class="archive-modal-line">
-                    <span class="archive-modal-label">Trip IDs</span>
+                    <span class="archive-modal-label">ID Trip</span>
                     <span class="archive-modal-value" id="archiveTripIds">-</span>
                 </div>
                 <div class="archive-modal-line">
-                    <span class="archive-modal-label">Route</span>
+                    <span class="archive-modal-label">Laluan</span>
                     <span class="archive-modal-value" id="archiveTripRouteName">-</span>
                 </div>
                 <div class="archive-modal-line">
-                    <span class="archive-modal-label">Date & Time</span>
+                    <span class="archive-modal-label">Tarikh & Masa</span>
                     <span class="archive-modal-value" id="archiveTripDatetime">-</span>
                 </div>
                 <div class="archive-modal-line">
-                    <span class="archive-modal-label">Driver</span>
+                    <span class="archive-modal-label">Pemandu</span>
                     <span class="archive-modal-value" id="archiveTripDriver">-</span>
                 </div>
                 <div class="archive-point-grid">
                     <div class="archive-point-card pickup">
-                        <span class="archive-point-label"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
+                        <span class="archive-point-label"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
                         <span class="archive-point-value" id="archiveTripPickup">-</span>
                     </div>
                     <div class="archive-point-card destination">
-                        <span class="archive-point-label"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
+                        <span class="archive-point-label"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
                         <span class="archive-point-value" id="archiveTripDestination">-</span>
                     </div>
                 </div>
                 <div class="archive-modal-line">
-                    <span class="archive-modal-label">Trip Type</span>
+                    <span class="archive-modal-label">Jenis Trip</span>
                     <span class="archive-modal-value" id="archiveTripMode">-</span>
                 </div>
                 <div class="archive-modal-line">
-                    <span class="archive-modal-label">Combined Fare</span>
+                    <span class="archive-modal-label">Tambang Gabungan</span>
                     <span class="archive-modal-value" id="archiveTripFare">-</span>
                 </div>
                 <div class="archive-modal-line">
@@ -226,7 +226,7 @@
                     if (passengersEl) {
                         passengersEl.innerHTML = participants.length
                             ? participants.map((item) => `<div class="archive-passenger-item"><div><div class="archive-passenger-name">${item.name || '-'}</div><div class="archive-passenger-email">${item.email || '-'}</div></div></div>`).join('')
-                            : '<div class="archive-passenger-email">No passenger records found.</div>';
+                            : '<div class="archive-passenger-email">Tiada rekod penumpang dijumpai.</div>';
                     }
 
                     modal.classList.add('show');

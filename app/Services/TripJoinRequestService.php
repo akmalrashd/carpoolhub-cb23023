@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Trip;
 use App\Models\TripJoinRequest;
+use App\Models\TripPassengerRoutePoint;
 use App\Models\TripParticipant;
 use App\Models\TripPayment;
 use App\Models\User;
@@ -19,18 +20,18 @@ class TripJoinRequestService
         $this->ensureCanManageTripRequests($actor, $trip);
 
         return TripJoinRequest::query()
-            ->with(['user', 'responder'])
+            ->with(['user', 'responder', 'routePoint'])
             ->where('trip_id', $trip->id)
             ->latest('id')
             ->paginate(15);
     }
 
-    public function submitRequest(User $passenger, Trip $trip, ?string $note = null): TripJoinRequest
+    public function submitRequest(User $passenger, Trip $trip, ?string $note = null, array $routePointData = []): TripJoinRequest
     {
         $baseTrip = $this->resolveBaseTrip($trip);
         $this->ensureCanRequestJoin($passenger, $baseTrip);
 
-        return DB::transaction(function () use ($passenger, $baseTrip, $note): TripJoinRequest {
+        return DB::transaction(function () use ($passenger, $baseTrip, $note, $routePointData): TripJoinRequest {
             $existing = TripJoinRequest::query()
                 ->where('trip_id', $baseTrip->id)
                 ->where('user_id', $passenger->id)
@@ -66,6 +67,8 @@ class TripJoinRequestService
                 ]);
             }
 
+            $this->upsertRoutePointForRequest($request, $passenger, $baseTrip, $routePointData);
+
             UserNotification::query()->create([
                 'user_id' => $baseTrip->driver_id,
                 'type' => 'trip',
@@ -97,6 +100,7 @@ class TripJoinRequestService
             'responded_by' => $passenger->id,
             'responded_at' => now(),
         ]);
+        $joinRequest->routePoint?->update(['status' => 'cancelled']);
 
         return $joinRequest->refresh();
     }
@@ -125,6 +129,9 @@ class TripJoinRequestService
                 $this->assertSeatsAvailable($trip);
                 $this->assertNoProcessedPayments($trip);
                 $this->attachPassengerToTripGroup($trip, $joinRequest->user_id);
+                $this->linkAcceptedRoutePoint($joinRequest, $trip);
+            } else {
+                $joinRequest->routePoint?->update(['status' => 'rejected']);
             }
 
             $joinRequest->update([
@@ -326,6 +333,160 @@ class TripJoinRequestService
         }
 
         return round($fareTotal / $splitCount, 2);
+    }
+
+    private function upsertRoutePointForRequest(TripJoinRequest $request, User $passenger, Trip $trip, array $data): void
+    {
+        $payload = $this->routePointPayload($passenger, $trip, $data);
+
+        TripPassengerRoutePoint::query()->updateOrCreate(
+            [
+                'trip_join_request_id' => $request->id,
+            ],
+            array_merge($payload, [
+                'trip_id' => $trip->id,
+                'user_id' => $passenger->id,
+                'trip_participant_id' => null,
+                'status' => 'requested',
+            ])
+        );
+    }
+
+    private function routePointPayload(User $passenger, Trip $trip, array $data): array
+    {
+        $pickupMode = (string) ($data['pickup_mode'] ?? 'default');
+        $dropoffMode = (string) ($data['dropoff_mode'] ?? 'default');
+        $pickupCustom = $pickupMode === 'custom' && trim((string) ($data['pickup_name'] ?? '')) !== '';
+        $dropoffCustom = $dropoffMode === 'custom' && trim((string) ($data['dropoff_name'] ?? '')) !== '';
+
+        $payload = [
+            'pickup_name' => $pickupCustom ? trim((string) $data['pickup_name']) : (string) ($trip->pickup_name ?: 'Pickup'),
+            'pickup_latitude' => $pickupCustom ? ($data['pickup_latitude'] ?? null) : $trip->pickup_latitude,
+            'pickup_longitude' => $pickupCustom ? ($data['pickup_longitude'] ?? null) : $trip->pickup_longitude,
+            'dropoff_name' => $dropoffCustom ? trim((string) $data['dropoff_name']) : (string) ($trip->destination_name ?: 'Destination'),
+            'dropoff_latitude' => $dropoffCustom ? ($data['dropoff_latitude'] ?? null) : $trip->destination_latitude,
+            'dropoff_longitude' => $dropoffCustom ? ($data['dropoff_longitude'] ?? null) : $trip->destination_longitude,
+            'uses_default_pickup' => ! $pickupCustom,
+            'uses_default_dropoff' => ! $dropoffCustom,
+            'requested_pickup_time' => $data['requested_pickup_time'] ?? null,
+            'detour_distance_km' => $data['detour_distance_km'] ?? null,
+            'fare_override_amount' => $data['fare_override_amount'] ?? null,
+        ];
+
+        $fit = $this->routeFitFor($trip, $payload);
+
+        return array_merge($payload, $fit, [
+            'detour_distance_km' => $payload['detour_distance_km'] ?? $fit['detour_distance_km'] ?? null,
+        ]);
+    }
+
+    private function routeFitFor(Trip $trip, array $payload): array
+    {
+        if (($payload['uses_default_pickup'] ?? true) && ($payload['uses_default_dropoff'] ?? true)) {
+            return [
+                'route_fit_score' => 100,
+                'route_fit_label' => 'Uses trip pickup and destination',
+                'pickup_distance_km' => 0,
+                'dropoff_distance_km' => 0,
+                'detour_distance_km' => null,
+                'detour_duration_minutes' => null,
+            ];
+        }
+
+        $pickupDistance = $this->nearestEndpointDistanceKm(
+            $payload['pickup_latitude'] ?? null,
+            $payload['pickup_longitude'] ?? null,
+            $trip
+        );
+        $dropoffDistance = $this->nearestEndpointDistanceKm(
+            $payload['dropoff_latitude'] ?? null,
+            $payload['dropoff_longitude'] ?? null,
+            $trip
+        );
+
+        $availableDistances = collect([$pickupDistance, $dropoffDistance])->filter(fn ($value) => $value !== null)->values();
+        if ($availableDistances->isEmpty()) {
+            $customCount = (int) (! ($payload['uses_default_pickup'] ?? true)) + (int) (! ($payload['uses_default_dropoff'] ?? true));
+
+            return [
+                'route_fit_score' => $customCount > 1 ? 65 : 75,
+                'route_fit_label' => 'Custom stop, driver review needed',
+                'pickup_distance_km' => $pickupDistance,
+                'dropoff_distance_km' => $dropoffDistance,
+                'detour_distance_km' => null,
+                'detour_duration_minutes' => null,
+            ];
+        }
+
+        $averageDistance = (float) $availableDistances->avg();
+        $score = match (true) {
+            $averageDistance <= 1 => 95,
+            $averageDistance <= 3 => 85,
+            $averageDistance <= 8 => 70,
+            default => 55,
+        };
+        $label = match (true) {
+            $score >= 85 => 'Likely near route endpoints',
+            $score >= 70 => 'Driver review suggested',
+            default => 'Off route, confirm before approve',
+        };
+
+        return [
+            'route_fit_score' => $score,
+            'route_fit_label' => $label,
+            'pickup_distance_km' => $pickupDistance,
+            'dropoff_distance_km' => $dropoffDistance,
+            'detour_distance_km' => null,
+            'detour_duration_minutes' => null,
+        ];
+    }
+
+    private function nearestEndpointDistanceKm(mixed $latitude, mixed $longitude, Trip $trip): ?float
+    {
+        if ($latitude === null || $longitude === null || $latitude === '' || $longitude === '') {
+            return null;
+        }
+
+        $pickupDistance = $this->distanceKm((float) $latitude, (float) $longitude, $trip->pickup_latitude, $trip->pickup_longitude);
+        $destinationDistance = $this->distanceKm((float) $latitude, (float) $longitude, $trip->destination_latitude, $trip->destination_longitude);
+        $distances = collect([$pickupDistance, $destinationDistance])->filter(fn ($value) => $value !== null)->values();
+
+        return $distances->isEmpty() ? null : round((float) $distances->min(), 2);
+    }
+
+    private function distanceKm(float $lat1, float $lng1, mixed $lat2, mixed $lng2): ?float
+    {
+        if ($lat2 === null || $lng2 === null || $lat2 === '' || $lng2 === '') {
+            return null;
+        }
+
+        $earthRadiusKm = 6371;
+        $latFrom = deg2rad($lat1);
+        $lngFrom = deg2rad($lng1);
+        $latTo = deg2rad((float) $lat2);
+        $lngTo = deg2rad((float) $lng2);
+
+        $latDelta = $latTo - $latFrom;
+        $lngDelta = $lngTo - $lngFrom;
+        $angle = 2 * asin(sqrt(
+            (sin($latDelta / 2) ** 2) +
+            cos($latFrom) * cos($latTo) * (sin($lngDelta / 2) ** 2)
+        ));
+
+        return round($earthRadiusKm * $angle, 2);
+    }
+
+    private function linkAcceptedRoutePoint(TripJoinRequest $joinRequest, Trip $trip): void
+    {
+        $participant = TripParticipant::query()
+            ->where('trip_id', $trip->id)
+            ->where('user_id', $joinRequest->user_id)
+            ->first();
+
+        $joinRequest->routePoint?->update([
+            'trip_participant_id' => $participant?->id,
+            'status' => 'accepted',
+        ]);
     }
 
     private function distributeFare(float $fareTotal, int $participantCount): Collection

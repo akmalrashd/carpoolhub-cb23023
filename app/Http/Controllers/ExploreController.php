@@ -36,6 +36,10 @@ class ExploreController extends Controller
             'seats' => ['nullable', 'in:1,2plus'],
             'center_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'center_lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'pickup_lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'pickup_lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'destination_lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'destination_lng' => ['nullable', 'numeric', 'between:-180,180'],
             'radius_km' => ['nullable', 'numeric', 'min:0.5', 'max:200'],
         ]);
 
@@ -98,7 +102,7 @@ class ExploreController extends Controller
             'savedRoute',
             'driver',
             'participants.user',
-            'joinRequests' => fn ($joinQuery) => $joinQuery->with('user')->latest('id'),
+            'joinRequests' => fn ($joinQuery) => $joinQuery->with(['user', 'routePoint'])->latest('id'),
             'returnTrip',
         ]);
 
@@ -152,10 +156,12 @@ class ExploreController extends Controller
     public function requestJoin(StoreTripJoinRequest $request, Trip $trip): RedirectResponse
     {
         try {
+            $validated = $request->validated();
             $this->tripJoinRequestService->submitRequest(
                 $request->user(),
                 $trip,
-                $request->validated('request_note')
+                $validated['request_note'] ?? null,
+                $validated
             );
         } catch (ValidationException $exception) {
             return back()->withErrors($exception->errors());

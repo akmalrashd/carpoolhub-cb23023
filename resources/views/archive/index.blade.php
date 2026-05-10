@@ -61,25 +61,25 @@
 
     <div class="archive-page">
         <section class="archive-card">
-            <h1 class="archive-title">Archive</h1>
-            <p class="archive-subtitle">Review closed-cycle trips and payments by month using the same workflow as active records, but in read-only mode.</p>
+            <h1 class="archive-title">Arkib</h1>
+            <p class="archive-subtitle">Semak trip dan pembayaran kitaran tertutup mengikut bulan menggunakan aliran kerja yang sama seperti rekod aktif, tetapi dalam mod baca sahaja.</p>
         </section>
 
         <section class="archive-card">
             <form method="GET" action="{{ route('archive.index') }}" class="archive-filter-form">
                 <div class="archive-filter-grid">
                     <div>
-                        <label class="archive-label" for="month">Month</label>
+                        <label class="archive-label" for="month">Bulan</label>
                         <select class="archive-select" name="month" id="month">
-                            <option value="" disabled {{ $monthKey ? '' : 'selected' }}>Choose archived month</option>
+                            <option value="" disabled {{ $monthKey ? '' : 'selected' }}>Pilih bulan arkib</option>
                             @foreach($months as $month)
                                 <option value="{{ $month }}" {{ $monthKey === $month ? 'selected' : '' }}>{{ $month }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="archive-actions">
-                        <button type="submit" class="archive-btn primary"><i class="fa-solid fa-filter"></i>Apply</button>
-                        <a href="{{ route('archive.index') }}" class="archive-btn">Reset</a>
+                        <button type="submit" class="archive-btn primary"><i class="fa-solid fa-filter"></i>Guna</button>
+                        <a href="{{ route('archive.index') }}" class="archive-btn">Set Semula</a>
                     </div>
                 </div>
             </form>
@@ -88,34 +88,34 @@
         <section class="archive-card">
             <div class="archive-summary-grid">
                 <div class="archive-summary-item">
-                    <span class="archive-summary-label">Trips</span>
+                    <span class="archive-summary-label">Trip</span>
                     <span class="archive-summary-value">{{ number_format((int) ($summary['trip_count'] ?? 0)) }}</span>
-                    <span class="archive-summary-note">Archived trips for selected month</span>
+                    <span class="archive-summary-note">Trip diarkib untuk bulan dipilih</span>
                 </div>
                 <div class="archive-summary-item">
-                    <span class="archive-summary-label">Payments</span>
+                    <span class="archive-summary-label">Pembayaran</span>
                     <span class="archive-summary-value">{{ number_format((int) ($summary['payment_count'] ?? 0)) }}</span>
-                    <span class="archive-summary-note">Archived payment records</span>
+                    <span class="archive-summary-note">Rekod pembayaran diarkib</span>
                 </div>
                 <div class="archive-summary-item">
-                    <span class="archive-summary-label">Fare Total</span>
+                    <span class="archive-summary-label">Jumlah Tambang</span>
                     <span class="archive-summary-value">RM {{ number_format((float) ($summary['fare_total'] ?? 0), 2) }}</span>
-                    <span class="archive-summary-note">Total archived trip fare</span>
+                    <span class="archive-summary-note">Jumlah tambang trip diarkib</span>
                 </div>
                 <div class="archive-summary-item">
-                    <span class="archive-summary-label">Paid</span>
+                    <span class="archive-summary-label">Dibayar</span>
                     <span class="archive-summary-value">RM {{ number_format((float) ($summary['paid_total'] ?? 0), 2) }}</span>
-                    <span class="archive-summary-note">Confirmed archived payments</span>
+                    <span class="archive-summary-note">Pembayaran diarkib yang disahkan</span>
                 </div>
                 <div class="archive-summary-item">
-                    <span class="archive-summary-label">Pending</span>
+                    <span class="archive-summary-label">Tertangguh</span>
                     <span class="archive-summary-value">RM {{ number_format((float) ($summary['pending_total'] ?? 0), 2) }}</span>
-                    <span class="archive-summary-note">Pending confirmation records</span>
+                    <span class="archive-summary-note">Rekod menunggu pengesahan</span>
                 </div>
                 <div class="archive-summary-item">
-                    <span class="archive-summary-label">Unpaid</span>
+                    <span class="archive-summary-label">Belum Bayar</span>
                     <span class="archive-summary-value">RM {{ number_format((float) ($summary['unpaid_total'] ?? 0), 2) }}</span>
-                    <span class="archive-summary-note">Outstanding archived records</span>
+                    <span class="archive-summary-note">Rekod diarkib yang tertunggak</span>
                 </div>
             </div>
         </section>
@@ -123,14 +123,14 @@
         <section class="archive-card">
             <div class="archive-link-grid">
                 <article class="archive-link-card">
-                    <h2 class="archive-link-title">Archived Trips</h2>
-                    <p class="archive-link-text">Open a trips-style interface for the selected archive month. Cards and trip detail popup stay available, but everything is read-only.</p>
-                    <a href="{{ route('archive.trips.index', ['month' => $monthKey]) }}" class="archive-btn primary"><i class="fa-solid fa-route"></i>Open Trips Archive</a>
+                    <h2 class="archive-link-title">Trip Diarkib</h2>
+                    <p class="archive-link-text">Buka antara muka gaya trip untuk bulan arkib dipilih. Kad dan popup butiran trip masih tersedia, tetapi semuanya dalam mod baca sahaja.</p>
+                    <a href="{{ route('archive.trips.index', ['month' => $monthKey]) }}" class="archive-btn primary"><i class="fa-solid fa-route"></i>Buka Arkib Trip</a>
                 </article>
                 <article class="archive-link-card">
-                    <h2 class="archive-link-title">Archived Payments</h2>
-                    <p class="archive-link-text">Open a payments-style interface for the selected archive month with monthly summaries and trip detail popup in read-only mode.</p>
-                    <a href="{{ route('archive.payments.index', ['month' => $monthKey]) }}" class="archive-btn primary"><i class="fa-solid fa-wallet"></i>Open Payments Archive</a>
+                    <h2 class="archive-link-title">Pembayaran Diarkib</h2>
+                    <p class="archive-link-text">Buka antara muka gaya pembayaran untuk bulan arkib dipilih dengan ringkasan bulanan dan popup butiran trip dalam mod baca sahaja.</p>
+                    <a href="{{ route('archive.payments.index', ['month' => $monthKey]) }}" class="archive-btn primary"><i class="fa-solid fa-wallet"></i>Buka Arkib Pembayaran</a>
                 </article>
             </div>
         </section>

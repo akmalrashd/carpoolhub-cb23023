@@ -65,6 +65,27 @@
             gap: 10px;
         }
 
+        .route-section-head {
+            display: grid;
+            gap: 4px;
+        }
+
+        .route-section-title {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .route-section-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
         .map-tools {
             display: grid;
             gap: 8px;
@@ -273,6 +294,76 @@
             grid-column: 1 / -1;
         }
 
+        .route-preference-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #fff;
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .route-point-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+
+        .route-point-group {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .route-point-group.pickup {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+        }
+
+        .route-point-group.destination {
+            border-color: #fde68a;
+            background: #fffbeb;
+        }
+
+        .route-point-group-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .route-point-group-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .route-point-group.pickup .route-point-group-title {
+            color: #166534;
+        }
+
+        .route-point-group.destination .route-point-group-title {
+            color: #b45309;
+        }
+
+        .route-point-group-badge {
+            border: 1px solid rgba(255, 255, 255, .75);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .78);
+            color: #475569;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
         .field-block label {
             font-size: 12px;
             color: #475569;
@@ -387,6 +478,10 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .route-point-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .map-tools {
                 grid-template-columns: 1fr;
                 align-items: center;
@@ -400,40 +495,44 @@
 
     <div class="page-shell">
         <section class="page-card title-card">
-            <h1 class="page-title">Edit Saved Route</h1>
-            <p class="page-subtitle">Update your saved route details and map points.</p>
+            <h1 class="page-title">Sunting Laluan Tersimpan</h1>
+            <p class="page-subtitle">Kemaskini butiran laluan dan titik peta anda.</p>
         </section>
 
         <section class="page-card">
             <div class="map-card">
+                <div class="route-section-head">
+                    <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup dan drop-off</span>
+                    <p class="route-section-hint">Cari, pratonton, atau ketuk peta untuk sahkan Pickup Titik A dan Drop-off Titik B.</p>
+                </div>
                 <div class="map-tools">
                     <div class="map-search-row">
-                        <input type="text" id="mapSearchInput" placeholder="Search address or place">
-                        <button type="button" id="mapSearchBtn">Search</button>
-                        <button type="button" id="mapLocateBtn">Current Location</button>
+                        <input type="text" id="mapSearchInput" placeholder="Cari alamat atau tempat">
+                        <button type="button" id="mapSearchBtn">Cari</button>
+                        <button type="button" id="mapLocateBtn">Lokasi Semasa</button>
                     </div>
                 </div>
-                <p class="map-help">Tap once to set Point A, tap again to set Point B. A route line will be drawn automatically.</p>
+                <p class="map-help">Ketuk sekali untuk tetapkan Titik A, ketuk sekali lagi untuk Titik B. Garis laluan akan dilukis secara automatik.</p>
                 <div class="map-status">
                     <div class="map-step-title">
                         <span class="map-step-badge" id="mapStepNumber">1/3</span>
-                        Route Setup Progress
+                        Kemajuan Tetapan Laluan
                     </div>
-                    <div class="map-step-text" id="mapStepText">Tap on the map to set Point A.</div>
-                    <div class="map-step-hint" id="mapStepHint">Then tap again to set Point B and view route options.</div>
+                    <div class="map-step-text" id="mapStepText">Ketuk pada peta untuk tetapkan Titik A.</div>
+                    <div class="map-step-hint" id="mapStepHint">Kemudian ketuk sekali lagi untuk tetapkan Titik B dan lihat pilihan laluan.</div>
                     <div class="map-step-actions">
-                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Reset Route</span></button>
+                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Set Semula Laluan</span></button>
                     </div>
                 </div>
                 <div id="routeMap"></div>
                 <div class="route-options" id="routeOptions">
-                    <div class="route-empty">Set Point A and Point B to see route options with distance and ETA.</div>
+                    <div class="route-empty">Tetapkan Titik A dan Titik B untuk lihat pilihan laluan dengan jarak dan ETA.</div>
                 </div>
             </div>
 
             <form action="{{ route('saved-routes.update', $savedRoute) }}" method="POST">
                 @method('PUT')
-                @include('saved-routes._form', ['submitLabel' => 'Update Route'])
+                @include('saved-routes._form', ['submitLabel' => 'Kemaskini Laluan'])
             </form>
         </section>
     </div>

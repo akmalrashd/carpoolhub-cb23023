@@ -305,78 +305,78 @@
     <div class="dashboard-shell">
         <section class="welcome-card">
             <p class="welcome-meta">{{ now()->format('l, d M Y') }}</p>
-            <h1 class="welcome-title">Welcome back, {{ auth()->user()->name }}.</h1>
-            <p class="welcome-subtitle">Here is your account summary for today. Use the services below to continue quickly.</p>
+            <h1 class="welcome-title">Selamat kembali, {{ auth()->user()->name }}.</h1>
+            <p class="welcome-subtitle">Berikut adalah ringkasan akaun anda hari ini. Gunakan perkhidmatan di bawah untuk meneruskan dengan cepat.</p>
             <div class="welcome-actions">
-                <a href="{{ route('trips.create') }}" class="welcome-btn primary"><i class="fa-solid fa-plus"></i><span>Start Trip</span></a>
-                <a href="{{ route('saved-routes.index') }}" class="welcome-btn"><i class="fa-solid fa-route"></i><span>My Routes</span></a>
+                <a href="{{ route('trips.create') }}" class="welcome-btn primary"><i class="fa-solid fa-plus"></i><span>Mulakan Trip</span></a>
+                <a href="{{ route('saved-routes.index') }}" class="welcome-btn"><i class="fa-solid fa-route"></i><span>Laluan Saya</span></a>
             </div>
         </section>
 
         <section class="stats-stack">
             <div class="stat-card">
-                <div class="stat-label">Total Trips</div>
+                <div class="stat-label">Jumlah Trip</div>
                 <div class="stat-value">{{ $stats['total_trips'] ?? 0 }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Unpaid Amount</div>
+                <div class="stat-label">Amaun Belum Bayar</div>
                 <div class="stat-value">RM {{ number_format((float) ($stats['unpaid_amount'] ?? 0), 2) }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Saved Routes</div>
+                <div class="stat-label">Laluan Tersimpan</div>
                 <div class="stat-value">{{ $stats['saved_routes'] ?? 0 }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Unread Notifications</div>
+                <div class="stat-label">Notifikasi Belum Dibaca</div>
                 <div class="stat-value">{{ $stats['unread_notifications'] ?? 0 }}</div>
             </div>
         </section>
 
         <section class="section-card">
             <div class="section-head">
-                <h2 class="section-title">Services</h2>
+                <h2 class="section-title">Perkhidmatan</h2>
             </div>
             <div class="quick-actions">
                 <a href="{{ route('trips.create') }}" class="quick-link">
                     <span class="quick-image-wrap">
                         <img src="{{ asset('assets/illustrations/quick-trip-3d.svg') }}" alt="" class="quick-image">
                     </span>
-                    <span class="quick-title">Start Trip</span>
-                    <span class="quick-meta">Create ride now</span>
+                    <span class="quick-title">Mulakan Trip</span>
+                    <span class="quick-meta">Cipta perjalanan sekarang</span>
                 </a>
                 <a href="{{ route('saved-routes.create') }}" class="quick-link">
                     <span class="quick-image-wrap">
                         <img src="{{ asset('assets/illustrations/quick-route-3d.svg') }}" alt="" class="quick-image">
                     </span>
-                    <span class="quick-title">Save Route</span>
-                    <span class="quick-meta">Pin favorite path</span>
+                    <span class="quick-title">Simpan Laluan</span>
+                    <span class="quick-meta">Pin laluan kegemaran</span>
                 </a>
                 <a href="{{ route('payments.index') }}" class="quick-link">
                     <span class="quick-badge">RM</span>
                     <span class="quick-image-wrap">
                         <img src="{{ asset('assets/illustrations/quick-payment-3d.svg') }}" alt="" class="quick-image">
                     </span>
-                    <span class="quick-title">Split Fare</span>
-                    <span class="quick-meta">Track pending dues</span>
+                    <span class="quick-title">Agih Tambang</span>
+                    <span class="quick-meta">Pantau pembayaran tertangguh</span>
                 </a>
                 <a href="{{ route('connections.index') }}" class="quick-link">
                     <span class="quick-image-wrap">
                         <img src="{{ asset('assets/illustrations/quick-connection-3d.svg') }}" alt="" class="quick-image">
                     </span>
-                    <span class="quick-title">Invite Rider</span>
-                    <span class="quick-meta">Manage carpool team</span>
+                    <span class="quick-title">Jemput Penumpang</span>
+                    <span class="quick-meta">Urus pasukan carpool</span>
                 </a>
             </div>
         </section>
 
         <section class="section-card">
             <div class="section-head">
-                <h2 class="section-title">Recent Trips</h2>
-                <a href="{{ route('trips.index') }}" class="section-link">See all</a>
+                <h2 class="section-title">Trip Terkini</h2>
+                <a href="{{ route('trips.index') }}" class="section-link">Lihat semua</a>
             </div>
 
             @if(($recentTrips ?? collect())->isEmpty())
-                <p class="empty-note" style="margin:0;">No trips yet.</p>
+                <p class="empty-note" style="margin:0;">Tiada trip lagi.</p>
             @else
                 <div class="trip-mobile-list">
                     @foreach($recentTrips as $trip)
@@ -397,10 +397,10 @@
                     <table class="trip-table">
                         <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Route</th>
+                            <th>Tarikh</th>
+                            <th>Laluan</th>
                             <th>Status</th>
-                            <th>Fare</th>
+                            <th>Tambang</th>
                         </tr>
                         </thead>
                         <tbody>

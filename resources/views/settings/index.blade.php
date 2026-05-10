@@ -487,8 +487,8 @@
 
     <div class="profile-page">
         <section class="profile-card">
-            <h1 class="profile-header-title">Profile</h1>
-            <p class="profile-header-subtitle">Manage your account details and security settings.</p>
+            <h1 class="profile-header-title">Profil</h1>
+            <p class="profile-header-subtitle">Urus butiran akaun dan tetapan keselamatan anda.</p>
         </section>
 
         @if($errors->any())
@@ -497,10 +497,10 @@
 
         <div class="profile-grid">
             <section class="profile-card">
-                <h2 class="profile-section-title"><i class="fas fa-user-circle"></i> Account Details</h2>
+                <h2 class="profile-section-title"><i class="fas fa-user-circle"></i> Butiran Akaun</h2>
 
                 <div class="profile-avatar-row">
-                    <label for="profile_photo" class="profile-avatar profile-avatar-button" title="Click to update profile photo">
+                    <label for="profile_photo" class="profile-avatar profile-avatar-button" title="Klik untuk kemaskini foto profil">
                         @if($photoUrl)
                             <img src="{{ $photoUrl }}" alt="Profile Photo">
                         @else
@@ -509,8 +509,8 @@
                         <span class="profile-avatar-cam"><i class="fas fa-camera"></i></span>
                     </label>
                     <div class="profile-avatar-note">
-                        Upload JPG/PNG (max 2MB)
-                        <div class="profile-help" id="profilePhotoHint">Click profile frame to choose photo</div>
+                        Muat naik JPG/PNG (maks 2MB)
+                        <div class="profile-help" id="profilePhotoHint">Klik bingkai profil untuk pilih foto</div>
                     </div>
                 </div>
 
@@ -521,7 +521,7 @@
                     <input id="profile_photo" type="file" name="profile_photo" accept="image/*" class="profile-file-hidden">
 
                     <div class="profile-field">
-                        <label for="name" class="profile-label">Name</label>
+                        <label for="name" class="profile-label">Nama</label>
                         <div class="profile-input-row">
                             <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}" required class="profile-input" disabled>
                             <button type="button" class="profile-edit-btn" data-target="name" aria-label="Edit name">
@@ -531,25 +531,25 @@
                     </div>
 
                     <div class="profile-field">
-                        <label for="email" class="profile-label">Email</label>
+                        <label for="email" class="profile-label">E-mel</label>
                         <div class="profile-input-row">
                             <div class="profile-email-group">
                                 <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required class="profile-input" data-locked="1" disabled>
                                 <select id="email_visible" name="email_visible" class="profile-visibility-select" data-auto-save-visibility="1" disabled>
-                                    <option value="visible_public" {{ $selectedEmailVisibility === 'visible_public' ? 'selected' : '' }}>Visible to Public</option>
-                                    <option value="visible_friend" {{ $selectedEmailVisibility === 'visible_friend' ? 'selected' : '' }}>Visible to Friend</option>
-                                    <option value="unvisible" {{ $selectedEmailVisibility === 'unvisible' ? 'selected' : '' }}>Unvisible</option>
+                                    <option value="visible_public" {{ $selectedEmailVisibility === 'visible_public' ? 'selected' : '' }}>Kelihatan kepada Awam</option>
+                                    <option value="visible_friend" {{ $selectedEmailVisibility === 'visible_friend' ? 'selected' : '' }}>Kelihatan kepada Rakan</option>
+                                    <option value="unvisible" {{ $selectedEmailVisibility === 'unvisible' ? 'selected' : '' }}>Tersembunyi</option>
                                 </select>
                             </div>
                             <button type="button" class="profile-edit-btn" data-target="email_visible" aria-label="Edit email visibility">
                                 <i class="fas fa-pen"></i>
                             </button>
                         </div>
-                        <div class="profile-help">Email is locked and cannot be edited.</div>
+                        <div class="profile-help">E-mel dikunci dan tidak boleh diedit.</div>
                     </div>
 
                     <div class="profile-field">
-                        <label for="whatsapp_number" class="profile-label">Phone</label>
+                        <label for="whatsapp_number" class="profile-label">Telefon</label>
                         <div class="profile-input-row">
                             <div class="profile-phone-group">
                                 <select id="whatsapp_country_code" name="whatsapp_country_code" class="profile-select profile-phone-input" disabled>
@@ -569,28 +569,28 @@
                                     disabled
                                 >
                                 <select id="phone_visible" name="phone_visible" class="profile-visibility-select profile-phone-input" data-auto-save-visibility="1" disabled>
-                                    <option value="visible_public" {{ $selectedPhoneVisibility === 'visible_public' ? 'selected' : '' }}>Visible to Public</option>
-                                    <option value="visible_friend" {{ $selectedPhoneVisibility === 'visible_friend' ? 'selected' : '' }}>Visible to Friend</option>
-                                    <option value="unvisible" {{ $selectedPhoneVisibility === 'unvisible' ? 'selected' : '' }}>Unvisible</option>
+                                    <option value="visible_public" {{ $selectedPhoneVisibility === 'visible_public' ? 'selected' : '' }}>Kelihatan kepada Awam</option>
+                                    <option value="visible_friend" {{ $selectedPhoneVisibility === 'visible_friend' ? 'selected' : '' }}>Kelihatan kepada Rakan</option>
+                                    <option value="unvisible" {{ $selectedPhoneVisibility === 'unvisible' ? 'selected' : '' }}>Tersembunyi</option>
                                 </select>
                             </div>
                             <button type="button" class="profile-edit-btn" data-target-group=".profile-phone-input" aria-label="Edit phone">
                                 <i class="fas fa-pen"></i>
                             </button>
                         </div>
-                        <div class="profile-help">Used for WhatsApp contact buttons in trips and payments.</div>
+                        <div class="profile-help">Digunakan untuk butang hubungi WhatsApp dalam trip dan pembayaran.</div>
                     </div>
 
                     <button type="submit" class="profile-btn" id="updateProfileBtn" disabled>
                         <i class="fas fa-floppy-disk"></i>
-                        <span>Update Profile</span>
+                        <span>Kemaskini Profil</span>
                     </button>
                 </form>
             </section>
 
             <section class="profile-card">
                 <div class="profile-section-head">
-                    <h2 class="profile-section-title" style="margin:0;"><i class="fas fa-wallet"></i> Payment Details</h2>
+                    <h2 class="profile-section-title" style="margin:0;"><i class="fas fa-wallet"></i> Butiran Pembayaran</h2>
                     <button type="button" class="password-toggle-btn" id="paymentDetailsToggleBtn" aria-label="Toggle payment details form" aria-expanded="false" aria-controls="paymentDetailsCollapse">
                         <i class="fas fa-pen" id="paymentDetailsToggleIcon"></i>
                     </button>
@@ -598,7 +598,7 @@
 
                 <div class="payment-details-collapse" id="paymentDetailsCollapse">
                     <p class="profile-help" style="margin-top:-6px; margin-bottom:8px;">
-                        Set bank/wallet, receiver name, account number, and QR (DuitNow / Touch 'n Go) for future trip payment detail usage.
+                        Tetapkan bank/dompet, nama penerima, nombor akaun, dan QR (DuitNow / Touch 'n Go) untuk penggunaan butiran pembayaran trip masa hadapan.
                     </p>
 
                     <form method="POST" action="{{ route('settings.profile.update') }}" enctype="multipart/form-data" class="profile-form" id="paymentDetailsForm">
@@ -606,7 +606,7 @@
                         @method('PATCH')
 
                         <div class="profile-field">
-                            <label for="payment_bank_name" class="profile-label">Payment Bank / Wallet</label>
+                            <label for="payment_bank_name" class="profile-label">Bank / Dompet Pembayaran</label>
                             <div class="profile-input-row">
                                 <select
                                     id="payment_bank_name"
@@ -614,7 +614,7 @@
                                     class="profile-input payment-details-input"
                                     disabled
                                 >
-                                    <option value="">Select bank / wallet</option>
+                                    <option value="">Pilih bank / dompet</option>
                                     @foreach($paymentBankOptions as $bankName)
                                         <option value="{{ $bankName }}" {{ $selectedPaymentBank === $bankName ? 'selected' : '' }}>{{ $bankName }}</option>
                                     @endforeach
@@ -626,7 +626,7 @@
                         </div>
 
                         <div class="profile-field">
-                            <label for="payment_account_name" class="profile-label">Account Holder Name</label>
+                            <label for="payment_account_name" class="profile-label">Nama Pemegang Akaun</label>
                             <div class="profile-input-row">
                                 <input
                                     id="payment_account_name"
@@ -634,7 +634,7 @@
                                     name="payment_account_name"
                                     value="{{ old('payment_account_name', $user->payment_account_name) }}"
                                     class="profile-input payment-details-input"
-                                    placeholder="e.g. Driver One"
+                                    placeholder="cth. Pemandu Satu"
                                     disabled
                                 >
                                 <button type="button" class="profile-edit-btn payment-edit-btn" data-target="payment_account_name" aria-label="Edit payment account name">
@@ -644,7 +644,7 @@
                         </div>
 
                         <div class="profile-field">
-                            <label for="payment_account_number" class="profile-label">Payment Account Number</label>
+                            <label for="payment_account_number" class="profile-label">Nombor Akaun Pembayaran</label>
                             <div class="profile-input-row">
                                 <input
                                     id="payment_account_number"
@@ -669,7 +669,7 @@
                                     @if($duitnowQrUrl)
                                         <img src="{{ $duitnowQrUrl }}" alt="DuitNow QR">
                                     @else
-                                        <span class="payment-qr-empty">No QR uploaded</span>
+                                        <span class="payment-qr-empty">Tiada QR dimuat naik</span>
                                     @endif
                                 </div>
                                 <div class="profile-input-row">
@@ -693,7 +693,7 @@
                                     @if($tngQrUrl)
                                         <img src="{{ $tngQrUrl }}" alt="Touch 'n Go QR">
                                     @else
-                                        <span class="payment-qr-empty">No QR uploaded</span>
+                                        <span class="payment-qr-empty">Tiada QR dimuat naik</span>
                                     @endif
                                 </div>
                                 <div class="profile-input-row">
@@ -714,7 +714,7 @@
 
                         <button type="submit" class="profile-btn" id="savePaymentDetailsBtn" disabled>
                             <i class="fas fa-floppy-disk"></i>
-                            <span>Save Payment Details</span>
+                            <span>Simpan Butiran Pembayaran</span>
                         </button>
                     </form>
                 </div>
@@ -722,7 +722,7 @@
 
             <section class="profile-card">
                 <div class="profile-section-head">
-                    <h2 class="profile-section-title" style="margin:0;"><i class="fas fa-shield-halved"></i> Change Password</h2>
+                    <h2 class="profile-section-title" style="margin:0;"><i class="fas fa-shield-halved"></i> Tukar Kata Laluan</h2>
                     <button type="button" class="password-toggle-btn" id="passwordToggleBtn" aria-label="Toggle password form" aria-expanded="false" aria-controls="passwordCollapse">
                         <i class="fas fa-pen" id="passwordToggleIcon"></i>
                     </button>
@@ -734,23 +734,23 @@
 
                     <div class="password-collapse" id="passwordCollapse">
                         <div class="profile-field">
-                            <label for="current_password" class="profile-label">Current Password</label>
+                            <label for="current_password" class="profile-label">Kata Laluan Semasa</label>
                             <input id="current_password" type="password" name="current_password" required class="profile-input" disabled>
                         </div>
 
                         <div class="profile-field">
-                            <label for="new_password" class="profile-label">New Password</label>
+                            <label for="new_password" class="profile-label">Kata Laluan Baharu</label>
                             <input id="new_password" type="password" name="new_password" required class="profile-input" disabled>
                         </div>
 
                         <div class="profile-field">
-                            <label for="new_password_confirmation" class="profile-label">Confirm New Password</label>
+                            <label for="new_password_confirmation" class="profile-label">Sahkan Kata Laluan Baharu</label>
                             <input id="new_password_confirmation" type="password" name="new_password_confirmation" required class="profile-input" disabled>
                         </div>
 
                         <button type="submit" class="profile-btn" id="savePasswordBtn" disabled>
                             <i class="fas fa-key"></i>
-                            <span>Save Password</span>
+                            <span>Simpan Kata Laluan</span>
                         </button>
                     </div>
                 </form>
@@ -812,7 +812,7 @@
             if (profilePhotoInput && profilePhotoHint) {
                 profilePhotoInput.addEventListener('change', function () {
                     if (!profilePhotoInput.files || !profilePhotoInput.files.length) return;
-                    profilePhotoHint.textContent = 'Selected: ' + profilePhotoInput.files[0].name;
+                    profilePhotoHint.textContent = 'Dipilih: ' + profilePhotoInput.files[0].name;
                 });
             }
 

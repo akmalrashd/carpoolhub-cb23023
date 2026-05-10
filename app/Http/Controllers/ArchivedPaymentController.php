@@ -22,12 +22,17 @@ class ArchivedPaymentController extends Controller
     public function markPaid(MarkPaidRequest $request, ArchivedTripPayment $payment): RedirectResponse
     {
         try {
-            $this->archivedPaymentService->markPaid($request->user(), $payment, $request->validated());
+            $payment = $this->archivedPaymentService->markPaid($request->user(), $payment, $request->validated());
         } catch (ValidationException $exception) {
             return back()->withErrors($exception->errors())->withInput();
         }
 
-        return back()->with('status', 'Archived payment marked as paid. Waiting for driver confirmation.');
+        return back()->with(
+            'status',
+            $payment->payment_status === 'paid'
+                ? 'Archived payment marked as paid.'
+                : 'Archived payment marked as paid. Waiting for driver confirmation.'
+        );
     }
 
     public function confirmPaid(ConfirmPaidRequest $request, ArchivedTripPayment $payment): RedirectResponse

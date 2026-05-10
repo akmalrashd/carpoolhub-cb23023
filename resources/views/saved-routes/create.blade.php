@@ -75,6 +75,27 @@
             gap: 10px;
         }
 
+        .route-section-head {
+            display: grid;
+            gap: 4px;
+        }
+
+        .route-section-title {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .route-section-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
         .map-tools {
             display: grid;
             gap: 8px;
@@ -141,7 +162,7 @@
             border-radius: 10px;
             background: #fff;
             box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-            max-height: 220px;
+            max-height: 320px;
             overflow: auto;
             display: none;
         }
@@ -162,6 +183,100 @@
         .map-search-suggest-btn:hover { background: #f8fafc; }
         .map-search-suggest-main { font-size: 12px; font-weight: 700; color: #0f172a; }
         .map-search-suggest-sub { font-size: 11px; color: #64748b; line-height: 1.25; }
+        .map-search-suggest-meta {
+            color: #92400e;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+
+        .map-target-switch {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .map-target-btn {
+            border: 1px solid #dbe2ea;
+            border-radius: 12px;
+            background: #fff;
+            color: #334155;
+            padding: 9px 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .map-target-btn.active {
+            border-color: #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .map-search-preview {
+            border: 1px solid #dbe2ea;
+            border-radius: 12px;
+            background: #f8fafc;
+            padding: 10px;
+            display: none;
+            gap: 8px;
+        }
+
+        .map-search-preview.show { display: grid; }
+        .map-search-preview-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .map-search-preview-title {
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+        .map-search-preview-sub {
+            margin-top: 2px;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.35;
+        }
+        .map-search-preview-badge {
+            border: 1px solid #fde68a;
+            border-radius: 999px;
+            background: #fffbeb;
+            color: #92400e;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .map-search-preview-actions {
+            display: grid;
+            gap: 7px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .map-preview-use-btn,
+        .map-preview-close-btn {
+            border: 1px solid #dbe2ea;
+            border-radius: 10px;
+            background: #fff;
+            color: #0f172a;
+            min-height: 38px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .map-preview-use-btn.primary {
+            border-color: #0f172a;
+            background: #0f172a;
+            color: #fff;
+        }
 
         .map-help {
             margin: 0;
@@ -314,7 +429,8 @@
         }
 
         .pickup-pin,
-        .destination-pin {
+        .destination-pin,
+        .preview-pin {
             width: 18px;
             height: 18px;
             border-radius: 50%;
@@ -324,6 +440,13 @@
 
         .pickup-pin { background: #16a34a; }
         .destination-pin { background: #dc2626; }
+        .preview-pin {
+            width: 24px;
+            height: 24px;
+            background: #f59e0b;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 5px rgba(245, 158, 11, .20), 0 8px 18px rgba(15, 23, 42, .28);
+        }
 
         .field-block {
             display: grid;
@@ -332,6 +455,76 @@
 
         .field-block-full {
             grid-column: 1 / -1;
+        }
+
+        .route-preference-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #fff;
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .route-point-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+
+        .route-point-group {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .route-point-group.pickup {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+        }
+
+        .route-point-group.destination {
+            border-color: #fde68a;
+            background: #fffbeb;
+        }
+
+        .route-point-group-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .route-point-group-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .route-point-group.pickup .route-point-group-title {
+            color: #166534;
+        }
+
+        .route-point-group.destination .route-point-group-title {
+            color: #b45309;
+        }
+
+        .route-point-group-badge {
+            border: 1px solid rgba(255, 255, 255, .75);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .78);
+            color: #475569;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 800;
         }
 
         .field-block label {
@@ -448,59 +641,86 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .route-point-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .map-tools {
                 grid-template-columns: 1fr;
                 align-items: center;
             }
         }
+
     </style>
 
     <div class="page-shell">
         <section class="page-card title-card">
-            <h1 class="page-title">Create Saved Route</h1>
-            <p class="page-subtitle">Set up a reusable route for faster trip creation.</p>
+            <h1 class="page-title">Cipta Laluan Tersimpan</h1>
+            <p class="page-subtitle">Sedia laluan boleh guna semula untuk mencipta trip dengan lebih cepat.</p>
         </section>
 
         <section class="page-card route-info-note">
-            Save one-way route only. No need to create both directions.
-            Set fare for one-way only. When creating a trip, choose One Way or Two Way.
-            If you choose Two Way, system will auto include return fare.
+            <i class="fa-solid fa-circle-info"></i>
+            Simpan laluan sehala sahaja. Tidak perlu cipta kedua-dua arah.
+            Tetapkan tambang untuk sehala sahaja. Semasa mencipta trip, pilih Sehala atau Dua Hala.
+            Jika pilih Dua Hala, sistem akan automatik termasukkan tambang balik.
         </section>
 
         <section class="page-card">
             <div class="map-card">
+                <div class="route-section-head">
+                    <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup dan drop-off</span>
+                    <p class="route-section-hint">Cari, pratonton, atau ketuk peta untuk sahkan Pickup Titik A dan Drop-off Titik B.</p>
+                </div>
                 <div class="map-tools">
                     <div class="map-search-row">
                         <div class="map-search-input-wrap">
-                            <input type="text" id="mapSearchInput" placeholder="Search address or place" autocomplete="off">
+                            <input type="text" id="mapSearchInput" placeholder="Cari alamat, tempat, fakulti, taman di Malaysia..." autocomplete="off">
                             <div class="map-search-suggest" id="mapSearchSuggest"></div>
                         </div>
-                        <button type="button" id="mapSearchBtn">Search</button>
-                        <button type="button" id="mapLocateBtn" title="Use current location" aria-label="Use current location">
+                        <button type="button" id="mapSearchBtn">Cari</button>
+                        <button type="button" id="mapLocateBtn" title="Guna lokasi semasa" aria-label="Guna lokasi semasa">
                             <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
-                <p class="map-help">Tap once to set Point A, tap again to set Point B. A route line will be drawn automatically.</p>
+                <div class="map-target-switch" aria-label="Route point target">
+                    <button type="button" class="map-target-btn active" data-map-target="pickup"><i class="fa-solid fa-location-dot"></i>Pickup Titik A</button>
+                    <button type="button" class="map-target-btn" data-map-target="destination"><i class="fa-solid fa-flag-checkered"></i>Drop-off Titik B</button>
+                </div>
+                <div class="map-search-preview" id="mapSearchPreview">
+                    <div class="map-search-preview-top">
+                        <div>
+                            <div class="map-search-preview-title" id="mapSearchPreviewTitle">Pratonton lokasi</div>
+                            <div class="map-search-preview-sub" id="mapSearchPreviewSub">Gerakkan peta dan sahkan titik yang betul.</div>
+                        </div>
+                        <span class="map-search-preview-badge">Pratonton sahaja</span>
+                    </div>
+                    <div class="map-search-preview-actions">
+                        <button type="button" class="map-preview-use-btn primary" id="mapPreviewUseBtn">Guna sebagai titik dipilih</button>
+                        <button type="button" class="map-preview-close-btn" id="mapPreviewCloseBtn">Buang pratonton</button>
+                    </div>
+                </div>
+                <p class="map-help">Carian hanya pratonton tempat dahulu. Sahkan dengan butang, atau ketuk titik tepat pada peta.</p>
                 <div class="map-status">
                     <div class="map-step-title">
                         <span class="map-step-badge" id="mapStepNumber">1/3</span>
-                        Route Setup Progress
+                        Kemajuan Tetapan Laluan
                     </div>
-                    <div class="map-step-text" id="mapStepText">Tap on the map to set Point A.</div>
-                    <div class="map-step-hint" id="mapStepHint">Then tap again to set Point B and view route options.</div>
+                    <div class="map-step-text" id="mapStepText">Ketuk pada peta untuk tetapkan Titik A.</div>
+                    <div class="map-step-hint" id="mapStepHint">Kemudian ketuk sekali lagi untuk tetapkan Titik B dan lihat pilihan laluan.</div>
                     <div class="map-step-actions">
-                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Reset Route</span></button>
+                        <button type="button" class="map-reset-btn" id="mapResetBtn"><i class="fa-solid fa-rotate-left"></i><span>Set Semula Laluan</span></button>
                     </div>
                 </div>
                 <div id="routeMap"></div>
                 <div class="route-options" id="routeOptions">
-                    <div class="route-empty">Set Point A and Point B to see route options with distance and ETA.</div>
+                    <div class="route-empty">Tetapkan Titik A dan Titik B untuk lihat pilihan laluan dengan jarak dan ETA.</div>
                 </div>
             </div>
 
             <form action="{{ route('saved-routes.store') }}" method="POST">
-                @include('saved-routes._form', ['submitLabel' => 'Save Route'])
+                @include('saved-routes._form', ['submitLabel' => 'Simpan Laluan'])
             </form>
         </section>
     </div>
@@ -522,6 +742,11 @@
             var searchBtn = document.getElementById('mapSearchBtn');
             var searchSuggest = document.getElementById('mapSearchSuggest');
             var locateBtn = document.getElementById('mapLocateBtn');
+            var previewCard = document.getElementById('mapSearchPreview');
+            var previewTitle = document.getElementById('mapSearchPreviewTitle');
+            var previewSub = document.getElementById('mapSearchPreviewSub');
+            var previewUseBtn = document.getElementById('mapPreviewUseBtn');
+            var previewCloseBtn = document.getElementById('mapPreviewCloseBtn');
             var routeOptionsEl = document.getElementById('routeOptions');
             var mapStepNumber = document.getElementById('mapStepNumber');
             var mapStepText = document.getElementById('mapStepText');
@@ -534,6 +759,7 @@
             var destinationName = document.getElementById('point_b_name');
             var destinationLat = document.getElementById('point_b_latitude');
             var destinationLng = document.getElementById('point_b_longitude');
+            var defaultFareInput = document.getElementById('default_fare');
 
             var nextTarget = 'pickup';
             var pickupMarker = null;
@@ -542,10 +768,42 @@
             var selectedRouteIndex = 0;
             var fetchedRoutes = [];
             var currentLocationMarker = null;
+            var previewMarker = null;
+            var previewPlace = null;
+            var fareEditedByUser = defaultFareInput && parseFloat(defaultFareInput.value || '0') > 0;
 
             function toNumber(value) {
                 var num = parseFloat(value);
                 return Number.isFinite(num) ? num : null;
+            }
+
+            function escapeText(value) {
+                return String(value || '').replace(/[&<>"']/g, function (char) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;'
+                    }[char] || char;
+                });
+            }
+
+            function setActiveTarget(target) {
+                nextTarget = target === 'destination' ? 'destination' : 'pickup';
+                Array.prototype.forEach.call(document.querySelectorAll('.map-target-btn'), function (btn) {
+                    btn.classList.toggle('active', btn.getAttribute('data-map-target') === nextTarget);
+                });
+                if (!pickupMarker && nextTarget === 'destination') {
+                    mapStepText.textContent = 'Titik B dipilih. Tetapkan Titik A dahulu jika ini laluan baharu.';
+                    mapStepHint.textContent = 'Anda masih boleh pratonton tempat, tetapi laluan memerlukan kedua-dua titik.';
+                }
+            }
+
+            function syncTargetButtons() {
+                Array.prototype.forEach.call(document.querySelectorAll('.map-target-btn'), function (btn) {
+                    btn.classList.toggle('active', btn.getAttribute('data-map-target') === nextTarget);
+                });
             }
 
             function updateFields(target, lat, lng, placeName) {
@@ -566,24 +824,35 @@
 
             function updateStepIndicator() {
                 if (!pickupMarker) {
+                    syncTargetButtons();
                     mapStepNumber.textContent = '1/3';
-                    mapStepText.textContent = 'Tap on the map to set Point A.';
-                    mapStepHint.textContent = 'Then tap again to set Point B and view route options.';
+                    mapStepText.textContent = nextTarget === 'destination'
+                        ? 'Sasaran Titik B dipilih.'
+                        : 'Ketuk pada peta untuk tetapkan Titik A.';
+                    mapStepHint.textContent = nextTarget === 'destination'
+                        ? 'Anda boleh tetapkan Titik B dahulu, tetapi laluan tetap memerlukan Titik A sebelum pilihan muncul.'
+                        : 'Carian boleh pratonton tempat dahulu. Sahkan hanya apabila pin sudah betul.';
                     mapResetBtn.classList.remove('show');
                     return;
                 }
 
                 if (pickupMarker && !destinationMarker) {
+                    syncTargetButtons();
                     mapStepNumber.textContent = '2/3';
-                    mapStepText.textContent = 'Now tap to set Point B.';
-                    mapStepHint.textContent = 'After Point B is set, you can compare route options below.';
+                    mapStepText.textContent = nextTarget === 'pickup'
+                        ? 'Titik A ditetapkan. Anda boleh laraskan atau tukar ke Titik B.'
+                        : 'Ketuk sekarang untuk tetapkan Titik B.';
+                    mapStepHint.textContent = nextTarget === 'pickup'
+                        ? 'Pratonton carian akan gantikan Titik A dan set semula Titik B.'
+                        : 'Guna pratonton carian atau ketuk titik penghantaran yang tepat.';
                     mapResetBtn.classList.remove('show');
                     return;
                 }
 
+                syncTargetButtons();
                 mapStepNumber.textContent = '3/3';
-                mapStepText.textContent = 'Route complete. Review and choose your preferred option.';
-                mapStepHint.textContent = 'Tap map again anytime to reset and start a new Point A.';
+                mapStepText.textContent = 'Laluan lengkap. Semak dan pilih pilihan yang dikehendaki.';
+                mapStepHint.textContent = 'Ketuk peta semula bila-bila masa untuk set semula dan mulakan Titik A baharu.';
                 mapResetBtn.classList.add('show');
             }
 
@@ -665,12 +934,33 @@
                 return Math.max(2.5, Math.round(fare * 20) / 20);
             }
 
+            function autoFillLowestSuggestedFare() {
+                if (!defaultFareInput || fareEditedByUser || !fetchedRoutes.length) return;
+
+                var lowestFare = fetchedRoutes.reduce(function (lowest, route) {
+                    var fare = suggestedFare(route.distance, route.duration);
+                    return lowest === null ? fare : Math.min(lowest, fare);
+                }, null);
+
+                if (lowestFare !== null && Number.isFinite(lowestFare)) {
+                    defaultFareInput.value = lowestFare.toFixed(2);
+                }
+            }
+
+            function fillFareFromRoute(route) {
+                if (!defaultFareInput || !route) return;
+                var fare = suggestedFare(route.distance, route.duration);
+                if (Number.isFinite(fare)) {
+                    defaultFareInput.value = fare.toFixed(2);
+                }
+            }
+
             function suggestionReason(route) {
                 var distanceKm = ((route.distance || 0) / 1000);
                 var minutes = Math.round((route.duration || 0) / 60);
                 var timeBuffer = (route.duration || 0) >= 1800 ? 1.2 : ((route.duration || 0) >= 900 ? 0.6 : 0.3);
 
-                return 'AI reason: base fare + distance (' + distanceKm.toFixed(1) + ' km) + time buffer for ~' + minutes + ' min travel. Time affects the fare, but distance is still the bigger factor.';
+                return 'Sebab AI: tambang asas + jarak (' + distanceKm.toFixed(1) + ' km) + penimbal masa untuk ~' + minutes + ' min perjalanan. Masa mempengaruhi tambang, tetapi jarak tetap faktor utama.';
             }
 
             function summarizeRoads(route) {
@@ -686,7 +976,7 @@
                     }
                 });
 
-                return names.slice(0, 3).join(' • ') || 'Main route';
+                return names.slice(0, 3).join(' • ') || 'Laluan utama';
             }
 
             function drawSelectedRoute() {
@@ -719,7 +1009,7 @@
 
             function renderRouteOptions() {
                 if (!fetchedRoutes.length) {
-                    clearRouteOptions('No route options found. Try another point.');
+                    clearRouteOptions('Tiada pilihan laluan dijumpai. Cuba titik lain.');
                     return;
                 }
 
@@ -729,11 +1019,11 @@
                     return ''
                         + '<button type="button" class="route-option-btn' + activeClass + '" data-route-index="' + index + '">'
                         + '  <div class="route-option-top">'
-                        + '    <span class="route-option-name">Option ' + (index + 1) + '</span>'
+                        + '    <span class="route-option-name">Pilihan ' + (index + 1) + '</span>'
                         + '    <span class="route-option-meta">' + formatDistance(route.distance) + ' • ' + formatDuration(route.duration) + '</span>'
                         + '  </div>'
                         + '  <div class="route-option-road">' + roadSummary + '</div>'
-                        + '  <div class="route-option-suggestion">Suggested fare RM ' + suggestedFare(route.distance, route.duration).toFixed(2) + '</div>'
+                        + '  <div class="route-option-suggestion">Tambang dicadangkan RM ' + suggestedFare(route.distance, route.duration).toFixed(2) + '</div>'
                         + '  <div class="route-option-reason">' + suggestionReason(route) + '</div>'
                         + '</button>';
                 }).join('');
@@ -741,6 +1031,7 @@
                 Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.route-option-btn'), function (btn) {
                     btn.addEventListener('click', function () {
                         selectedRouteIndex = parseInt(btn.getAttribute('data-route-index'), 10) || 0;
+                        fillFareFromRoute(fetchedRoutes[selectedRouteIndex]);
                         renderRouteOptions();
                         drawSelectedRoute();
                     });
@@ -762,7 +1053,7 @@
 
             function fetchRouteOptions() {
                 if (!pickupMarker || !destinationMarker) {
-                    clearRouteOptions('Set Point A and Point B to see route options with distance and ETA.');
+                    clearRouteOptions('Tetapkan Titik A dan Titik B untuk melihat pilihan laluan dengan jarak dan ETA.');
                     return;
                 }
 
@@ -778,17 +1069,18 @@
                     .then(function (data) {
                         if (!data || !data.routes || !data.routes.length) {
                             drawStraightLine();
-                            routeOptionsEl.innerHTML = '<div class="route-empty">Routing service unavailable. Showing direct line only.</div>';
+                            routeOptionsEl.innerHTML = '<div class="route-empty">Perkhidmatan laluan tidak tersedia. Menunjukkan garis lurus sahaja.</div>';
                             return;
                         }
                         fetchedRoutes = data.routes.slice(0, 3);
                         selectedRouteIndex = 0;
                         renderRouteOptions();
                         drawSelectedRoute();
+                        autoFillLowestSuggestedFare();
                     })
                     .catch(function () {
                         drawStraightLine();
-                        routeOptionsEl.innerHTML = '<div class="route-empty">Could not fetch route options. Showing direct line only.</div>';
+                        routeOptionsEl.innerHTML = '<div class="route-empty">Gagal mendapatkan pilihan laluan. Menunjukkan garis lurus sahaja.</div>';
                     });
             }
 
@@ -815,8 +1107,9 @@
             function resetRouteSelection() {
                 clearMarker('pickup');
                 clearMarker('destination');
+                clearSearchPreview();
                 nextTarget = 'pickup';
-                clearRouteOptions('Set Point A and Point B to see route options with distance and ETA.');
+                clearRouteOptions('Tetapkan Titik A dan Titik B untuk melihat pilihan laluan dengan jarak dan ETA.');
                 updateStepIndicator();
             }
 
@@ -836,37 +1129,103 @@
                 var query = (searchInput.value || '').trim();
                 if (!query) return;
 
-                var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(query);
-                fetch(url, { headers: { 'Accept': 'application/json' } })
-                    .then(function (r) { return r.ok ? r.json() : []; })
+                fetchMalaysiaPlaces(query, 10)
                     .then(function (items) {
                         if (!items.length) return;
-                        applySearchResult(items[0], query);
+                        previewSearchResult(items[0], query);
+                        renderSearchSuggestions(items);
                     })
                     .catch(function () {});
             }
 
-            function applySearchResult(item, fallbackText) {
+            function previewSearchResult(item, fallbackText) {
                 if (!item) return;
                 var lat = parseFloat(item.lat);
                 var lng = parseFloat(item.lon);
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-                if (nextTarget === 'pickup') {
-                    clearMarker('pickup');
-                    clearMarker('destination');
+                previewPlace = {
+                    lat: lat,
+                    lng: lng,
+                    name: item.display_name || fallbackText || '',
+                    type: item.type || item.class || ''
+                };
+
+                if (previewMarker) {
+                    map.removeLayer(previewMarker);
                 }
-                if (nextTarget === 'destination') {
+
+                previewMarker = L.marker([lat, lng], {
+                    draggable: true,
+                    icon: L.divIcon({
+                        className: '',
+                        html: '<div class="preview-pin"></div>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    })
+                }).addTo(map);
+                previewMarker.bindTooltip('Pin pratonton', {
+                    permanent: true,
+                    direction: 'top',
+                    offset: [0, -12],
+                    className: 'map-point-tooltip'
+                });
+                previewMarker.on('dragend', function (event) {
+                    var pos = event.target.getLatLng();
+                    previewPlace.lat = pos.lat;
+                    previewPlace.lng = pos.lng;
+                    reverseGeocode(pos.lat, pos.lng, function (resolvedName) {
+                        if (resolvedName) {
+                            previewPlace.name = resolvedName;
+                            updatePreviewCard();
+                        }
+                    });
+                    updatePreviewCard();
+                });
+
+                map.setView([lat, lng], Math.max(map.getZoom(), 16));
+                updatePreviewCard();
+            }
+
+            function updatePreviewCard() {
+                if (!previewPlace || !previewCard) return;
+                var targetText = nextTarget === 'pickup' ? 'pickup Titik A' : 'penghantaran Titik B';
+                var title = String(previewPlace.name || 'Lokasi dipilih').split(',')[0] || 'Lokasi dipilih';
+                previewTitle.textContent = title;
+                previewSub.textContent = String(previewPlace.name || '').trim() || 'Seret pin pratonton atau sahkan titik ini.';
+                previewUseBtn.textContent = 'Guna sebagai ' + targetText;
+                previewCard.classList.add('show');
+            }
+
+            function clearSearchPreview() {
+                previewPlace = null;
+                if (previewMarker) {
+                    map.removeLayer(previewMarker);
+                    previewMarker = null;
+                }
+                if (previewCard) {
+                    previewCard.classList.remove('show');
+                }
+            }
+
+            function applyPreviewAsTarget(target) {
+                if (!previewPlace) return;
+
+                if (target === 'pickup') {
+                    clearMarker('pickup');
+                }
+                if (target === 'destination') {
                     clearMarker('destination');
                 }
 
-                setMarker(nextTarget, lat, lng, item.display_name || fallbackText || '');
+                setMarker(target, previewPlace.lat, previewPlace.lng, previewPlace.name || '');
                 if (nextTarget === 'pickup') {
                     nextTarget = 'destination';
                 } else {
                     nextTarget = 'pickup';
                 }
-                map.setView([lat, lng], 16);
+                clearSearchPreview();
+                updateStepIndicator();
             }
 
             function renderSearchSuggestions(items) {
@@ -879,11 +1238,11 @@
 
                 searchSuggest.innerHTML = items.map(function (item, index) {
                     var display = String(item.display_name || '').trim();
-                    var main = display.split(',')[0] || 'Select location';
+                    var main = display.split(',')[0] || 'Pilih lokasi';
                     return (
                         '<button type=\"button\" class=\"map-search-suggest-btn\" data-index=\"' + index + '\">' +
-                        '<span class=\"map-search-suggest-main\">' + main.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>' +
-                        '<span class=\"map-search-suggest-sub\">' + display.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>' +
+                        '<span class=\"map-search-suggest-main\">' + escapeText(main) + '</span>' +
+                        '<span class=\"map-search-suggest-sub\">' + escapeText(display) + '</span>' +
                         '</button>'
                     );
                 }).join('');
@@ -896,8 +1255,172 @@
                         if (!picked) return;
                         searchInput.value = String(picked.display_name || '').trim();
                         renderSearchSuggestions([]);
-                        applySearchResult(picked, searchInput.value);
+                        previewSearchResult(picked, searchInput.value);
                     });
+                });
+            }
+
+            function uniqueSearchItems(items) {
+                var seen = {};
+                return (items || []).filter(function (item) {
+                    var lat = parseFloat(item.lat);
+                    var lng = parseFloat(item.lon);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+                    var key = lat.toFixed(5) + ':' + lng.toFixed(5) + ':' + String(item.display_name || '').toLowerCase().slice(0, 48);
+                    if (seen[key]) return false;
+                    seen[key] = true;
+                    return true;
+                });
+            }
+
+            function rankMalaysiaResult(item, query) {
+                var display = String(item.display_name || '').toLowerCase();
+                var main = display.split(',')[0] || '';
+                var q = String(query || '').toLowerCase();
+                var score = 0;
+
+                if (String(item.provider || '') === 'Photon') score += 10;
+                if (display.indexOf('malaysia') !== -1) score += 40;
+                if (display.indexOf('pahang') !== -1) score += 10;
+                if (display.indexOf('pekan') !== -1) score += 8;
+                if (main.indexOf(q) !== -1) score += 28;
+                if (display.indexOf(q) !== -1) score += 18;
+                if (['university', 'college', 'school', 'hospital', 'clinic', 'bus_stop', 'fuel', 'parking', 'residential', 'road', 'house', 'street', 'locality'].indexOf(String(item.type || '')) !== -1) score += 8;
+                if (['amenity', 'highway', 'building', 'place', 'tourism', 'street'].indexOf(String(item.class || '')) !== -1) score += 6;
+                if (/taman|kampung|jalan|lorong|persiaran|universiti|fakulti|sekolah|masjid|surau|klinik|hospital|terminal|stesen/.test(display)) score += 8;
+                score += Math.max(0, Math.min(20, Number(item.importance || 0) * 20));
+
+                return score;
+            }
+
+            function normalizePhotonFeature(feature) {
+                var props = feature && feature.properties ? feature.properties : {};
+                var coordinates = feature && feature.geometry && Array.isArray(feature.geometry.coordinates)
+                    ? feature.geometry.coordinates
+                    : [];
+                var lng = parseFloat(coordinates[0]);
+                var lat = parseFloat(coordinates[1]);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+                var parts = [
+                    props.name,
+                    props.street,
+                    props.district,
+                    props.city,
+                    props.county,
+                    props.state,
+                    props.country
+                ].filter(function (part, index, items) {
+                    return part && items.indexOf(part) === index;
+                });
+
+                return {
+                    provider: 'Photon',
+                    display_name: parts.join(', ') || props.name || 'Lokasi dipilih',
+                    lat: String(lat),
+                    lon: String(lng),
+                    type: props.type || props.osm_value || 'place',
+                    class: props.osm_key || 'place',
+                    importance: 0.7,
+                    address: {
+                        road: props.street || '',
+                        suburb: props.district || '',
+                        city: props.city || '',
+                        town: props.city || '',
+                        county: props.county || '',
+                        state: props.state || '',
+                        country: props.country || ''
+                    }
+                };
+            }
+
+            function normalizeNominatimItem(item) {
+                if (!item) return null;
+                return {
+                    provider: 'OSM',
+                    display_name: item.display_name || '',
+                    lat: item.lat,
+                    lon: item.lon,
+                    type: item.type || '',
+                    class: item.class || '',
+                    importance: item.importance || 0,
+                    address: item.address || {}
+                };
+            }
+
+            function fetchPhotonPlaces(query, limit) {
+                var clean = String(query || '').trim();
+                if (!clean) return Promise.resolve([]);
+
+                var url = 'https://photon.komoot.io/api/?'
+                    + 'q=' + encodeURIComponent(clean)
+                    + '&limit=' + encodeURIComponent(limit || 10)
+                    + '&lang=en'
+                    + '&lat=3.139'
+                    + '&lon=101.6869';
+
+                return fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (payload) {
+                        var features = payload && Array.isArray(payload.features) ? payload.features : [];
+                        return features
+                            .map(normalizePhotonFeature)
+                            .filter(function (item) {
+                                return item && String(item.display_name || '').toLowerCase().indexOf('malaysia') !== -1;
+                            });
+                    })
+                    .catch(function () { return []; });
+            }
+
+            function fetchNominatimPlaces(query, limit) {
+                var clean = String(query || '').trim();
+                if (!clean) return Promise.resolve([]);
+
+                var queries = [clean];
+                if (!/malaysia|malaisie|malaysian/i.test(clean)) {
+                    queries.push(clean + ', Malaysia');
+                }
+
+                var params = function (q) {
+                    return 'format=jsonv2'
+                        + '&addressdetails=1'
+                        + '&namedetails=1'
+                        + '&dedupe=1'
+                        + '&countrycodes=my'
+                        + '&bounded=1'
+                        + '&viewbox=99.0,7.8,119.5,0.5'
+                        + '&accept-language=en-MY,ms,en'
+                        + '&limit=' + encodeURIComponent(limit || 10)
+                        + '&q=' + encodeURIComponent(q);
+                };
+
+                return Promise.all(queries.map(function (q) {
+                    var url = 'https://nominatim.openstreetmap.org/search?' + params(q);
+                    return fetch(url, { headers: { 'Accept': 'application/json' } })
+                        .then(function (r) { return r.ok ? r.json() : []; })
+                        .catch(function () { return []; });
+                })).then(function (groups) {
+                    return groups.reduce(function (carry, group) {
+                        return carry.concat(Array.isArray(group) ? group.map(normalizeNominatimItem).filter(Boolean) : []);
+                    }, []);
+                });
+            }
+
+            function fetchMalaysiaPlaces(query, limit) {
+                var clean = String(query || '').trim();
+                if (!clean) return Promise.resolve([]);
+
+                return Promise.all([
+                    fetchPhotonPlaces(clean, limit || 10),
+                    fetchNominatimPlaces(clean, limit || 10)
+                ]).then(function (groups) {
+                    return uniqueSearchItems(groups.reduce(function (carry, group) {
+                        return carry.concat(Array.isArray(group) ? group : []);
+                    }, []))
+                        .sort(function (a, b) {
+                            return rankMalaysiaResult(b, clean) - rankMalaysiaResult(a, clean);
+                        })
+                        .slice(0, limit || 10);
                 });
             }
 
@@ -909,9 +1432,7 @@
                     return;
                 }
 
-                var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=' + encodeURIComponent(query);
-                fetch(url, { headers: { 'Accept': 'application/json' } })
-                    .then(function (r) { return r.ok ? r.json() : []; })
+                fetchMalaysiaPlaces(query, 10)
                     .then(function (items) {
                         renderSearchSuggestions(Array.isArray(items) ? items : []);
                     })
@@ -959,10 +1480,10 @@
 
             map.on('click', function (event) {
                 var assignedTarget = nextTarget;
+                clearSearchPreview();
 
                 if (assignedTarget === 'pickup') {
                     clearMarker('pickup');
-                    clearMarker('destination');
                     setMarker('pickup', event.latlng.lat, event.latlng.lng);
                     nextTarget = 'destination';
                 } else {
@@ -977,9 +1498,25 @@
                 });
                 updateStepIndicator();
             });
+            Array.prototype.forEach.call(document.querySelectorAll('.map-target-btn'), function (btn) {
+                btn.addEventListener('click', function () {
+                    setActiveTarget(btn.getAttribute('data-map-target'));
+                    updatePreviewCard();
+                    updateStepIndicator();
+                });
+            });
             searchBtn.addEventListener('click', searchPlace);
             locateBtn.addEventListener('click', goToCurrentLocation);
             mapResetBtn.addEventListener('click', resetRouteSelection);
+            if (defaultFareInput) {
+                defaultFareInput.addEventListener('input', function () {
+                    fareEditedByUser = true;
+                });
+            }
+            previewUseBtn.addEventListener('click', function () {
+                applyPreviewAsTarget(nextTarget);
+            });
+            previewCloseBtn.addEventListener('click', clearSearchPreview);
             searchInput.addEventListener('input', function () {
                 if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
                 searchDebounceTimer = setTimeout(fetchSearchSuggestions, 220);
@@ -1022,6 +1559,10 @@
             }
 
             updateStepIndicator();
+
+            if (existingPickupLat === null && existingPickupLng === null && existingDestLat === null && existingDestLng === null) {
+                setTimeout(goToCurrentLocation, 350);
+            }
         })();
     </script>
 @endsection

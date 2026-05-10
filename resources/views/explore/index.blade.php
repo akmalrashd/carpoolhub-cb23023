@@ -2,21 +2,21 @@
 
 @section('content')
     <style>
-        .explore-page { display: grid; gap: 12px; }
+        .explore-page { display: grid; gap: 14px; }
         .explore-card {
             background: #fff;
             border: 1px solid #dbe2ea;
-            border-radius: 18px;
+            border-radius: 16px;
             padding: 14px;
             box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
         }
-        .explore-title { margin: 0; font-family: Poppins, sans-serif; font-size: 30px; color: #0f172a; line-height: 1.05; }
+        .explore-title { margin: 0; font-family: Poppins, sans-serif; font-size: 28px; color: #0f172a; line-height: 1.08; }
         .explore-subtitle { margin: 6px 0 0; color: #64748b; font-size: 14px; }
 
         .explore-search-cta {
             border: 1px solid #dbe2ea;
-            border-radius: 14px;
-            background: #f8fafc;
+            border-radius: 12px;
+            background: #fff;
             text-decoration: none;
             color: inherit;
             padding: 12px;
@@ -50,6 +50,49 @@
         .explore-search-hint { color: #64748b; font-size: 12px; line-height: 1.2; }
         .explore-search-right { color: #92400e; font-size: 12px; font-weight: 700; white-space: nowrap; }
 
+        .explore-custom-notice {
+            position: sticky;
+            top: 84px;
+            z-index: 5;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            background: #fffbeb;
+            color: #713f12;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 18px rgba(146, 64, 14, 0.08);
+        }
+        .explore-custom-notice-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            background: #fef3c7;
+            color: #92400e;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+        }
+        .explore-custom-notice-text {
+            display: grid;
+            gap: 1px;
+            min-width: 0;
+        }
+        .explore-custom-notice-title {
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .explore-custom-notice-copy {
+            color: #92400e;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
         .explore-chip-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
         .explore-filter-chip {
             border: 1px solid #dbe2ea;
@@ -72,13 +115,9 @@
         .explore-section-title { margin: 0; color: #0f172a; font-size: 16px; font-weight: 700; }
         .explore-section-link { color: #92400e; font-size: 12px; font-weight: 700; text-decoration: none; }
 
-        .explore-grid { display: grid; gap: 8px; }
+        .explore-grid { display: grid; gap: 12px; }
         .explore-grid.domino-float .explore-item {
-            animation-name: exploreDominoFloat;
-            animation-duration: calc(var(--domino-count, 8) * 0.28s + 2.8s);
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
-            animation-delay: calc(var(--domino-index, 0) * 0.28s);
+            animation: none;
         }
         .explore-grid.domino-float:hover .explore-item {
             animation-play-state: paused;
@@ -102,17 +141,18 @@
             border-radius: 14px;
             background: #fff;
             padding: 12px;
-            display: grid;
-            gap: 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 5px 14px rgba(15, 23, 42, 0.04);
             transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
         }
         .open-explore-card { cursor: pointer; }
         .explore-item:hover {
             transform: translateY(-2px);
             border-color: #cbd5e1;
-            box-shadow: 0 12px 20px rgba(15, 23, 42, 0.08);
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
         }
         .explore-item.is-focus {
             border-color: #facc15;
@@ -125,8 +165,8 @@
             100% { transform: scale(1); }
         }
         .explore-item-head {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             align-items: flex-start;
             gap: 10px;
             min-width: 0;
@@ -134,7 +174,7 @@
         .explore-item-head > div { min-width: 0; width: 100%; flex: 1 1 auto; }
         .explore-route {
             margin: 0;
-            font-size: 17px;
+            font-size: 16px;
             line-height: 1.25;
             color: #0f172a;
             font-weight: 700;
@@ -142,6 +182,44 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+        .explore-price-stack {
+            display: grid;
+            gap: 2px;
+            justify-items: end;
+            white-space: nowrap;
+        }
+        .explore-price-label {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .explore-price {
+            color: #0f172a;
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .explore-quick-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .explore-quick-row span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
+        }
+        .explore-quick-row i {
+            color: #64748b;
+            font-size: 11px;
         }
         .explore-meta {
             margin: 3px 0 0;
@@ -166,12 +244,12 @@
             display: block;
         }
         .explore-meta-inline {
-            margin: 4px 0 0;
+            margin: 0;
             color: #64748b;
-            font-size: 12px;
+            font-size: 11px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             flex-wrap: wrap;
             min-width: 0;
         }
@@ -181,6 +259,10 @@
             gap: 5px;
             min-width: 0;
             white-space: nowrap;
+            border: 0;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
         }
         .explore-meta-inline-item i {
             color: #92400e;
@@ -223,6 +305,66 @@
             white-space: nowrap;
             display: block;
         }
+        .explore-route-path {
+            display: grid;
+            gap: 6px;
+            padding: 8px 10px;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            background: #fbfdff;
+        }
+        .explore-route-point {
+            display: grid;
+            grid-template-columns: 22px minmax(0, 1fr);
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .explore-route-point + .explore-route-point {
+            padding-top: 6px;
+            border-top: 1px solid #eef2f7;
+        }
+        .explore-route-point-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            flex: 0 0 auto;
+        }
+        .explore-route-point.pickup .explore-route-point-icon {
+            color: #15803d;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+        }
+        .explore-route-point.destination .explore-route-point-icon {
+            color: #b45309;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+        }
+        .explore-route-point-text {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+        }
+        .explore-route-point-label {
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .explore-route-point-value {
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         .explore-chip {
             display: inline-flex;
@@ -244,6 +386,9 @@
         .chip-request { color: #854d0e; border-color: #fde68a; background: #fefce8; }
         .chip-joined { color: #92400e; border-color: #fde68a; background: #fffbeb; }
         .chip-ai { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+        .chip-custom-ok { color: #166534; border-color: #86efac; background: #f0fdf4; }
+        .chip-custom-review { color: #854d0e; border-color: #fde68a; background: #fffbeb; }
+        .chip-custom-blocked { color: #991b1b; border-color: #fecaca; background: #fff1f2; }
         .explore-ai-reasons { display: flex; gap: 6px; flex-wrap: wrap; }
         .explore-ai-reason {
             display: inline-flex;
@@ -255,6 +400,50 @@
             padding: 4px 8px;
             font-size: 11px;
             font-weight: 700;
+        }
+        .explore-route-insights {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            padding: 0;
+        }
+        .explore-route-insights-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .explore-route-insights-title {
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .explore-route-insights-title i { color: #92400e; font-size: 11px; }
+        .explore-route-insights-meta {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .explore-route-insight-list { display: flex; flex-wrap: wrap; gap: 6px; }
+        .explore-route-note {
+            display: none;
+            margin: 0;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.35;
+        }
+
+        .explore-detail-grid {
+            display: grid;
+            gap: 8px;
         }
 
         .explore-status-stack {
@@ -268,27 +457,42 @@
 
         .explore-detail {
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            background: #f8fafc;
-            padding: 8px 10px;
+            border-radius: 12px;
+            background: #fff;
+            padding: 10px 11px;
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
-            gap: 8px;
+            gap: 4px;
             font-size: 13px;
             color: #334155;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
             min-width: 0;
         }
-        .explore-detail span { min-width: 0; }
+        .explore-detail span {
+            min-width: 0;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
         .explore-detail strong {
             color: #0f172a;
-            max-width: 52%;
+            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            text-align: right;
+            text-align: left;
+            font-size: 16px;
         }
-        .explore-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+        .explore-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            padding-top: 0;
+        }
         .explore-actions form { margin: 0; }
 
         .explore-btn {
@@ -296,7 +500,7 @@
             border-radius: 9px;
             background: #fff;
             color: #0f172a;
-            padding: 8px 10px;
+            padding: 9px 11px;
             font-size: 12px;
             font-weight: 700;
             text-decoration: none;
@@ -343,11 +547,17 @@
             color: #92400e;
         }
 
-        .empty-state { border: 1px dashed #dbe2ea; border-radius: 12px; background: #f8fafc; padding: 14px; color: #64748b; font-size: 14px; text-align: center; }
+        .empty-state { border: 1px dashed #dbe2ea; border-radius: 12px; background: #f8fafc; padding: 48px 24px; color: #64748b; font-size: 14px; text-align: center; }
+        .empty-state-icon { font-size: 32px; color: #cbd5e1; margin-bottom: 12px; display: block; }
+        .empty-state-title { font-size: 15px; font-weight: 700; color: #475569; margin: 0 0 4px; }
+        .empty-state-copy { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
 
         @media (min-width: 768px) {
             .explore-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .explore-detail-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
             .explore-suggested-list {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -355,15 +565,12 @@
         }
         @media (min-width: 640px) {
             .explore-item-head {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
                 gap: 16px;
             }
             .explore-item-head > div { width: auto; }
             .explore-status-stack {
-                width: 128px;
-                flex: 0 0 128px;
+                width: auto;
+                flex: 0 0 auto;
                 justify-content: flex-end;
             }
             .explore-chip {
@@ -391,6 +598,10 @@
                 padding: 12px;
                 border-radius: 16px;
             }
+            .explore-custom-notice {
+                top: 76px;
+                align-items: flex-start;
+            }
             .explore-section-head {
                 align-items: flex-start;
             }
@@ -406,6 +617,7 @@
             }
             .explore-actions {
                 justify-content: stretch;
+                align-items: stretch;
             }
             .explore-actions .explore-btn,
             .explore-actions form {
@@ -416,6 +628,15 @@
             }
         }
         @media (max-width: 430px) {
+            .explore-item-head {
+                grid-template-columns: minmax(0, 1fr);
+            }
+            .explore-price-stack {
+                justify-items: start;
+                grid-template-columns: auto auto;
+                align-items: baseline;
+                gap: 6px;
+            }
             .explore-section-head,
             .explore-search-cta {
                 flex-direction: column;
@@ -456,7 +677,90 @@
         $searchSort = trim((string) request('sort', 'nearest'));
         $searchRadiusRaw = request('radius_km');
         $searchRadius = is_numeric($searchRadiusRaw) ? (float) $searchRadiusRaw : null;
-        $hasSearchSummary = $searchDestination !== '' || $searchPickup !== '' || $searchDate !== '' || $searchSeats !== '' || (request()->filled('center_lat') && request()->filled('center_lng'));
+        $searchPickupLat = is_numeric(request('pickup_lat')) ? (float) request('pickup_lat') : null;
+        $searchPickupLng = is_numeric(request('pickup_lng')) ? (float) request('pickup_lng') : null;
+        $searchDestinationLat = is_numeric(request('destination_lat')) ? (float) request('destination_lat') : null;
+        $searchDestinationLng = is_numeric(request('destination_lng')) ? (float) request('destination_lng') : null;
+        $hasPickupPin = $searchPickupLat !== null && $searchPickupLng !== null;
+        $hasDestinationPin = $searchDestinationLat !== null && $searchDestinationLng !== null;
+        $hasSearchSummary = $searchDestination !== '' || $searchPickup !== '' || $searchDate !== '' || $searchSeats !== '' || (request()->filled('center_lat') && request()->filled('center_lng')) || $hasPickupPin || $hasDestinationPin;
+
+        $distanceKm = static function (float $lat1, float $lng1, float $lat2, float $lng2): float {
+            $earthKm = 6371;
+            $dLat = deg2rad($lat2 - $lat1);
+            $dLng = deg2rad($lng2 - $lng1);
+            $a = sin($dLat / 2) ** 2
+                + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * (sin($dLng / 2) ** 2);
+
+            return $earthKm * 2 * atan2(sqrt($a), sqrt(max(0, 1 - $a)));
+        };
+        $pointToLocalKm = static function (float $lat, float $lng, float $originLat, float $originLng): array {
+            return [
+                'x' => ($lng - $originLng) * 111.32 * cos(deg2rad($originLat)),
+                'y' => ($lat - $originLat) * 110.57,
+            ];
+        };
+        $distanceToSegmentKm = static function (float $pointLat, float $pointLng, float $startLat, float $startLng, float $endLat, float $endLng) use ($pointToLocalKm): float {
+            $p = $pointToLocalKm($pointLat, $pointLng, $startLat, $startLng);
+            $b = $pointToLocalKm($endLat, $endLng, $startLat, $startLng);
+            $lengthSquared = ($b['x'] ** 2) + ($b['y'] ** 2);
+
+            if ($lengthSquared <= 0) {
+                return sqrt(($p['x'] ** 2) + ($p['y'] ** 2));
+            }
+
+            $t = max(0, min(1, (($p['x'] * $b['x']) + ($p['y'] * $b['y'])) / $lengthSquared));
+            $projection = ['x' => $t * $b['x'], 'y' => $t * $b['y']];
+
+            return sqrt((($p['x'] - $projection['x']) ** 2) + (($p['y'] - $projection['y']) ** 2));
+        };
+        $allowedRadiiForKm = static function (float $routeKm): array {
+            if ($routeKm <= 3) {
+                return ['route' => 0.40, 'endpoint' => 0.50];
+            }
+            if ($routeKm <= 10) {
+                return ['route' => 0.70, 'endpoint' => 0.80];
+            }
+            if ($routeKm <= 25) {
+                return ['route' => 1.00, 'endpoint' => 1.20];
+            }
+
+            return ['route' => 1.30, 'endpoint' => 1.50];
+        };
+        $searchPointFit = static function ($trip, ?float $pointLat, ?float $pointLng) use ($distanceKm, $distanceToSegmentKm, $allowedRadiiForKm): ?array {
+            if ($pointLat === null || $pointLng === null) {
+                return null;
+            }
+
+            $pickupLat = is_numeric($trip->pickup_latitude) ? (float) $trip->pickup_latitude : null;
+            $pickupLng = is_numeric($trip->pickup_longitude) ? (float) $trip->pickup_longitude : null;
+            $dropoffLat = is_numeric($trip->destination_latitude) ? (float) $trip->destination_latitude : null;
+            $dropoffLng = is_numeric($trip->destination_longitude) ? (float) $trip->destination_longitude : null;
+
+            if ($pickupLat === null || $pickupLng === null || $dropoffLat === null || $dropoffLng === null) {
+                return ['state' => 'review', 'distance' => null, 'label' => 'Route map unavailable'];
+            }
+
+            $routeKm = max(0.01, $distanceKm($pickupLat, $pickupLng, $dropoffLat, $dropoffLng));
+            $radii = $allowedRadiiForKm($routeKm);
+            $routeDistance = $distanceToSegmentKm($pointLat, $pointLng, $pickupLat, $pickupLng, $dropoffLat, $dropoffLng);
+            $endpointDistance = min(
+                $distanceKm($pointLat, $pointLng, $pickupLat, $pickupLng),
+                $distanceKm($pointLat, $pointLng, $dropoffLat, $dropoffLng)
+            );
+            $nearestDistance = min($routeDistance, $endpointDistance);
+            $isAllowed = $routeDistance <= $radii['route'] || $endpointDistance <= $radii['endpoint'];
+
+            return [
+                'state' => $isAllowed ? 'ok' : 'blocked',
+                'distance' => $nearestDistance,
+                'route_radius' => $radii['route'],
+                'endpoint_radius' => $radii['endpoint'],
+                'label' => $isAllowed
+                    ? (number_format($nearestDistance, 2) . ' km from driver route')
+                    : (number_format($nearestDistance, 2) . ' km away, needs manual check'),
+            ];
+        };
 
         $summaryParts = [];
         if ($searchDestination !== '') {
@@ -479,6 +783,12 @@
         }
         if (request()->filled('center_lat') && request()->filled('center_lng') && $searchRadius !== null && $searchRadius > 0) {
             $summaryParts[] = 'within ' . rtrim(rtrim(number_format($searchRadius, 1, '.', ''), '0'), '.') . ' km pin radius';
+        }
+        if ($hasPickupPin) {
+            $summaryParts[] = 'pickup pin set';
+        }
+        if ($hasDestinationPin) {
+            $summaryParts[] = 'destination pin set';
         }
         if ($searchSort === 'latest') {
             $summaryParts[] = 'sorted by latest date';
@@ -507,7 +817,7 @@
                         <span class="explore-search-hint">{{ $searchSummaryText }}</span>
                     </span>
                 </span>
-                <span class="explore-search-right">Search <i class="fa-solid fa-arrow-right"></i></span>
+                <span class="explore-search-right">Cari <i class="fa-solid fa-arrow-right"></i></span>
             </a>
 
             <div class="explore-chip-row">
@@ -520,15 +830,29 @@
             </div>
         </section>
 
+        <div class="explore-custom-notice">
+            <span class="explore-custom-notice-icon">
+                <i class="fa-solid fa-map-pin"></i>
+            </span>
+            <span class="explore-custom-notice-text">
+                <span class="explore-custom-notice-title">Need a nearby pickup or drop-off?</span>
+                <span class="explore-custom-notice-copy">Open a trip and request a custom pickup or destination before sending your join request.</span>
+            </span>
+        </div>
+
         <section class="explore-card">
             <div class="explore-section-head">
                 <h2 class="explore-section-title">Upcoming Public Trips</h2>
-                <a href="{{ route('explore.search', $searchEditQuery) }}" class="explore-section-link">Advanced search</a>
+                <a href="{{ route('explore.search', $searchEditQuery) }}" class="explore-section-link">Carian Lanjutan</a>
             </div>
             <p class="explore-subtitle" style="margin:0 0 10px;">AI matching ranks route fit, usual timing, seat availability, fare, and connection trust.</p>
 
             @if($trips->isEmpty())
-                <div class="empty-state">No public trips available right now.</div>
+                <div class="empty-state">
+                    <i class="fa-solid fa-compass empty-state-icon"></i>
+                    <p class="empty-state-title">Tiada trip tersedia</p>
+                    <p class="empty-state-copy">Tiada trip awam buat masa ini. Cuba semak semula kemudian atau guna carian lanjutan.</p>
+                </div>
             @else
                 <div class="explore-grid domino-float" style="--domino-count: {{ max($trips->count(), 1) }};">
                     @foreach($trips as $trip)
@@ -536,6 +860,8 @@
                             $routeName = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' -> ' . ($trip->destination_name ?? 'Destination'));
                             $pickupText = $trip->pickup_name ?? 'Pickup';
                             $destinationText = $trip->destination_name ?? 'Destination';
+                            $pickupShortText = \Illuminate\Support\Str::limit($pickupText, 52, '...');
+                            $destinationShortText = \Illuminate\Support\Str::limit($destinationText, 52, '...');
                             $tripTypeText = ((string) ($trip->trip_mode ?? 'one_way')) === 'two_way' ? 'Two Way' : 'One Way';
                             $visibilityText = ucfirst((string) ($trip->visibility ?? 'public')) . ' Trip';
                             $visibilityIcon = ($trip->visibility ?? 'public') === 'public' ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
@@ -555,6 +881,43 @@
                                 : (($myRequest && $myRequest->status === 'pending')
                                     ? 'chip-request'
                                     : (($availableSeats !== null && $availableSeats <= 0) ? 'chip-full' : 'chip-available'));
+                            $pickupFit = $searchPointFit($trip, $searchPickupLat, $searchPickupLng);
+                            $destinationFit = $searchPointFit($trip, $searchDestinationLat, $searchDestinationLng);
+                            $hasAnySearchPin = $pickupFit !== null || $destinationFit !== null;
+                            $customFitRows = [];
+                            if ($pickupFit !== null) {
+                                $customFitRows[] = [
+                                    'text' => ($pickupFit['state'] === 'ok' ? 'Pickup can be custom' : 'Pickup needs review'),
+                                    'class' => $pickupFit['state'] === 'ok' ? 'chip-custom-ok' : 'chip-custom-blocked',
+                                    'note' => $pickupFit['label'],
+                                ];
+                            }
+                            if ($destinationFit !== null) {
+                                $customFitRows[] = [
+                                    'text' => ($destinationFit['state'] === 'ok' ? 'Drop-off can be custom' : 'Drop-off needs review'),
+                                    'class' => $destinationFit['state'] === 'ok' ? 'chip-custom-ok' : 'chip-custom-blocked',
+                                    'note' => $destinationFit['label'],
+                                ];
+                            }
+                            if (! $hasAnySearchPin) {
+                                $routeHasCoordinates = is_numeric($trip->pickup_latitude)
+                                    && is_numeric($trip->pickup_longitude)
+                                    && is_numeric($trip->destination_latitude)
+                                    && is_numeric($trip->destination_longitude);
+                                $customFitRows[] = [
+                                    'text' => $routeHasCoordinates ? 'Driver review required' : 'Custom route needs review',
+                                    'class' => $routeHasCoordinates ? 'chip-custom-review' : 'chip-custom-blocked',
+                                    'note' => $routeHasCoordinates
+                                        ? 'You can request a nearby pickup or drop-off. The driver will approve or reject it after reviewing the route.'
+                                        : 'Driver route has no complete map coordinates.',
+                                ];
+                            }
+                            $customRadiusLabel = null;
+                            if (is_numeric($trip->pickup_latitude) && is_numeric($trip->pickup_longitude) && is_numeric($trip->destination_latitude) && is_numeric($trip->destination_longitude)) {
+                                $routeKmForRadius = max(0.01, $distanceKm((float) $trip->pickup_latitude, (float) $trip->pickup_longitude, (float) $trip->destination_latitude, (float) $trip->destination_longitude));
+                                $radiusInfo = $allowedRadiiForKm($routeKmForRadius);
+                                $customRadiusLabel = 'route ' . number_format($radiusInfo['route'] * 1000, 0) . 'm / endpoints ' . number_format($radiusInfo['endpoint'] * 1000, 0) . 'm';
+                            }
                         @endphp
                         <article
                             id="exploreTripCard{{ $trip->id }}"
@@ -568,17 +931,31 @@
                             <div class="explore-item-head">
                                 <div>
                                     <h2 class="explore-route">{{ $routeName }}</h2>
-                                    <div class="explore-meta-inline">
-                                        @if($aiRecommendation)
-                                            <span class="explore-meta-inline-item">
-                                                <i class="fa-solid fa-sparkles"></i>
-                                                <span>{{ number_format((float) ($aiRecommendation['match_score'] ?? 0), 0) }}% Match</span>
-                                            </span>
-                                        @endif
+                                    <div class="explore-quick-row" style="margin-top:7px;">
+                                        <span>
+                                            <i class="fa-regular fa-calendar"></i>
+                                            {{ $trip->trip_datetime?->format('D, d M Y') ?: '-' }}
+                                        </span>
+                                        <span>
+                                            <i class="fa-regular fa-clock"></i>
+                                            {{ $trip->trip_datetime?->format('H:i') ?: '-' }}
+                                        </span>
+                                        <span>
+                                            <i class="fa-solid fa-chair"></i>
+                                            {{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit . ' seats') : 'Open seats' }}
+                                        </span>
+                                    </div>
+                                    <div class="explore-meta-inline" style="margin-top:7px;">
                                         <span class="explore-meta-inline-item">
                                             <i class="fa-solid fa-user"></i>
                                             <span>{{ $trip->driver?->name ?: '-' }}</span>
                                         </span>
+                                        @if($aiRecommendation)
+                                            <span class="explore-meta-inline-item">
+                                                <i class="fa-solid fa-sparkles"></i>
+                                                <span>{{ number_format((float) ($aiRecommendation['match_score'] ?? 0), 0) }}% match</span>
+                                            </span>
+                                        @endif
                                         <span class="explore-meta-inline-item">
                                             <i class="fa-solid fa-route"></i>
                                             <span>{{ $tripTypeText }}</span>
@@ -588,62 +965,49 @@
                                             <span>{{ $visibilityText }}</span>
                                         </span>
                                     </div>
-                                    <p class="explore-meta-line" title="{{ $pickupText }}">
-                                        <i class="fa-solid fa-location-dot"></i>
-                                        <span class="meta-label">Pickup:</span>
-                                        <span class="meta-value">{{ $pickupText }}</span>
-                                    </p>
-                                    <p class="explore-meta-line" title="{{ $destinationText }}">
-                                        <i class="fa-solid fa-flag-checkered"></i>
-                                        <span class="meta-label">Destination:</span>
-                                        <span class="meta-value">{{ $destinationText }}</span>
-                                    </p>
                                 </div>
-                                <div class="explore-status-stack">
-                                    @if($isRecommended)
-                                        <span class="explore-chip chip-ai">Recommended</span>
-                                    @endif
-                                    <span class="explore-chip {{ $chipClass }}">{{ $stateText }}</span>
+                                <div class="explore-price-stack">
+                                    <span class="explore-price-label">Fare</span>
+                                    <span class="explore-price">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
                                 </div>
                             </div>
-                            @if(!empty($aiRecommendation['explanations']))
-                                <div class="explore-ai-reasons">
-                                    @foreach(array_slice((array) $aiRecommendation['explanations'], 0, 3) as $reason)
-                                        <span class="explore-ai-reason">{{ $reason }}</span>
-                                    @endforeach
+                            <div class="explore-route-path">
+                                <div class="explore-route-point pickup" title="{{ $pickupText }}">
+                                    <span class="explore-route-point-icon">A</span>
+                                    <span class="explore-route-point-text">
+                                        <span class="explore-route-point-label">Pickup</span>
+                                        <span class="explore-route-point-value">{{ $pickupShortText }}</span>
+                                    </span>
                                 </div>
-                            @endif
-                            <div class="explore-detail">
-                                <span>Date & Time</span>
-                                <strong>{{ $trip->trip_datetime?->format('Y-m-d H:i') ?: '-' }}</strong>
-                            </div>
-                            <div class="explore-detail">
-                                <span>Available seats</span>
-                                <strong>{{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit) : 'Open' }}</strong>
-                            </div>
-                            <div class="explore-detail">
-                                <span>Fare / person</span>
-                                <strong>RM {{ number_format((float) $trip->fare_per_person, 2) }}</strong>
+                                <div class="explore-route-point destination" title="{{ $destinationText }}">
+                                    <span class="explore-route-point-icon">B</span>
+                                    <span class="explore-route-point-text">
+                                        <span class="explore-route-point-label">Destination</span>
+                                        <span class="explore-route-point-value">{{ $destinationShortText }}</span>
+                                    </span>
+                                </div>
                             </div>
                             @if($trip->public_note)
-                                <div class="explore-detail">
-                                    <span>Note</span>
-                                    <strong>{{ $trip->public_note }}</strong>
+                                <div class="explore-ai-reasons">
+                                    <span class="explore-ai-reason">Note: {{ \Illuminate\Support\Str::limit($trip->public_note, 56, '...') }}</span>
                                 </div>
                             @endif
                             <div class="explore-actions">
-                                <a href="{{ route('explore.show', $trip) }}" class="explore-btn">View Details</a>
+                                <a href="{{ route('explore.show', $trip) }}" class="explore-btn">
+                                    <i class="fa-regular fa-eye"></i>
+                                    Lihat Butiran
+                                </a>
                                 @if($isJoined)
-                                    <span class="explore-btn success disabled">Joined</span>
+                                    <span class="explore-btn success disabled"><i class="fa-solid fa-check"></i> Telah Sertai</span>
                                 @elseif($myRequest && $myRequest->status === 'pending')
-                                    <span class="explore-btn warning disabled">Request Sent</span>
+                                    <span class="explore-btn warning disabled"><i class="fa-regular fa-clock"></i> Permohonan Dihantar</span>
                                 @elseif($availableSeats !== null && $availableSeats <= 0)
-                                    <span class="explore-btn disabled">Full</span>
+                                    <span class="explore-btn disabled"><i class="fa-solid fa-ban"></i> Penuh</span>
                                 @else
-                                    <form method="POST" action="{{ route('explore.request-join', $trip) }}">
-                                        @csrf
-                                        <button type="submit" class="explore-btn primary">Request to Join</button>
-                                    </form>
+                                    <a href="{{ route('explore.show', $trip) }}#join-request" class="explore-btn primary">
+                                        <i class="fa-solid fa-user-plus"></i>
+                                        Mohon Sertai
+                                    </a>
                                 @endif
                             </div>
                         </article>

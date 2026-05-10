@@ -55,6 +55,13 @@
         .btn.warning { background: #fefce8; border-color: #fde68a; color: #854d0e; }
 
         .request-list { display: grid; gap: 8px; }
+        .request-list-section-head { display: grid; gap: 3px; margin-bottom: 10px; }
+        .request-list-section-title { margin: 0; color: #0f172a; font-family: Poppins, sans-serif; font-size: 20px; line-height: 1.15; }
+        .request-list-section-subtitle { margin: 0; color: #64748b; font-size: 13px; line-height: 1.35; }
+        .request-list-tools { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+        .request-list-tool { border: 1px solid #dbe2ea; border-radius: 10px; background: #f8fafc; color: #0f172a; min-height: 42px; padding: 0 11px; font-size: 13px; font-weight: 700; width: 100%; }
+        .request-list-tool::placeholder { color: #94a3b8; font-weight: 600; }
+        .request-list-empty-filter { border: 1px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; color: #64748b; padding: 14px; text-align: center; font-size: 13px; font-weight: 700; margin-top: 8px; }
         .request-item { border: 1px solid #dbe2ea; border-radius: 12px; background: #fff; padding: 10px; display: grid; gap: 8px; }
         .request-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
         .request-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -88,6 +95,60 @@
         .chip-rejected, .chip-cancelled { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
 
         .request-note { border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; color: #334155; font-size: 13px; padding: 8px 10px; }
+        .request-route-point-card { border: 1px solid #dbe2ea; border-radius: 10px; background: #fff; padding: 9px 10px; display: grid; gap: 8px; }
+        .request-route-point-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .request-route-point-title { color: #475569; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; display: inline-flex; align-items: center; gap: 6px; }
+        .request-route-fit { border: 1px solid #bfdbfe; border-radius: 999px; background: #eff6ff; color: #1e3a8a; padding: 4px 8px; font-size: 11px; font-weight: 800; }
+        .request-route-point-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 7px; }
+        .request-route-point-item { border: 1px solid #e2e8f0; border-radius: 9px; background: #f8fafc; padding: 8px; display: grid; gap: 2px; min-width: 0; }
+        .request-route-point-item.route-check-redundant { display: none; }
+        .request-route-point-label { color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+        .request-route-point-value { color: #0f172a; font-size: 13px; font-weight: 700; word-break: break-word; }
+        .request-route-point-meta { color: #64748b; font-size: 12px; font-weight: 600; }
+
+        .request-route-summary-card { display: grid; gap: 10px; }
+        .request-route-summary-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .request-route-summary-title { margin: 0; color: #0f172a; font-family: Poppins, sans-serif; font-size: 20px; line-height: 1.15; }
+        .request-route-summary-subtitle { margin: 4px 0 0; color: #64748b; font-size: 13px; line-height: 1.35; }
+        .request-route-summary-badge { border: 1px solid #bfdbfe; background: #eff6ff; color: #1e3a8a; border-radius: 999px; padding: 5px 9px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+        .request-route-summary-map { width: 100%; height: 340px; border: 1px solid #dbe2ea; border-radius: 12px; overflow: hidden; background: #eef2f7; }
+        .request-route-summary-map .leaflet-control-attribution { display: none; }
+        .request-route-summary-legend { display: flex; align-items: center; gap: 7px 10px; flex-wrap: wrap; color: #64748b; font-size: 11px; font-weight: 700; }
+        .request-route-summary-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .request-route-summary-legend i { width: 18px; height: 5px; border-radius: 999px; display: inline-block; }
+        .summary-metrics-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 8px; }
+        .summary-metric-item { border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; padding: 9px; display: grid; gap: 2px; min-width: 0; }
+        .summary-metric-label { color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+        .summary-metric-value { color: #0f172a; font-size: 16px; font-weight: 900; line-height: 1.2; }
+        .summary-metric-meta { color: #64748b; font-size: 11px; font-weight: 700; line-height: 1.3; }
+        .summary-original-line { background: #94a3b8; }
+        .summary-optimized-line { background: #1d4ed8; }
+        .summary-driver-dot { width: 8px !important; height: 8px !important; background: #16a34a; }
+        .summary-request-dot { width: 8px !important; height: 8px !important; background: #7c3aed; }
+        .summary-empty { border: 1px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; color: #64748b; padding: 18px; text-align: center; font-size: 13px; font-weight: 700; }
+        .summary-pin-icon { width: 26px; height: 26px; border-radius: 999px; border: 3px solid #fff; box-shadow: 0 6px 12px rgba(15, 23, 42, .25), 0 0 0 1px rgba(15, 23, 42, .16); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; line-height: 1; transition: transform .15s ease, box-shadow .15s ease; background: var(--pin-fill, #7c3aed); }
+        .summary-pin-icon.active { transform: scale(1.22); box-shadow: 0 8px 18px rgba(15, 23, 42, .34), 0 0 0 4px rgba(250, 204, 21, .68); }
+        .summary-pin-icon.driver-pickup { background: #16a34a; }
+        .summary-pin-icon.driver-dropoff { background: #2563eb; }
+        .summary-pin-icon.pending { border-color: #facc15; }
+        .summary-pin-icon.approved { border-color: #22c55e; }
+        .summary-stop-list { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 7px; }
+        .summary-stop-item { border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; padding: 8px 9px; display: flex; align-items: center; gap: 8px; min-width: 0; transition: border-color .15s ease, background .15s ease, box-shadow .15s ease; cursor: pointer; }
+        .summary-stop-item.active { border-color: #facc15; background: #fffbeb; box-shadow: 0 0 0 2px rgba(250, 204, 21, .22); }
+        .summary-stop-item.is-hidden { opacity: .46; }
+        .summary-stop-marker { width: 24px; height: 24px; border-radius: 999px; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; flex: 0 0 auto; border: 3px solid transparent; background: var(--pin-fill, #7c3aed); }
+        .summary-stop-marker.driver-pickup { background: #16a34a; }
+        .summary-stop-marker.driver-dropoff { background: #2563eb; }
+        .summary-stop-marker.pending { border-color: #facc15; }
+        .summary-stop-marker.approved { border-color: #22c55e; }
+        .summary-stop-text { min-width: 0; display: grid; gap: 1px; }
+        .summary-stop-label { color: #0f172a; font-size: 12px; font-weight: 800; line-height: 1.25; word-break: break-word; }
+        .summary-stop-meta { color: #64748b; font-size: 11px; font-weight: 700; text-transform: capitalize; }
+        .summary-stop-toggle { margin-left: auto; width: 28px; height: 28px; border: 0; background: transparent; color: #475569; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; font-size: 15px; padding: 0; }
+        .summary-stop-toggle.is-off { color: #94a3b8; }
+        .summary-stop-toggle.is-loading { color: #1d4ed8; cursor: wait; }
+        .summary-map-actions { display: flex; justify-content: flex-end; }
+        .summary-map-action { min-height: 38px; }
 
         .request-reliability { border: 1px solid #dbe2ea; border-radius: 10px; background: #f8fafc; padding: 8px 10px; display: grid; gap: 5px; }
         .request-reliability-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -134,7 +195,10 @@
         }
 
         .request-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-        .empty-state { border: 1px dashed #dbe2ea; border-radius: 12px; background: #f8fafc; padding: 14px; color: #64748b; font-size: 14px; text-align: center; }
+        .empty-state { border: 1px dashed #dbe2ea; border-radius: 12px; background: #f8fafc; padding: 40px 24px; color: #64748b; font-size: 14px; text-align: center; }
+        .empty-state-icon { font-size: 28px; color: #cbd5e1; margin-bottom: 10px; display: block; }
+        .empty-state-title { font-size: 15px; font-weight: 700; color: #475569; margin: 0 0 4px; }
+        .empty-state-copy { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
 
         .trip-modal {
             position: fixed;
@@ -468,6 +532,21 @@
         }
         .trip-modal-map .leaflet-container { width: 100%; height: 100%; }
         .trip-modal-map .leaflet-control-attribution { display: none; }
+        .trip-passenger-map-pin {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: 2px solid #fff;
+            background: #7c3aed;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            box-shadow: 0 3px 9px rgba(15, 23, 42, .32);
+        }
+        .trip-passenger-map-pin.dropoff { background: #ea580c; }
         .trip-contact-bar {
             margin: 0 -14px -14px;
             padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
@@ -702,6 +781,7 @@
 
         @media (min-width: 640px) {
             .trip-details-pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .request-route-point-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         @media (max-width: 767px) {
             .trip-modal {
@@ -734,6 +814,10 @@
             .trip-details-pairs { grid-template-columns: repeat(1, minmax(0, 1fr)); }
             .trip-point-cards { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         }
+        @media (min-width: 768px) {
+            .summary-metrics-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .request-list-tools { grid-template-columns: minmax(0, 1fr) 220px; }
+        }
     </style>
 
     @php
@@ -745,7 +829,7 @@
         $hasReturn = (bool) $trip->returnTrip;
         $directionText = $pickupName . ' -> ' . $destinationName;
         $returnDirectionText = $destinationName . ' -> ' . $pickupName;
-        $modeText = $hasReturn ? 'Two Way' : 'One Way';
+        $modeText = $hasReturn ? 'Dua Hala' : 'Sehala';
         $combinedFare = (float) $trip->fare_total + (float) ($trip->returnTrip?->fare_total ?? 0);
         $myFare = (float) ($trip->payments->first()?->amount_due ?? 0)
             + (float) ($trip->returnTrip?->payments?->first()?->amount_due ?? 0);
@@ -769,8 +853,53 @@
             $passengerCount = (int) $trip->participant_count;
         }
         $splitType = ((int) $trip->participant_count > $passengerCount)
-            ? 'Include Driver in Fare Split'
-            : 'Exclude Driver from Fare Split';
+            ? 'Termasuk Pemandu dalam Agihan Tambang'
+            : 'Tidak Termasuk Pemandu dalam Agihan Tambang';
+        $summaryRouteRequests = $requests
+            ->filter(fn ($requestRow) => in_array((string) $requestRow->status, ['pending', 'approved'], true) && $requestRow->routePoint)
+            ->map(function ($requestRow) use ($trip) {
+                $routePoint = $requestRow->routePoint;
+
+                return [
+                    'id' => $requestRow->id,
+                    'status' => (string) $requestRow->status,
+                    'name' => $requestRow->user?->name ?: 'Passenger',
+                    'fare' => $routePoint->fare_override_amount !== null ? (float) $routePoint->fare_override_amount : (float) $trip->fare_per_person,
+                    'deviationKm' => $routePoint->detour_distance_km !== null ? (float) $routePoint->detour_distance_km : 0,
+                    'pickup' => [
+                        'lat' => $routePoint->uses_default_pickup ? null : (float) $routePoint->pickup_latitude,
+                        'lng' => $routePoint->uses_default_pickup ? null : (float) $routePoint->pickup_longitude,
+                        'label' => $routePoint->uses_default_pickup ? null : (($requestRow->user?->name ?: 'Passenger') . ' pickup'),
+                    ],
+                    'dropoff' => [
+                        'lat' => $routePoint->uses_default_dropoff ? null : (float) $routePoint->dropoff_latitude,
+                        'lng' => $routePoint->uses_default_dropoff ? null : (float) $routePoint->dropoff_longitude,
+                        'label' => $routePoint->uses_default_dropoff ? null : (($requestRow->user?->name ?: 'Passenger') . ' drop-off'),
+                    ],
+                ];
+            })
+            ->values();
+        $summaryRoutePayload = [
+            'driverPickup' => [
+                'lat' => $trip->pickup_latitude !== null ? (float) $trip->pickup_latitude : null,
+                'lng' => $trip->pickup_longitude !== null ? (float) $trip->pickup_longitude : null,
+                'label' => 'Pickup Pemandu',
+            ],
+            'driverDropoff' => [
+                'lat' => $trip->destination_latitude !== null ? (float) $trip->destination_latitude : null,
+                'lng' => $trip->destination_longitude !== null ? (float) $trip->destination_longitude : null,
+                'label' => 'Penghantaran Pemandu',
+            ],
+            'baseFareTotal' => (float) $trip->fare_total,
+            'baseFarePerPerson' => (float) $trip->fare_per_person,
+            'includesDriver' => ((int) $trip->participant_count > $passengerCount),
+            'requests' => $summaryRouteRequests,
+        ];
+        $modalRoutePointPayload = $summaryRouteRequests
+            ->filter(fn ($requestRow) => (string) ($requestRow['status'] ?? '') === 'approved')
+            ->filter(fn ($requestRow) => ! empty($requestRow['pickup']['lat']) || ! empty($requestRow['dropoff']['lat']))
+            ->values();
+        $modalRoutePointPayloadB64 = base64_encode($modalRoutePointPayload->toJson());
         $reliabilityScoreConfig = (array) config('passenger_reliability.score', []);
         $amountPenaltyConfig = (array) config('passenger_reliability.amount_penalties', []);
         $overduePenaltyConfig = (array) config('passenger_reliability.overdue_penalties', []);
@@ -782,7 +911,7 @@
         <section class="trip-requests-card">
             <div class="trip-requests-top">
                 <div>
-                    <h1 class="trip-requests-title">Join Requests</h1>
+                    <h1 class="trip-requests-title">Permohonan Sertai</h1>
                     <p class="trip-requests-subtitle">
                         <span class="trip-route-meta">
                             <span class="trip-route-item">
@@ -800,7 +929,7 @@
                             <span class="trip-sub-meta">
                                 <span id="tripPublicJoinMeta" class="trip-sub-meta-item {{ $trip->is_open_for_request ? 'public-open' : 'public-closed' }}">
                                     <i id="tripPublicJoinIcon" class="fas {{ $trip->is_open_for_request ? 'fa-lock-open' : 'fa-lock' }}"></i>
-                                    <span id="tripPublicJoinText">Public Join: {{ $trip->is_open_for_request ? 'Open' : 'Closed' }}</span>
+                                    <span id="tripPublicJoinText">Sertai Awam: {{ $trip->is_open_for_request ? 'Buka' : 'Tutup' }}</span>
                                 </span>
                             </span>
                         </p>
@@ -809,7 +938,7 @@
                         <span class="trip-sub-meta">
                             <span class="trip-sub-meta-item">
                                 <i class="fas fa-chair"></i>
-                                <span>Seats: <span id="tripSeatText">{{ $availableSeats !== null ? ($availableSeats . ' available / ' . (int) $trip->seat_limit) : 'Open' }}</span></span>
+                                <span>Tempat Duduk: <span id="tripSeatText">{{ $availableSeats !== null ? ($availableSeats . ' tersedia / ' . (int) $trip->seat_limit) : 'Terbuka' }}</span></span>
                             </span>
                             <span class="trip-sub-meta-item">
                                 <i class="fas fa-circle-check"></i>
@@ -836,7 +965,7 @@
                         data-return-datetime="{{ $trip->returnTrip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
                         data-outbound-route="{{ $directionText }}"
                         data-return-route="{{ $returnDirectionText }}"
-                        data-fare-label="Fare"
+                        data-fare-label="Tambang"
                         data-fare-display="RM {{ number_format($displayFare, 2) }}"
                         data-pickup-name="{{ $pickupName }}"
                         data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
@@ -847,7 +976,8 @@
                         data-total-passengers="{{ $passengerCount }}"
                         data-split-type="{{ $splitType }}"
                         data-participants-b64="{{ $participantPayloadB64 }}"
-                    ><i class="fa-regular fa-eye"></i><span>Trip Details</span></button>
+                        data-route-points-b64="{{ $modalRoutePointPayloadB64 }}"
+                    ><i class="fa-regular fa-eye"></i><span>Butiran Trip</span></button>
                     @if($trip->visibility === 'public')
                         <form method="POST" action="{{ route('trips.requests.toggle-open', $trip) }}">
                             @csrf
@@ -855,7 +985,7 @@
                             <input type="hidden" name="is_open_for_request" value="{{ $trip->is_open_for_request ? '0' : '1' }}">
                             <button type="submit" class="btn {{ $trip->is_open_for_request ? 'danger' : 'success' }}">
                                 <i class="fas {{ $trip->is_open_for_request ? 'fa-lock' : 'fa-lock-open' }}"></i>
-                                {{ $trip->is_open_for_request ? 'Close Public Joining' : 'Open Public Joining' }}
+                                {{ $trip->is_open_for_request ? 'Tutup Sertai Awam' : 'Buka Sertai Awam' }}
                             </button>
                         </form>
                     @endif
@@ -863,10 +993,68 @@
             </div>
         </section>
 
+        <section class="trip-requests-card request-route-summary-card">
+            <div class="request-route-summary-head">
+                <div>
+                    <h2 class="request-route-summary-title">Ringkasan Laluan Penumpang</h2>
+                    <p class="request-route-summary-subtitle">Hentian tersuai yang tertangguh dan diluluskan dengan laluan tengah terpendek sebagai rujukan pemandu. Pickup dan penghantaran pemandu kekal tetap.</p>
+                </div>
+                <span class="request-route-summary-badge">{{ $summaryRouteRequests->count() }} permohonan aktif</span>
+            </div>
+            @if($summaryRouteRequests->isNotEmpty())
+                <div id="requestRouteSummaryMap" class="request-route-summary-map" data-route-summary='@json($summaryRoutePayload)'></div>
+                <div class="request-route-summary-legend">
+                    <span><i class="summary-original-line"></i>Laluan asal</span>
+                    <span><i class="summary-optimized-line"></i>Laluan dicadangkan</span>
+                </div>
+                <div id="requestRouteSummaryStops" class="summary-stop-list"></div>
+                <div id="requestRouteSummaryMetrics" class="summary-metrics-grid">
+                    <div class="summary-metric-item">
+                        <span class="summary-metric-label">Jarak laluan</span>
+                        <span class="summary-metric-value">-</span>
+                        <span class="summary-metric-meta">Laluan asal vs dicadangkan</span>
+                    </div>
+                    <div class="summary-metric-item">
+                        <span class="summary-metric-label">Anggaran masa</span>
+                        <span class="summary-metric-value">-</span>
+                        <span class="summary-metric-meta">Berdasarkan pratonton laluan</span>
+                    </div>
+                    <div class="summary-metric-item">
+                        <span class="summary-metric-label">Tambang dicadangkan</span>
+                        <span class="summary-metric-value">-</span>
+                        <span class="summary-metric-meta">Permohonan tertangguh dan diluluskan</span>
+                    </div>
+                </div>
+                <div class="summary-map-actions">
+                    <a id="openSummaryGoogleMaps" class="btn primary summary-map-action" href="#" target="_blank" rel="noopener" aria-disabled="true">
+                        <i class="fas fa-map-location-dot"></i>
+                        Buka dalam Google Maps
+                    </a>
+                </div>
+            @else
+                <div class="summary-empty">Tiada titik laluan tertangguh atau diluluskan untuk dipratonton lagi.</div>
+            @endif
+        </section>
+
         <section class="trip-requests-card">
+            <div class="request-list-section-head">
+                <h2 class="request-list-section-title">Permohonan Penumpang</h2>
+                <p class="request-list-section-subtitle">Semak penumpang tertangguh dan diluluskan, pilihan laluan, pratonton tambang, dan isyarat risiko.</p>
+                <div class="request-list-tools">
+                    <input id="requestSearchInput" class="request-list-tool" type="search" placeholder="Cari penumpang, e-mel, nota, laluan...">
+                    <select id="requestStatusFilter" class="request-list-tool">
+                        <option value="all">Semua status</option>
+                        <option value="pending">Tertangguh</option>
+                        <option value="approved">Diluluskan</option>
+                        <option value="rejected">Ditolak</option>
+                        <option value="cancelled">Dibatalkan</option>
+                    </select>
+                </div>
+            </div>
             <div id="tripRequestsListContainer">
                 @include('trips.partials.requests-list', ['requests' => $requests, 'reliabilityMap' => $reliabilityMap, 'aiRiskMap' => $aiRiskMap, 'trip' => $trip])
             </div>
+            <div id="requestFilterEmpty" class="request-list-empty-filter" hidden>Tiada permohonan penumpang sepadan dengan carian atau status semasa.</div>
         </section>
 
         <div id="tripRequestsPaginationContainer">{{ $requests->links() }}</div>
@@ -875,8 +1063,8 @@
     <div class="trip-modal" id="tripDetailsModal" aria-hidden="true">
         <div class="trip-modal-card">
             <div class="trip-modal-head">
-                <h3 class="trip-modal-title">Trip Details</h3>
-                <button type="button" class="trip-modal-close" id="tripDetailsCloseBtn" aria-label="Close">
+                <h3 class="trip-modal-title">Butiran Trip</h3>
+                <button type="button" class="trip-modal-close" id="tripDetailsCloseBtn" aria-label="Tutup">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -884,32 +1072,32 @@
                 <div class="trip-modal-grid">
                     <div class="trip-details-pairs">
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip ID</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>ID Trip</span>
                             <span class="trip-modal-value" id="tripModalTripIds">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Date & Time</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Tarikh & Masa</span>
                             <span class="trip-modal-value" id="tripModalOutboundTime">-</span>
                         </div>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Route Name</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Nama Laluan</span>
                         <span class="trip-modal-value" id="tripModalRouteName">-</span>
                     </div>
                     <div class="trip-point-cards">
                         <div class="trip-point-card pickup">
-                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
+                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Titik Pickup</span>
                             <span class="trip-point-value" id="tripModalPickupPoint">-</span>
                         </div>
                         <div class="trip-point-card destination">
-                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
+                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Titik Destinasi</span>
                             <span class="trip-point-value" id="tripModalDestinationPoint">-</span>
                         </div>
                     </div>
                     <div class="trip-map-card">
                         <div class="trip-map-head">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-map"></i>Route Preview</span>
-                            <span class="trip-map-hint">View only</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-map"></i>Pratonton Laluan</span>
+                            <span class="trip-map-hint">Baca sahaja</span>
                         </div>
                         <div class="trip-modal-map" id="tripModalMap"></div>
                     </div>
@@ -925,14 +1113,14 @@
                     </div>
                     <div class="trip-modal-line">
                         <div class="trip-passenger-header">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Passengers</span>
-                            <span class="trip-passenger-count" id="tripModalPassengerCount">0 passengers</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Penumpang</span>
+                            <span class="trip-passenger-count" id="tripModalPassengerCount">0 penumpang</span>
                         </div>
                         <div class="trip-passenger-list" id="tripModalPassengerList"></div>
                     </div>
                     <div class="trip-details-pairs">
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Trip Type</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Jenis Trip</span>
                             <span class="trip-modal-value" id="tripModalMode">-</span>
                             <span class="trip-modal-hint" id="tripModalPairHint" style="display:none;"></span>
                         </div>
@@ -941,22 +1129,22 @@
                             <span class="trip-modal-value trip-status-badge" id="tripModalStatus">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Total Passengers</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Jumlah Penumpang</span>
                             <span class="trip-modal-value" id="tripModalTotalPassengers">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Fare Split Type</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Jenis Agihan Tambang</span>
                             <span class="trip-modal-value" id="tripModalSplitType">-</span>
                         </div>
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Fare</span></span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Tambang</span></span>
                             <span class="trip-modal-value" id="tripModalFareValue">-</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="trip-contact-bar">
-                <p class="trip-contact-text">Having issues with this trip? Please contact the driver.</p>
+                <p class="trip-contact-text">Ada masalah dengan trip ini? Sila hubungi pemandu.</p>
                 <div class="trip-contact-actions">
                     <a href="#" target="_blank" rel="noopener" class="trip-contact-link whatsapp is-disabled" id="tripModalWhatsapp">
                         <i class="fa-brands fa-whatsapp"></i>
@@ -964,7 +1152,7 @@
                     </a>
                     <a href="#" class="trip-contact-link email is-disabled" id="tripModalEmail">
                         <i class="fa-regular fa-envelope"></i>
-                        <span>Email Driver</span>
+                        <span>E-mel Pemandu</span>
                     </a>
                 </div>
             </div>
@@ -974,10 +1162,10 @@
     <div class="request-modal" id="rejectModal" aria-hidden="true">
         <div class="request-modal-card">
             <button type="button" class="modal-close-x" id="rejectModalCloseTop" aria-label="Close">&times;</button>
-            <h3 class="request-modal-title">Reject Join Request</h3>
+            <h3 class="request-modal-title">Tolak Permohonan Sertai</h3>
             <div class="request-modal-grid">
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Passenger</span>
+                    <span class="request-modal-label">Penumpang</span>
                     <span class="request-modal-value" id="rejectModalPassenger">-</span>
                 </div>
                 <div class="request-modal-line">
@@ -992,14 +1180,14 @@
                         class="reject-reason-input"
                         id="rejectModalReason"
                         name="response_note"
-                        placeholder="Write rejection reason..."
+                        placeholder="Tulis sebab penolakan..."
                         required
                     ></textarea>
                 </form>
             </div>
             <div class="reject-modal-actions">
-                <button type="button" class="btn" id="rejectModalCancel">Cancel</button>
-                <button type="submit" class="btn danger" form="rejectModalForm"><i class="fas fa-solid fa-xmark"></i>Reject</button>
+                <button type="button" class="btn" id="rejectModalCancel">Batal</button>
+                <button type="submit" class="btn danger" form="rejectModalForm"><i class="fas fa-solid fa-xmark"></i>Tolak</button>
             </div>
         </div>
     </div>
@@ -1007,10 +1195,10 @@
     <div class="request-modal" id="approveModal" aria-hidden="true">
         <div class="request-modal-card">
             <button type="button" class="modal-close-x" id="approveModalCloseTop" aria-label="Close">&times;</button>
-            <h3 class="request-modal-title">Approve Join Request</h3>
+            <h3 class="request-modal-title">Luluskan Permohonan Sertai</h3>
             <div class="request-modal-grid">
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Passenger</span>
+                    <span class="request-modal-label">Penumpang</span>
                     <span class="request-modal-value" id="approveModalPassenger">-</span>
                 </div>
                 <div class="request-modal-line">
@@ -1025,13 +1213,13 @@
                         class="approve-reason-input"
                         id="approveModalReason"
                         name="response_note"
-                        placeholder="Write approval note (optional)..."
+                        placeholder="Tulis nota kelulusan (pilihan)..."
                     ></textarea>
                 </form>
             </div>
             <div class="approve-modal-actions">
-                <button type="button" class="btn" id="approveModalCancel">Cancel</button>
-                <button type="submit" class="btn success" form="approveModalForm"><i class="fas fa-solid fa-check"></i>Approve</button>
+                <button type="button" class="btn" id="approveModalCancel">Batal</button>
+                <button type="submit" class="btn success" form="approveModalForm"><i class="fas fa-solid fa-check"></i>Luluskan</button>
             </div>
         </div>
     </div>
@@ -1039,23 +1227,23 @@
     <div class="request-modal" id="ratingInfoModal" aria-hidden="true">
         <div class="request-modal-card">
             <button type="button" class="modal-close-x" id="ratingInfoCloseTop" aria-label="Close">&times;</button>
-            <h3 class="request-modal-title">AI Risk And Reliability Details</h3>
+            <h3 class="request-modal-title">Butiran Risiko & Kebolehpercayaan AI</h3>
             <div class="request-modal-grid">
                 <div class="rating-info-formula">
-                    <strong>AI risk score:</strong>
-                    Starts from a base score and adjusts using payment reliability, unpaid debt, cancellations, and attendance history.
+                    <strong>Skor risiko AI:</strong>
+                    Bermula dari skor asas dan diselaraskan menggunakan kebolehpercayaan pembayaran, hutang belum bayar, pembatalan, dan sejarah kehadiran.
                     <br>
                     <strong>Formula:</strong>
-                    Score = Base ({{ number_format((float) ($reliabilityScoreConfig['base'] ?? 5.0), 1) }})
-                    - Amount Penalty - Overdue Penalty - Case Penalty,
-                    then clamped to {{ number_format((float) ($reliabilityScoreConfig['min'] ?? 1.0), 1) }} - {{ number_format((float) ($reliabilityScoreConfig['max'] ?? 5.0), 1) }}.
+                    Skor = Asas ({{ number_format((float) ($reliabilityScoreConfig['base'] ?? 5.0), 1) }})
+                    - Penalti Amaun - Penalti Tertunggak - Penalti Kes,
+                    kemudian ditetapkan kepada {{ number_format((float) ($reliabilityScoreConfig['min'] ?? 1.0), 1) }} - {{ number_format((float) ($reliabilityScoreConfig['max'] ?? 5.0), 1) }}.
                     <br>
-                    <strong>Outstanding due</strong> includes <code>unpaid</code> + <code>pending_confirmation</code> payments from non-draft, non-scheduled trips.
+                    <strong>Tunggakan tertangguh</strong> termasuk pembayaran <code>unpaid</code> + <code>pending_confirmation</code> dari trip bukan draf dan bukan dijadualkan.
                 </div>
 
                 <div class="rating-info-groups">
                     <div class="rating-info-group">
-                        <div class="rating-info-group-title"><i class="fas fa-wallet"></i>Amount Penalty</div>
+                        <div class="rating-info-group-title"><i class="fas fa-wallet"></i>Penalti Amaun</div>
                         <ul class="rating-info-list">
                             @foreach($amountPenaltyConfig as $range)
                                 @php
@@ -1074,15 +1262,15 @@
                     </div>
 
                     <div class="rating-info-group">
-                        <div class="rating-info-group-title"><i class="fas fa-clock"></i>Overdue Penalty</div>
+                        <div class="rating-info-group-title"><i class="fas fa-clock"></i>Penalti Tertunggak</div>
                         <ul class="rating-info-list">
                             @foreach($overduePenaltyConfig as $range)
                                 @php
                                     $min = (int) ($range['min'] ?? 0);
                                     $max = $range['max'] ?? null;
                                     $rangeText = $max === null
-                                        ? ($min . '+ day(s)')
-                                        : ($min . ' - ' . (int) $max . ' day(s)');
+                                        ? ($min . '+ hari')
+                                        : ($min . ' - ' . (int) $max . ' hari');
                                 @endphp
                                 <li>
                                     <span class="rating-info-range">{{ $rangeText }}</span>
@@ -1093,15 +1281,15 @@
                     </div>
 
                     <div class="rating-info-group">
-                        <div class="rating-info-group-title"><i class="fas fa-file-invoice-dollar"></i>Case Count Penalty</div>
+                        <div class="rating-info-group-title"><i class="fas fa-file-invoice-dollar"></i>Penalti Bilangan Kes</div>
                         <ul class="rating-info-list">
                             @foreach($casePenaltyConfig as $range)
                                 @php
                                     $min = (int) ($range['min'] ?? 0);
                                     $max = $range['max'] ?? null;
                                     $rangeText = $max === null
-                                        ? ($min . '+ case(s)')
-                                        : ($min . ' - ' . (int) $max . ' case(s)');
+                                        ? ($min . '+ kes')
+                                        : ($min . ' - ' . (int) $max . ' kes');
                                 @endphp
                                 <li>
                                     <span class="rating-info-range">{{ $rangeText }}</span>
@@ -1112,7 +1300,7 @@
                     </div>
 
                     <div class="rating-info-group">
-                        <div class="rating-info-group-title"><i class="fas fa-shield-heart"></i>Risk Label</div>
+                        <div class="rating-info-group-title"><i class="fas fa-shield-heart"></i>Label Risiko</div>
                         <ul class="rating-info-list">
                             @foreach($riskLabelConfig as $range)
                                 @php
@@ -1129,13 +1317,397 @@
                 </div>
             </div>
             <div class="approve-modal-actions">
-                <button type="button" class="btn" id="ratingInfoCloseBtn">Close</button>
+                <button type="button" class="btn" id="ratingInfoCloseBtn">Tutup</button>
             </div>
         </div>
     </div>
 
 
     <script>
+        (() => {
+            const mapEl = document.getElementById('requestRouteSummaryMap');
+            if (!mapEl || typeof window.L === 'undefined') return;
+
+            let payload = null;
+            try {
+                payload = JSON.parse(mapEl.dataset.routeSummary || '{}');
+            } catch (_error) {
+                payload = null;
+            }
+            if (!payload?.driverPickup || !payload?.driverDropoff) return;
+
+            const toPoint = (raw) => {
+                const lat = Number.parseFloat(String(raw?.lat ?? ''));
+                const lng = Number.parseFloat(String(raw?.lng ?? ''));
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+                return window.L.latLng(lat, lng);
+            };
+            const driverPickup = toPoint(payload.driverPickup);
+            const driverDropoff = toPoint(payload.driverDropoff);
+            if (!driverPickup || !driverDropoff) return;
+
+            const samePoint = (a, b) => Math.abs(a.lat - b.lat) < 0.00001 && Math.abs(a.lng - b.lng) < 0.00001;
+            const uniqueWaypoints = (points) => points.reduce((items, point) => {
+                if (!point) return items;
+                if (!items.length || !samePoint(items[items.length - 1], point)) items.push(point);
+                return items;
+            }, []);
+            const permutations = (items) => {
+                if (items.length <= 1) return [items];
+                return items.flatMap((item, index) => {
+                    const remaining = items.filter((_, remainingIndex) => remainingIndex !== index);
+                    return permutations(remaining).map((ordered) => [item, ...ordered]);
+                });
+            };
+            const validPassengerOrder = (items) => {
+                const grouped = items.reduce((groups, item, index) => {
+                    if (!groups[item.requestId]) groups[item.requestId] = {};
+                    groups[item.requestId][item.kind] = index;
+                    return groups;
+                }, {});
+
+                return Object.values(grouped).every((group) => {
+                    if (group.pickup === undefined || group.dropoff === undefined) return true;
+                    return group.pickup < group.dropoff;
+                });
+            };
+            const straightDistanceKm = (points) => {
+                let total = 0;
+                for (let index = 0; index < points.length - 1; index += 1) {
+                    total += points[index].distanceTo(points[index + 1]) / 1000;
+                }
+                return total;
+            };
+            const fetchRoute = async (points) => {
+                const waypoints = uniqueWaypoints(points);
+                if (waypoints.length < 2) return { points: waypoints, distanceKm: 0, durationMinutes: 0 };
+                const coordinates = waypoints
+                    .map((point) => `${encodeURIComponent(point.lng)},${encodeURIComponent(point.lat)}`)
+                    .join(';');
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson&alternatives=false&steps=false`;
+
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('route');
+                    const data = await response.json();
+                    const route = data?.routes?.[0];
+                    const routePoints = (route?.geometry?.coordinates ?? [])
+                        .map((coord) => window.L.latLng(Number(coord[1]), Number(coord[0])))
+                        .filter((coord) => Number.isFinite(coord.lat) && Number.isFinite(coord.lng));
+
+                    return {
+                        points: routePoints.length > 1 ? routePoints : waypoints,
+                        distanceKm: route?.distance ? Number(route.distance) / 1000 : straightDistanceKm(waypoints),
+                        durationMinutes: route?.duration ? Number(route.duration) / 60 : null,
+                    };
+                } catch (_error) {
+                    return { points: waypoints, distanceKm: straightDistanceKm(waypoints), durationMinutes: null };
+                }
+            };
+            const shortestMiddleRoute = async (stops) => {
+                const usableStops = stops.filter((stop) => stop.point);
+                const orders = usableStops.length <= 7
+                    ? permutations(usableStops).filter(validPassengerOrder)
+                    : [usableStops];
+                const candidates = orders.length ? orders : [[]];
+                const routes = await Promise.all(candidates.map(async (order) => {
+                    const points = uniqueWaypoints([driverPickup, ...order.map((item) => item.point), driverDropoff]);
+                    return {
+                        ...(await fetchRoute(points)),
+                        order,
+                    };
+                }));
+
+                return routes.reduce((best, route) => {
+                    if (!best || route.distanceKm < best.distanceKm) return route;
+                    return best;
+                }, null);
+            };
+
+            const map = window.L.map(mapEl, {
+                zoomControl: true,
+                attributionControl: false,
+                scrollWheelZoom: false,
+            });
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+            const googleMapsLink = document.getElementById('openSummaryGoogleMaps');
+            const originalLayer = window.L.layerGroup().addTo(map);
+            const summaryLayer = window.L.layerGroup().addTo(map);
+            let originalRouteCache = null;
+            let summaryBoundsFitted = false;
+            let summaryIsLoading = false;
+
+            const passengerPalette = ['#7c3aed', '#0f766e', '#dc2626', '#2563eb', '#9333ea', '#c2410c', '#0891b2', '#be123c'];
+            const colorForRequest = (requestId) => {
+                const raw = Number.parseInt(String(requestId ?? '0'), 10);
+                const index = Number.isFinite(raw) ? Math.abs(raw) % passengerPalette.length : 0;
+                return passengerPalette[index];
+            };
+            const stops = (payload.requests || []).flatMap((request) => {
+                const pickup = toPoint(request.pickup);
+                const dropoff = toPoint(request.dropoff);
+                const color = colorForRequest(request.id);
+                return [
+                    pickup ? { requestId: request.id, kind: 'pickup', point: pickup, label: request.pickup.label || `${request.name} pickup`, status: request.status, color } : null,
+                    dropoff ? { requestId: request.id, kind: 'dropoff', point: dropoff, label: request.dropoff.label || `${request.name} drop-off`, status: request.status, color } : null,
+                ].filter(Boolean);
+            }).map((stop, index) => ({ ...stop, marker: String(index + 1) }));
+            const visibleRequestIds = new Set((payload.requests || []).map((request) => String(request.id)));
+            const visibleStops = () => stops.filter((stop) => visibleRequestIds.has(String(stop.requestId)));
+            const setSummaryLoading = (loading) => {
+                summaryIsLoading = loading;
+                document.querySelectorAll('[data-summary-toggle]').forEach((button) => {
+                    button.disabled = loading;
+                    button.classList.toggle('is-loading', loading);
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.className = loading ? 'fas fa-spinner fa-spin' : (button.classList.contains('is-off') ? 'fas fa-eye-slash' : 'fas fa-eye');
+                    }
+                });
+            };
+
+            const numberedIcon = (className, marker, fill = '') => window.L.divIcon({
+                className: '',
+                html: `<span class="summary-pin-icon ${className}" data-summary-marker="${marker}" style="${fill ? `--pin-fill:${fill}` : ''}">${marker}</span>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13],
+                tooltipAnchor: [0, -14],
+            });
+            const markerRefs = new Map();
+            let selectedMarkerKey = null;
+            const activeMarker = (markerKey, active) => {
+                const mapMarker = markerRefs.get(markerKey);
+                const listItem = document.querySelector(`[data-summary-stop="${markerKey}"]`);
+                listItem?.classList.toggle('active', active);
+                const iconEl = mapMarker?.getElement()?.querySelector('.summary-pin-icon');
+                iconEl?.classList.toggle('active', active);
+                if (active && mapMarker) {
+                    mapMarker.setZIndexOffset(1000);
+                    mapMarker.openTooltip();
+                } else if (mapMarker) {
+                    mapMarker.setZIndexOffset(0);
+                    mapMarker.closeTooltip();
+                }
+            };
+            const selectMarker = (markerKey) => {
+                if (selectedMarkerKey && selectedMarkerKey !== markerKey) {
+                    activeMarker(selectedMarkerKey, false);
+                }
+                selectedMarkerKey = selectedMarkerKey === markerKey ? null : markerKey;
+                activeMarker(markerKey, selectedMarkerKey === markerKey);
+            };
+            const addDriverPoint = (point, type, label, marker) => {
+                const mapMarker = window.L.marker(point, {
+                    icon: numberedIcon(type === 'pickup' ? 'driver-pickup' : 'driver-dropoff', marker),
+                    title: label,
+                })
+                    .addTo(summaryLayer)
+                    .bindTooltip(label, { permanent: false, direction: 'top', offset: [0, -10] });
+                markerRefs.set(marker, mapMarker);
+                mapMarker.on('mouseover', () => activeMarker(marker, true));
+                mapMarker.on('mouseout', () => {
+                    if (selectedMarkerKey !== marker) activeMarker(marker, false);
+                });
+                mapMarker.on('click', () => selectMarker(marker));
+            };
+            const addPassengerPin = (stop) => {
+                const icon = numberedIcon(stop.status, stop.marker, stop.color);
+                const label = `${stop.label} · ${stop.status}`;
+                const mapMarker = window.L.marker(stop.point, { icon, title: label })
+                    .addTo(summaryLayer)
+                    .bindTooltip(label, { permanent: false, direction: 'top', offset: [0, -10] });
+                markerRefs.set(stop.marker, mapMarker);
+                mapMarker.on('mouseover', () => activeMarker(stop.marker, true));
+                mapMarker.on('mouseout', () => {
+                    if (selectedMarkerKey !== stop.marker) activeMarker(stop.marker, false);
+                });
+                mapMarker.on('click', () => selectMarker(stop.marker));
+            };
+
+            const renderStopList = () => {
+                const list = document.getElementById('requestRouteSummaryStops');
+                if (!list) return;
+                const rows = [
+                    { marker: 'A', label: 'Pickup Pemandu', meta: 'titik pemandu', className: 'driver-pickup' },
+                    ...stops.map((stop) => ({
+                        marker: stop.marker,
+                        label: stop.label,
+                        meta: `${stop.kind} - ${stop.status}`,
+                        className: `${stop.status} ${stop.kind}`,
+                        color: stop.color,
+                        requestId: String(stop.requestId),
+                    })),
+                    { marker: 'B', label: 'Penghantaran Pemandu', meta: 'titik pemandu', className: 'driver-dropoff' },
+                ];
+
+                list.innerHTML = rows.map((row) => `
+                    <div class="summary-stop-item ${row.requestId && !visibleRequestIds.has(row.requestId) ? 'is-hidden' : ''}" data-summary-stop="${row.marker}" ${row.requestId ? `data-summary-request="${row.requestId}"` : ''}>
+                        <span class="summary-stop-marker ${row.className}" style="${row.color ? `--pin-fill:${row.color}` : ''}">${row.marker}</span>
+                        <span class="summary-stop-text">
+                            <span class="summary-stop-label">${row.label}</span>
+                            <span class="summary-stop-meta">${row.meta}</span>
+                        </span>
+                        ${row.requestId ? `<button type="button" class="summary-stop-toggle ${visibleRequestIds.has(row.requestId) ? '' : 'is-off'}" data-summary-toggle="${row.requestId}" aria-label="Toggle passenger on map"><i class="fas ${visibleRequestIds.has(row.requestId) ? 'fa-eye' : 'fa-eye-slash'}"></i></button>` : ''}
+                    </div>
+                `).join('');
+                rows.forEach((row) => {
+                    const item = list.querySelector(`[data-summary-stop="${row.marker}"]`);
+                    item?.addEventListener('mouseenter', () => activeMarker(row.marker, true));
+                    item?.addEventListener('mouseleave', () => {
+                        if (selectedMarkerKey !== row.marker) activeMarker(row.marker, false);
+                    });
+                    item?.addEventListener('click', () => selectMarker(row.marker));
+                });
+                list.querySelectorAll('[data-summary-toggle]').forEach((button) => {
+                    button.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        if (summaryIsLoading) return;
+                        const requestId = String(button.dataset.summaryToggle || '');
+                        if (visibleRequestIds.has(requestId)) {
+                            visibleRequestIds.delete(requestId);
+                        } else {
+                            visibleRequestIds.add(requestId);
+                        }
+                        redrawSummary();
+                    });
+                });
+            };
+            renderStopList();
+
+            const setGoogleMapsLink = (orderedStops) => {
+                if (!googleMapsLink) return;
+                const formatPoint = (point) => `${point.lat.toFixed(7)},${point.lng.toFixed(7)}`;
+                const params = new URLSearchParams({
+                    api: '1',
+                    travelmode: 'driving',
+                    origin: formatPoint(driverPickup),
+                    destination: formatPoint(driverDropoff),
+                });
+                const waypoints = (orderedStops || [])
+                    .map((stop) => stop.point)
+                    .filter(Boolean)
+                    .slice(0, 23)
+                    .map(formatPoint);
+
+                if (waypoints.length) {
+                    params.set('waypoints', waypoints.join('|'));
+                }
+
+                googleMapsLink.href = `https://www.google.com/maps/dir/?${params.toString()}`;
+                googleMapsLink.setAttribute('aria-disabled', 'false');
+                googleMapsLink.classList.remove('disabled');
+            };
+
+            const formatKm = (value) => `${(Number(value) || 0).toFixed(2)} km`;
+            const formatMinutes = (value) => {
+                if (value === null || value === undefined || !Number.isFinite(Number(value))) return '-';
+                const minutes = Math.max(1, Math.round(Number(value)));
+                if (minutes < 60) return `${minutes} min`;
+                const hours = Math.floor(minutes / 60);
+                const remainder = minutes % 60;
+                return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
+            };
+            const formatMoney = (value) => `RM ${(Number(value) || 0).toFixed(2)}`;
+            const renderSummaryMetrics = (originalRoute, suggestedRoute, activeStops) => {
+                const grid = document.getElementById('requestRouteSummaryMetrics');
+                if (!grid) return;
+                const activeRequestIds = new Set((activeStops || []).map((stop) => String(stop.requestId)));
+                const activeRequests = (payload.requests || []).filter((request) => activeRequestIds.has(String(request.id)));
+                const originalKm = Number(originalRoute?.distanceKm) || 0;
+                const suggestedKm = Number(suggestedRoute?.distanceKm) || originalKm;
+                const extraKm = Math.max(0, suggestedKm - originalKm);
+                const originalMinutes = originalRoute?.durationMinutes;
+                const suggestedMinutes = suggestedRoute?.durationMinutes;
+                const extraMinutes = originalMinutes !== null && suggestedMinutes !== null
+                    ? Math.max(0, Number(suggestedMinutes) - Number(originalMinutes))
+                    : null;
+                const passengerFareTotal = activeRequests.reduce((sum, request) => sum + (Number(request.fare) || 0), 0);
+                const includesDriver = !!payload.includesDriver;
+                const driverShare = includesDriver ? (Number(payload.baseFarePerPerson) || 0) : 0;
+                const totalFare = passengerFareTotal + driverShare;
+                const splitText = includesDriver
+                    ? `termasuk bahagian pemandu ${formatMoney(driverShare)}`
+                    : 'tidak termasuk bahagian pemandu';
+                const totalDeviation = activeRequests.reduce((sum, request) => sum + (Number(request.deviationKm) || 0), 0);
+                const customStops = activeStops.length;
+                const approvedCount = activeRequests.filter((request) => request.status === 'approved').length;
+                const pendingCount = activeRequests.filter((request) => request.status === 'pending').length;
+
+                grid.innerHTML = `
+                    <div class="summary-metric-item">
+                        <span class="summary-metric-label">Jarak laluan</span>
+                        <span class="summary-metric-value">${formatKm(suggestedKm)}</span>
+                        <span class="summary-metric-meta">Asal ${formatKm(originalKm)} / tambahan ${formatKm(extraKm)}</span>
+                    </div>
+                    <div class="summary-metric-item">
+                        <span class="summary-metric-label">Anggaran masa</span>
+                        <span class="summary-metric-value">${formatMinutes(suggestedMinutes)}</span>
+                        <span class="summary-metric-meta">Asal ${formatMinutes(originalMinutes)} / tambahan ${formatMinutes(extraMinutes)}</span>
+                    </div>
+                    <div class="summary-metric-item">
+                        <span class="summary-metric-label">Tambang dicadangkan</span>
+                        <span class="summary-metric-value">${formatMoney(totalFare)}</span>
+                        <span class="summary-metric-meta">${splitText} / ${approvedCount} diluluskan / ${pendingCount} tertangguh / ${customStops} hentian tersuai / ${formatKm(totalDeviation)} sisihan</span>
+                    </div>
+                `;
+            };
+
+            const redrawSummary = async () => {
+                setSummaryLoading(true);
+                const activeStops = visibleStops();
+                try {
+                    const [originalRoute, suggestedRoute] = await Promise.all([
+                        originalRouteCache ? Promise.resolve(originalRouteCache) : fetchRoute([driverPickup, driverDropoff]),
+                        shortestMiddleRoute(activeStops),
+                    ]);
+                    originalRouteCache = originalRoute;
+                    summaryLayer.clearLayers();
+                    markerRefs.clear();
+                    selectedMarkerKey = null;
+
+                    originalLayer.clearLayers();
+                    window.L.polyline(originalRoute.points, {
+                        color: '#64748b',
+                        weight: 9,
+                        opacity: 0.38,
+                        lineCap: 'round',
+                        interactive: false,
+                    }).addTo(originalLayer);
+
+                    if (suggestedRoute?.points?.length > 1) {
+                        window.L.polyline(suggestedRoute.points, {
+                            color: '#1d4ed8',
+                            weight: 5,
+                            opacity: 0.92,
+                            lineCap: 'round',
+                            interactive: false,
+                        }).addTo(summaryLayer);
+                    }
+
+                    addDriverPoint(driverPickup, 'pickup', 'Pickup Pemandu', 'A');
+                    addDriverPoint(driverDropoff, 'dropoff', 'Penghantaran Pemandu', 'B');
+                    activeStops.forEach(addPassengerPin);
+                    renderStopList();
+                    setGoogleMapsLink(suggestedRoute?.order || activeStops);
+                    renderSummaryMetrics(originalRoute, suggestedRoute, activeStops);
+
+                    const bounds = window.L.latLngBounds([
+                        ...originalRoute.points,
+                        ...(suggestedRoute?.points ?? []),
+                        ...activeStops.map((stop) => stop.point),
+                    ]);
+                    if (!summaryBoundsFitted && bounds.isValid()) {
+                        map.fitBounds(bounds, { padding: [28, 28] });
+                        summaryBoundsFitted = true;
+                    }
+                    setTimeout(() => map.invalidateSize(), 100);
+                } finally {
+                    setSummaryLoading(false);
+                }
+            };
+            redrawSummary();
+        })();
+
         (() => {
             const modal = document.getElementById('tripDetailsModal');
             const closeBtn = document.getElementById('tripDetailsCloseBtn');
@@ -1200,10 +1772,10 @@
                     return true;
                 });
 
-                passengerCountEl.textContent = `${passengers.length} passenger${passengers.length === 1 ? '' : 's'}`;
+                passengerCountEl.textContent = `${passengers.length} penumpang`;
 
                 if (passengers.length === 0) {
-                    passengerListEl.innerHTML = '<div class="trip-passenger-email">No passenger records found for this trip.</div>';
+                    passengerListEl.innerHTML = '<div class="trip-passenger-email">Tiada rekod penumpang dijumpai untuk trip ini.</div>';
                     return;
                 }
 
@@ -1221,7 +1793,7 @@
                                 <span class="trip-passenger-name">${name}</span>
                                 <span class="trip-passenger-email">${email || '-'}</span>
                             </div>
-                            <span class="trip-passenger-role">Passenger</span>
+                            <span class="trip-passenger-role">Penumpang</span>
                         </div>
                     `;
                 }).join('');
@@ -1251,7 +1823,41 @@
                 return miniMap;
             };
 
-            const drawMap = async (pickupLat, pickupLng, destinationLat, destinationLng) => {
+            const passengerStopsFromPayload = (routePointsPayload) => {
+                const stops = [];
+                (Array.isArray(routePointsPayload) ? routePointsPayload : []).forEach((item, index) => {
+                    const sequence = index + 1;
+                    const pickup = item?.pickup || null;
+                    const dropoff = item?.dropoff || null;
+                    const pickupLat = toNum(pickup?.lat);
+                    const pickupLng = toNum(pickup?.lng);
+                    const dropoffLat = toNum(dropoff?.lat);
+                    const dropoffLng = toNum(dropoff?.lng);
+
+                    if (pickupLat !== null && pickupLng !== null) {
+                        stops.push({
+                            type: 'pickup',
+                            sequence,
+                            lat: pickupLat,
+                            lng: pickupLng,
+                            label: pickup?.label || `${item?.name || 'Penumpang'} pickup`,
+                        });
+                    }
+                    if (dropoffLat !== null && dropoffLng !== null) {
+                        stops.push({
+                            type: 'dropoff',
+                            sequence,
+                            lat: dropoffLat,
+                            lng: dropoffLng,
+                            label: dropoff?.label || `${item?.name || 'Penumpang'} hantar`,
+                        });
+                    }
+                });
+
+                return stops;
+            };
+
+            const drawMap = async (pickupLat, pickupLng, destinationLat, destinationLng, routePointsPayload = []) => {
                 const map = ensureMap();
                 if (!map) return;
                 if ([pickupLat, pickupLng, destinationLat, destinationLng].some((v) => v === null)) return;
@@ -1259,20 +1865,43 @@
                 if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
                 if (markerLayer) { map.removeLayer(markerLayer); markerLayer = null; }
 
-                markerLayer = window.L.layerGroup([
+                const passengerStops = passengerStopsFromPayload(routePointsPayload);
+                const markerLayers = [
                     window.L.circleMarker([pickupLat, pickupLng], {
                         radius: 6, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1
-                    }),
+                    }).bindTooltip('Pickup Pemandu', { direction: 'top', offset: [0, -8] }),
                     window.L.circleMarker([destinationLat, destinationLng], {
                         radius: 6, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1
-                    }),
-                ]).addTo(map);
+                    }).bindTooltip('Penghantaran Pemandu', { direction: 'top', offset: [0, -8] }),
+                ];
 
-                map.fitBounds(window.L.latLngBounds([[pickupLat, pickupLng], [destinationLat, destinationLng]]), { padding: [16, 16] });
+                passengerStops.forEach((stop) => {
+                    const icon = window.L.divIcon({
+                        className: '',
+                        html: `<span class="trip-passenger-map-pin ${stop.type === 'dropoff' ? 'dropoff' : 'pickup'}">${stop.sequence}</span>`,
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10],
+                    });
+                    markerLayers.push(
+                        window.L.marker([stop.lat, stop.lng], { icon, interactive: true })
+                            .bindTooltip(stop.label, { direction: 'top', offset: [0, -10] })
+                    );
+                });
+
+                markerLayer = window.L.layerGroup(markerLayers).addTo(map);
+
+                const waypointPoints = [
+                    [pickupLat, pickupLng],
+                    ...passengerStops.map((stop) => [stop.lat, stop.lng]),
+                    [destinationLat, destinationLng],
+                ];
+
+                map.fitBounds(window.L.latLngBounds(waypointPoints), { padding: [16, 16] });
 
                 const url = 'https://router.project-osrm.org/route/v1/driving/'
-                    + `${encodeURIComponent(pickupLng)},${encodeURIComponent(pickupLat)};`
-                    + `${encodeURIComponent(destinationLng)},${encodeURIComponent(destinationLat)}`
+                    + waypointPoints
+                        .map((point) => `${encodeURIComponent(point[1])},${encodeURIComponent(point[0])}`)
+                        .join(';')
                     + '?overview=full&geometries=geojson&alternatives=false&steps=false';
 
                 try {
@@ -1288,12 +1917,12 @@
                         routeLayer = window.L.polyline(latLngs, { color: '#1d4ed8', weight: 4, opacity: 0.95 }).addTo(map);
                         map.fitBounds(routeLayer.getBounds(), { padding: [16, 16] });
                     } else {
-                        routeLayer = window.L.polyline([[pickupLat, pickupLng], [destinationLat, destinationLng]], {
+                        routeLayer = window.L.polyline(waypointPoints, {
                             color: '#60a5fa', weight: 3, opacity: 0.9, dashArray: '8 6'
                         }).addTo(map);
                     }
                 } catch (_e) {
-                    routeLayer = window.L.polyline([[pickupLat, pickupLng], [destinationLat, destinationLng]], {
+                    routeLayer = window.L.polyline(waypointPoints, {
                         color: '#60a5fa', weight: 3, opacity: 0.9, dashArray: '8 6'
                     }).addTo(map);
                 }
@@ -1303,7 +1932,7 @@
                 btn.addEventListener('click', () => {
                     const tripId = String(btn.dataset.tripId || '-');
                     const pairedTripId = String(btn.dataset.pairedTripId || '').trim();
-                    const isTwoWay = String(btn.dataset.mode || '').toLowerCase().includes('two way');
+                    const isTwoWay = String(btn.dataset.mode || '').toLowerCase().includes('dua hala');
                     const driverId = Number.parseInt(String(btn.dataset.driverId || ''), 10);
                     const driverEmail = String(btn.dataset.driverEmail || '').trim();
                     const driverWhatsappUrl = String(btn.dataset.driverWhatsappUrl || '').trim();
@@ -1319,6 +1948,13 @@
                     } catch (_e) {
                         participantsPayload = [];
                     }
+                    let routePointsPayload = [];
+                    try {
+                        const encoded = String(btn.dataset.routePointsB64 || '').trim();
+                        routePointsPayload = encoded ? JSON.parse(atob(encoded)) : [];
+                    } catch (_e) {
+                        routePointsPayload = [];
+                    }
                     const digitsRaw = driverPhoneRaw.replace(/\D+/g, '');
                     let waDigits = digitsRaw.replace(/^00+/, '');
                     if (/^01\d{8,9}$/.test(waDigits)) {
@@ -1332,7 +1968,7 @@
                     if (modeEl) modeEl.textContent = btn.dataset.mode || '-';
                     if (pairHintEl) {
                         if (isTwoWay && pairedTripId) {
-                            pairHintEl.textContent = `Paired trip: Trip #${pairedTripId}`;
+                            pairHintEl.textContent = `Trip berpasangan: Trip #${pairedTripId}`;
                             pairHintEl.style.display = 'block';
                         } else {
                             pairHintEl.textContent = '';
@@ -1350,7 +1986,7 @@
                         statusEl.className = `trip-modal-value trip-status-badge trip-status-${slug || 'draft'}`;
                     }
                     if (outboundTimeEl) outboundTimeEl.textContent = btn.dataset.outboundDatetime || '-';
-                    if (fareLabelEl) fareLabelEl.textContent = btn.dataset.fareLabel || 'Fare';
+                    if (fareLabelEl) fareLabelEl.textContent = btn.dataset.fareLabel || 'Tambang';
                     if (fareValueEl) fareValueEl.textContent = btn.dataset.fareDisplay || '-';
                     const totalPassengersText = btn.dataset.totalPassengers || '0';
                     if (totalPassengersEl) totalPassengersEl.textContent = totalPassengersText;
@@ -1359,14 +1995,14 @@
                     if (passengerCountEl && (!participantsPayload || participantsPayload.length === 0)) {
                         const n = Number.parseInt(totalPassengersText, 10);
                         if (Number.isFinite(n) && n > 0) {
-                            passengerCountEl.textContent = `${n} passenger${n === 1 ? '' : 's'}`;
+                            passengerCountEl.textContent = `${n} penumpang`;
                         }
                     }
                     if (pointALabelEl) {
-                        pointALabelEl.innerHTML = '<i class="fa-solid fa-location-dot"></i>Pickup Point';
+                        pointALabelEl.innerHTML = '<i class="fa-solid fa-location-dot"></i>Titik Pickup';
                     }
                     if (pointBLabelEl) {
-                        pointBLabelEl.innerHTML = '<i class="fa-solid fa-flag-checkered"></i>Destination Point';
+                        pointBLabelEl.innerHTML = '<i class="fa-solid fa-flag-checkered"></i>Titik Destinasi';
                     }
                     if (pickupPointEl) pickupPointEl.textContent = btn.dataset.pickupName || '-';
                     if (destinationPointEl) destinationPointEl.textContent = btn.dataset.destinationName || '-';
@@ -1399,7 +2035,7 @@
                     const destinationLng = toNum(btn.dataset.destinationLng);
 
                     setTimeout(() => {
-                        drawMap(pickupLat, pickupLng, destinationLat, destinationLng).then(() => {
+                        drawMap(pickupLat, pickupLng, destinationLat, destinationLng, routePointsPayload).then(() => {
                             if (miniMap) miniMap.invalidateSize();
                         });
                     }, 40);
@@ -1532,6 +2168,9 @@
             const publicJoinTextEl = document.getElementById('tripPublicJoinText');
             const publicJoinMetaEl = document.getElementById('tripPublicJoinMeta');
             const publicJoinIconEl = document.getElementById('tripPublicJoinIcon');
+            const searchInput = document.getElementById('requestSearchInput');
+            const statusFilter = document.getElementById('requestStatusFilter');
+            const emptyFilterEl = document.getElementById('requestFilterEmpty');
             if (!listContainer || !paginationContainer) return;
 
             const endpoint = @json(route('refresh.trips.requests', $trip));
@@ -1548,12 +2187,36 @@
                 }
                 if (publicJoinTextEl && publicJoinMetaEl && publicJoinIconEl && tripPayload.visibility === 'public') {
                     const open = !!tripPayload.is_open_for_request;
-                    publicJoinTextEl.textContent = `Public Join: ${open ? 'Open' : 'Closed'}`;
+                    publicJoinTextEl.textContent = `Sertai Awam: ${open ? 'Buka' : 'Tutup'}`;
                     publicJoinIconEl.className = `fas ${open ? 'fa-lock-open' : 'fa-lock'}`;
                     publicJoinMetaEl.classList.toggle('public-open', open);
                     publicJoinMetaEl.classList.toggle('public-closed', !open);
                 }
             };
+
+            const applyRequestFilters = () => {
+                const query = (searchInput?.value || '').trim().toLowerCase();
+                const status = (statusFilter?.value || 'all').toLowerCase();
+                const items = Array.from(listContainer.querySelectorAll('.request-item'));
+                let visibleCount = 0;
+
+                items.forEach((item) => {
+                    const searchText = String(item.dataset.requestSearch || item.textContent || '').toLowerCase();
+                    const itemStatus = String(item.dataset.requestStatus || '').toLowerCase();
+                    const matchesSearch = !query || searchText.includes(query);
+                    const matchesStatus = status === 'all' || itemStatus === status;
+                    const visible = matchesSearch && matchesStatus;
+                    item.hidden = !visible;
+                    if (visible) visibleCount += 1;
+                });
+
+                if (emptyFilterEl) {
+                    emptyFilterEl.hidden = visibleCount > 0 || items.length === 0;
+                }
+            };
+            searchInput?.addEventListener('input', applyRequestFilters);
+            statusFilter?.addEventListener('change', applyRequestFilters);
+            applyRequestFilters();
 
             const poll = async () => {
                 if (inFlight || document.visibilityState !== 'visible') return;
@@ -1568,6 +2231,7 @@
                     const payload = await response.json();
                     if (typeof payload?.requests_html === 'string') {
                         listContainer.innerHTML = payload.requests_html;
+                        applyRequestFilters();
                     }
                     if (typeof payload?.pagination_html === 'string') {
                         paginationContainer.innerHTML = payload.pagination_html;

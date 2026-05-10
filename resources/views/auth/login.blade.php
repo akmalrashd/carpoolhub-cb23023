@@ -188,23 +188,23 @@
         <div class="brand">
             <img src="{{ asset('build/assets/branding/logo-horizontal-b.png') }}" alt="CarpoolHub">
         </div>
-        <h1>Sign In</h1>
-        <p class="subtitle">Sign in to continue to your CarpoolHub account.</p>
+        <h1>Log Masuk</h1>
+        <p class="subtitle">Log masuk untuk meneruskan ke akaun CarpoolHub anda.</p>
 
         <form method="POST" action="{{ route('login.store') }}">
             @csrf
-            <label for="email">Email</label>
+            <label for="email">E-mel</label>
             <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus>
 
-            <label for="password">Password</label>
+            <label for="password">Kata Laluan</label>
             <input id="password" type="password" name="password" required>
 
             <label class="remember-row" for="remember">
                 <input id="remember" type="checkbox" name="remember" value="1" {{ old('remember', '1') ? 'checked' : '' }}>
-                <span>Remember me</span>
+                <span>Ingat saya</span>
             </label>
 
-            <button type="submit">Login</button>
+            <button type="submit">Log Masuk</button>
         </form>
 
         @if($errors->any())

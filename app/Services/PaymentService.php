@@ -130,14 +130,32 @@ class PaymentService
         }
 
         return DB::transaction(function () use ($payment, $data, $actor): TripPayment {
+            $isSelfDrivenPayment = (int) ($payment->trip?->driver_id ?? 0) === (int) $actor->id;
+
             $payment->update([
-                'payment_status' => 'pending_confirmation',
+                'payment_status' => $isSelfDrivenPayment ? 'paid' : 'pending_confirmation',
                 'marked_paid_at' => now(),
+                'confirmed_by' => $isSelfDrivenPayment ? $actor->id : null,
+                'confirmed_at' => $isSelfDrivenPayment ? now() : null,
                 'payment_method' => $data['payment_method'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
             ]);
 
             $payment->loadMissing('trip');
+
+            if ($isSelfDrivenPayment) {
+                UserNotification::query()->create([
+                    'user_id' => $payment->user_id,
+                    'type' => 'payment',
+                    'title' => 'Payment Marked as Paid',
+                    'message' => "Your self-driven payment for trip #{$payment->trip_id} has been marked as paid.",
+                    'related_type' => 'trip_payment',
+                    'related_id' => $payment->id,
+                    'is_read' => false,
+                ]);
+
+                return $payment->refresh();
+            }
 
             UserNotification::query()->create([
                 'user_id' => $payment->trip->driver_id,

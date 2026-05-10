@@ -143,15 +143,15 @@
         <section class="notif-card">
             <div class="notif-head">
                 <div>
-                    <h1 class="notif-title">Notifications</h1>
-                    <p class="notif-subtitle">Track approval updates, reminders, and system alerts.</p>
+                    <h1 class="notif-title">Notifikasi</h1>
+                    <p class="notif-subtitle">Pantau kemas kini kelulusan, peringatan, dan makluman sistem.</p>
                 </div>
                 <div class="notif-tools">
-                    <span class="notif-unread">Unread: {{ $unreadCount }}</span>
+                    <span class="notif-unread">Belum Dibaca: {{ $unreadCount }}</span>
                     <form method="POST" action="{{ route('notifications.read-all') }}">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="notif-btn">Mark All Read</button>
+                        <button type="submit" class="notif-btn">Tandakan Semua Dibaca</button>
                     </form>
                 </div>
             </div>
@@ -164,7 +164,7 @@
                         <div class="notif-item-top">
                             <span class="notif-type">{{ ucfirst($notification->type) }}</span>
                             <span class="notif-status {{ $notification->is_read ? 'read' : 'unread' }}">
-                                {{ $notification->is_read ? 'Read' : 'Unread' }}
+                                {{ $notification->is_read ? 'Dibaca' : 'Belum Dibaca' }}
                             </span>
                         </div>
                         <h2 class="notif-item-title">
@@ -179,14 +179,14 @@
                                 <form method="POST" action="{{ route('notifications.read', $notification) }}">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" class="notif-link-btn">Mark Read</button>
+                                    <button type="submit" class="notif-link-btn">Tandakan Dibaca</button>
                                 </form>
                             @endif
                         </div>
                     </article>
                 @empty
                     <article class="notif-item">
-                        <p class="notif-item-message">No notifications found.</p>
+                        <p class="notif-item-message">Tiada notifikasi dijumpai.</p>
                     </article>
                 @endforelse
             </div>

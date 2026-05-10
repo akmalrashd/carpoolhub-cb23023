@@ -857,13 +857,13 @@
 
     <header class="desktop-topbar">
         <div class="desktop-topbar-left">
-            <button type="button" class="menu-toggle-btn desktop-menu-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+            <button type="button" class="menu-toggle-btn desktop-menu-toggle" id="sidebarToggle" aria-label="Togol bar sisi">
                 <span class="bar"></span>
                 <span class="bar"></span>
                 <span class="bar"></span>
             </button>
             <div class="desktop-brand-wrap">
-                <a href="{{ route('home') }}" class="header-logo-link" aria-label="Go to Home">
+                <a href="{{ route('home') }}" class="header-logo-link" aria-label="Pergi ke Laman Utama">
                     <img src="{{ asset('build/assets/branding/logo-horizontal-b.png') }}" alt="CarpoolHub" class="desktop-brand-logo">
                 </a>
             </div>
@@ -878,11 +878,11 @@
                 </summary>
                 <div class="notification-dropdown">
                     <div class="notification-dropdown-head">
-                        <strong>Notifications</strong>
+                        <strong>Notifikasi</strong>
                         <form method="POST" action="{{ route('notifications.read-all') }}">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="link-action">Mark all</button>
+                            <button type="submit" class="link-action">Tandakan Semua</button>
                         </form>
                     </div>
                     <div class="notification-items" data-notification-items>
@@ -898,17 +898,17 @@
                                         <form method="POST" action="{{ route('notifications.read', $notification) }}">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="link-action">Read</button>
+                                            <button type="submit" class="link-action">Baca</button>
                                         </form>
                                     @endif
                                 </div>
                             </div>
                         @empty
-                            <div class="notification-empty">No notifications.</div>
+                            <div class="notification-empty">Tiada notifikasi.</div>
                         @endforelse
                     </div>
                     <div class="notification-footer">
-                        <a href="{{ route('notifications.index') }}" class="notification-view-all">View all</a>
+                        <a href="{{ route('notifications.index') }}" class="notification-view-all">Lihat Semua</a>
                     </div>
                 </div>
             </details>
@@ -919,13 +919,13 @@
                 <div class="profile-dropdown">
                     <a href="{{ route('profile.index') }}" class="profile-menu-link">
                         <i class="fa-solid fa-gear"></i>
-                        <span>Profile</span>
+                        <span>Profil</span>
                     </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="profile-menu-btn">
                             <i class="fa-solid fa-right-from-bracket"></i>
-                            <span>Logout</span>
+                            <span>Log Keluar</span>
                         </button>
                     </form>
                 </div>
@@ -938,36 +938,36 @@
     <aside class="mobile-drawer" id="mobileDrawer">
         <div class="mobile-drawer-head">
             <div class="mobile-drawer-head-row">
-                <button type="button" class="mobile-close-btn" id="mobileDrawerClose" aria-label="Close menu">
+                <button type="button" class="mobile-close-btn" id="mobileDrawerClose" aria-label="Tutup menu">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
                 <img src="{{ asset('build/assets/branding/logo-small-b.png') }}" alt="CarpoolHub" class="mobile-drawer-logo">
                 <div class="mobile-drawer-title">CarpoolHub</div>
             </div>
-            <input type="text" class="mobile-drawer-search" placeholder="Search menu" aria-label="Search menu">
+            <input type="text" class="mobile-drawer-search" placeholder="Cari menu..." aria-label="Search menu">
         </div>
 
         <nav class="mobile-drawer-nav">
-            <a href="{{ route('home') }}" class="{{ request()->routeIs('home') || request()->routeIs('dashboard') ? 'active' : '' }}"><i class="fa-solid fa-house"></i><span>Home</span></a>
-            <a href="{{ route('trips.create') }}"><i class="fa-solid fa-plus"></i><span>New Trip</span></a>
-            <a href="{{ route('trips.index') }}" class="{{ request()->routeIs('trips.*') ? 'active' : '' }}"><i class="fa-solid fa-clock-rotate-left"></i><span>My Trips</span></a>
-            <a href="{{ route('explore.index') }}" class="{{ request()->routeIs('explore.*') ? 'active' : '' }}"><i class="fa-solid fa-compass"></i><span>Explore</span></a>
-            <a href="{{ route('saved-routes.index') }}" class="{{ request()->routeIs('saved-routes.*') ? 'active' : '' }}"><i class="fa-solid fa-route"></i><span>Routes</span></a>
-            <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}"><i class="fa-solid fa-receipt"></i><span>Payments</span></a>
-            <a href="{{ route('connections.index') }}" class="{{ request()->routeIs('connections.*') ? 'active' : '' }}"><i class="fa-solid fa-user-group"></i><span>Connections</span></a>
-            <a href="{{ route('billing-cycles.index') }}" class="{{ request()->routeIs('billing-cycles.*') ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i><span>Monthly Summary</span></a>
-            <a href="{{ route('archive.index') }}" class="{{ request()->routeIs('archive.*') ? 'active' : '' }}"><i class="fa-solid fa-box-archive"></i><span>Archive</span></a>
-            <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') || request()->routeIs('settings.*') ? 'active' : '' }}"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+            <a href="{{ route('home') }}" class="{{ request()->routeIs('home') || request()->routeIs('dashboard') ? 'active' : '' }}"><i class="fa-solid fa-house"></i><span>Utama</span></a>
+            <a href="{{ route('trips.create') }}"><i class="fa-solid fa-plus"></i><span>Trip Baharu</span></a>
+            <a href="{{ route('trips.index') }}" class="{{ request()->routeIs('trips.*') ? 'active' : '' }}"><i class="fa-solid fa-clock-rotate-left"></i><span>Trip Saya</span></a>
+            <a href="{{ route('explore.index') }}" class="{{ request()->routeIs('explore.*') ? 'active' : '' }}"><i class="fa-solid fa-compass"></i><span>Jelajah</span></a>
+            <a href="{{ route('saved-routes.index') }}" class="{{ request()->routeIs('saved-routes.*') ? 'active' : '' }}"><i class="fa-solid fa-route"></i><span>Laluan</span></a>
+            <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}"><i class="fa-solid fa-receipt"></i><span>Pembayaran</span></a>
+            <a href="{{ route('connections.index') }}" class="{{ request()->routeIs('connections.*') ? 'active' : '' }}"><i class="fa-solid fa-user-group"></i><span>Sambungan</span></a>
+            <a href="{{ route('billing-cycles.index') }}" class="{{ request()->routeIs('billing-cycles.*') ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i><span>Ringkasan Bulanan</span></a>
+            <a href="{{ route('archive.index') }}" class="{{ request()->routeIs('archive.*') ? 'active' : '' }}"><i class="fa-solid fa-box-archive"></i><span>Arkib</span></a>
+            <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') || request()->routeIs('settings.*') ? 'active' : '' }}"><i class="fa-solid fa-gear"></i><span>Tetapan</span></a>
             <form action="{{ route('logout') }}" method="POST" style="padding: 0 8px;">
                 @csrf
                 <button type="submit" class="profile-menu-btn" style="width:100%;">
                     <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Logout</span>
+                    <span>Log Keluar</span>
                 </button>
             </form>
             @if(auth()->check() && auth()->user()->role === 'admin')
-                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"><i class="fa-solid fa-users-gear"></i><span>Admin Users</span></a>
-                <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"><i class="fa-solid fa-chart-line"></i><span>Reports</span></a>
+                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"><i class="fa-solid fa-users-gear"></i><span>Pengguna Admin</span></a>
+                <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"><i class="fa-solid fa-chart-line"></i><span>Laporan</span></a>
             @endif
         </nav>
     </aside>
@@ -1286,7 +1286,7 @@
                 : '<form method=\"POST\" action=\"' + readAction + '\">\
                         <input type=\"hidden\" name=\"_token\" value=\"' + csrfToken + '\">\
                         <input type=\"hidden\" name=\"_method\" value=\"PATCH\">\
-                        <button type=\"submit\" class=\"link-action\">Read</button>\
+                        <button type=\"submit\" class=\"link-action\">Baca</button>\
                    </form>';
             return '<div class=\"notification-item' + unreadClass + '\">\
                         <a href=\"' + escHtml(item.open_url || item.target_url || '#') + '\" class=\"notification-item-link\">\
@@ -1315,7 +1315,7 @@
 
             var listHtml = notificationItems.length
                 ? notificationItems.map(buildNotificationItemHtml).join('')
-                : '<div class=\"notification-empty\">No notifications.</div>';
+                : '<div class=\"notification-empty\">Tiada notifikasi.</div>';
 
             document.querySelectorAll('[data-notification-items]').forEach(function (container) {
                 container.innerHTML = listHtml;

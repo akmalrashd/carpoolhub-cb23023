@@ -252,6 +252,113 @@
             font-size: 13px;
             color: #64748b;
         }
+        .payments-filter-panel {
+            border: 1px solid #dbe2ea;
+            border-radius: 14px;
+            background: #f8fafc;
+            padding: 12px;
+            margin: 0 0 12px;
+            display: grid;
+            gap: 8px;
+        }
+        .payments-filter-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .payments-filter-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .payments-filter-toggle {
+            display: none;
+            min-height: 40px;
+            border-radius: 11px;
+            border: 1px solid #dbe2ea;
+            background: #fff;
+            color: #0f172a;
+            padding: 0 12px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+        .payments-filter-toggle i {
+            font-size: 12px;
+        }
+        .payments-filter-body {
+            display: grid;
+            gap: 8px;
+        }
+        .payments-filter-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .payments-filter-field {
+            display: grid;
+            gap: 6px;
+        }
+        .payments-filter-field label {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .payments-filter-input {
+            width: 100%;
+            min-height: 46px;
+            border-radius: 12px;
+            border: 1px solid #dbe2ea;
+            background: #fff;
+            color: #0f172a;
+            padding: 10px 12px;
+            font-size: 14px;
+            outline: none;
+        }
+        .payments-filter-input:focus {
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 3px rgba(148, 163, 184, .2);
+        }
+        .payments-filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .payments-filter-reset {
+            min-height: 44px;
+            border-radius: 12px;
+            border: 1px solid #dbe2ea;
+            background: #fff;
+            color: #0f172a;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .payments-filter-hidden {
+            display: none !important;
+        }
+        .payments-filter-empty {
+            display: none;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+            color: #64748b;
+            padding: 14px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .payments-filter-empty.show {
+            display: block;
+        }
         .payments-mobile-list {
             display: grid;
             gap: 8px;
@@ -284,6 +391,30 @@
             font-size: 12px;
             color: #64748b;
             line-height: 1.35;
+        }
+        .payment-mobile-amount-card {
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            background: #fffbeb;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .payment-mobile-amount-label {
+            color: #92400e;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .payment-mobile-amount-value {
+            color: #92400e;
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+            white-space: nowrap;
         }
         .payment-mobile-grid {
             display: grid;
@@ -1124,6 +1255,7 @@
             .payments-card { padding: 16px; }
             .payments-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             .payments-tools-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .payments-filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: end; }
         }
         @media (max-width: 420px) {
             .trip-details-pairs {
@@ -1137,6 +1269,72 @@
             }
         }
         @media (max-width: 767px) {
+            .payments-filter-panel {
+                padding: 10px;
+            }
+            .payments-filter-toggle {
+                display: inline-flex;
+            }
+            .payments-filter-body {
+                display: none;
+            }
+            .payments-filter-panel.is-open .payments-filter-body {
+                display: grid;
+            }
+            .payments-filter-panel.has-active-filter .payments-filter-body {
+                display: grid;
+            }
+            .payments-filter-panel.has-active-filter .payments-filter-toggle {
+                border-color: #fde68a;
+                background: #fffbeb;
+                color: #92400e;
+            }
+            #my-payments-list .payment-mobile-item {
+                padding: 12px;
+                gap: 10px;
+            }
+            #my-payments-list .payment-mobile-top {
+                align-items: flex-start;
+            }
+            #my-payments-list .payment-mobile-top > div:first-child {
+                min-width: 0;
+            }
+            #my-payments-list .payment-mobile-sub {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            #my-payments-list .payment-mobile-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+            #my-payments-list .payment-mobile-line {
+                background: #fff;
+            }
+            #my-payments-list .payment-mobile-item .payments-action-row,
+            #my-payments-list .payment-mobile-item form.payments-action-row,
+            #my-payments-list .payment-mobile-item .queue-actions,
+            #my-payments-list .payment-mobile-item .queue-actions-main,
+            #my-payments-list .payment-mobile-item .queue-actions-secondary {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+                justify-items: stretch;
+                gap: 8px;
+            }
+            #my-payments-list .payment-mobile-item .payments-input,
+            #my-payments-list .payment-mobile-item .payments-btn {
+                width: 100%;
+                min-height: 44px;
+            }
+            #my-payments-list .payment-mobile-item .payments-btn-icon {
+                width: 100%;
+                min-width: 0;
+                gap: 7px;
+            }
+            #my-payments-list .payment-mobile-item .payments-link {
+                min-height: 34px;
+            }
             .request-modal {
                 align-items: center;
                 justify-content: center;
@@ -1159,6 +1357,9 @@
             }
         }
         @media (min-width: 1024px) {
+            .payments-filter-body {
+                display: grid !important;
+            }
             .payments-mobile-list { display: none; }
             .payments-table-wrap { display: block; }
             .payments-table .reminder-btn {
@@ -1195,7 +1396,7 @@
                     </div>
                 @endif
                 <div class="payments-tool-item">
-                    <span class="payments-tool-label">Unpaid Amount</span>
+                    <span class="payments-tool-label">Jumlah Belum Bayar</span>
                     <span class="payments-tool-value" id="paymentsToolUnpaidAmount">RM {{ number_format($unpaidAmt, 2) }}</span>
                 </div>
                 <div class="payments-tool-item">
@@ -1218,7 +1419,7 @@
                 <h2 class="payments-section-title">My Summary</h2>
                 <div class="payments-summary-grid">
                     <div class="summary-item">
-                        <div class="summary-label">My Unpaid</div>
+                        <div class="summary-label">Belum Bayar</div>
                         <div id="paymentsMyUnpaidAmount" class="summary-value">RM {{ number_format((float) ($summary['my']['unpaid']['amount'] ?? 0), 2) }}</div>
                         <div id="paymentsMyUnpaidCount" class="summary-count">{{ $summary['my']['unpaid']['count'] ?? 0 }} records</div>
                     </div>
@@ -1228,16 +1429,51 @@
                         <div id="paymentsMyPendingCount" class="summary-count">{{ $summary['my']['pending_confirmation']['count'] ?? 0 }} records</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">My Paid</div>
+                        <div class="summary-label">Sudah Bayar</div>
                         <div id="paymentsMyPaidAmount" class="summary-value">RM {{ number_format((float) ($summary['my']['paid']['amount'] ?? 0), 2) }}</div>
                         <div id="paymentsMyPaidCount" class="summary-count">{{ $summary['my']['paid']['count'] ?? 0 }} records</div>
                     </div>
                 </div>
             </section>
 
-            <section class="payments-card">
+            <section class="payments-card" id="my-payments-list">
                 <h2 class="payments-section-title">My Payments</h2>
-                <p class="payments-section-subtitle">Mark your unpaid records and track confirmation.</p>
+                <p class="payments-section-subtitle">Tandai bayaran anda dan pantau pengesahan driver.</p>
+                <div class="payments-filter-panel js-payments-filter" data-filter-scope="#my-payments-list">
+                    <div class="payments-filter-head">
+                        <p class="payments-filter-hint">Filters apply automatically.</p>
+                        <button type="button" class="payments-filter-toggle" data-filter-toggle aria-expanded="false">
+                            <i class="fa-solid fa-filter"></i><span>Filter</span>
+                        </button>
+                    </div>
+                    <div class="payments-filter-body">
+                        <div class="payments-filter-grid">
+                            <div class="payments-filter-field">
+                                <label for="myPaymentsFromDate">From Date</label>
+                                <input id="myPaymentsFromDate" class="payments-filter-input" type="date" data-filter-from>
+                            </div>
+                            <div class="payments-filter-field">
+                                <label for="myPaymentsToDate">To Date</label>
+                                <input id="myPaymentsToDate" class="payments-filter-input" type="date" data-filter-to>
+                            </div>
+                            <div class="payments-filter-field">
+                                <label for="myPaymentsVisibility">Visibility</label>
+                                <select id="myPaymentsVisibility" class="payments-filter-input" data-filter-visibility>
+                                    <option value="">All</option>
+                                    <option value="public">Public</option>
+                                    <option value="private">Private</option>
+                                </select>
+                            </div>
+                            <div class="payments-filter-field">
+                                <label for="myPaymentsPassengerSearch">Search Trip Or Driver</label>
+                                <input id="myPaymentsPassengerSearch" class="payments-filter-input" type="search" placeholder="Search trip or driver" data-filter-person>
+                            </div>
+                        </div>
+                        <div class="payments-filter-actions">
+                            <button type="button" class="payments-filter-reset" data-filter-reset>Reset</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="payments-mobile-list">
                     @forelse($myPayments as $payment)
                         @php
@@ -1256,8 +1492,8 @@
                                 ? 'status-paid'
                                 : ($payment->payment_status === 'pending_confirmation' ? 'status-pending' : 'status-unpaid');
                             $statusText = $payment->payment_status === 'pending_confirmation'
-                                ? 'Pending Confirmation'
-                                : ucfirst($payment->payment_status);
+                                ? 'Menunggu Pengesahan'
+                                : ($payment->payment_status === 'paid' ? 'Sudah Bayar' : ($payment->payment_status === 'unpaid' ? 'Belum Bayar' : ucfirst($payment->payment_status)));
                             $methodLabel = match ($payment->payment_method) {
                                 'duitnow_qr' => 'DuitNow QR',
                                 'bank_account' => 'Bank Account',
@@ -1288,7 +1524,12 @@
                             $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                             $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
                         @endphp
-                        <article class="payment-mobile-item open-trip-card">
+                        <article
+                            class="payment-mobile-item open-trip-card js-payment-filter-item"
+                            data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
+                            data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
+                            data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
+                        >
                             <div class="payment-mobile-top">
                                 <div>
                                     <div class="payment-mobile-trip">Trip #{{ $payment->trip_id }}</div>
@@ -1325,14 +1566,14 @@
                                 </div>
                                 <span class="status-chip {{ $statusClass }}">{{ $statusText }}</span>
                             </div>
+                            <div class="payment-mobile-amount-card">
+                                <span class="payment-mobile-amount-label">Amount Due</span>
+                                <strong class="payment-mobile-amount-value">RM {{ number_format((float) $payment->amount_due, 2) }}</strong>
+                            </div>
                             <div class="payment-mobile-grid">
                                 <div class="payment-mobile-line">
                                     <span>Driver</span>
                                     <strong>{{ $payment->trip?->driver?->name ?: '-' }}</strong>
-                                </div>
-                                <div class="payment-mobile-line">
-                                    <span>Amount Due</span>
-                                    <strong>RM {{ number_format((float) $payment->amount_due, 2) }}</strong>
                                 </div>
                             </div>
                             <div class="payments-action-row">
@@ -1360,18 +1601,18 @@
                                             data-driver-account-number="{{ $driverAccountNumber }}"
                                             data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                             data-driver-tng-qr="{{ $driverTngQr }}"
-                                        ><i class="fa-solid fa-circle-info"></i></button>
-                                        <button type="submit" class="payments-btn payments-btn-primary">Mark as Paid</button>
+                                        ><i class="fa-solid fa-circle-info"></i><span>Driver Payment Details</span></button>
+                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
                                     </form>
                                 @elseif($payment->payment_status === 'pending_confirmation')
-                                    <span style="font-size:12px; color:#854d0e; font-weight:700;">Waiting Driver</span>
+                                    <span style="font-size:12px; color:#854d0e; font-weight:700;">Menunggu Pengesahan</span>
                                 @else
-                                    <span style="font-size:12px; color:#166534; font-weight:700;">Completed</span>
+                                    <span style="font-size:12px; color:#166534; font-weight:700;">Sudah Bayar</span>
                                 @endif
                             </div>
                         </article>
                     @empty
-                        <div class="payment-mobile-item">No payment records found.</div>
+                        <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">Tiada rekod bayaran ditemui.</div>
                     @endforelse
                 </div>
                 <div class="payments-table-wrap">
@@ -1432,7 +1673,12 @@
                                 $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                                 $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
                             @endphp
-                            <tr class="open-trip-card">
+                            <tr
+                                class="open-trip-card js-payment-filter-item"
+                                data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
+                                data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
+                                data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
+                            >
                                 <td>
                                     <div>#{{ $payment->trip_id }}</div>
                                     <div style="font-size:12px; color:#64748b;">{{ $routeLabel }}</div>
@@ -1495,12 +1741,12 @@
                                                 data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                                 data-driver-tng-qr="{{ $driverTngQr }}"
                                             ><i class="fa-solid fa-circle-info"></i></button>
-                                            <button type="submit" class="payments-btn payments-btn-primary">Mark as Paid</button>
+                                            <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
                                         </form>
                                     @elseif($payment->payment_status === 'pending_confirmation')
-                                        <span style="font-size:12px; color:#854d0e; font-weight:700;">Waiting Driver</span>
+                                        <span style="font-size:12px; color:#854d0e; font-weight:700;">Menunggu Pengesahan</span>
                                     @else
-                                        <span style="font-size:12px; color:#166534; font-weight:700;">Completed</span>
+                                        <span style="font-size:12px; color:#166534; font-weight:700;">Sudah Bayar</span>
                                     @endif
                                 </td>
                             </tr>
@@ -1510,6 +1756,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="payments-filter-empty" data-filter-empty>Tiada rekod bayaran sepadan dengan penapis semasa.</div>
                 <div style="margin-top:12px;">
                     {{ $myPayments->appends(request()->query())->links() }}
                 </div>
@@ -1591,9 +1838,44 @@
                 </div>
             </section>
 
-            <section class="payments-card">
+            <section class="payments-card" id="driver-review-list">
                 <h2 class="payments-section-title">{{ $reviewTitle }}</h2>
                 <p class="payments-section-subtitle">{{ $reviewSubtitle }}</p>
+                <div class="payments-filter-panel js-payments-filter" data-filter-scope="#driver-review-list">
+                    <div class="payments-filter-head">
+                        <p class="payments-filter-hint">Filters apply automatically.</p>
+                        <button type="button" class="payments-filter-toggle" data-filter-toggle aria-expanded="false">
+                            <i class="fa-solid fa-filter"></i><span>Filter</span>
+                        </button>
+                    </div>
+                    <div class="payments-filter-body">
+                        <div class="payments-filter-grid">
+                            <div class="payments-filter-field">
+                                <label for="driverReviewFromDate">From Date</label>
+                                <input id="driverReviewFromDate" class="payments-filter-input" type="date" data-filter-from>
+                            </div>
+                            <div class="payments-filter-field">
+                                <label for="driverReviewToDate">To Date</label>
+                                <input id="driverReviewToDate" class="payments-filter-input" type="date" data-filter-to>
+                            </div>
+                            <div class="payments-filter-field">
+                                <label for="driverReviewVisibility">Visibility</label>
+                                <select id="driverReviewVisibility" class="payments-filter-input" data-filter-visibility>
+                                    <option value="">All</option>
+                                    <option value="public">Public</option>
+                                    <option value="private">Private</option>
+                                </select>
+                            </div>
+                            <div class="payments-filter-field">
+                                <label for="driverReviewPassengerSearch">Search Passenger</label>
+                                <input id="driverReviewPassengerSearch" class="payments-filter-input" type="search" placeholder="Search passenger name" data-filter-person>
+                            </div>
+                        </div>
+                        <div class="payments-filter-actions">
+                            <button type="button" class="payments-filter-reset" data-filter-reset>Reset</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="payments-mobile-list">
                     @forelse(($driverPayments ?? collect()) as $payment)
                         @php
@@ -1612,8 +1894,8 @@
                                 ? 'status-paid'
                                 : ($payment->payment_status === 'pending_confirmation' ? 'status-pending' : 'status-unpaid');
                             $statusText = $payment->payment_status === 'pending_confirmation'
-                                ? 'Pending Confirmation'
-                                : ucfirst($payment->payment_status);
+                                ? 'Menunggu Pengesahan'
+                                : ($payment->payment_status === 'paid' ? 'Sudah Bayar' : ($payment->payment_status === 'unpaid' ? 'Belum Bayar' : ucfirst($payment->payment_status)));
                             $methodLabel = match ($payment->payment_method) {
                                 'duitnow_qr' => 'DuitNow QR',
                                 'bank_account' => 'Bank Account',
@@ -1636,7 +1918,12 @@
                                 ];
                             })->values()->all() ?? [];
                         @endphp
-                        <article class="payment-mobile-item open-trip-card">
+                        <article
+                            class="payment-mobile-item open-trip-card js-payment-filter-item"
+                            data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
+                            data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
+                            data-filter-person="{{ $payment->user?->name ?: '' }}"
+                        >
                             <div class="payment-mobile-top">
                                 <div>
                                     <div class="payment-mobile-trip">Trip #{{ $payment->trip_id }}</div>
@@ -1716,7 +2003,7 @@
                                             data-seconds-left="{{ $secondsLeft }}"
                                         >
                                             {!! $canSendReminder
-                                                ? '<i class="fa-regular fa-bell btn-icon"></i>Notify'
+                                                ? '<i class="fa-regular fa-bell btn-icon"></i>Peringatan'
                                                 : '<i class="fa-regular fa-clock btn-icon"></i>' . gmdate('H:i:s', $secondsLeft) !!}
                                         </button>
                                     </form>
@@ -1726,7 +2013,7 @@
                                     <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="payments-btn payments-btn-success">Approve</button>
+                                        <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
                                     </form>
                                     <button
                                         type="button"
@@ -1735,20 +2022,20 @@
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
                                         data-trip="#{{ $payment->trip_id }}"
                                     >
-                                        Reject
+                                        Tolak
                                     </button>
                                 @elseif($payment->payment_status === 'unpaid')
                                     <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="payments-btn payments-btn-primary">Mark as Paid</button>
+                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
                                     </form>
                                 @endif
                                 </div>
                             </div>
                         </article>
                     @empty
-                        <div class="payment-mobile-item">No payment records found in queue.</div>
+                        <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">Tiada rekod dalam baris gilir.</div>
                     @endforelse
                 </div>
                 <div class="payments-table-wrap">
@@ -1781,8 +2068,8 @@
                                 ? 'status-paid'
                                 : ($payment->payment_status === 'pending_confirmation' ? 'status-pending' : 'status-unpaid');
                             $statusText = $payment->payment_status === 'pending_confirmation'
-                                ? 'Pending Confirmation'
-                                : ucfirst($payment->payment_status);
+                                ? 'Menunggu Pengesahan'
+                                : ($payment->payment_status === 'paid' ? 'Sudah Bayar' : ($payment->payment_status === 'unpaid' ? 'Belum Bayar' : ucfirst($payment->payment_status)));
                             $methodLabel = match ($payment->payment_method) {
                                 'duitnow_qr' => 'DuitNow QR',
                                 'bank_account' => 'Bank Account',
@@ -1802,7 +2089,12 @@
                                 ];
                             })->values()->all() ?? [];
                         @endphp
-                            <tr class="open-trip-card">
+                            <tr
+                                class="open-trip-card js-payment-filter-item"
+                                data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
+                                data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
+                                data-filter-person="{{ $payment->user?->name ?: '' }}"
+                            >
                                 <td>
                                     <div>#{{ $payment->trip_id }}</div>
                                     <div style="font-size:12px; color:#64748b;">{{ $routeLabel }}</div>
@@ -1878,7 +2170,7 @@
                                             <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-success">Approve</button>
+                                                <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
                                             </form>
                                             <button
                                                 type="button"
@@ -1893,7 +2185,7 @@
                                             <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-primary">Mark as Paid</button>
+                                                <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
                                             </form>
                                         @endif
                                         </div>
@@ -1911,7 +2203,7 @@
                         {{ $driverPayments->appends(request()->query())->links() }}
                     </div>
                 @endif
-
+                <div class="payments-filter-empty" data-filter-empty>Tiada rekod bayaran sepadan dengan penapis semasa.</div>
                 <div id="archived-queue" style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:20px;">
                     <h3 class="payments-section-title" style="margin-bottom:6px;">Archived Queue</h3>
                     <p class="payments-section-subtitle">Archived records that still need driver action.</p>
@@ -2044,7 +2336,7 @@
                                             <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-success">Approve</button>
+                                                <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
                                             </form>
                                             <button
                                                 type="button"
@@ -2059,7 +2351,7 @@
                                             <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payments-btn-primary">Mark as Paid</button>
+                                                <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
                                             </form>
                                         @endif
                                     </div>
@@ -2198,7 +2490,7 @@
                                                     <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button type="submit" class="payments-btn payments-btn-success">Approve</button>
+                                                        <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
                                                     </form>
                                                     <button
                                                         type="button"
@@ -2213,7 +2505,7 @@
                                                     <form method="POST" action="{{ route('archive.payments.confirm-paid', $payment) }}" class="payments-action-row">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button type="submit" class="payments-btn payments-btn-primary">Mark as Paid</button>
+                                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Sudah Bayar</button>
                                                     </form>
                                                 @endif
                                             </div>
@@ -2272,11 +2564,11 @@
                     <form id="requestModalApproveForm" method="POST" class="payments-action-row">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="payments-btn payments-btn-success">Approve</button>
+                        <button type="submit" class="payments-btn payments-btn-success">Luluskan</button>
                     </form>
-                    <button type="button" class="payments-btn payments-btn-danger" id="requestModalReject">Reject</button>
+                    <button type="button" class="payments-btn payments-btn-danger" id="requestModalReject">Tolak</button>
                 </div>
-                <button type="button" class="payments-btn" id="requestModalClose">Close</button>
+                <button type="button" class="payments-btn" id="requestModalClose">Tutup</button>
             </div>
         </div>
     </div>
@@ -2405,7 +2697,7 @@
     <div class="request-modal" id="rejectModal" aria-hidden="true">
         <div class="request-modal-card">
             <div class="request-modal-head">
-                <h3 class="request-modal-title">Reject Payment Request</h3>
+                <h3 class="request-modal-title">Tolak Bayaran</h3>
                 <button type="button" class="modal-close-square" id="rejectModalCloseTop" aria-label="Close">
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
@@ -2426,14 +2718,14 @@
                         class="reject-reason-input"
                         id="rejectModalReason"
                         name="rejection_reason"
-                        placeholder="Write rejection reason..."
+                        placeholder="Tulis sebab penolakan..."
                         required
                     ></textarea>
                 </form>
             </div>
             <div class="reject-modal-actions">
-                <button type="button" class="payments-btn" id="rejectModalCancel">Cancel</button>
-                <button type="submit" class="payments-btn payments-btn-danger" form="rejectModalForm">Reject</button>
+                <button type="button" class="payments-btn" id="rejectModalCancel">Batal</button>
+                <button type="submit" class="payments-btn payments-btn-danger" form="rejectModalForm">Tolak</button>
             </div>
         </div>
     </div>
@@ -2528,21 +2820,60 @@
 
                 if (targets.length > 0) {
                     window.setTimeout(() => {
-                        const preferredTargets = targets.filter((target) => isVisibleTarget(target));
-                        const activeTargets = preferredTargets.length > 0 ? preferredTargets : targets;
-                        const topTarget = activeTargets.reduce((best, current) => {
-                            if (!best) return current;
-                            const bestTop = best.getBoundingClientRect().top + window.scrollY;
-                            const currentTop = current.getBoundingClientRect().top + window.scrollY;
-                            return currentTop < bestTop ? current : best;
-                        }, null);
-                        const scrollTarget = topTarget || activeTargets[0];
+                        const myPaymentTargets = targets.filter((target) => {
+                            return target.closest && target.closest('#my-payments-list');
+                        });
+                        const scopedTargets = myPaymentTargets.length > 0 ? myPaymentTargets : targets;
+                        const preferredTargets = scopedTargets.filter((target) => isVisibleTarget(target));
+                        const activeTargets = preferredTargets.length > 0 ? preferredTargets : scopedTargets;
                         const stickyHeader = document.querySelector('.mobile-header, .desktop-topbar');
+                        const bottomNav = document.querySelector('.mobile-bottom-nav');
                         const headerHeight = stickyHeader ? stickyHeader.getBoundingClientRect().height : 0;
-                        const extraTopGap = 14;
-                        const targetTop = scrollTarget.getBoundingClientRect().top + window.scrollY;
-                        const scrollTop = Math.max(targetTop - headerHeight - extraTopGap, 0);
+                        const bottomNavHeight = bottomNav && window.getComputedStyle(bottomNav).display !== 'none'
+                            ? bottomNav.getBoundingClientRect().height
+                            : 0;
+                        const topGap = 18;
+                        const bottomGap = 18;
+                        const targetBounds = activeTargets.reduce((bounds, target) => {
+                            const rect = target.getBoundingClientRect();
+                            const top = rect.top + window.scrollY;
+                            const bottom = rect.bottom + window.scrollY;
+                            return {
+                                top: Math.min(bounds.top, top),
+                                bottom: Math.max(bounds.bottom, bottom)
+                            };
+                        }, { top: Number.POSITIVE_INFINITY, bottom: 0 });
+                        const availableHeight = Math.max(
+                            window.innerHeight - headerHeight - bottomNavHeight - topGap - bottomGap,
+                            160
+                        );
+                        const rangeHeight = Math.max(targetBounds.bottom - targetBounds.top, 0);
+                        const scrollTop = rangeHeight <= availableHeight
+                            ? Math.max(
+                                targetBounds.top - headerHeight - topGap - ((availableHeight - rangeHeight) / 2),
+                                0
+                            )
+                            : Math.max(targetBounds.top - headerHeight - topGap, 0);
                         window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+                        window.setTimeout(() => {
+                            const viewportTop = headerHeight + topGap;
+                            const viewportBottom = window.innerHeight - bottomNavHeight - bottomGap;
+                            const hiddenTarget = activeTargets.find((target) => {
+                                const rect = target.getBoundingClientRect();
+                                return rect.top < viewportTop || rect.bottom > viewportBottom;
+                            });
+
+                            if (!hiddenTarget) return;
+
+                            const anchorTarget = focusIds.length > 1
+                                ? activeTargets[activeTargets.length - 1]
+                                : hiddenTarget;
+                            const anchorTop = anchorTarget.getBoundingClientRect().top + window.scrollY;
+                            window.scrollTo({
+                                top: Math.max(anchorTop - headerHeight - topGap, 0),
+                                behavior: 'smooth'
+                            });
+                        }, 520);
                         activeTargets.forEach((target) => target.classList.add('payment-focus-highlight'));
                         window.setTimeout(() => {
                             activeTargets.forEach((target) => target.classList.remove('payment-focus-highlight'));
@@ -3073,6 +3404,61 @@
                     if (event.target === driverPaymentDetailsModal) closeDriverPaymentModal();
                 });
             }
+
+            document.querySelectorAll('.js-payments-filter').forEach((panel) => {
+                const scopeSelector = panel.dataset.filterScope || '';
+                const scope = scopeSelector ? document.querySelector(scopeSelector) : null;
+                if (!scope) return;
+
+                const applyFilter = () => {
+                    const fromDate = panel.querySelector('[data-filter-from]')?.value || '';
+                    const toDate = panel.querySelector('[data-filter-to]')?.value || '';
+                    const visibility = panel.querySelector('[data-filter-visibility]')?.value || '';
+                    const person = (panel.querySelector('[data-filter-person]')?.value || '').trim().toLowerCase();
+                    const items = Array.from(scope.querySelectorAll('.js-payment-filter-item'));
+                    let visibleCount = 0;
+
+                    items.forEach((item) => {
+                        const itemDate = item.dataset.filterDate || '';
+                        const itemVisibility = item.dataset.filterVisibility || '';
+                        const itemPerson = (item.dataset.filterPerson || '').toLowerCase();
+                        const isVisible = (!fromDate || itemDate >= fromDate)
+                            && (!toDate || itemDate <= toDate)
+                            && (!visibility || itemVisibility === visibility)
+                            && (!person || itemPerson.includes(person));
+
+                        item.classList.toggle('payments-filter-hidden', !isVisible);
+                        if (isVisible) visibleCount += 1;
+                    });
+
+                    const emptyState = scope.querySelector('[data-filter-empty]');
+                    if (emptyState) {
+                        emptyState.classList.toggle('show', items.length > 0 && visibleCount === 0);
+                    }
+
+                    const hasActiveFilter = Boolean(fromDate || toDate || visibility || person);
+                    panel.classList.toggle('has-active-filter', hasActiveFilter);
+                };
+
+                panel.querySelector('[data-filter-toggle]')?.addEventListener('click', () => {
+                    const isOpen = panel.classList.toggle('is-open');
+                    panel.querySelector('[data-filter-toggle]')?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+                panel.querySelectorAll('input, select').forEach((field) => {
+                    field.addEventListener('input', applyFilter);
+                    field.addEventListener('change', applyFilter);
+                });
+                panel.querySelector('[data-filter-reset]')?.addEventListener('click', () => {
+                    panel.querySelectorAll('input, select').forEach((field) => {
+                        field.value = '';
+                    });
+                    panel.classList.remove('is-open');
+                    panel.querySelector('[data-filter-toggle]')?.setAttribute('aria-expanded', 'false');
+                    applyFilter();
+                });
+
+                applyFilter();
+            });
 
             const reminderButtons = Array.from(document.querySelectorAll('.reminder-btn[data-seconds-left]'));
             if (reminderButtons.length === 0) return;

@@ -190,14 +190,14 @@
         <section class="explore-search-card">
             <div class="explore-search-head">
                 <div>
-                    <h1 class="explore-search-title">Search Destination</h1>
-                    <p class="explore-search-subtitle">Find public trips by destination, date, and seat preference.</p>
+                    <h1 class="explore-search-title">Cari Destinasi</h1>
+                    <p class="explore-search-subtitle">Cari trip awam mengikut destinasi, tarikh, dan pilihan tempat duduk.</p>
                 </div>
             </div>
 
             <form method="GET" action="{{ route('explore.index') }}" style="margin-top:10px; display:grid; gap:10px;" id="exploreSearchForm">
                 <div class="search-main">
-                    <label class="search-main-label" for="search_destination">Where to?</label>
+                    <label class="search-main-label" for="search_destination">Ke mana?</label>
                     <div class="search-auto-wrap">
                         <input
                             id="search_destination"
@@ -205,7 +205,7 @@
                             name="destination"
                             class="search-main-input"
                             value="{{ old('destination', $prefill) }}"
-                            placeholder="Search destination"
+                            placeholder="Cari destinasi"
                             autocomplete="off"
                             autofocus
                         >
@@ -215,64 +215,68 @@
 
                 <div class="search-grid">
                     <div class="search-field">
-                        <label class="search-label" for="search_date">Date</label>
+                        <label class="search-label" for="search_date">Tarikh</label>
                         <input id="search_date" class="search-input" type="date" name="date" value="{{ request('date') }}">
                     </div>
                     <div class="search-field">
-                        <label class="search-label" for="search_pickup">Pickup area (optional)</label>
+                        <label class="search-label" for="search_pickup">Kawasan pickup (pilihan)</label>
                         <div class="search-auto-wrap">
-                            <input id="search_pickup" class="search-input" type="text" name="pickup" value="{{ request('pickup') }}" placeholder="Pickup area" autocomplete="off">
+                            <input id="search_pickup" class="search-input" type="text" name="pickup" value="{{ request('pickup') }}" placeholder="Kawasan pickup" autocomplete="off">
                             <div class="search-suggest-list" id="pickupSuggestList"></div>
                         </div>
                     </div>
                     <div class="search-field">
-                        <label class="search-label" for="search_seats">Seats</label>
+                        <label class="search-label" for="search_seats">Tempat Duduk</label>
                         <select id="search_seats" class="search-input" name="seats">
-                            <option value="">Any seats</option>
-                            <option value="1" {{ request('seats') === '1' ? 'selected' : '' }}>1 seat</option>
-                            <option value="2plus" {{ request('seats') === '2plus' ? 'selected' : '' }}>2+ seats</option>
+                            <option value="">Mana-mana tempat</option>
+                            <option value="1" {{ request('seats') === '1' ? 'selected' : '' }}>1 tempat</option>
+                            <option value="2plus" {{ request('seats') === '2plus' ? 'selected' : '' }}>2+ tempat</option>
                         </select>
                     </div>
                     <div class="search-field">
-                        <label class="search-label" for="search_sort">Sort</label>
+                        <label class="search-label" for="search_sort">Susun</label>
                         <select id="search_sort" class="search-input" name="sort">
-                            <option value="nearest" {{ request('sort', 'nearest') === 'nearest' ? 'selected' : '' }}>Nearest date</option>
-                            <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>Latest date</option>
+                            <option value="nearest" {{ request('sort', 'nearest') === 'nearest' ? 'selected' : '' }}>Tarikh terdekat</option>
+                            <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>Tarikh terbaru</option>
                         </select>
                     </div>
                     <div class="search-field">
-                        <label class="search-label" for="search_radius_km">Radius (km from pin)</label>
+                        <label class="search-label" for="search_radius_km">Radius (km dari pin)</label>
                         <input id="search_radius_km" class="search-input" type="number" name="radius_km" min="0.5" step="0.5" value="{{ request('radius_km', 5) }}">
                     </div>
                 </div>
 
                 <input type="hidden" id="search_center_lat" name="center_lat" value="{{ request('center_lat') }}">
                 <input type="hidden" id="search_center_lng" name="center_lng" value="{{ request('center_lng') }}">
+                <input type="hidden" id="search_pickup_lat" name="pickup_lat" value="{{ request('pickup_lat') }}">
+                <input type="hidden" id="search_pickup_lng" name="pickup_lng" value="{{ request('pickup_lng') }}">
+                <input type="hidden" id="search_destination_lat" name="destination_lat" value="{{ request('destination_lat') }}">
+                <input type="hidden" id="search_destination_lng" name="destination_lng" value="{{ request('destination_lng') }}">
 
                 <div class="search-map-card">
                     <div class="search-map-head">
-                        <p class="search-map-title">Pin Location on Map</p>
-                        <p class="search-map-hint">Select target, then tap map to adjust pin.</p>
+                        <p class="search-map-title">Pin Lokasi pada Peta</p>
+                        <p class="search-map-hint">Pilih sasaran, kemudian ketuk peta untuk laras pin.</p>
                     </div>
                     <div class="search-map-targets">
-                        <button type="button" class="search-map-target-btn active" id="targetDestinationBtn">Adjust Destination</button>
-                        <button type="button" class="search-map-target-btn" id="targetPickupBtn">Adjust Pickup</button>
+                        <button type="button" class="search-map-target-btn active" id="targetDestinationBtn">Laras Destinasi</button>
+                        <button type="button" class="search-map-target-btn" id="targetPickupBtn">Laras Pickup</button>
                     </div>
-                    <div class="search-map-status" id="searchMapStatus">No destination pin yet.</div>
+                    <div class="search-map-status" id="searchMapStatus">Tiada pin destinasi lagi.</div>
                     <div id="exploreSearchMap"></div>
                 </div>
 
                 <div class="search-actions">
-                    <button type="submit" class="search-btn primary"><i class="fa-solid fa-magnifying-glass"></i>Search Trips</button>
-                    <a href="{{ route('explore.search') }}" class="search-btn"><i class="fa-solid fa-rotate-left"></i>Clear All</a>
+                    <button type="submit" class="search-btn primary"><i class="fa-solid fa-magnifying-glass"></i>Cari Trip</button>
+                    <a href="{{ route('explore.search') }}" class="search-btn"><i class="fa-solid fa-rotate-left"></i>Kosongkan Semua</a>
                 </div>
             </form>
         </section>
 
         <section class="explore-search-card">
-            <h2 class="search-section-title">Recent Searches</h2>
+            <h2 class="search-section-title">Carian Terkini</h2>
             @if($recentSearches->isEmpty())
-                <p class="search-empty">No recent searches yet.</p>
+                <p class="search-empty">Tiada carian terkini lagi.</p>
             @else
                 <div class="search-tag-list">
                     @foreach($recentSearches as $item)
@@ -283,9 +287,9 @@
         </section>
 
         <section class="explore-search-card">
-            <h2 class="search-section-title">Suggested Destinations</h2>
+            <h2 class="search-section-title">Destinasi Dicadangkan</h2>
             @if($suggestedDestinations->isEmpty())
-                <p class="search-empty">No destination suggestions available right now.</p>
+                <p class="search-empty">Tiada cadangan destinasi buat masa ini.</p>
             @else
                 <div class="search-suggested-list">
                     @foreach($suggestedDestinations as $item)
@@ -308,6 +312,10 @@
             const targetPickupBtn = document.getElementById('targetPickupBtn');
             const centerLatInput = document.getElementById('search_center_lat');
             const centerLngInput = document.getElementById('search_center_lng');
+            const pickupLatInput = document.getElementById('search_pickup_lat');
+            const pickupLngInput = document.getElementById('search_pickup_lng');
+            const destinationLatInput = document.getElementById('search_destination_lat');
+            const destinationLngInput = document.getElementById('search_destination_lng');
 
             const debounce = (fn, wait = 350) => {
                 let timer = null;
@@ -376,6 +384,28 @@
                 inputEl.addEventListener('input', run);
                 inputEl.addEventListener('focus', run);
             };
+
+            const clearTargetCoordinate = (target) => {
+                const isDestination = target === 'destination';
+                if (isDestination) {
+                    if (destinationLatInput) destinationLatInput.value = '';
+                    if (destinationLngInput) destinationLngInput.value = '';
+                    if (destinationMarker) {
+                        map.removeLayer(destinationMarker);
+                        destinationMarker = null;
+                    }
+                } else {
+                    if (pickupLatInput) pickupLatInput.value = '';
+                    if (pickupLngInput) pickupLngInput.value = '';
+                    if (pickupMarker) {
+                        map.removeLayer(pickupMarker);
+                        pickupMarker = null;
+                    }
+                }
+            };
+
+            destinationInput?.addEventListener('input', () => clearTargetCoordinate('destination'));
+            pickupInput?.addEventListener('input', () => clearTargetCoordinate('pickup'));
 
             document.addEventListener('click', (event) => {
                 if (!(event.target instanceof Element)) return;
@@ -455,8 +485,23 @@
                 if (inputEl && label) {
                     inputEl.value = label;
                 }
+                if (isDestination) {
+                    if (destinationLatInput) destinationLatInput.value = String(lat);
+                    if (destinationLngInput) destinationLngInput.value = String(lng);
+                } else {
+                    if (pickupLatInput) pickupLatInput.value = String(lat);
+                    if (pickupLngInput) pickupLngInput.value = String(lng);
+                }
                 if (centerLatInput) centerLatInput.value = String(lat);
                 if (centerLngInput) centerLngInput.value = String(lng);
+            };
+
+            const restorePin = (target, latValue, lngValue, label = null) => {
+                const lat = Number.parseFloat(String(latValue || ''));
+                const lng = Number.parseFloat(String(lngValue || ''));
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+                setPin(target, lat, lng, label);
+                return true;
             };
 
             wireAutocomplete(destinationInput, destinationList, (picked) => {
@@ -482,6 +527,20 @@
                 }
                 setStatus('Pickup selected from suggestions.');
             });
+
+            const restoredDestination = restorePin('destination', destinationLatInput?.value, destinationLngInput?.value, destinationInput?.value);
+            const restoredPickup = restorePin('pickup', pickupLatInput?.value, pickupLngInput?.value, pickupInput?.value);
+            if (restoredDestination || restoredPickup) {
+                const points = [];
+                if (destinationMarker) points.push(destinationMarker.getLatLng());
+                if (pickupMarker) points.push(pickupMarker.getLatLng());
+                if (points.length) {
+                    map.fitBounds(window.L.latLngBounds(points), { padding: [28, 28], maxZoom: 14 });
+                }
+                setStatus(restoredDestination && restoredPickup
+                    ? 'Pickup and destination pins restored.'
+                    : (restoredDestination ? 'Destination pin restored.' : 'Pickup pin restored.'));
+            }
 
             map.on('click', async (event) => {
                 const lat = Number(event.latlng?.lat);

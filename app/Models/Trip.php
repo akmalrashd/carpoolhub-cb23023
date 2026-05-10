@@ -95,6 +95,11 @@ class Trip extends Model
         return $this->hasMany(TripJoinRequest::class);
     }
 
+    public function passengerRoutePoints(): HasMany
+    {
+        return $this->hasMany(TripPassengerRoutePoint::class);
+    }
+
     public function scopeActiveOperational(Builder $query): Builder
     {
         return $query->where(function (Builder $tripScope): void {

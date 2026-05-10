@@ -80,14 +80,19 @@ class PaymentController extends Controller
     public function markPaid(MarkPaidRequest $request, TripPayment $payment): RedirectResponse
     {
         try {
-            $this->paymentService->markPaid($request->user(), $payment, $request->validated());
+            $payment = $this->paymentService->markPaid($request->user(), $payment, $request->validated());
         } catch (ValidationException $exception) {
             return back()->withErrors($exception->errors());
         }
 
         return redirect()
             ->route('payments.index')
-            ->with('status', 'Payment marked as paid. Waiting for driver confirmation.');
+            ->with(
+                'status',
+                $payment->payment_status === 'paid'
+                    ? 'Payment marked as paid.'
+                    : 'Payment marked as paid. Waiting for driver confirmation.'
+            );
     }
 
     public function confirmPaid(ConfirmPaidRequest $request, TripPayment $payment): RedirectResponse

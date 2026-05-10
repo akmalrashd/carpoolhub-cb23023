@@ -9,10 +9,10 @@
         $destinationName = $trip->destination_name ?? 'Destination';
         $routeName = $trip->savedRoute?->route_name ?: ($pickupName . ' -> ' . $destinationName);
 
-        $modeText = $hasReturn ? 'Two Way' : 'One Way';
+        $modeText = $hasReturn ? 'Dua Hala' : 'Sehala';
         $statusText = ucfirst($trip->status);
-        $pointALabel = 'Pickup Point';
-        $pointBLabel = 'Destination Point';
+        $pointALabel = 'Titik Pickup';
+        $pointBLabel = 'Titik Destinasi';
 
         $combinedFare = (float) $trip->fare_total + (float) ($returnTrip?->fare_total ?? 0);
         $tripIds = $hasReturn ? ('#' . $trip->id . ' & #' . $returnTrip->id) : ('#' . $trip->id);
@@ -21,7 +21,7 @@
         $passengers = $trip->participants->filter(fn ($participant) => ! $participant->is_driver)->values();
         $passengerCount = $passengers->count();
         $includeDriverInSplit = ((int) $trip->participant_count) > $passengerCount;
-        $splitType = $includeDriverInSplit ? 'Include Driver in Fare Split' : 'Exclude Driver from Fare Split';
+        $splitType = $includeDriverInSplit ? 'Termasuk Pemandu dalam Agihan Tambang' : 'Tidak Termasuk Pemandu dalam Agihan Tambang';
 
     @endphp
 
@@ -107,22 +107,22 @@
 
     <div class="trip-show-page">
         <div class="trip-announcement">
-            <p class="trip-announcement-text">Trip saved successfully. You can manage this trip now, or create another one right away.</p>
-            <a href="{{ route('trips.create') }}" class="trip-show-btn primary">Create Another Trip</a>
+            <p class="trip-announcement-text">Trip berjaya disimpan. Anda boleh urus trip ini sekarang, atau cipta trip baharu terus.</p>
+            <a href="{{ route('trips.create') }}" class="trip-show-btn primary">Cipta Trip Lain</a>
         </div>
 
         <section class="trip-show-card">
             <div class="trip-show-head">
                 <div>
-                    <h1 class="trip-show-title">Trip Details</h1>
+                    <h1 class="trip-show-title">Butiran Trip</h1>
                     <p class="trip-show-subtitle">{{ $routeName }}</p>
                 </div>
                 <div class="trip-show-actions">
                     @if(($trip->visibility ?? 'private') === 'public' && (auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id))
-                        <a href="{{ route('trips.requests.index', $trip) }}" class="trip-show-btn primary">Manage Requests</a>
+                        <a href="{{ route('trips.requests.index', $trip) }}" class="trip-show-btn primary">Urus Permohonan</a>
                     @endif
                     @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
-                        <a href="{{ route('trips.edit', $trip) }}" class="trip-show-btn">Edit Trip</a>
+                        <a href="{{ route('trips.edit', $trip) }}" class="trip-show-btn">Sunting Trip</a>
                     @endif
                 </div>
             </div>
@@ -130,17 +130,17 @@
             <div class="trip-modal-grid" style="margin-top:10px;">
                 <div class="trip-details-pairs">
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label">Trip ID</span>
+                        <span class="trip-modal-label">ID Trip</span>
                         <span class="trip-modal-value">{{ $tripIds }}</span>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Date & Time</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Tarikh & Masa</span>
                         <span class="trip-modal-value">{{ $datetimeText }}</span>
                     </div>
                 </div>
 
                 <div class="trip-modal-line">
-                    <span class="trip-modal-label">Route Name</span>
+                    <span class="trip-modal-label">Nama Laluan</span>
                     <span class="trip-modal-value">{{ $routeName }}</span>
                 </div>
 
@@ -156,7 +156,7 @@
                 </div>
 
                 <div class="trip-modal-line">
-                    <span class="trip-modal-label">Driver</span>
+                    <span class="trip-modal-label">Pemandu</span>
                     <div class="trip-driver-content">
                         <span class="trip-driver-avatar">{{ strtoupper(substr((string) ($trip->driver?->name ?? 'D'), 0, 1)) }}</span>
                         <span class="trip-driver-meta">
@@ -168,8 +168,8 @@
 
                 <div class="trip-modal-line">
                     <div class="trip-passenger-header">
-                        <span class="trip-modal-label">Passengers</span>
-                        <span id="tripShowPassengerCountChip" class="trip-passenger-count">{{ $passengerCount }} passenger{{ $passengerCount === 1 ? '' : 's' }}</span>
+                        <span class="trip-modal-label">Penumpang</span>
+                        <span id="tripShowPassengerCountChip" class="trip-passenger-count">{{ $passengerCount }} penumpang</span>
                     </div>
                     <div id="tripShowPassengerList" class="trip-passenger-list">
                         @forelse($passengers as $participant)
@@ -181,14 +181,14 @@
                                 </span>
                             </div>
                         @empty
-                            <span class="trip-passenger-email">No passenger records found for this trip.</span>
+                            <span class="trip-passenger-email">Tiada rekod penumpang dijumpai untuk trip ini.</span>
                         @endforelse
                     </div>
                 </div>
 
                 <div class="trip-details-pairs">
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Trip Type</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Jenis Trip</span>
                         <span class="trip-modal-value">{{ $modeText }}</span>
                     </div>
                     <div class="trip-modal-line">
@@ -196,15 +196,15 @@
                         <span id="tripShowStatusBadge" class="trip-status-badge trip-status-{{ strtolower($trip->status) }}">{{ $statusText }}</span>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Total Passengers</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Jumlah Penumpang</span>
                         <span id="tripShowTotalPassengers" class="trip-modal-value">{{ $passengerCount }}</span>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Fare Split Type</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Jenis Agihan Tambang</span>
                         <span class="trip-modal-value">{{ $splitType }}</span>
                     </div>
                     <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-sack-dollar"></i>Trip Fare Total</span>
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-sack-dollar"></i>Jumlah Tambang Trip</span>
                         <span class="trip-modal-value">RM {{ number_format($combinedFare, 2) }}</span>
                     </div>
                 </div>
@@ -214,24 +214,24 @@
         <section class="trip-show-card">
             <div class="trip-rollup-grid">
                 <div class="trip-rollup-item">
-                    <div class="trip-rollup-title">Unpaid</div>
+                    <div class="trip-rollup-title">Belum Bayar</div>
                     <div id="tripShowRollupUnpaidAmount" class="trip-rollup-value">RM {{ number_format((float) ($rollups['unpaid']['amount'] ?? 0), 2) }}</div>
-                    <div id="tripShowRollupUnpaidCount" class="trip-rollup-meta">{{ $rollups['unpaid']['count'] ?? 0 }} payments</div>
+                    <div id="tripShowRollupUnpaidCount" class="trip-rollup-meta">{{ $rollups['unpaid']['count'] ?? 0 }} pembayaran</div>
                 </div>
                 <div class="trip-rollup-item">
-                    <div class="trip-rollup-title">Pending Confirmation</div>
+                    <div class="trip-rollup-title">Menunggu Pengesahan</div>
                     <div id="tripShowRollupPendingAmount" class="trip-rollup-value">RM {{ number_format((float) ($rollups['pending_confirmation']['amount'] ?? 0), 2) }}</div>
-                    <div id="tripShowRollupPendingCount" class="trip-rollup-meta">{{ $rollups['pending_confirmation']['count'] ?? 0 }} payments</div>
+                    <div id="tripShowRollupPendingCount" class="trip-rollup-meta">{{ $rollups['pending_confirmation']['count'] ?? 0 }} pembayaran</div>
                 </div>
                 <div class="trip-rollup-item">
-                    <div class="trip-rollup-title">Paid</div>
+                    <div class="trip-rollup-title">Dibayar</div>
                     <div id="tripShowRollupPaidAmount" class="trip-rollup-value">RM {{ number_format((float) ($rollups['paid']['amount'] ?? 0), 2) }}</div>
-                    <div id="tripShowRollupPaidCount" class="trip-rollup-meta">{{ $rollups['paid']['count'] ?? 0 }} payments</div>
+                    <div id="tripShowRollupPaidCount" class="trip-rollup-meta">{{ $rollups['paid']['count'] ?? 0 }} pembayaran</div>
                 </div>
                 <div class="trip-rollup-item">
-                    <div class="trip-rollup-title">Total</div>
+                    <div class="trip-rollup-title">Jumlah</div>
                     <div id="tripShowRollupTotalAmount" class="trip-rollup-value">RM {{ number_format((float) ($rollups['total']['amount'] ?? 0), 2) }}</div>
-                    <div id="tripShowRollupTotalCount" class="trip-rollup-meta">{{ $rollups['total']['count'] ?? 0 }} payments</div>
+                    <div id="tripShowRollupTotalCount" class="trip-rollup-meta">{{ $rollups['total']['count'] ?? 0 }} pembayaran</div>
                 </div>
             </div>
         </section>
@@ -266,7 +266,7 @@
             const renderPassengers = (passengers) => {
                 const rows = Array.isArray(passengers) ? passengers : [];
                 if (rows.length === 0) {
-                    passengerListEl.innerHTML = '<span class="trip-passenger-email">No passenger records found for this trip.</span>';
+                    passengerListEl.innerHTML = '<span class="trip-passenger-email">Tiada rekod penumpang dijumpai untuk trip ini.</span>';
                     return;
                 }
                 passengerListEl.innerHTML = rows.map((row) => `
@@ -282,7 +282,7 @@
 
             const applyRollup = (key, payload) => {
                 setText(`tripShowRollup${key}Amount`, money(payload?.amount || 0));
-                setText(`tripShowRollup${key}Count`, `${Number(payload?.count || 0)} payments`);
+                setText(`tripShowRollup${key}Count`, `${Number(payload?.count || 0)} pembayaran`);
             };
 
             let inFlight = false;
@@ -305,7 +305,7 @@
                     const passengerCount = Number(payload?.passenger_count || 0);
                     if (totalPassengersEl) totalPassengersEl.textContent = String(passengerCount);
                     if (passengerCountChipEl) {
-                        passengerCountChipEl.textContent = `${passengerCount} passenger${passengerCount === 1 ? '' : 's'}`;
+                        passengerCountChipEl.textContent = `${passengerCount} penumpang`;
                     }
                     renderPassengers(payload?.passengers);
 
