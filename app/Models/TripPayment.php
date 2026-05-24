@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -44,6 +45,21 @@ class TripPayment extends Model
     public function confirmer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function scopeUnpaid(Builder $query): Builder
+    {
+        return $query->where('payment_status', 'unpaid');
+    }
+
+    public function scopePendingConfirmation(Builder $query): Builder
+    {
+        return $query->where('payment_status', 'pending_confirmation');
+    }
+
+    public function scopeOutstanding(Builder $query): Builder
+    {
+        return $query->whereIn('payment_status', ['unpaid', 'pending_confirmation']);
     }
 }
 

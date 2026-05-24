@@ -573,10 +573,10 @@
             font-size: 13px;
         }
         .payments-btn-highlight {
-            background: #fffbeb;
-            border-color: #fde68a;
-            color: #92400e;
-            box-shadow: 0 0 0 2px rgba(253, 230, 138, 0.45);
+            background: var(--ch-yellow);
+            border-color: var(--ch-yellow-line);
+            color: var(--ch-yellow-ink);
+            box-shadow: none;
         }
         .payments-btn:disabled,
         .payments-btn.is-disabled {
@@ -1366,6 +1366,1717 @@
                 min-width: 92px;
             }
         }
+
+        /* ── Design-spec layout ── */
+        .pmt-page-eyebrow { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px; }
+        .pmt-page-h1 { margin:0 0 4px; font-family:var(--font-display); font-size:28px; font-weight:800; color:var(--ink); letter-spacing:-0.02em; }
+        .pmt-page-sub { margin:0; color:var(--muted); font-size:13.5px; }
+        .pmt-header-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+        .pmt-tabs { display:flex; gap:4px; flex-wrap:wrap; margin-top:12px; }
+        .pmt-tab { display:inline-flex; align-items:center; border:1px solid var(--hairline-strong); border-radius:var(--r-pill); background:var(--surface-2); color:var(--muted); padding:5px 14px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:background .14s,border-color .14s,color .14s; }
+        .pmt-tab.active { background:var(--ch-yellow); border-color:var(--ch-yellow-deep); color:var(--ch-yellow-ink); }
+        @media (min-width:1024px) { .pmt-body-grid { display:grid; grid-template-columns:3fr 1fr; gap:18px; } }
+
+        .payments-page {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 4px 0 22px;
+            gap: 14px;
+        }
+        .payments-card,
+        .payments-tools-card {
+            border-color: #eadfcb;
+            border-radius: 18px;
+            background: #fffdf9;
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+        }
+        .payments-card:first-child {
+            border: 0;
+            box-shadow: none;
+            background: transparent;
+            padding: 0;
+        }
+        .pmt-page-eyebrow { color: #64748b; }
+        .pmt-page-h1 {
+            font-size: clamp(28px, 4vw, 42px);
+            letter-spacing: 0;
+        }
+        .pmt-page-sub { max-width: 560px; }
+        .pmt-tabs {
+            width: fit-content;
+            border: 1px solid #eadfcb;
+            border-radius: 14px;
+            background: #fffdf9;
+            padding: 4px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        }
+        .pmt-tab {
+            min-height: 34px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: #475569;
+            padding: 0 14px;
+        }
+        .pmt-tab.active {
+            background: #fff7d6;
+            color: #0f172a;
+            border-color: transparent;
+        }
+        .payments-tools-card {
+            padding: 14px;
+        }
+        .payments-tool-item,
+        .summary-item {
+            border-color: #eadfcb;
+            background: #fffaf0;
+            border-radius: 14px;
+        }
+        .payments-tool-value,
+        .summary-value {
+            font-size: 20px;
+            font-family: var(--font-display);
+            letter-spacing: 0;
+        }
+        .payments-section-title {
+            font-family: var(--font-display);
+            font-size: 18px;
+            letter-spacing: 0;
+        }
+        .payments-section-subtitle,
+        .payments-filter-panel {
+            display: none;
+        }
+        .payments-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .payments-table th {
+            background: #fffaf0;
+            color: #64748b;
+            font-size: 11px;
+            letter-spacing: .08em;
+        }
+        .payments-table td {
+            border-top: 1px solid #efe5d4;
+            vertical-align: middle;
+        }
+        .payments-table tbody tr:first-child td {
+            border-top: 0;
+        }
+        .payments-table tbody tr:hover td {
+            background: #fffaf0;
+        }
+        .status-chip {
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .payments-btn,
+        .payments-link {
+            border-radius: 12px;
+            font-weight: 800;
+        }
+        .payments-link {
+            min-height: 34px;
+            padding: 0 12px;
+            border: 1px solid #eadfcb;
+            background: #fffdf9;
+            color: #0f172a;
+            margin-top: 6px;
+        }
+        .payments-action-row {
+            justify-content: flex-end;
+        }
+        .payments-action-row .payments-input[type="text"] {
+            display: none;
+        }
+        .payments-btn-icon.open-driver-payment-details-btn {
+            display: none;
+        }
+        .payment-mobile-item {
+            border-color: #eadfcb;
+            background: #fffdf9;
+        }
+        .payment-mobile-amount-card {
+            background: #fffaf0;
+            border-color: #eadfcb;
+        }
+
+        .payments-hero-card .pmt-header-row {
+            align-items: center;
+        }
+        .payments-back-btn,
+        .payments-profile-pill {
+            width: 42px;
+            height: 42px;
+            border: 1px solid #eadfcb;
+            border-radius: 12px;
+            background: #fffdf9;
+            color: #0f172a;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-weight: 800;
+            flex: 0 0 auto;
+        }
+        .payments-profile-pill {
+            border-color: #facc15;
+            border-radius: 999px;
+            background: #fff9db;
+            font-size: 12px;
+        }
+        .payments-mobile-total {
+            display: grid;
+            gap: 8px;
+            margin: 0 -14px;
+            padding: 18px 14px;
+            background: linear-gradient(135deg, #fff7b8 0%, #facc15 100%);
+            color: #0f172a;
+        }
+        .payments-summary-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .payments-summary-title-block {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+        }
+        .payments-summary-mode-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .payments-summary-switch {
+            display: inline-flex;
+            flex: 0 0 auto;
+            padding: 3px;
+            border: 1px solid rgba(120, 90, 0, .18);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .38);
+        }
+        .payments-summary-switch label {
+            min-height: 32px;
+            border-radius: 9px;
+            padding: 7px 10px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #mobileSummaryDriver:checked ~ .payments-summary-top label[for="mobileSummaryDriver"],
+        #mobileSummaryPassenger:checked ~ .payments-summary-top label[for="mobileSummaryPassenger"],
+        #desktopSummaryDriver:checked ~ .payments-summary-top label[for="desktopSummaryDriver"],
+        #desktopSummaryPassenger:checked ~ .payments-summary-top label[for="desktopSummaryPassenger"] {
+            background: rgba(255, 255, 255, .78);
+            color: var(--ink);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, .08);
+        }
+        .payments-summary-mode-panel {
+            display: none;
+            gap: 8px;
+        }
+        #mobileSummaryDriver:checked ~ .payments-summary-driver-panel,
+        #mobileSummaryPassenger:checked ~ .payments-summary-passenger-panel,
+        #desktopSummaryDriver:checked ~ .payments-summary-driver-panel,
+        #desktopSummaryPassenger:checked ~ .payments-summary-passenger-panel {
+            display: grid;
+        }
+        .payments-mobile-total span,
+        .payments-total-label {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .12em;
+            color: #5f4b08;
+        }
+        .payments-mobile-total strong {
+            font-family: var(--font-display);
+            font-size: 30px;
+            line-height: 1;
+        }
+        .payments-mobile-total small {
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .payments-main-grid {
+            display: grid;
+            gap: 14px;
+        }
+        .payments-side-panel {
+            display: none;
+        }
+        .payments-total-card {
+            border: 1px solid #facc15;
+            border-radius: 18px;
+            background: #fff8cf;
+            padding: 18px;
+            display: grid;
+            gap: 10px;
+            position: sticky;
+            top: 18px;
+        }
+        .payments-total-card strong {
+            font-family: var(--font-display);
+            font-size: 34px;
+            line-height: 1;
+            color: #0f172a;
+        }
+        .payments-total-card small {
+            color: #047857;
+            font-weight: 800;
+        }
+        .payments-total-line {
+            border-top: 1px solid rgba(120, 90, 0, .18);
+            padding-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: #0f172a;
+            font-size: 13px;
+        }
+        .payments-total-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+            gap: 8px;
+        }
+        .payments-total-metric {
+            border: 1px solid rgba(120, 90, 0, .18);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .45);
+            padding: 9px 10px;
+            display: grid;
+            gap: 2px;
+        }
+        .payments-total-metric span,
+        .payments-summary-detail-row span,
+        .payments-summary-detail-empty {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .payments-total-metric b {
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .payments-summary-detail {
+            border-top: 1px solid rgba(120, 90, 0, .18);
+            padding-top: 10px;
+            display: grid;
+            gap: 8px;
+        }
+        .payments-summary-detail summary {
+            cursor: pointer;
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 900;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .payments-summary-detail summary::-webkit-details-marker {
+            display: none;
+        }
+        .payments-summary-detail summary::after {
+            content: "\f078";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--muted);
+            font-size: 10px;
+            transition: transform .16s ease;
+        }
+        .payments-summary-detail[open] summary::after {
+            transform: rotate(180deg);
+        }
+        .payments-summary-detail-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 2px;
+        }
+        .payments-summary-detail-row {
+            border: 1px solid rgba(120, 90, 0, .18);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .58);
+            padding: 10px;
+            display: grid;
+            gap: 8px;
+        }
+        .payments-summary-detail-row strong {
+            color: var(--ink);
+            font-family: var(--font-display), sans-serif;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1.25;
+        }
+        .payments-summary-detail-row small {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+        .payments-summary-amount-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .payments-summary-amount-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-height: 24px;
+            border: 1px solid rgba(120, 90, 0, .16);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .65);
+            color: var(--muted);
+            padding: 4px 8px;
+            font-size: 10.5px;
+            font-weight: 900;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .payments-summary-amount-chip strong {
+            font-family: var(--font-ui), sans-serif;
+            font-size: 10.5px;
+            color: var(--ink);
+            line-height: 1;
+        }
+        .payments-summary-amount-chip.is-unpaid {
+            border-color: #fecaca;
+            background: #fff1f2;
+            color: #991b1b;
+        }
+        .payments-summary-amount-chip.is-sent,
+        .payments-summary-amount-chip.is-pending {
+            border-color: #fde68a;
+            background: #fffbeb;
+            color: #854d0e;
+        }
+        .payments-summary-amount-chip.is-paid {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #047857;
+        }
+        .payments-summary-amount-chip.is-total {
+            border-color: var(--ch-yellow-line);
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+        }
+        .payments-summary-detail-empty {
+            border: 1px dashed rgba(120, 90, 0, .25);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .payments-summary-panel {
+            border-top: 1px solid rgba(120, 90, 0, .18);
+            padding-top: 10px;
+            display: grid;
+            gap: 8px;
+        }
+        .payments-summary-panel-title {
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 900;
+        }
+        .payments-tools-card,
+        .payments-summary-card {
+            display: none;
+        }
+        .payments-ledger-card {
+            padding: 0;
+            overflow: hidden;
+        }
+        .payments-ledger-card > .payments-section-title,
+        .payments-ledger-card > .payments-section-subtitle {
+            display: none;
+        }
+        .payment-person-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .payment-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            border: 1px solid #facc15;
+            background: #fff9db;
+            color: #0f172a;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            flex: 0 0 auto;
+            overflow: hidden;
+        }
+        .payment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .payment-name,
+        .payment-route-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.25;
+        }
+        .payment-meta {
+            margin-top: 2px;
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .payment-method-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            border: 1px solid #eadfcb;
+            border-radius: 999px;
+            padding: 0 9px;
+            background: #fffdf9;
+            color: #0f172a;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .payment-table-amount,
+        .payment-mobile-amount-line {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .payment-mobile-side {
+            display: grid;
+            justify-items: end;
+            gap: 5px;
+        }
+        .payment-card-hit {
+            margin: 0;
+            min-height: 28px;
+            padding: 0 10px;
+        }
+        .payment-route-title {
+            margin: 0;
+            font-size: 15.5px;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1.25;
+        }
+        .payment-meta-inline {
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .payment-meta-inline-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
+        }
+        .payment-meta-inline-item i {
+            color: var(--muted-2);
+            font-size: 11px;
+        }
+        .payment-inline-details-btn {
+            margin-top: 8px;
+            border: 0;
+            background: transparent;
+            color: var(--ink-2);
+            padding: 0;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .payment-inline-details-btn i {
+            color: var(--muted);
+        }
+        .payment-detail-grid {
+            display: grid;
+            gap: 8px;
+        }
+        .payment-detail-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .payment-detail-date,
+        .payment-detail-method {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .payment-detail-method {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-pill);
+            background: var(--surface-2);
+            color: var(--ink-2);
+            padding: 0 9px;
+            font-size: 11px;
+        }
+        .payment-bottom-row {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+        }
+        .payment-fare-card {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+        }
+        .payment-fare-label {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .payment-fare-value {
+            color: var(--ink);
+            font-size: 16px;
+            font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .payment-bottom-row .payments-btn {
+            min-height: 42px;
+            border-radius: 10px;
+            min-width: 106px;
+            gap: 7px;
+            font-size: 13px;
+        }
+        .payment-bottom-row .payments-btn-primary {
+            background: var(--ch-yellow);
+            border-color: var(--ch-yellow-deep);
+            color: var(--ch-yellow-ink);
+        }
+        .payment-receipt-card {
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            background: var(--surface);
+            overflow: hidden;
+        }
+        .payment-receipt-total {
+            background: var(--ch-yellow-tint);
+            border-bottom: 1px solid var(--ch-yellow-line);
+            padding: 14px;
+            display: grid;
+            gap: 4px;
+        }
+        .payment-receipt-total span {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .payment-receipt-total strong {
+            color: var(--ink);
+            font-size: 26px;
+            font-family: var(--font-display), sans-serif;
+            line-height: 1;
+        }
+        .payment-receipt-total small {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .payment-receipt-lines {
+            display: grid;
+            gap: 0;
+        }
+        .payment-receipt-lines div {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            border-top: 1px solid var(--hairline);
+            font-size: 13px;
+        }
+        .payment-receipt-lines div:first-child {
+            border-top: 0;
+        }
+        .payment-receipt-lines span {
+            color: var(--muted);
+            font-weight: 800;
+        }
+        .payment-receipt-lines strong {
+            color: var(--ink);
+            text-align: right;
+            font-weight: 800;
+        }
+        .trip-payment-review-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(15, 23, 42, .48);
+        }
+        .trip-payment-review-modal.is-open {
+            display: flex;
+        }
+        .trip-payment-review-card {
+            width: min(520px, 100%);
+            max-height: min(720px, calc(100vh - 120px));
+            overflow: hidden;
+            border-radius: 18px;
+            border: 1px solid var(--hairline);
+            background: var(--surface);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, .22);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 5001;
+        }
+        .trip-payment-review-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .trip-payment-review-title {
+            margin: 0;
+            color: var(--ink);
+            font-size: 18px;
+            font-weight: 900;
+            font-family: var(--font-display), sans-serif;
+        }
+        .trip-payment-review-sub {
+            margin: 3px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .trip-payment-review-close {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+        }
+        .trip-payment-review-list {
+            display: grid;
+            gap: 10px;
+            padding: 12px 16px 16px;
+            overflow-y: auto;
+            min-height: 0;
+            max-height: min(560px, calc(100vh - 238px));
+            overscroll-behavior: contain;
+        }
+        .trip-receipt-card {
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            background: var(--surface);
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+        }
+        .trip-receipt-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid var(--hairline);
+            padding-bottom: 10px;
+        }
+        .trip-receipt-title {
+            margin: 0;
+            color: var(--ink);
+            font: 900 18px/1.1 var(--font-display), sans-serif;
+        }
+        .trip-receipt-id {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 3px;
+        }
+        .trip-receipt-status {
+            border-radius: var(--r-pill);
+            border: 1px solid #86efac;
+            background: var(--success-soft);
+            color: var(--success-ink);
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .trip-receipt-lines {
+            display: grid;
+            gap: 8px;
+        }
+        .trip-receipt-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .trip-receipt-line strong {
+            color: var(--ink);
+            text-align: right;
+        }
+        .trip-receipt-total {
+            border-radius: 12px;
+            background: var(--surface-2);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .trip-receipt-total span {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .trip-receipt-total strong {
+            color: var(--ink);
+            font: 900 24px/1 var(--font-display), sans-serif;
+        }
+        .trip-payment-review-item {
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            background: var(--surface);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+            min-height: 0;
+        }
+        .trip-payment-review-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .trip-payment-review-person {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .trip-payment-review-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            border: 1px solid var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+            flex: 0 0 auto;
+        }
+        .trip-payment-review-name {
+            display: block;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+        .trip-payment-review-route {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .trip-payment-review-status {
+            border-radius: var(--r-pill);
+            border: 1px solid var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
+            padding: 4px 9px;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .trip-payment-review-amount {
+            border-radius: 10px;
+            background: var(--surface-2);
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 68px;
+        }
+        .trip-payment-review-amount span {
+            display: block;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+        .trip-payment-review-amount strong {
+            display: block;
+            color: var(--ink);
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.1;
+            font-family: var(--font-display), sans-serif;
+        }
+        .trip-payment-popup-result {
+            border: 1px solid #bbf7d0;
+            border-radius: 14px;
+            background: #f0fdf4;
+            padding: 22px 16px;
+            display: grid;
+            justify-items: center;
+            gap: 8px;
+            text-align: center;
+            color: #166534;
+            animation: paymentResultIn .22s ease-out both;
+        }
+        .trip-payment-popup-result.error {
+            border-color: #fecaca;
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+        .trip-payment-popup-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            background: #16a34a;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 10px 24px rgba(22, 163, 74, .24);
+        }
+        .trip-payment-popup-result.error .trip-payment-popup-icon {
+            background: var(--danger);
+        }
+        .trip-payment-popup-title {
+            color: #14532d;
+            font-size: 15px;
+            font-weight: 900;
+        }
+        .trip-payment-popup-message {
+            color: #166534;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+        .trip-payment-popup-result.error .trip-payment-popup-title,
+        .trip-payment-popup-result.error .trip-payment-popup-message {
+            color: var(--danger);
+        }
+        @keyframes paymentResultIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .trip-paynow-form {
+            display: grid;
+            gap: 10px;
+        }
+        .trip-paynow-fields {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 8px;
+        }
+        .trip-paynow-input {
+            width: 100%;
+            min-height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 0 11px;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            outline: none;
+        }
+        .trip-paynow-input:focus {
+            border-color: var(--ch-yellow-line);
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, .18);
+        }
+        .trip-paynow-submit {
+            width: 100%;
+            min-height: 42px;
+            border-radius: 11px;
+            border: 1px solid var(--ink);
+            background: var(--ink);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .payment-paynow-driver {
+            border: 1px solid var(--hairline);
+            border-radius: 12px;
+            background: var(--surface-2);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .payment-paynow-driver .driver-payment-qr-preview {
+            height: 120px;
+            background: var(--surface);
+        }
+        .payment-paynow-driver .trip-details-pairs {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .payment-paynow-driver .request-modal-line {
+            background: var(--surface);
+            min-height: 0;
+        }
+        @media (max-width: 520px) {
+            .trip-paynow-fields {
+                grid-template-columns: 1fr;
+            }
+            .payment-paynow-driver .trip-details-pairs,
+            .payment-paynow-driver .driver-payment-qr-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .payments-page {
+                max-width: 420px;
+                padding: 0 10px 22px;
+                gap: 10px;
+            }
+            .payments-hero-card {
+                position: sticky;
+                top: 0;
+                z-index: 20;
+                padding: 10px 0 !important;
+                background: #fbf8ef !important;
+            }
+            .payments-hero-card .pmt-page-eyebrow,
+            .payments-hero-card .pmt-page-sub,
+            .payments-hero-card .pmt-tabs {
+                display: none;
+            }
+            .pmt-page-h1 {
+                font-size: 18px;
+            }
+            .payment-mobile-item {
+                border-radius: 18px;
+                padding: 12px;
+                box-shadow: 0 8px 20px rgba(15, 23, 42, .05);
+            }
+            .payment-mobile-sub {
+                font-size: 11px;
+                font-weight: 700;
+            }
+            .status-chip {
+                padding: 4px 9px;
+                font-size: 11px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .payments-mobile-total {
+                display: none;
+            }
+            .payments-main-grid {
+                grid-template-columns: minmax(0, 1fr) 280px;
+                align-items: start;
+            }
+            .payments-side-panel {
+                display: grid;
+                gap: 14px;
+            }
+            .payments-ledger-card {
+                padding: 0;
+            }
+            .payments-table-wrap {
+                display: block !important;
+            }
+            .payments-mobile-list {
+                display: none !important;
+            }
+        }
+
+        /* Final payments polish: keep this after legacy page rules. */
+        .payments-page {
+            background: transparent;
+        }
+        .payments-page-header {
+            padding: 10px 2px 4px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .payments-page-header-left {
+            display: grid;
+            gap: 2px;
+        }
+        .payments-eyebrow {
+            margin: 0;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .payments-h1 {
+            margin: 0;
+            font-family: var(--font-display), sans-serif;
+            font-size: 36px;
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--ink);
+        }
+        .payments-sub {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 620px;
+        }
+        .payments-tab-strip {
+            display: inline-flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            padding: 4px;
+            border: 1px solid var(--hairline);
+            border-radius: 10px;
+            background: var(--surface-2);
+            width: fit-content;
+        }
+        .payments-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted);
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            text-decoration: none;
+            transition: background .14s, border-color .14s, color .14s;
+        }
+        .payments-tab:hover {
+            background: var(--canvas);
+            border-color: var(--ch-yellow-line);
+            color: var(--ink-2);
+        }
+        .payments-tab.active {
+            background: var(--surface);
+            border-color: var(--hairline);
+            color: var(--ink);
+            box-shadow: var(--shadow-1);
+        }
+        .payments-tab span {
+            color: inherit;
+        }
+        .payments-page-header-left .payments-tab-strip + .payments-tab-strip {
+            display: none;
+        }
+        .payments-header-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .payments-filter-launch {
+            box-shadow: none;
+        }
+        .payments-ledger-card .trips-filter-form {
+            gap: 10px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            padding: 14px;
+        }
+        .trips-filter-hint {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            grid-column: 1 / -1;
+        }
+        .trips-filter-field {
+            display: grid;
+            gap: 4px;
+        }
+        .trips-filter-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+        .trips-filter-input {
+            width: 100%;
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-sm);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 8px 10px;
+            font-size: 13px;
+            outline: none;
+            font-family: var(--font-ui), sans-serif;
+        }
+        .trips-filter-input:focus {
+            border-color: var(--ch-yellow-line);
+            box-shadow: 0 0 0 2px rgba(250, 204, 21, .18);
+        }
+        .trips-filter-actions {
+            display: inline-flex;
+            align-items: flex-end;
+        }
+        @media (min-width: 640px) {
+            .payments-ledger-card .trips-filter-form {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(140px, 180px) minmax(180px, 1fr) auto;
+                align-items: end;
+            }
+        }
+        .payments-ledger-card .payments-filter-panel.is-open,
+        .payments-ledger-card .payments-filter-panel.has-active-filter {
+            display: grid;
+            margin: 14px 20px 0;
+        }
+        .payments-ledger-card .payments-filter-panel {
+            display: none;
+        }
+        .payments-hero-card {
+            border: 1px solid var(--hairline-strong) !important;
+            border-radius: 18px !important;
+            background: var(--surface) !important;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, .06) !important;
+            padding: 14px !important;
+        }
+        .payments-hero-card .pmt-header-row {
+            margin-bottom: 0;
+            flex-wrap: nowrap;
+        }
+        .payments-ledger-card,
+        .payments-total-card {
+            border-color: var(--hairline-strong);
+            background: var(--surface);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, .06);
+        }
+        .payments-ledger-card {
+            border-radius: 18px;
+        }
+        .payments-total-card {
+            background: linear-gradient(135deg, var(--ch-yellow-tint) 0%, #fff4a3 100%);
+        }
+        .payments-table th {
+            background: var(--surface-2);
+            color: var(--muted);
+        }
+        .payments-table td {
+            background: var(--surface);
+            border-color: var(--hairline);
+        }
+        .payments-table tbody tr:hover td {
+            background: var(--ch-yellow-tint);
+        }
+        @media (min-width: 768px) {
+            .payments-ledger-card {
+                overflow: hidden;
+            }
+            .payments-table-wrap {
+                overflow-x: auto;
+            }
+            .payments-table {
+                width: 100%;
+                table-layout: fixed;
+                border-collapse: collapse;
+                font-family: var(--font-ui), sans-serif;
+            }
+            .payments-table thead tr {
+                background: var(--surface-2);
+            }
+            .payments-table th,
+            .payments-table td {
+                padding: 14px 16px;
+                border-bottom: 1px solid var(--hairline);
+                vertical-align: top;
+                text-align: left;
+            }
+            .payments-table th {
+                background: transparent;
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 900;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
+            .payments-table td {
+                color: var(--ink);
+                font-size: 13px;
+                word-break: normal;
+            }
+            .payments-table th:nth-child(1),
+            .payments-table td:nth-child(1) {
+                width: 16%;
+            }
+            .payments-table th:nth-child(2),
+            .payments-table td:nth-child(2) {
+                width: 34%;
+            }
+            .payments-table th:nth-child(3),
+            .payments-table td:nth-child(3) {
+                width: 12%;
+            }
+            .payments-table th:nth-child(4),
+            .payments-table td:nth-child(4) {
+                width: 12%;
+                text-align: right;
+            }
+            .payments-table th:nth-child(5),
+            .payments-table td:nth-child(5) {
+                width: 12%;
+            }
+            .payments-table th:nth-child(6),
+            .payments-table td:nth-child(6) {
+                width: 14%;
+                text-align: center !important;
+            }
+            .payments-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+            .payments-table tbody tr:hover td {
+                background: var(--ch-yellow-tint);
+            }
+            .payments-table .payment-route-title {
+                margin: 0;
+                color: var(--ink);
+                font-size: 13px;
+                font-weight: 900;
+                line-height: 1.3;
+                white-space: normal;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+            .payments-table .payments-link {
+                display: none;
+            }
+            .payments-table .payment-person-block {
+                gap: 0;
+            }
+            .payments-table .payment-name {
+                color: var(--ink);
+                font-size: 13px;
+                font-weight: 900;
+                line-height: 1.2;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 140px;
+            }
+            .payments-table .payment-meta {
+                margin-top: 3px;
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 800;
+            }
+            .payments-table .payment-trip-meta {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                flex-wrap: wrap;
+                margin-top: 6px;
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 800;
+                line-height: 1.2;
+            }
+            .payments-table .payment-trip-meta span {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                min-width: 0;
+            }
+            .payments-table .payment-method-pill {
+                min-height: 28px;
+                border-color: var(--hairline);
+                background: var(--surface-2);
+                color: var(--ink-2);
+                padding: 0 10px;
+                font-size: 11px;
+                font-weight: 900;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .payments-table .status-chip {
+                min-height: 26px;
+                padding: 5px 10px;
+                font-size: 11px;
+                font-weight: 900;
+                white-space: nowrap;
+            }
+            .payments-table .payment-table-amount {
+                color: var(--ink);
+                font-family: var(--font-display), sans-serif;
+                font-size: 13.5px;
+                font-weight: 900;
+                white-space: nowrap;
+            }
+            .payments-table .payment-table-amount + div {
+                margin-top: 3px;
+                color: var(--muted) !important;
+                font-size: 11px !important;
+                font-weight: 700 !important;
+                line-height: 1.25;
+            }
+            .payments-table .payment-table-date {
+                display: inline-grid;
+                gap: 2px;
+                white-space: nowrap;
+                color: var(--ink);
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+                font-size: 11px;
+                font-weight: 900;
+                line-height: 1.2;
+            }
+            .payments-table .payment-table-time {
+                color: var(--muted);
+                font-size: 10.5px;
+                font-weight: 900;
+            }
+            .payments-table .payments-action-row,
+            .payments-table form.payments-action-row {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                flex-wrap: nowrap;
+                margin: 0;
+                width: 100%;
+            }
+            .payments-table .payments-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                min-height: 38px !important;
+                width: auto !important;
+                min-width: 96px !important;
+                border-radius: 10px;
+                padding: 9px 12px;
+                font-size: 12px;
+                font-weight: 900;
+                box-shadow: none;
+                white-space: nowrap;
+            }
+            .payments-table td:nth-child(6) .payments-btn-primary {
+                max-width: 100%;
+            }
+            .payments-table .payments-btn i {
+                width: 14px;
+                min-width: 14px;
+                font-size: 12px;
+                line-height: 1;
+                flex: 0 0 auto;
+                text-align: center;
+            }
+            .payments-table .payment-action-note {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                min-height: 34px;
+                border-radius: 10px;
+                background: var(--ch-yellow-tint);
+                border: 1px solid var(--ch-yellow-line);
+                color: #854d0e;
+                padding: 6px 10px;
+                font-size: 11px;
+                font-weight: 900;
+                line-height: 1.2;
+                text-align: center;
+            }
+            .payments-table .payments-btn-primary {
+                background: var(--ch-yellow);
+                border-color: var(--ch-yellow-line);
+                color: var(--ch-yellow-ink);
+            }
+            .payments-table .payments-btn-primary:hover {
+                background: var(--ch-yellow-deep);
+                border-color: var(--ch-yellow-deep);
+                color: var(--ch-yellow-ink);
+            }
+            .payments-table .payments-btn-soft {
+                background: var(--surface);
+                border-color: var(--hairline-strong);
+                color: var(--ink);
+            }
+            .payments-table .payments-btn-soft:hover {
+                background: var(--ch-yellow-tint);
+                border-color: var(--ch-yellow-line);
+            }
+            .payments-table .payment-table-action {
+                border-color: var(--ch-yellow-line);
+                background: var(--ch-yellow);
+                color: var(--ch-yellow-ink);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                min-width: 96px !important;
+                width: 96px !important;
+                min-height: 38px !important;
+                padding: 9px 12px;
+                font-weight: 900;
+            }
+            .payments-table .payment-table-action:hover {
+                border-color: var(--ch-yellow-deep);
+                background: var(--ch-yellow-deep);
+                color: var(--ch-yellow-ink);
+            }
+            .payments-table .payment-table-action i {
+                width: 14px;
+                min-width: 14px;
+                font-size: 12px !important;
+                line-height: 1;
+                text-align: center;
+            }
+            .payments-table .payment-table-action.is-muted {
+                border-color: var(--hairline-strong);
+                background: var(--surface-2);
+                color: var(--muted);
+            }
+            .payments-table .payment-table-action.is-muted:hover {
+                border-color: var(--hairline-strong);
+                background: var(--surface-2);
+                color: var(--ink-2);
+            }
+            .payments-table .payments-input[type="text"] {
+                display: none;
+            }
+            .payments-table .payments-btn-icon {
+                width: 34px !important;
+                min-width: 34px !important;
+                padding: 0;
+            }
+            .payments-table .open-driver-payment-details-btn {
+                order: 1;
+            }
+            .payments-table .open-driver-payment-details-btn + .payments-btn-primary {
+                order: 0;
+            }
+        }
+        .payments-mobile-total {
+            margin: 0;
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--ch-yellow-tint) 0%, var(--ch-yellow) 100%);
+            box-shadow: 0 10px 24px rgba(250, 204, 21, .16);
+        }
+        .payment-mobile-item {
+            border-color: var(--hairline-strong) !important;
+            background: var(--surface) !important;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, .05);
+        }
+        .payment-mobile-top {
+            align-items: flex-start;
+        }
+        .payment-mobile-side {
+            min-width: 116px;
+        }
+        .payment-mobile-grid {
+            margin-top: -2px;
+        }
+        .payment-mobile-line {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            align-items: flex-start;
+        }
+        .payment-mobile-line span {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .payment-mobile-line strong {
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        .payment-card-hit,
+        .payments-link {
+            border-radius: 10px;
+            background: var(--surface-2);
+            border-color: var(--hairline);
+            margin: 0;
+        }
+        #my-payments-list .payment-mobile-item .payments-action-row,
+        #my-payments-list .payment-mobile-item form.payments-action-row {
+            display: flex !important;
+            justify-content: flex-end;
+            justify-items: end;
+            margin-top: 2px;
+        }
+        #my-payments-list .payment-mobile-item .payments-btn {
+            width: auto !important;
+            min-width: 112px !important;
+            min-height: 36px !important;
+            border-radius: 11px;
+            padding: 0 14px;
+        }
+        #my-payments-list .payment-mobile-item .payments-btn-primary {
+            background: var(--ch-yellow);
+            border-color: var(--ch-yellow-deep);
+            color: var(--ch-yellow-ink);
+        }
+        .payments-archive-cta,
+        #archived-queue {
+            display: none !important;
+        }
+        #queue-summary {
+            display: none;
+        }
+        #driver-review-list {
+            display: none !important;
+        }
+
+        @media (max-width: 767px) {
+            .payments-page {
+                max-width: 100%;
+                padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 92px);
+                gap: 12px;
+            }
+            .payments-page-header {
+                padding: 2px 2px 0;
+            }
+            .payments-h1 {
+                font-size: 30px;
+            }
+            .payments-sub {
+                font-size: 12.5px;
+            }
+            .payments-tab-strip {
+                width: 100%;
+                display: inline-flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                scrollbar-width: none;
+                margin-top: 12px;
+            }
+            .payments-tab-strip::-webkit-scrollbar {
+                display: none;
+            }
+            .payments-tab {
+                justify-content: center;
+                padding: 8px 16px;
+                flex: 0 0 auto;
+            }
+            .payments-header-actions {
+                width: 100%;
+            }
+            .payments-filter-launch {
+                min-width: 98px;
+            }
+            .payments-ledger-card .payments-filter-panel.is-open,
+            .payments-ledger-card .payments-filter-panel.has-active-filter {
+                margin: 0 0 12px;
+            }
+            .payments-hero-card {
+                position: static !important;
+                padding: 12px !important;
+            }
+            .payments-back-btn,
+            .payments-profile-pill {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+            }
+            .pmt-page-h1 {
+                font-size: 18px !important;
+                margin: 0;
+            }
+            .payments-mobile-total {
+                padding: 18px 16px;
+            }
+            .payment-mobile-item {
+                border-radius: 16px;
+                padding: 14px 14px 12px;
+                gap: 10px;
+            }
+            .payments-table-wrap {
+                display: none !important;
+            }
+            .payments-ledger-card {
+                border: 0;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+                overflow: visible;
+            }
+            .payment-table-amount,
+            .payment-mobile-amount-line {
+                font-size: 13px;
+            }
+            #my-payments-list .payment-mobile-item .payments-action-row,
+            #my-payments-list .payment-mobile-item form.payments-action-row {
+                margin-top: 0;
+            }
+            #my-payments-list .payment-mobile-item .payments-btn {
+                min-width: 102px !important;
+            }
+        }
     </style>
 
     @php
@@ -1375,12 +3086,280 @@
         $isPassenger = $role === 'passenger';
         $unpaidAmt = (float) ($summary['my']['unpaid']['amount'] ?? $summary['driver']['unpaid']['amount'] ?? 0);
         $pendingAmt = (float) ($summary['my']['pending_confirmation']['amount'] ?? $summary['driver']['pending_confirmation']['amount'] ?? 0);
+        $paidAmt = (float) ($summary['my']['paid']['amount'] ?? 0);
+        $myTotalAmt = (float) (($summary['my']['unpaid']['amount'] ?? 0) + ($summary['my']['pending_confirmation']['amount'] ?? 0) + ($summary['my']['paid']['amount'] ?? 0));
+        $paidOutAmt = (float) (($summary['my']['unpaid']['amount'] ?? 0) + ($summary['my']['pending_confirmation']['amount'] ?? 0));
+        $monthLabel = now()->format('F Y');
+        $allLivePayments = collect($myPayments?->items() ?? [])
+            ->merge(collect(($driverPayments ?? null)?->items() ?? []))
+            ->unique(fn ($payment) => $payment->id . ':' . $payment->trip_id)
+            ->sortByDesc(fn ($payment) => $payment->trip?->trip_datetime?->timestamp ?? $payment->id)
+            ->values();
+        $paymentPerspective = fn ($payment): string => (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
+            && (int) $payment->user_id !== (int) auth()->id()
+                ? 'collect'
+                : 'pay';
+        $activePaymentFilter = $filters['payment_filter'] ?? request('payment_filter', 'all');
+        $activeDirection = $filters['direction'] ?? request('direction', 'all');
+        $paymentTabUrl = fn (array $overrides = []) => route('payments.index', array_filter(
+            array_merge(request()->except(['payment_filter', 'direction', 'mine_page', 'driver_page']), $overrides),
+            fn ($value) => $value !== null && $value !== '' && $value !== 'all'
+        ));
+        $allLiveCount = (int) ($paymentCounts['all'] ?? $allLivePayments->count());
+        $payCount = (int) ($paymentCounts['pay'] ?? $allLivePayments->filter(fn ($payment) => $paymentPerspective($payment) === 'pay')->count());
+        $collectCount = (int) ($paymentCounts['collect'] ?? $allLivePayments->filter(fn ($payment) => $paymentPerspective($payment) === 'collect')->count());
+        $unpaidCount = (int) ($paymentCounts['unpaid'] ?? $allLivePayments->where('payment_status', 'unpaid')->count());
+        $reviewCount = (int) ($paymentCounts['review'] ?? $allLivePayments->where('payment_status', 'pending_confirmation')->count());
+        $confirmedCount = (int) ($paymentCounts['confirmed'] ?? $allLivePayments->where('payment_status', 'paid')->count());
+        $paymentInitials = fn (?string $name): string => collect(explode(' ', trim((string) $name)))
+            ->filter()
+            ->map(fn ($part) => mb_substr($part, 0, 1))
+            ->take(2)
+            ->implode('') ?: 'P';
+        $paymentFareBreakdown = function ($payment): array {
+            $trip = $payment->trip;
+            $routePoint = $trip?->passengerRoutePoints
+                ?->first(fn ($point) => (int) $point->user_id === (int) $payment->user_id
+                    && in_array((string) $point->status, ['accepted', 'approved'], true)
+                    && (float) ($point->extra_fee_amount ?? 0) > 0);
+            $extra = (float) ($routePoint?->extra_fee_amount ?? 0);
+            $total = (float) ($payment->amount_due ?? 0);
+            $base = $extra > 0 ? max(0, $total - $extra) : $total;
+            $pickupLabel = $routePoint && ! $routePoint->uses_default_pickup
+                ? ($routePoint->pickup_name ?: 'Custom pickup')
+                : null;
+            $dropoffLabel = $routePoint && ! $routePoint->uses_default_dropoff
+                ? ($routePoint->dropoff_name ?: 'Custom drop-off')
+                : null;
+
+            return [
+                'base' => $base,
+                'extra' => $extra,
+                'total' => $total,
+                'has_extra' => $extra > 0,
+                'custom_stop' => trim(implode(' -> ', array_filter([$pickupLabel, $dropoffLabel]))) ?: null,
+            ];
+        };
+        $driverUnpaidAmount = (float) ($summary['driver']['unpaid']['amount'] ?? 0);
+        $driverPendingAmount = (float) ($summary['driver']['pending_confirmation']['amount'] ?? 0);
+        $driverPaidAmount = (float) ($summary['driver']['paid']['amount'] ?? 0);
+        $myUnpaidAmount = (float) ($summary['my']['unpaid']['amount'] ?? 0);
+        $myPendingAmount = (float) ($summary['my']['pending_confirmation']['amount'] ?? 0);
+        $myPaidAmount = (float) ($summary['my']['paid']['amount'] ?? 0);
+        $summaryMainLabel = $canReviewQueue ? 'To collect' : 'To pay';
+        $summaryMainAmount = $canReviewQueue
+            ? ($driverUnpaidAmount + $driverPendingAmount + $driverPaidAmount)
+            : ($myUnpaidAmount + $myPendingAmount);
+        $summaryPrimaryAmount = $canReviewQueue ? $driverUnpaidAmount : $myUnpaidAmount;
+        $summaryPrimaryLabel = $canReviewQueue ? 'Unpaid by passengers' : 'Unpaid to drivers';
+        $summarySecondaryAmount = $canReviewQueue ? $driverPendingAmount : $myPendingAmount;
+        $summarySecondaryLabel = $canReviewQueue ? 'Pending confirmation' : 'Pending confirmation';
+        $driverCollectionRows = $allLivePayments
+            ->filter(fn ($payment) => $paymentPerspective($payment) === 'collect' && in_array((string) $payment->payment_status, ['unpaid', 'pending_confirmation', 'paid'], true))
+            ->groupBy(fn ($payment) => $payment->user?->name ?: 'Passenger')
+            ->map(function ($rows, $passengerName) {
+                $unpaid = (float) $rows->where('payment_status', 'unpaid')->sum('amount_due');
+                $pending = (float) $rows->where('payment_status', 'pending_confirmation')->sum('amount_due');
+                $paid = (float) $rows->where('payment_status', 'paid')->sum('amount_due');
+
+                return [
+                    'name' => $passengerName,
+                    'unpaid' => $unpaid,
+                    'pending' => $pending,
+                    'paid' => $paid,
+                    'total' => $unpaid + $pending + $paid,
+                    'records' => $rows->count(),
+                ];
+            })
+            ->values();
+        $passengerPayRows = $allLivePayments
+            ->filter(fn ($payment) => $paymentPerspective($payment) === 'pay' && in_array((string) $payment->payment_status, ['unpaid', 'pending_confirmation', 'paid'], true))
+            ->groupBy(fn ($payment) => $payment->trip?->driver?->name ?: 'Driver')
+            ->map(function ($rows, $driverName) {
+                $unpaid = (float) $rows->where('payment_status', 'unpaid')->sum('amount_due');
+                $pending = (float) $rows->where('payment_status', 'pending_confirmation')->sum('amount_due');
+                $paid = (float) $rows->where('payment_status', 'paid')->sum('amount_due');
+
+                return [
+                    'name' => $driverName,
+                    'unpaid' => $unpaid,
+                    'pending' => $pending,
+                    'paid' => $paid,
+                    'total' => $unpaid + $pending + $paid,
+                    'records' => $rows->count(),
+                    'next_trip' => $rows->first()?->trip?->savedRoute?->route_name
+                        ?: trim(($rows->first()?->trip?->pickup_name ?: '-') . ' -> ' . ($rows->first()?->trip?->destination_name ?: '-')),
+                ];
+            })
+            ->values();
     @endphp
 
     <div class="payments-page">
-        <section class="payments-card">
-            <h1 class="payments-title">Payments</h1>
-            <p class="payments-subtitle">{{ $isPassenger ? 'Track and submit your trip payments.' : 'Track and manage trip payment records.' }}</p>
+        <section class="payments-page-header">
+            <div class="payments-page-header-left">
+                <p class="payments-eyebrow">Payments</p>
+                <h1 class="payments-h1">{{ $isPassenger ? 'Your payments' : 'Payment ledger' }}</h1>
+                <p class="payments-sub">
+                    {{ $canReviewQueue ? 'Payments you need to pay are separated from fares you collect as a driver.' : 'Track fares you need to pay and payments already confirmed.' }}
+                </p>
+                <div class="payments-tab-strip">
+                    <a class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'all', 'direction' => 'all']) }}">All &middot; {{ $allLiveCount }}</a>
+                    @if($canReviewQueue)
+                        <a class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'pay']) }}">To pay &middot; {{ $payCount }}</a>
+                        <a class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'collect']) }}">To collect &middot; {{ $collectCount }}</a>
+                    @else
+                        <a class="payments-tab {{ $activePaymentFilter === 'unpaid' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'unpaid']) }}">Unpaid &middot; {{ $unpaidCount }}</a>
+                    @endif
+                    <a class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'review']) }}">{{ $canReviewQueue ? 'Review' : 'Pending' }} &middot; {{ $reviewCount }}</a>
+                    <a class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'confirmed']) }}">Confirmed &middot; {{ $confirmedCount }}</a>
+                </div>
+                <div class="payments-tab-strip">
+                    <button class="payments-tab active" type="button" onclick="pmtTab(this,'all')">All · {{ $allLiveCount }}</button>
+                    @if($canReviewQueue)
+                        <button class="payments-tab" type="button" onclick="pmtTab(this,'pay')">To pay · {{ $payCount }}</button>
+                        <button class="payments-tab" type="button" onclick="pmtTab(this,'collect')">To collect · {{ $collectCount }}</button>
+                    @else
+                        <button class="payments-tab" type="button" onclick="pmtTab(this,'unpaid')">Unpaid · {{ $unpaidCount }}</button>
+                    @endif
+                    <button class="payments-tab" type="button" onclick="pmtTab(this,'review')">{{ $canReviewQueue ? 'Review' : 'Pending' }} · {{ $reviewCount }}</button>
+                    <button class="payments-tab" type="button" onclick="pmtTab(this,'confirmed')">Confirmed · {{ $confirmedCount }}</button>
+                </div>
+            </div>
+            <div class="payments-header-actions">
+                <button type="button" class="btn btn-ghost btn-sm payments-filter-launch" data-payments-filter-launch>
+                    <i class="fa-solid fa-sliders"></i>
+                    Filter
+                </button>
+            </div>
+        </section>
+
+        <section class="payments-mobile-total">
+            @if($canReviewQueue)
+                <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryDriver" checked>
+                <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryPassenger">
+                <div class="payments-summary-top">
+                    <div class="payments-summary-title-block">
+                        <span>{{ strtoupper($monthLabel) }}</span>
+                    </div>
+                    <div class="payments-summary-switch" aria-label="Summary view">
+                        <label for="mobileSummaryDriver">As driver</label>
+                        <label for="mobileSummaryPassenger">As passenger</label>
+                    </div>
+                </div>
+                <div class="payments-summary-mode-panel payments-summary-driver-panel">
+                    <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount + $driverPaidAmount, 2) }}</strong>
+                    <small>To collect · {{ $collectCount }} records</small>
+                    <div class="payments-total-metrics">
+                        <div class="payments-total-metric">
+                            <span>Unpaid</span>
+                            <b>RM {{ number_format($driverUnpaidAmount, 2) }}</b>
+                        </div>
+                        <div class="payments-total-metric">
+                            <span>Pending</span>
+                            <b>RM {{ number_format($driverPendingAmount, 2) }}</b>
+                        </div>
+                        <div class="payments-total-metric">
+                            <span>Paid</span>
+                            <b>RM {{ number_format($driverPaidAmount, 2) }}</b>
+                        </div>
+                    </div>
+                <details class="payments-summary-detail">
+                    <summary>Passenger payment status</summary>
+                    <div class="payments-summary-detail-list">
+                        @forelse($driverCollectionRows as $debtRow)
+                            <div class="payments-summary-detail-row">
+                                <span>{{ $debtRow['records'] }} records</span>
+                                <strong>{{ $debtRow['name'] }}</strong>
+                                <div class="payments-summary-amount-row">
+                                    <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $debtRow['unpaid'], 2) }}</strong></span>
+                                    <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $debtRow['pending'], 2) }}</strong></span>
+                                    <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $debtRow['paid'], 2) }}</strong></span>
+                                    <span class="payments-summary-amount-chip is-total">Total <strong>RM {{ number_format((float) $debtRow['total'], 2) }}</strong></span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="payments-summary-detail-empty">No passenger payment still pending.</div>
+                        @endforelse
+                    </div>
+                </details>
+                </div>
+                <div class="payments-summary-mode-panel payments-summary-passenger-panel">
+                    <strong>RM {{ number_format($myUnpaidAmount + $myPendingAmount, 2) }}</strong>
+                    <small>To pay · Paid RM {{ number_format($myPaidAmount, 2) }}</small>
+                    <div class="payments-total-metrics">
+                        <div class="payments-total-metric">
+                            <span>Unpaid</span>
+                            <b>RM {{ number_format($myUnpaidAmount, 2) }}</b>
+                        </div>
+                        <div class="payments-total-metric">
+                            <span>Pending</span>
+                            <b>RM {{ number_format($myPendingAmount, 2) }}</b>
+                        </div>
+                        <div class="payments-total-metric">
+                            <span>Paid</span>
+                            <b>RM {{ number_format($myPaidAmount, 2) }}</b>
+                        </div>
+                    </div>
+                <details class="payments-summary-detail">
+                    <summary>Your passenger payments</summary>
+                    <div class="payments-summary-detail-list">
+                        @forelse($passengerPayRows as $payRow)
+                            <div class="payments-summary-detail-row">
+                                <span>{{ $payRow['records'] }} records</span>
+                                <strong>{{ $payRow['name'] }}</strong>
+                                <div class="payments-summary-amount-row">
+                                    <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
+                                    <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
+                                    <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="payments-summary-detail-empty">No active passenger payment due.</div>
+                        @endforelse
+                    </div>
+                </details>
+                </div>
+            @else
+                <div class="payments-summary-top">
+                    <div class="payments-summary-title-block">
+                        <span>{{ strtoupper($monthLabel) }}</span>
+                        <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
+                        <small>{{ $summaryMainLabel }} · {{ $payCount }} records</small>
+                    </div>
+                </div>
+                <div class="payments-total-metrics">
+                    <div class="payments-total-metric">
+                        <span>Unpaid</span>
+                        <b>RM {{ number_format($myUnpaidAmount, 2) }}</b>
+                    </div>
+                    <div class="payments-total-metric">
+                        <span>Pending</span>
+                        <b>RM {{ number_format($myPendingAmount, 2) }}</b>
+                    </div>
+                    <div class="payments-total-metric">
+                        <span>Paid</span>
+                        <b>RM {{ number_format($myPaidAmount, 2) }}</b>
+                    </div>
+                </div>
+                <details class="payments-summary-detail">
+                    <summary>Where you still need to pay</summary>
+                    <div class="payments-summary-detail-list">
+                        @forelse($passengerPayRows as $payRow)
+                            <div class="payments-summary-detail-row">
+                                <span>{{ $payRow['records'] }} records</span>
+                                <strong>{{ $payRow['name'] }}</strong>
+                                <div class="payments-summary-amount-row">
+                                    <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
+                                    <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
+                                    <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="payments-summary-detail-empty">No active payment due right now.</div>
+                        @endforelse
+                    </div>
+                </details>
+            @endif
         </section>
 
         <section class="payments-tools-card">
@@ -1415,7 +3394,7 @@
         @endif
 
         @if($showMyPayments)
-            <section class="payments-card">
+            <section class="payments-card payments-summary-card">
                 <h2 class="payments-section-title">My Summary</h2>
                 <div class="payments-summary-grid">
                     <div class="summary-item">
@@ -1436,46 +3415,44 @@
                 </div>
             </section>
 
-            <section class="payments-card" id="my-payments-list">
-                <h2 class="payments-section-title">My Payments</h2>
-                <p class="payments-section-subtitle">Mark your payments and track driver confirmation.</p>
-                <div class="payments-filter-panel js-payments-filter" data-filter-scope="#my-payments-list">
-                    <div class="payments-filter-head">
-                        <p class="payments-filter-hint">Filters apply automatically.</p>
-                        <button type="button" class="payments-filter-toggle" data-filter-toggle aria-expanded="false">
-                            <i class="fa-solid fa-filter"></i><span>Filter</span>
-                        </button>
+            <div class="payments-main-grid">
+            <section class="payments-card payments-ledger-card" id="my-payments-list">
+                <h2 class="payments-section-title">Transactions</h2>
+                <p class="payments-section-subtitle">Track fares paid as a passenger and received as a driver.</p>
+                <form method="GET" action="{{ route('payments.index') }}" class="payments-filter-panel trips-filter-form" id="paymentsFilterPanel" style="{{ request()->hasAny(['date_from','date_to','visibility','payment_search']) ? 'display:grid' : 'display:none' }}">
+                    @if($activePaymentFilter !== 'all')
+                        <input type="hidden" name="payment_filter" value="{{ $activePaymentFilter }}">
+                    @endif
+                    @if($activeDirection !== 'all')
+                        <input type="hidden" name="direction" value="{{ $activeDirection }}">
+                    @endif
+                    <p class="trips-filter-hint">Filters apply automatically on change.</p>
+                    <div class="trips-filter-field">
+                        <label class="trips-filter-label" for="myPaymentsFromDate">From Date</label>
+                        <input id="myPaymentsFromDate" name="date_from" class="trips-filter-input" type="date" value="{{ $filters['date_from'] ?? request('date_from') }}">
                     </div>
-                    <div class="payments-filter-body">
-                        <div class="payments-filter-grid">
-                            <div class="payments-filter-field">
-                                <label for="myPaymentsFromDate">From Date</label>
-                                <input id="myPaymentsFromDate" class="payments-filter-input" type="date" data-filter-from>
-                            </div>
-                            <div class="payments-filter-field">
-                                <label for="myPaymentsToDate">To Date</label>
-                                <input id="myPaymentsToDate" class="payments-filter-input" type="date" data-filter-to>
-                            </div>
-                            <div class="payments-filter-field">
-                                <label for="myPaymentsVisibility">Visibility</label>
-                                <select id="myPaymentsVisibility" class="payments-filter-input" data-filter-visibility>
-                                    <option value="">All</option>
-                                    <option value="public">Public</option>
-                                    <option value="private">Private</option>
-                                </select>
-                            </div>
-                            <div class="payments-filter-field">
-                                <label for="myPaymentsPassengerSearch">Search Trip or Driver</label>
-                                <input id="myPaymentsPassengerSearch" class="payments-filter-input" type="search" placeholder="Search trip or driver" data-filter-person>
-                            </div>
-                        </div>
-                        <div class="payments-filter-actions">
-                            <button type="button" class="payments-filter-reset" data-filter-reset>Reset</button>
-                        </div>
+                    <div class="trips-filter-field">
+                        <label class="trips-filter-label" for="myPaymentsToDate">To Date</label>
+                        <input id="myPaymentsToDate" name="date_to" class="trips-filter-input" type="date" value="{{ $filters['date_to'] ?? request('date_to') }}">
                     </div>
-                </div>
+                    <div class="trips-filter-field">
+                        <label class="trips-filter-label" for="myPaymentsVisibility">Visibility</label>
+                        <select id="myPaymentsVisibility" name="visibility" class="trips-filter-input">
+                            <option value="">All</option>
+                            <option value="public" {{ ($filters['visibility'] ?? request('visibility')) === 'public' ? 'selected' : '' }}>Public</option>
+                            <option value="private" {{ ($filters['visibility'] ?? request('visibility')) === 'private' ? 'selected' : '' }}>Private</option>
+                        </select>
+                    </div>
+                    <div class="trips-filter-field">
+                        <label class="trips-filter-label" for="myPaymentsPassengerSearch">Search</label>
+                        <input id="myPaymentsPassengerSearch" name="payment_search" class="trips-filter-input" type="search" placeholder="Trip, driver, or passenger" value="{{ $filters['payment_search'] ?? request('payment_search') }}">
+                    </div>
+                    <div class="trips-filter-actions">
+                        <a href="{{ route('payments.index', array_filter(['payment_filter' => $activePaymentFilter !== 'all' ? $activePaymentFilter : null, 'direction' => $activeDirection !== 'all' ? $activeDirection : null])) }}" class="btn btn-ghost btn-sm">Reset</a>
+                    </div>
+                </form>
                 <div class="payments-mobile-list">
-                    @forelse($myPayments as $payment)
+                    @forelse($allLivePayments as $payment)
                         @php
                             $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                             $pickupName = $payment->trip?->pickup_name ?? '-';
@@ -1523,20 +3500,151 @@
                             $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
                             $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                             $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
+                            $fareBreakdown = $paymentFareBreakdown($payment);
+                            $isDriverQueueRecord = (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
+                                && (int) $payment->user_id !== (int) auth()->id();
+                            $counterparty = $isDriverQueueRecord
+                                ? ($payment->user?->name ?: '-')
+                                : ($payment->trip?->driver?->name ?: '-');
+                            $initials = $paymentInitials($counterparty);
+                            $amountSign = $isDriverQueueRecord ? '+' : '-';
+                            $shortStatusText = $payment->payment_status === 'pending_confirmation' ? 'Driver Review' : $statusText;
+                            $perspective = $isDriverQueueRecord ? 'collect' : 'pay';
+                            $perspectiveLabel = $isDriverQueueRecord ? 'You collect' : 'You pay';
+                            $paymentActionLabel = $isDriverQueueRecord
+                                ? ($payment->payment_status === 'pending_confirmation' ? 'Review' : ($payment->payment_status === 'unpaid' ? 'Notify' : 'Receipt'))
+                                : ($payment->payment_status === 'unpaid' ? 'Pay' : ($payment->payment_status === 'pending_confirmation' ? 'Pending' : 'Receipt'));
+                            $paymentActionIcon = $isDriverQueueRecord
+                                ? ($payment->payment_status === 'pending_confirmation' ? 'fa-solid fa-clipboard-check' : ($payment->payment_status === 'unpaid' ? 'fa-regular fa-bell' : 'fa-solid fa-receipt'))
+                                : ($payment->payment_status === 'unpaid' ? 'fa-solid fa-credit-card' : ($payment->payment_status === 'pending_confirmation' ? 'fa-regular fa-clock' : 'fa-solid fa-receipt'));
                         @endphp
                         <article
                             class="payment-mobile-item open-trip-card js-payment-filter-item"
+                            data-payment-perspective="{{ $perspective }}"
+                            data-pmt-status="{{ $payment->payment_status }}"
                             data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
                             data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                             data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
+                            data-trip-id="{{ $payment->trip_id }}"
+                            data-route="{{ $routeLabel }}"
+                            data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
+                            data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                            data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                            data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
+                            data-pickup-name="{{ $pickupName }}"
+                            data-pickup-lat="{{ $pickupLat }}"
+                            data-pickup-lng="{{ $pickupLng }}"
+                            data-destination-name="{{ $destinationName }}"
+                            data-destination-lat="{{ $destinationLat }}"
+                            data-destination-lng="{{ $destinationLng }}"
+                            data-datetime="{{ $payment->trip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
+                            data-mode="{{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'Two Way' : 'One Way' }}"
+                            data-status="{{ $payment->trip?->status ? ucfirst($payment->trip->status) : '-' }}"
+                            data-amount-due="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                            data-fare-total="RM {{ number_format((float) ($payment->trip?->fare_total ?? 0), 2) }}"
+                            data-fare-per-person="RM {{ number_format((float) ($payment->trip?->fare_per_person ?? 0), 2) }}"
+                            data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                            data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                            data-custom-stop="{{ $fareBreakdown['custom_stop'] ?: '' }}"
+                            data-payment-status="{{ $statusText }}"
+                            data-payment-method="{{ $methodLabel }}"
+                            data-payment-remarks="{{ $payment->remarks ?: '-' }}"
+                            data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                            data-paired-trip-id="{{ $pairedTripId ?? '' }}"
+                            data-participants='@json($participantsPayload)'
+                            data-passenger-count="{{ count($participantsPayload) }}"
                         >
                             <div class="payment-mobile-top">
-                                <div>
-                                    <div class="payment-mobile-trip">Trip #{{ $payment->trip_id }}</div>
-                                    <div class="payment-mobile-sub">{{ $routeLabel }}</div>
+                                <div style="min-width:0;">
+                                    <h2 class="payment-route-title">{{ $routeLabel }}</h2>
+                                    <div class="payment-meta-inline">
+                                        <span class="payment-meta-inline-item">
+                                            <i class="fa-solid fa-user"></i>
+                                            <span>{{ $counterparty }}</span>
+                                        </span>
+                                        <span class="payment-meta-inline-item">
+                                            <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}"></i>
+                                            <span>{{ $perspectiveLabel }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span>
+                            </div>
+                            <div class="payment-detail-grid">
+                                <div class="payment-detail-line">
+                                    @if($payment->trip?->trip_datetime)
+                                        <span class="payment-detail-date">{{ $payment->trip->trip_datetime->format('d M Y') }} &middot; {{ $payment->trip->trip_datetime->format('H:i') }}</span>
+                                    @else
+                                        <span class="payment-detail-date">-</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="payment-bottom-row">
+                                <div class="payment-fare-card">
+                                    <span class="payment-fare-value">RM {{ number_format((float) $payment->amount_due, 2) }}</span>
+                                    @if($fareBreakdown['has_extra'])
+                                        <span class="payment-fare-label">Base RM {{ number_format((float) $fareBreakdown['base'], 2) }} + Extra RM {{ number_format((float) $fareBreakdown['extra'], 2) }}</span>
+                                    @endif
+                                </div>
+                                <div class="payments-action-row">
+                                @if($isDriverQueueRecord && $payment->payment_status === 'pending_confirmation')
                                     <button
                                         type="button"
-                                        class="payments-link open-trip-modal-btn"
+                                        class="payments-btn payments-btn-highlight open-request-btn"
+                                        data-passenger="{{ $payment->user?->name ?: '-' }}"
+                                        data-trip="#{{ $payment->trip_id }}"
+                                        data-method="{{ $methodLabel }}"
+                                        data-remarks="{{ $payment->remarks ?: '-' }}"
+                                        data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                        data-approve-action="{{ route('payments.confirm-paid', $payment) }}"
+                                        data-reject-action="{{ route('payments.reject-paid', $payment) }}"
+                                    ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
+                                @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
+                                    <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            class="payments-btn payments-btn-soft {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
+                                            {{ $canSendReminder ? '' : 'disabled' }}
+                                            data-payment-id="{{ $payment->id }}"
+                                            data-seconds-left="{{ $secondsLeft }}"
+                                        >
+                                            <i class="{{ $paymentActionIcon }}"></i>
+                                            {!! $canSendReminder ? $paymentActionLabel : gmdate('H:i:s', $secondsLeft) !!}
+                                        </button>
+                                    </form>
+                                @elseif(! $isDriverQueueRecord && $payment->payment_status === 'unpaid')
+                                    <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="payment_method" value="duitnow_qr">
+                                        <input class="payments-input" type="text" name="remarks" placeholder="Remarks">
+                                        <button
+                                            type="button"
+                                            class="payments-btn payments-btn-primary open-payment-paynow-btn"
+                                            data-action="{{ route('payments.mark-paid', $payment) }}"
+                                            data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
+                                            data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"
+                                            data-trip="Trip #{{ $payment->trip_id }}"
+                                            data-route="{{ $routeLabel }}"
+                                            data-amount="{{ number_format((float) $payment->amount_due, 2) }}"
+                                            data-base-amount="{{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                            data-extra-fee="{{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                            data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
+                                            data-driver-name="{{ $payment->trip?->driver?->name ?: '-' }}"
+                                            data-driver-email="{{ $payment->trip?->driver?->email ?: '-' }}"
+                                            data-driver-photo="{{ $driverPhotoUrl }}"
+                                            data-driver-bank="{{ $driverBank }}"
+                                            data-driver-account-name="{{ $driverAccountName }}"
+                                            data-driver-account-number="{{ $driverAccountNumber }}"
+                                            data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
+                                            data-driver-tng-qr="{{ $driverTngQr }}"
+                                        ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
+                                    </form>
+                                @elseif($payment->payment_status === 'pending_confirmation')
+                                    <button
+                                        type="button"
+                                        class="payments-btn payments-btn-soft open-trip-modal-btn"
                                         data-trip-id="{{ $payment->trip_id }}"
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
@@ -1555,6 +3663,9 @@
                                         data-amount-due="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-fare-total="RM {{ number_format((float) ($payment->trip?->fare_total ?? 0), 2) }}"
                                         data-fare-per-person="RM {{ number_format((float) ($payment->trip?->fare_per_person ?? 0), 2) }}"
+                                        data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                        data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                        data-custom-stop="{{ $fareBreakdown['custom_stop'] ?: '' }}"
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
@@ -1562,53 +3673,25 @@
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-participants='@json($participantsPayload)'
                                         data-passenger-count="{{ count($participantsPayload) }}"
-                                    ><i class="fa-regular fa-eye"></i><span>See Details</span></button>
-                                </div>
-                                <span class="status-chip {{ $statusClass }}">{{ $statusText }}</span>
-                            </div>
-                            <div class="payment-mobile-amount-card">
-                                <span class="payment-mobile-amount-label">Amount Due</span>
-                                <strong class="payment-mobile-amount-value">RM {{ number_format((float) $payment->amount_due, 2) }}</strong>
-                            </div>
-                            <div class="payment-mobile-grid">
-                                <div class="payment-mobile-line">
-                                    <span>Driver</span>
-                                    <strong>{{ $payment->trip?->driver?->name ?: '-' }}</strong>
-                                </div>
-                            </div>
-                            <div class="payments-action-row">
-                                @if($payment->payment_status === 'unpaid')
-                                    <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row">
-                                        @csrf
-                                        @method('PATCH')
-                                        <select class="payments-input" name="payment_method" required>
-                                            <option value="" disabled selected>Select method</option>
-                                            <option value="duitnow_qr">DuitNow QR</option>
-                                            <option value="bank_account">Bank Account</option>
-                                            <option value="digital_wallet">Digital Wallet</option>
-                                            <option value="others">Others</option>
-                                        </select>
-                                        <input class="payments-input" type="text" name="remarks" placeholder="Remarks">
-                                        <button
-                                            type="button"
-                                            class="payments-btn payments-btn-soft payments-btn-icon open-driver-payment-details-btn"
-                                            title="Driver payment details"
-                                            data-driver-name="{{ $payment->trip?->driver?->name ?: '-' }}"
-                                            data-driver-email="{{ $payment->trip?->driver?->email ?: '-' }}"
-                                            data-driver-photo="{{ $driverPhotoUrl }}"
-                                            data-driver-bank="{{ $driverBank }}"
-                                            data-driver-account-name="{{ $driverAccountName }}"
-                                            data-driver-account-number="{{ $driverAccountNumber }}"
-                                            data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
-                                            data-driver-tng-qr="{{ $driverTngQr }}"
-                                        ><i class="fa-solid fa-circle-info"></i><span>Driver Payment Details</span></button>
-                                        <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
-                                    </form>
-                                @elseif($payment->payment_status === 'pending_confirmation')
-                                    <span style="font-size:12px; color:#854d0e; font-weight:700;">Pending Confirmation</span>
+                                    ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                 @else
-                                    <span style="font-size:12px; color:#166534; font-weight:700;">Paid</span>
+                                    <button
+                                        type="button"
+                                        class="payments-btn payments-btn-primary open-payment-receipt-btn"
+                                        data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
+                                        data-route="{{ $routeLabel }}"
+                                        data-passenger="{{ $payment->user?->name ?: '-' }}"
+                                        data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
+                                        data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                        data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                        data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                        data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
+                                        data-method="{{ $methodLabel }}"
+                                        data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
+                                        data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
+                                    ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                 @endif
+                                </div>
                             </div>
                         </article>
                     @empty
@@ -1619,15 +3702,16 @@
                     <table class="payments-table">
                         <thead>
                         <tr>
+                            <th>Counterparty</th>
                             <th>Trip</th>
-                            <th>Driver</th>
-                            <th class="right">Amount Due</th>
                             <th>Status</th>
+                            <th class="right">Amount</th>
+                            <th>Date</th>
                             <th class="right">Action</th>
                         </tr>
                         </thead>
                         <tbody>
-                        @forelse($myPayments as $payment)
+                    @forelse($allLivePayments as $payment)
                             @php
                                 $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                                 $pickupName = $payment->trip?->pickup_name ?? '-';
@@ -1672,16 +3756,67 @@
                                 $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
                                 $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                                 $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
-                            @endphp
+                                $fareBreakdown = $paymentFareBreakdown($payment);
+                                $isDriverQueueRecord = (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
+                                    && (int) $payment->user_id !== (int) auth()->id();
+                                $counterparty = $isDriverQueueRecord
+                                    ? ($payment->user?->name ?: '-')
+                                    : ($payment->trip?->driver?->name ?: '-');
+                            $amountSign = $isDriverQueueRecord ? '+' : '-';
+                            $shortStatusText = $payment->payment_status === 'pending_confirmation' ? 'Driver Review' : $statusText;
+                            $perspective = $isDriverQueueRecord ? 'collect' : 'pay';
+                            $perspectiveLabel = $isDriverQueueRecord ? 'You collect' : 'You pay';
+                        @endphp
                             <tr
                                 class="open-trip-card js-payment-filter-item"
+                                data-payment-perspective="{{ $perspective }}"
+                                data-pmt-status="{{ $payment->payment_status }}"
                                 data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
                                 data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                                 data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
+                                data-trip-id="{{ $payment->trip_id }}"
+                                data-route="{{ $routeLabel }}"
+                                data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
+                                data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                                data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                                data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
+                                data-pickup-name="{{ $pickupName }}"
+                                data-pickup-lat="{{ $pickupLat }}"
+                                data-pickup-lng="{{ $pickupLng }}"
+                                data-destination-name="{{ $destinationName }}"
+                                data-destination-lat="{{ $destinationLat }}"
+                                data-destination-lng="{{ $destinationLng }}"
+                                data-datetime="{{ $payment->trip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
+                                data-mode="{{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'Two Way' : 'One Way' }}"
+                                data-status="{{ $payment->trip?->status ? ucfirst($payment->trip->status) : '-' }}"
+                                data-amount-due="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                data-fare-total="RM {{ number_format((float) ($payment->trip?->fare_total ?? 0), 2) }}"
+                                data-fare-per-person="RM {{ number_format((float) ($payment->trip?->fare_per_person ?? 0), 2) }}"
+                                data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                data-custom-stop="{{ $fareBreakdown['custom_stop'] ?: '' }}"
+                                data-payment-status="{{ $statusText }}"
+                                data-payment-method="{{ $methodLabel }}"
+                                data-payment-remarks="{{ $payment->remarks ?: '-' }}"
+                                data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                data-paired-trip-id="{{ $pairedTripId ?? '' }}"
+                                data-participants='@json($participantsPayload)'
+                                data-passenger-count="{{ count($participantsPayload) }}"
                             >
                                 <td>
-                                    <div>#{{ $payment->trip_id }}</div>
-                                    <div style="font-size:12px; color:#64748b;">{{ $routeLabel }}</div>
+                                    <div class="payment-person-block">
+                                        <div>
+                                            <div class="payment-name">{{ $counterparty }}</div>
+                                            <div class="payment-meta">{{ $perspectiveLabel }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="payment-route-title">{{ $routeLabel }}</div>
+                                    <div class="payment-trip-meta">
+                                        <span><i class="fa-solid fa-hashtag"></i> Trip {{ $payment->trip_id }}</span>
+                                        <span><i class="{{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'fa-solid fa-repeat' : 'fa-solid fa-route' }}"></i> {{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'Two-way' : 'One-way' }}</span>
+                                    </div>
                                     <button
                                         type="button"
                                         class="payments-link open-trip-modal-btn"
@@ -1703,6 +3838,9 @@
                                         data-amount-due="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-fare-total="RM {{ number_format((float) ($payment->trip?->fare_total ?? 0), 2) }}"
                                         data-fare-per-person="RM {{ number_format((float) ($payment->trip?->fare_per_person ?? 0), 2) }}"
+                                        data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                        data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                        data-custom-stop="{{ $fareBreakdown['custom_stop'] ?: '' }}"
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
@@ -1710,28 +3848,75 @@
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-participants='@json($participantsPayload)'
                                         data-passenger-count="{{ count($participantsPayload) }}"
-                                    ><i class="fa-regular fa-eye"></i><span>See Details</span></button>
+                                    ><span>View</span></button>
                                 </td>
-                                <td>{{ $payment->trip?->driver?->name ?: '-' }}</td>
-                                <td class="right">RM {{ number_format((float) $payment->amount_due, 2) }}</td>
-                                <td><span class="status-chip {{ $statusClass }}">{{ $statusText }}</span></td>
+                                <td><span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span></td>
                                 <td class="right">
-                                    @if($payment->payment_status === 'unpaid')
+                                    <span class="payment-table-amount">{{ $amountSign }}RM {{ number_format((float) $payment->amount_due, 2) }}</span>
+                                    @if($fareBreakdown['has_extra'])
+                                        <div style="font-size:11px;color:#64748b;font-weight:700;">Base RM {{ number_format((float) $fareBreakdown['base'], 2) }} + Extra RM {{ number_format((float) $fareBreakdown['extra'], 2) }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($payment->trip?->trip_datetime)
+                                        <span class="payment-table-date">
+                                            {{ $payment->trip->trip_datetime->format('d M Y') }}
+                                            <span class="payment-table-time">{{ $payment->trip->trip_datetime->format('H:i') }}</span>
+                                        </span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="right">
+                                    @if($isDriverQueueRecord && $payment->payment_status === 'pending_confirmation')
+                                        <div class="payments-action-row">
+                                            <button
+                                                type="button"
+                                                class="payments-btn payment-table-action open-request-btn"
+                                                data-passenger="{{ $payment->user?->name ?: '-' }}"
+                                                data-trip="#{{ $payment->trip_id }}"
+                                                data-method="{{ $methodLabel }}"
+                                                data-remarks="{{ $payment->remarks ?: '-' }}"
+                                                data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                                data-approve-action="{{ route('payments.confirm-paid', $payment) }}"
+                                                data-reject-action="{{ route('payments.reject-paid', $payment) }}"
+                                            ><i class="fa-solid fa-clipboard-check"></i> Review</button>
+                                        </div>
+                                    @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
+                                        <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
+                                            @csrf
+                                            <button
+                                                type="submit"
+                                                class="payments-btn payment-table-action {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
+                                                {{ $canSendReminder ? '' : 'disabled' }}
+                                                data-payment-id="{{ $payment->id }}"
+                                                data-seconds-left="{{ $secondsLeft }}"
+                                            >
+                                                @if($canSendReminder)
+                                                    <i class="fa-regular fa-bell"></i> Notify
+                                                @else
+                                                    {{ gmdate('H:i:s', $secondsLeft) }}
+                                                @endif
+                                            </button>
+                                        </form>
+                                    @elseif(! $isDriverQueueRecord && $payment->payment_status === 'unpaid')
                                         <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row">
                                             @csrf
                                             @method('PATCH')
-                                            <select class="payments-input" name="payment_method" required>
-                                                <option value="" disabled selected>Select method</option>
-                                                <option value="duitnow_qr">DuitNow QR</option>
-                                                <option value="bank_account">Bank Account</option>
-                                                <option value="digital_wallet">Digital Wallet</option>
-                                                <option value="others">Others</option>
-                                            </select>
+                                            <input type="hidden" name="payment_method" value="duitnow_qr">
                                             <input class="payments-input" type="text" name="remarks" placeholder="Remarks">
                                             <button
                                                 type="button"
-                                                class="payments-btn payments-btn-soft payments-btn-icon open-driver-payment-details-btn"
-                                                title="Driver payment details"
+                                                class="payments-btn payment-table-action open-payment-paynow-btn"
+                                                data-action="{{ route('payments.mark-paid', $payment) }}"
+                                                data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
+                                                data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"
+                                                data-trip="Trip #{{ $payment->trip_id }}"
+                                                data-route="{{ $routeLabel }}"
+                                                data-amount="{{ number_format((float) $payment->amount_due, 2) }}"
+                                                data-base-amount="{{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                                data-extra-fee="{{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                                data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
                                                 data-driver-name="{{ $payment->trip?->driver?->name ?: '-' }}"
                                                 data-driver-email="{{ $payment->trip?->driver?->email ?: '-' }}"
                                                 data-driver-photo="{{ $driverPhotoUrl }}"
@@ -1740,26 +3925,41 @@
                                                 data-driver-account-number="{{ $driverAccountNumber }}"
                                                 data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                                 data-driver-tng-qr="{{ $driverTngQr }}"
-                                            ><i class="fa-solid fa-circle-info"></i></button>
-                                            <button type="submit" class="payments-btn payments-btn-primary">Tandai Paid</button>
+                                            ><i class="fa-solid fa-credit-card"></i> Pay</button>
                                         </form>
                                     @elseif($payment->payment_status === 'pending_confirmation')
-                                        <span style="font-size:12px; color:#854d0e; font-weight:700;">Pending Confirmation</span>
+                                        <span class="payments-btn payment-table-action is-muted"><i class="fa-regular fa-clock"></i> Pending</span>
                                     @else
-                                        <span style="font-size:12px; color:#166534; font-weight:700;">Paid</span>
+                                        <button
+                                            type="button"
+                                            class="payments-btn payment-table-action open-payment-receipt-btn"
+                                            data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
+                                            data-route="{{ $routeLabel }}"
+                                            data-passenger="{{ $payment->user?->name ?: '-' }}"
+                                            data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
+                                            data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                            data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                            data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                            data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
+                                            data-method="{{ $methodLabel }}"
+                                            data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
+                                            data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
+                                        ><i class="fa-solid fa-receipt"></i> Receipt</button>
                                     @endif
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5">No payment records found.</td></tr>
+                            <tr><td colspan="6">No payment records found.</td></tr>
                         @endforelse
                         </tbody>
                     </table>
                 </div>
                 <div class="payments-filter-empty" data-filter-empty>No payment records match the current filters.</div>
+                @if($myPayments)
                 <div style="margin-top:12px;">
                     {{ $myPayments->appends(request()->query())->links() }}
                 </div>
+                @endif
                 @php
                     $archivedOutstandingCount = (int) (($archivedSummary['my']['unpaid']['count'] ?? 0) + ($archivedSummary['my']['pending_confirmation']['count'] ?? 0));
                     $archivedOutstandingAmount = (float) (($archivedSummary['my']['unpaid']['amount'] ?? 0) + ($archivedSummary['my']['pending_confirmation']['amount'] ?? 0));
@@ -1782,6 +3982,131 @@
                     </div>
                 @endif
             </section>
+            <aside class="payments-side-panel">
+                <section class="payments-total-card">
+                    @if($canReviewQueue)
+                        <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryDriver" checked>
+                        <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryPassenger">
+                        <div class="payments-summary-top">
+                            <span class="payments-total-label">{{ strtoupper($monthLabel) }}</span>
+                            <div class="payments-summary-switch" aria-label="Summary view">
+                                <label for="desktopSummaryDriver">As driver</label>
+                                <label for="desktopSummaryPassenger">As passenger</label>
+                            </div>
+                        </div>
+                        <div class="payments-summary-mode-panel payments-summary-driver-panel">
+                            <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount + $driverPaidAmount, 2) }}</strong>
+                            <small>To collect · driver collection view</small>
+                            <div class="payments-total-metrics">
+                                <div class="payments-total-metric">
+                                    <span>Unpaid by passengers</span>
+                                    <b>RM {{ number_format($driverUnpaidAmount, 2) }}</b>
+                                </div>
+                                <div class="payments-total-metric">
+                                    <span>Pending confirmation</span>
+                                    <b>RM {{ number_format($driverPendingAmount, 2) }}</b>
+                                </div>
+                                <div class="payments-total-metric">
+                                    <span>Paid received</span>
+                                    <b>RM {{ number_format($driverPaidAmount, 2) }}</b>
+                                </div>
+                            </div>
+                        <div class="payments-summary-panel">
+                            <div class="payments-summary-panel-title">Passenger payment status</div>
+                            <div class="payments-summary-detail-list">
+                                @forelse($driverCollectionRows as $debtRow)
+                                    <div class="payments-summary-detail-row">
+                                        <span>{{ $debtRow['records'] }} records</span>
+                                        <strong>{{ $debtRow['name'] }}</strong>
+                                        <div class="payments-summary-amount-row">
+                                            <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $debtRow['unpaid'], 2) }}</strong></span>
+                                            <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $debtRow['pending'], 2) }}</strong></span>
+                                            <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $debtRow['paid'], 2) }}</strong></span>
+                                            <span class="payments-summary-amount-chip is-total">Total <strong>RM {{ number_format((float) $debtRow['total'], 2) }}</strong></span>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="payments-summary-detail-empty">No passenger payment still pending.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                        </div>
+                        <div class="payments-summary-mode-panel payments-summary-passenger-panel">
+                            <strong>RM {{ number_format($myUnpaidAmount + $myPendingAmount, 2) }}</strong>
+                            <small>To pay · passenger payment view</small>
+                            <div class="payments-total-metrics">
+                                <div class="payments-total-metric">
+                                    <span>Unpaid to drivers</span>
+                                    <b>RM {{ number_format($myUnpaidAmount, 2) }}</b>
+                                </div>
+                                <div class="payments-total-metric">
+                                    <span>Pending confirmation</span>
+                                    <b>RM {{ number_format($myPendingAmount, 2) }}</b>
+                                </div>
+                                <div class="payments-total-metric">
+                                    <span>Paid</span>
+                                    <b>RM {{ number_format($myPaidAmount, 2) }}</b>
+                                </div>
+                            </div>
+                        <div class="payments-summary-panel">
+                            <div class="payments-summary-panel-title">Your passenger payments</div>
+                            <div class="payments-summary-detail-list">
+                                @forelse($passengerPayRows as $payRow)
+                                    <div class="payments-summary-detail-row">
+                                        <span>{{ $payRow['records'] }} records</span>
+                                        <strong>{{ $payRow['name'] }}</strong>
+                                        <div class="payments-summary-amount-row">
+                                            <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
+                                            <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
+                                            <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="payments-summary-detail-empty">No active passenger payment due.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                        </div>
+                    @else
+                        <span class="payments-total-label">{{ strtoupper($monthLabel) }}</span>
+                        <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
+                        <small>{{ $summaryMainLabel }} · passenger payment view</small>
+                        <div class="payments-total-metrics">
+                            <div class="payments-total-metric">
+                                <span>{{ $summaryPrimaryLabel }}</span>
+                                <b>RM {{ number_format($summaryPrimaryAmount, 2) }}</b>
+                            </div>
+                            <div class="payments-total-metric">
+                                <span>{{ $summarySecondaryLabel }}</span>
+                                <b>RM {{ number_format($summarySecondaryAmount, 2) }}</b>
+                            </div>
+                            <div class="payments-total-metric">
+                                <span>Paid</span>
+                                <b>RM {{ number_format($myPaidAmount, 2) }}</b>
+                            </div>
+                        </div>
+                        <div class="payments-summary-panel">
+                            <div class="payments-summary-panel-title">Where you still need to pay</div>
+                            <div class="payments-summary-detail-list">
+                                @forelse($passengerPayRows as $payRow)
+                                    <div class="payments-summary-detail-row">
+                                        <span>{{ $payRow['records'] }} records</span>
+                                        <strong>{{ $payRow['name'] }}</strong>
+                                        <div class="payments-summary-amount-row">
+                                            <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
+                                            <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
+                                            <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="payments-summary-detail-empty">No active payment due right now.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    @endif
+                </section>
+            </aside>
+            </div>
         @endif
 
         @if($canReviewQueue)
@@ -1917,6 +4242,7 @@
                                     'is_driver' => (bool) $participant->is_driver,
                                 ];
                             })->values()->all() ?? [];
+                            $fareBreakdown = $paymentFareBreakdown($payment);
                         @endphp
                         <article
                             class="payment-mobile-item open-trip-card js-payment-filter-item"
@@ -1949,6 +4275,9 @@
                                         data-amount-due="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-fare-total="RM {{ number_format((float) ($payment->trip?->fare_total ?? 0), 2) }}"
                                         data-fare-per-person="RM {{ number_format((float) ($payment->trip?->fare_per_person ?? 0), 2) }}"
+                                        data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                        data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                        data-custom-stop="{{ $fareBreakdown['custom_stop'] ?: '' }}"
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
@@ -1967,7 +4296,12 @@
                                 </div>
                                 <div class="payment-mobile-line">
                                     <span>Amount</span>
-                                    <strong>RM {{ number_format((float) $payment->amount_due, 2) }}</strong>
+                                    <strong>
+                                        RM {{ number_format((float) $payment->amount_due, 2) }}
+                                        @if($fareBreakdown['has_extra'])
+                                            <small style="display:block;color:#64748b;">Base RM {{ number_format((float) $fareBreakdown['base'], 2) }} + Extra RM {{ number_format((float) $fareBreakdown['extra'], 2) }}</small>
+                                        @endif
+                                    </strong>
                                 </div>
                                 <div class="payment-mobile-line">
                                     <span>Marked At</span>
@@ -2088,6 +4422,7 @@
                                     'is_driver' => (bool) $participant->is_driver,
                                 ];
                             })->values()->all() ?? [];
+                            $fareBreakdown = $paymentFareBreakdown($payment);
                         @endphp
                             <tr
                                 class="open-trip-card js-payment-filter-item"
@@ -2119,6 +4454,9 @@
                                         data-amount-due="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-fare-total="RM {{ number_format((float) ($payment->trip?->fare_total ?? 0), 2) }}"
                                         data-fare-per-person="RM {{ number_format((float) ($payment->trip?->fare_per_person ?? 0), 2) }}"
+                                        data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                        data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                        data-custom-stop="{{ $fareBreakdown['custom_stop'] ?: '' }}"
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
@@ -2129,7 +4467,12 @@
                                     ><i class="fa-regular fa-eye"></i><span>See Details</span></button>
                                 </td>
                                 <td>{{ $payment->user?->name ?: '-' }}</td>
-                                <td class="right">RM {{ number_format((float) $payment->amount_due, 2) }}</td>
+                                <td class="right">
+                                    RM {{ number_format((float) $payment->amount_due, 2) }}
+                                    @if($fareBreakdown['has_extra'])
+                                        <div style="font-size:11px;color:#64748b;font-weight:700;">Base RM {{ number_format((float) $fareBreakdown['base'], 2) }} + Extra RM {{ number_format((float) $fareBreakdown['extra'], 2) }}</div>
+                                    @endif
+                                </td>
                                 <td>{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}</td>
                                 <td><span class="status-chip {{ $statusClass }}">{{ $statusText }}</span></td>
                                 <td class="right">
@@ -2573,6 +4916,59 @@
         </div>
     </div>
 
+    <div class="trip-payment-review-modal" id="paymentPayNowModal" aria-hidden="true">
+        <div class="trip-payment-review-card" role="dialog" aria-modal="true" aria-labelledby="paymentPayNowTitle">
+            <div class="trip-payment-review-head">
+                <div>
+                    <h3 class="trip-payment-review-title" id="paymentPayNowTitle">Pay now</h3>
+                    <p class="trip-payment-review-sub" id="paymentPayNowSub">Mark your trip payment as paid.</p>
+                </div>
+                <button type="button" class="trip-payment-review-close" id="paymentPayNowClose" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="trip-payment-review-list" id="paymentPayNowList"></div>
+        </div>
+    </div>
+
+    <div class="trip-payment-review-modal" id="paymentReceiptModal" aria-hidden="true">
+        <div class="trip-payment-review-card" role="dialog" aria-modal="true" aria-labelledby="paymentReceiptTitle">
+            <div class="trip-payment-review-head">
+                <div>
+                    <h3 class="trip-payment-review-title" id="paymentReceiptTitle">Payment receipt</h3>
+                    <p class="trip-payment-review-sub">View your confirmed payment record.</p>
+                </div>
+                <button type="button" class="trip-payment-review-close" id="paymentReceiptClose" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="trip-payment-review-list">
+                <article class="trip-receipt-card">
+                    <div class="trip-receipt-head">
+                        <span>
+                            <h4 class="trip-receipt-title">CarpoolHub Receipt</h4>
+                            <span class="trip-receipt-id" id="paymentReceiptNo">PAY-000000</span>
+                        </span>
+                        <span class="trip-receipt-status paid">Paid</span>
+                    </div>
+                    <div class="trip-receipt-total">
+                        <span>Amount paid</span>
+                        <strong id="paymentReceiptAmount">RM 0.00</strong>
+                    </div>
+                    <div class="trip-receipt-lines">
+                        <div class="trip-receipt-line"><span>Route</span><strong id="paymentReceiptRoute">-</strong></div>
+                        <div class="trip-receipt-line"><span>Passenger</span><strong id="paymentReceiptPassenger">-</strong></div>
+                        <div class="trip-receipt-line"><span>Driver</span><strong id="paymentReceiptDriver">-</strong></div>
+                        <div class="trip-receipt-line"><span>Method</span><strong id="paymentReceiptMethod">-</strong></div>
+                        <div class="trip-receipt-line"><span>Marked paid</span><strong id="paymentReceiptMarked">-</strong></div>
+                        <div class="trip-receipt-line"><span>Confirmed</span><strong id="paymentReceiptConfirmed">-</strong></div>
+                        <div class="trip-receipt-line" id="paymentReceiptBreakdownRow" style="display:none;"><span>Breakdown</span><strong id="paymentReceiptBreakdown">-</strong></div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+
     <div class="request-modal" id="tripDetailsModal" aria-hidden="true">
         <div class="request-modal-card trip-details-card">
             <div class="request-modal-head">
@@ -2660,7 +5056,12 @@
                     <div class="request-modal-line trip-amount-due-card">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-money-bill-wave"></i>Amount Due</span>
                         <span class="request-modal-value" id="tripDetailsAmountDue">-</span>
-                        <span class="trip-amount-due-hint">This is the amount you need to pay for this trip.</span>
+                        <span class="trip-amount-due-hint" id="tripDetailsFareBreakdown">Base split + custom extra, if any.</span>
+                    </div>
+                    <div class="request-modal-line">
+                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Custom Stop Extra</span>
+                        <span class="request-modal-value" id="tripDetailsExtraFee">-</span>
+                        <span class="trip-amount-due-hint" id="tripDetailsCustomStop">Only charged to the passenger using the custom stop.</span>
                     </div>
                     <div class="request-modal-line">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-sack-dollar"></i>Total Trip Fare</span>
@@ -2884,6 +5285,247 @@
         })();
 
         (() => {
+            const modal = document.getElementById('paymentPayNowModal');
+            const list = document.getElementById('paymentPayNowList');
+            const sub = document.getElementById('paymentPayNowSub');
+            const closeBtn = document.getElementById('paymentPayNowClose');
+            if (!modal || !list || !closeBtn) return;
+
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            const csrf = @json(csrf_token());
+            const escapeHtml = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const close = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+            };
+            const resultHtml = (message, isError = false) => `
+                <div class="trip-payment-popup-result ${isError ? 'error' : ''}">
+                    <span class="trip-payment-popup-icon"><i class="fa-solid ${isError ? 'fa-xmark' : 'fa-check'}"></i></span>
+                    <span class="trip-payment-popup-title">${isError ? 'Action failed' : 'Successful'}</span>
+                    <span class="trip-payment-popup-message">${escapeHtml(message)}</span>
+                </div>
+            `;
+            const qrPreviewHtml = (url, label) => {
+                const safeUrl = String(url || '').trim();
+                return safeUrl
+                    ? `<img src="${escapeHtml(safeUrl)}" alt="${escapeHtml(label)}">`
+                    : '<span class="driver-payment-qr-empty">No QR uploaded</span>';
+            };
+
+            document.addEventListener('click', (event) => {
+                const button = event.target instanceof Element
+                    ? event.target.closest('.open-payment-paynow-btn')
+                    : null;
+                if (!(button instanceof HTMLElement)) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+                const fareBreakdown = button.dataset.hasExtra === '1'
+                    ? `<span style="display:block;color:#64748b;font-size:12px;">Base RM ${escapeHtml(button.dataset.baseAmount || '0.00')} + extra RM ${escapeHtml(button.dataset.extraFee || '0.00')}</span>`
+                    : '';
+                const driverName = button.dataset.driverName || '-';
+                const driverEmail = button.dataset.driverEmail || '-';
+                const driverPhoto = String(button.dataset.driverPhoto || '').trim();
+                const driverAvatar = driverPhoto
+                    ? `<img src="${escapeHtml(driverPhoto)}" alt="${escapeHtml(driverName)}">`
+                    : escapeHtml((driverName.trim().charAt(0) || 'D').toUpperCase());
+                if (sub) sub.textContent = button.dataset.route || 'Mark your trip payment as paid.';
+                list.innerHTML = `
+                    <article class="trip-payment-review-item">
+                        <div class="trip-payment-review-top">
+                            <div class="trip-payment-review-person">
+                                <span class="trip-payment-review-avatar">${escapeHtml(button.dataset.initials || 'P')}</span>
+                                <span>
+                                    <span class="trip-payment-review-name">${escapeHtml(button.dataset.passenger || 'Passenger')}</span>
+                                    <span class="trip-payment-review-route">${escapeHtml(button.dataset.trip || 'Trip')} &middot; DuitNow</span>
+                                </span>
+                            </div>
+                            <span class="trip-payment-review-status">Unpaid</span>
+                        </div>
+                        <div class="trip-payment-review-amount">
+                            <span>
+                                <span>Amount due</span>
+                                <strong>RM ${escapeHtml(button.dataset.amount || '0.00')}</strong>
+                                ${fareBreakdown}
+                            </span>
+                        </div>
+                        <div class="payment-paynow-driver">
+                            <div class="driver-payment-head">
+                                <span class="driver-payment-avatar">${driverAvatar}</span>
+                                <span class="driver-payment-meta">
+                                    <span class="driver-payment-name">${escapeHtml(driverName)}</span>
+                                    <span class="driver-payment-email">${escapeHtml(driverEmail)}</span>
+                                </span>
+                            </div>
+                            <div class="trip-details-pairs">
+                                <div class="request-modal-line">
+                                    <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
+                                    <span class="request-modal-value">${escapeHtml(button.dataset.driverBank || '-')}</span>
+                                </div>
+                                <div class="request-modal-line">
+                                    <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
+                                    <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountName || '-')}</span>
+                                </div>
+                                <div class="request-modal-line">
+                                    <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
+                                    <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountNumber || '-')}</span>
+                                </div>
+                            </div>
+                            <div class="driver-payment-qr-grid">
+                                <div class="driver-payment-qr-card">
+                                    <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>DuitNow QR</span>
+                                    <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
+                                </div>
+                                <div class="driver-payment-qr-card">
+                                    <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>Touch 'n Go QR</span>
+                                    <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverTngQr, "Touch 'n Go QR")}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <form method="POST" action="${escapeHtml(button.dataset.action || '#')}" class="trip-paynow-form">
+                            <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                            <input type="hidden" name="_method" value="PATCH">
+                            <div class="trip-paynow-fields">
+                                <select class="trip-paynow-input" name="payment_method" required>
+                                    <option value="" disabled selected>Select method</option>
+                                    <option value="duitnow_qr">DuitNow QR</option>
+                                    <option value="bank_account">Bank Account</option>
+                                    <option value="digital_wallet">Digital Wallet</option>
+                                    <option value="others">Others</option>
+                                </select>
+                                <input class="trip-paynow-input" type="text" name="remarks" placeholder="Remarks">
+                            </div>
+                            <button type="submit" class="trip-paynow-submit">Mark as paid</button>
+                        </form>
+                    </article>
+                `;
+                document.querySelectorAll('.request-modal.show, .trip-payment-review-modal.is-open').forEach((openModal) => {
+                    if (openModal !== modal) {
+                        openModal.classList.remove('show', 'is-open');
+                        openModal.setAttribute('aria-hidden', 'true');
+                    }
+                });
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+                document.body.style.overflow = 'hidden';
+            }, true);
+
+            list.addEventListener('submit', (event) => {
+                const form = event.target;
+                if (!(form instanceof HTMLFormElement) || !form.classList.contains('trip-paynow-form')) return;
+                event.preventDefault();
+
+                const card = form.closest('.trip-payment-review-item') || list;
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing';
+                }
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                    .then(async (response) => {
+                        const payload = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            throw new Error(payload.message || 'The payment action could not be completed.');
+                        }
+                        card.innerHTML = resultHtml(payload.message || 'Payment updated.');
+                        window.setTimeout(() => window.location.reload(), 900);
+                    })
+                    .catch((error) => {
+                        card.innerHTML = resultHtml(error.message || 'The payment action could not be completed.', true);
+                    })
+                    .finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                    });
+            });
+
+            closeBtn.addEventListener('click', close);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) close();
+            });
+        })();
+
+        (() => {
+            const modal = document.getElementById('paymentReceiptModal');
+            if (!modal) return;
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            const closeBtn = document.getElementById('paymentReceiptClose');
+            const breakdownRow = document.getElementById('paymentReceiptBreakdownRow');
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value || '-';
+            };
+            const close = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+            };
+
+            document.addEventListener('click', (event) => {
+                const button = event.target instanceof Element
+                    ? event.target.closest('.open-payment-receipt-btn')
+                    : null;
+                if (!(button instanceof HTMLElement)) return;
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                event.stopPropagation();
+                setText('paymentReceiptNo', button.dataset.receiptNo);
+                setText('paymentReceiptAmount', button.dataset.amount);
+                setText('paymentReceiptRoute', button.dataset.route);
+                setText('paymentReceiptPassenger', button.dataset.passenger);
+                setText('paymentReceiptDriver', button.dataset.driver);
+                setText('paymentReceiptMethod', button.dataset.method);
+                setText('paymentReceiptMarked', button.dataset.markedAt);
+                setText('paymentReceiptConfirmed', button.dataset.confirmedAt);
+                const hasExtra = button.dataset.hasExtra === '1';
+                setText('paymentReceiptBreakdown', hasExtra ? `${button.dataset.baseFare || 'RM 0.00'} base + ${button.dataset.extraFee || 'RM 0.00'} extra` : '-');
+                if (breakdownRow) breakdownRow.style.display = hasExtra ? 'flex' : 'none';
+                document.querySelectorAll('.request-modal.show, .trip-payment-review-modal.is-open').forEach((openModal) => {
+                    if (openModal !== modal) {
+                        openModal.classList.remove('show', 'is-open');
+                        openModal.setAttribute('aria-hidden', 'true');
+                    }
+                });
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+                document.body.style.overflow = 'hidden';
+            }, true);
+
+            closeBtn?.addEventListener('click', close);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) close();
+            });
+        })();
+
+        (() => {
             const tripDetailsModal = document.getElementById('tripDetailsModal');
             const tripDetailsCloseTop = document.getElementById('tripDetailsCloseTop');
             const tripDetailButtons = document.querySelectorAll('.open-trip-modal-btn');
@@ -2909,6 +5551,9 @@
                 const tripDetailsMode = document.getElementById('tripDetailsMode');
                 const tripDetailsStatus = document.getElementById('tripDetailsStatus');
                 const tripDetailsAmountDue = document.getElementById('tripDetailsAmountDue');
+                const tripDetailsFareBreakdown = document.getElementById('tripDetailsFareBreakdown');
+                const tripDetailsExtraFee = document.getElementById('tripDetailsExtraFee');
+                const tripDetailsCustomStop = document.getElementById('tripDetailsCustomStop');
                 const tripDetailsFareTotal = document.getElementById('tripDetailsFareTotal');
                 const tripDetailsPaymentStatus = document.getElementById('tripDetailsPaymentStatus');
                 const tripDetailsPaymentMethod = document.getElementById('tripDetailsPaymentMethod');
@@ -3105,12 +5750,11 @@
                     }
                 };
 
-                tripDetailButtons.forEach((button) => {
-                    button.addEventListener('click', () => {
-                        const driverName = button.dataset.driver || '-';
-                        const driverEmail = button.dataset.driverEmail || '';
-                        const driverWhatsappUrl = (button.dataset.driverWhatsappUrl || '').trim();
-                        const driverPhoneRaw = button.dataset.driverPhone || '';
+                const openTripDetails = (source) => {
+                        const driverName = source.dataset.driver || '-';
+                        const driverEmail = source.dataset.driverEmail || '';
+                        const driverWhatsappUrl = (source.dataset.driverWhatsappUrl || '').trim();
+                        const driverPhoneRaw = source.dataset.driverPhone || '';
                         const digitsRaw = driverPhoneRaw.replace(/\D+/g, '');
                         let waDigits = digitsRaw.replace(/^00+/, '');
                         if (/^01\d{8,9}$/.test(waDigits)) {
@@ -3119,31 +5763,31 @@
                         const waUrl = /^https?:\/\/wa\.me\/\d+$/i.test(driverWhatsappUrl)
                             ? driverWhatsappUrl
                             : (waDigits ? `https://wa.me/${waDigits}` : '');
-                        const pickupName = button.dataset.pickupName || '-';
-                        const destinationName = button.dataset.destinationName || '-';
-                        const pickupLat = toNum(button.dataset.pickupLat);
-                        const pickupLng = toNum(button.dataset.pickupLng);
-                        const destinationLat = toNum(button.dataset.destinationLat);
-                        const destinationLng = toNum(button.dataset.destinationLng);
+                        const pickupName = source.dataset.pickupName || '-';
+                        const destinationName = source.dataset.destinationName || '-';
+                        const pickupLat = toNum(source.dataset.pickupLat);
+                        const pickupLng = toNum(source.dataset.pickupLng);
+                        const destinationLat = toNum(source.dataset.destinationLat);
+                        const destinationLng = toNum(source.dataset.destinationLng);
                         let participantsPayload = [];
                         try {
-                            participantsPayload = JSON.parse(button.dataset.participants || '[]');
+                            participantsPayload = JSON.parse(source.dataset.participants || '[]');
                         } catch (_e) {
                             participantsPayload = [];
                         }
 
-                        if (tripDetailsId) tripDetailsId.textContent = `#${button.dataset.tripId || '-'}`;
-                        if (tripDetailsRoute) tripDetailsRoute.textContent = button.dataset.route || '-';
+                        if (tripDetailsId) tripDetailsId.textContent = `#${source.dataset.tripId || '-'}`;
+                        if (tripDetailsRoute) tripDetailsRoute.textContent = source.dataset.route || '-';
                         if (tripDetailsPickupPoint) tripDetailsPickupPoint.textContent = pickupName;
                         if (tripDetailsDestinationPoint) tripDetailsDestinationPoint.textContent = destinationName;
                         if (tripDetailsDriver) tripDetailsDriver.textContent = driverName;
                         if (tripDetailsDriverAvatar) tripDetailsDriverAvatar.textContent = (driverName.trim().charAt(0) || 'D').toUpperCase();
                         if (tripDetailsDriverEmail) tripDetailsDriverEmail.textContent = driverEmail || '-';
-                        if (tripDetailsDatetime) tripDetailsDatetime.textContent = button.dataset.datetime || '-';
-                        if (tripDetailsMode) tripDetailsMode.textContent = button.dataset.mode || '-';
+                        if (tripDetailsDatetime) tripDetailsDatetime.textContent = source.dataset.datetime || '-';
+                        if (tripDetailsMode) tripDetailsMode.textContent = source.dataset.mode || '-';
                         if (tripDetailsPairHint) {
-                            const pairedTripId = String(button.dataset.pairedTripId || '').trim();
-                            const isTwoWay = String(button.dataset.mode || '').toLowerCase().includes('two way');
+                            const pairedTripId = String(source.dataset.pairedTripId || '').trim();
+                            const isTwoWay = String(source.dataset.mode || '').toLowerCase().includes('two way');
                             if (isTwoWay && pairedTripId) {
                                 tripDetailsPairHint.textContent = `Paired trip: Trip #${pairedTripId}`;
                                 tripDetailsPairHint.style.display = 'block';
@@ -3153,13 +5797,26 @@
                             }
                         }
                         renderPassengerList(participantsPayload);
-                        setStatusBadge(tripDetailsStatus, button.dataset.status || '-');
-                        if (tripDetailsAmountDue) tripDetailsAmountDue.textContent = button.dataset.amountDue || '-';
-                        if (tripDetailsFareTotal) tripDetailsFareTotal.textContent = button.dataset.fareTotal || '-';
-                        setStatusBadge(tripDetailsPaymentStatus, button.dataset.paymentStatus || '-');
-                        if (tripDetailsPaymentMethod) tripDetailsPaymentMethod.textContent = button.dataset.paymentMethod || '-';
-                        if (tripDetailsPaymentRemarks) tripDetailsPaymentRemarks.textContent = button.dataset.paymentRemarks || '-';
-                        if (tripDetailsMarkedAt) tripDetailsMarkedAt.textContent = button.dataset.markedAt || '-';
+                        setStatusBadge(tripDetailsStatus, source.dataset.status || '-');
+                        if (tripDetailsAmountDue) tripDetailsAmountDue.textContent = source.dataset.amountDue || '-';
+                        if (tripDetailsFareBreakdown) {
+                            const extraFee = String(source.dataset.extraFee || 'RM 0.00').trim();
+                            tripDetailsFareBreakdown.textContent = extraFee !== 'RM 0.00'
+                                ? `${source.dataset.baseFare || 'RM 0.00'} base split + ${extraFee} custom extra`
+                                : 'This passenger pays the normal base split.';
+                        }
+                        if (tripDetailsExtraFee) tripDetailsExtraFee.textContent = source.dataset.extraFee || 'RM 0.00';
+                        if (tripDetailsCustomStop) {
+                            const customStop = String(source.dataset.customStop || '').trim();
+                            tripDetailsCustomStop.textContent = customStop
+                                ? `${customStop}. Extra fee applies only to this passenger.`
+                                : 'No custom stop extra for this passenger.';
+                        }
+                        if (tripDetailsFareTotal) tripDetailsFareTotal.textContent = source.dataset.fareTotal || '-';
+                        setStatusBadge(tripDetailsPaymentStatus, source.dataset.paymentStatus || '-');
+                        if (tripDetailsPaymentMethod) tripDetailsPaymentMethod.textContent = source.dataset.paymentMethod || '-';
+                        if (tripDetailsPaymentRemarks) tripDetailsPaymentRemarks.textContent = source.dataset.paymentRemarks || '-';
+                        if (tripDetailsMarkedAt) tripDetailsMarkedAt.textContent = source.dataset.markedAt || '-';
                         if (tripDetailsEmail) {
                             if (driverEmail) {
                                 tripDetailsEmail.classList.remove('is-disabled');
@@ -3186,6 +5843,11 @@
                                 if (tripMiniMap) tripMiniMap.invalidateSize();
                             });
                         }, 40);
+                };
+
+                tripDetailButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        openTripDetails(button);
                     });
                 });
 
@@ -3200,6 +5862,8 @@
                         const detailBtn = card.querySelector('.open-trip-modal-btn');
                         if (detailBtn instanceof HTMLButtonElement) {
                             detailBtn.click();
+                        } else if (card instanceof HTMLElement && card.dataset.tripId) {
+                            openTripDetails(card);
                         }
                     });
                 });
@@ -3422,10 +6086,12 @@
                         const itemDate = item.dataset.filterDate || '';
                         const itemVisibility = item.dataset.filterVisibility || '';
                         const itemPerson = (item.dataset.filterPerson || '').toLowerCase();
+                        const statusHidden = item.dataset.statusHidden === '1';
                         const isVisible = (!fromDate || itemDate >= fromDate)
                             && (!toDate || itemDate <= toDate)
                             && (!visibility || itemVisibility === visibility)
-                            && (!person || itemPerson.includes(person));
+                            && (!person || itemPerson.includes(person))
+                            && !statusHidden;
 
                         item.classList.toggle('payments-filter-hidden', !isVisible);
                         if (isVisible) visibleCount += 1;
@@ -3455,10 +6121,36 @@
                     panel.classList.remove('is-open');
                     panel.querySelector('[data-filter-toggle]')?.setAttribute('aria-expanded', 'false');
                     applyFilter();
+                    panel.style.display = 'none';
                 });
 
                 applyFilter();
             });
+
+            document.querySelector('[data-payments-filter-launch]')?.addEventListener('click', () => {
+                const panel = document.getElementById('paymentsFilterPanel');
+                if (!panel) return;
+                const isOpen = panel.style.display !== 'none' && panel.style.display !== '';
+                panel.style.display = isOpen ? 'none' : 'grid';
+                if (isOpen) {
+                    return;
+                }
+                if (!isOpen) {
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+
+            const paymentsFilterPanel = document.getElementById('paymentsFilterPanel');
+            if (paymentsFilterPanel instanceof HTMLFormElement) {
+                let paymentFilterTimer = null;
+                const submitPaymentFilter = () => {
+                    window.clearTimeout(paymentFilterTimer);
+                    paymentFilterTimer = window.setTimeout(() => paymentsFilterPanel.requestSubmit(), 250);
+                };
+                paymentsFilterPanel.querySelectorAll('input, select').forEach((field) => {
+                    field.addEventListener('change', submitPaymentFilter);
+                });
+            }
 
             const reminderButtons = Array.from(document.querySelectorAll('.reminder-btn[data-seconds-left]'));
             if (reminderButtons.length === 0) return;
@@ -3573,6 +6265,25 @@
 
             window.setInterval(poll, 5000);
         })();
+
+        function pmtTab(btn, tab) {
+            document.querySelectorAll('.payments-tab').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.querySelectorAll('.js-payment-filter-item[data-pmt-status]').forEach(function(row) {
+                var s = row.dataset.pmtStatus;
+                var perspective = row.dataset.paymentPerspective || '';
+                var show = tab === 'all'
+                    || (tab === 'pay' && perspective === 'pay')
+                    || (tab === 'collect' && perspective === 'collect')
+                    || (tab === 'unpaid' && s === 'unpaid')
+                    || (tab === 'review' && s === 'pending_confirmation')
+                    || (tab === 'confirmed' && s === 'paid')
+                    || (tab === 'disputed' && s === 'disputed');
+                row.dataset.statusHidden = show ? '0' : '1';
+            });
+            document.querySelectorAll('.js-payments-filter').forEach(function(panel) {
+                panel.querySelector('input, select')?.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        }
     </script>
 @endsection
-

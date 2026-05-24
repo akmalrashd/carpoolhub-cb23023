@@ -28,6 +28,8 @@ class UpdateProfileRequest extends FormRequest
             'whatsapp_number' => ['nullable', 'string', 'max:20'],
             'phone' => ['nullable', 'string', 'max:30'],
             'phone_visible' => ['nullable', 'string', Rule::in(['visible_public', 'visible_friend', 'unvisible'])],
+            'vehicle_model' => ['nullable', 'string', 'max:80'],
+            'vehicle_plate' => ['nullable', 'string', 'max:30'],
             'profile_photo' => ['nullable', 'image', 'max:2048'],
             'payment_account_name' => ['nullable', 'string', 'max:255'],
             'payment_account_number' => ['nullable', 'string', 'max:50'],

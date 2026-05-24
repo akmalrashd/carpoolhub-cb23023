@@ -288,12 +288,17 @@ class TripJoinRequestService
         $splitCount = $this->resolveSplitCountForTrip($trip, $participantIds->count(), $includeDriverInSplit);
         $perPerson = $this->farePerPerson((float) $trip->fare_total, $splitCount);
         $amounts = collect(range(1, max(1, $participantIds->count())))->map(fn () => $perPerson);
+        $extraFeesByUser = TripPassengerRoutePoint::query()
+            ->where('trip_id', $trip->id)
+            ->whereIn('user_id', $participantIds)
+            ->pluck('extra_fee_amount', 'user_id');
 
         TripParticipant::query()->where('trip_id', $trip->id)->delete();
         TripPayment::query()->where('trip_id', $trip->id)->delete();
 
         foreach ($participantIds as $index => $userId) {
-            $fareAmount = (float) $amounts->get($index, 0);
+            $extraFee = $extraFeesByUser->get($userId);
+            $fareAmount = round((float) $amounts->get($index, 0) + ($extraFee !== null ? (float) $extraFee : 0), 2);
 
             TripParticipant::query()->create([
                 'trip_id' => $trip->id,
@@ -370,7 +375,7 @@ class TripJoinRequestService
             'uses_default_dropoff' => ! $dropoffCustom,
             'requested_pickup_time' => $data['requested_pickup_time'] ?? null,
             'detour_distance_km' => $data['detour_distance_km'] ?? null,
-            'fare_override_amount' => $data['fare_override_amount'] ?? null,
+            'extra_fee_amount' => $data['extra_fee_amount'] ?? null,
         ];
 
         $fit = $this->routeFitFor($trip, $payload);
@@ -487,22 +492,6 @@ class TripJoinRequestService
             'trip_participant_id' => $participant?->id,
             'status' => 'accepted',
         ]);
-    }
-
-    private function distributeFare(float $fareTotal, int $participantCount): Collection
-    {
-        if ($participantCount <= 0) {
-            return collect();
-        }
-
-        $totalCents = (int) round($fareTotal * 100);
-        $baseCents = intdiv($totalCents, $participantCount);
-        $remainder = $totalCents - ($baseCents * $participantCount);
-
-        return collect(range(1, $participantCount))->map(function (int $index) use ($baseCents, $remainder): float {
-            $cents = $baseCents + ($index <= $remainder ? 1 : 0);
-            return $cents / 100;
-        });
     }
 
     private function assertNoProcessedPayments(Trip $baseTrip): void

@@ -29,7 +29,7 @@ return new class extends Migration
             $table->decimal('dropoff_distance_km', 8, 2)->nullable();
             $table->decimal('detour_distance_km', 8, 2)->nullable();
             $table->unsignedInteger('detour_duration_minutes')->nullable();
-            $table->decimal('fare_override_amount', 8, 2)->nullable();
+            $table->decimal('extra_fee_amount', 8, 2)->nullable();
             $table->string('status', 32)->default('requested');
             $table->timestamps();
 

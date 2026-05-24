@@ -19,22 +19,58 @@ use Illuminate\Validation\ValidationException;
 
 class TripService
 {
+    private static bool $lifecycleSynced = false;
+
     public function paginateForUser(User $user, int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
         $this->syncLifecycleStatuses();
 
-        $query = Trip::query()
+        $query = $this->baseUserTripsQuery($user)
             ->with([
                 'savedRoute',
                 'driver',
                 'participants.user',
-                'payments' => fn ($paymentQuery) => $paymentQuery->where('user_id', $user->id),
+                'joinRequests.user',
+                'joinRequests.routePoint',
+                'payments.user',
                 'returnTrip.savedRoute',
                 'returnTrip.participants.user',
-                'returnTrip.payments' => fn ($paymentQuery) => $paymentQuery->where('user_id', $user->id),
+                'returnTrip.payments.user',
                 'passengerRoutePoints.user',
                 'returnTrip.passengerRoutePoints.user',
-            ])
+            ]);
+
+        $this->applyTripIndexFilters($query, $filters);
+        $statusFilter = strtolower((string) ($filters['status_filter'] ?? ''));
+        if ($statusFilter === 'upcoming') {
+            $query->whereIn('status', ['scheduled', 'confirmed']);
+        } elseif ($statusFilter === 'completed') {
+            $query->whereIn('status', ['recorded', 'completed']);
+        } elseif (in_array($statusFilter, ['draft', 'cancelled'], true)) {
+            $query->where('status', $statusFilter);
+        }
+
+        return $query->latest('trip_datetime')->paginate($perPage);
+    }
+
+    public function statusCountsForUser(User $user, array $filters = []): array
+    {
+        $query = $this->baseUserTripsQuery($user);
+
+        $this->applyTripIndexFilters($query, $filters);
+
+        return [
+            'all' => (clone $query)->count(),
+            'upcoming' => (clone $query)->whereIn('status', ['scheduled', 'confirmed'])->count(),
+            'completed' => (clone $query)->whereIn('status', ['recorded', 'completed'])->count(),
+            'draft' => (clone $query)->where('status', 'draft')->count(),
+            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+        ];
+    }
+
+    private function baseUserTripsQuery(User $user)
+    {
+        $query = Trip::query()
             ->activeOperational()
             ->whereNull('parent_trip_id');
 
@@ -45,6 +81,11 @@ class TripService
             });
         }
 
+        return $query;
+    }
+
+    private function applyTripIndexFilters($query, array $filters): void
+    {
         if (! empty($filters['date_from'])) {
             $from = Carbon::parse((string) $filters['date_from'])->startOfDay();
             $query->where('trip_datetime', '>=', $from);
@@ -58,8 +99,6 @@ class TripService
         if (! empty($filters['visibility'])) {
             $query->where('visibility', (string) $filters['visibility']);
         }
-
-        return $query->latest('trip_datetime')->paginate($perPage);
     }
 
     public function paginateExplore(User $user, int $perPage = 12, array $filters = []): LengthAwarePaginator
@@ -182,6 +221,15 @@ class TripService
             );
         }
 
+        if (isset($filters['fare_max']) && is_numeric($filters['fare_max'])) {
+            $query->where('fare_per_person', '<=', (float) $filters['fare_max']);
+        }
+
+        if (($filters['connections'] ?? null) === '1') {
+            $connectionIds = $this->acceptedConnectionIds($user);
+            $query->whereIn('driver_id', $connectionIds->isNotEmpty() ? $connectionIds->all() : [-1]);
+        }
+
         $sort = strtolower((string) ($filters['sort'] ?? 'nearest'));
         if ($sort === 'latest') {
             $query->latest('trip_datetime');
@@ -228,6 +276,7 @@ class TripService
         $isPublic = $visibility === 'public';
         $includeDriverInSplit = $this->shouldIncludeDriverInSplit($data);
         $tripType = $this->resolveTripType($data['trip_type'] ?? null);
+        $data['participant_ids'] = $this->mergePresetPassengerIds($data['participant_ids'] ?? [], $savedRoute);
         $participantIds = $this->buildParticipantIds($driver, $data['participant_ids'] ?? [], $includeDriverInSplit, $visibility);
         $seatLimit = $this->resolveSeatLimit($data, $participantIds, $driver->id, $isPublic);
         $splitCount = $this->resolveSplitCount($participantIds->count(), $isPublic, $seatLimit, $includeDriverInSplit);
@@ -270,7 +319,7 @@ class TripService
                 'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
             ]);
 
-            $this->syncParticipantsAndPayments($trip, $driver->id, $participantIds, $amounts);
+            $this->syncParticipantsAndPayments($trip, $driver->id, $participantIds, $amounts, $savedRoute);
             $this->notifyParticipants($trip, $driver->name, 'Trip Created', 'trip');
 
             if ($tripType === 'two_way') {
@@ -296,7 +345,7 @@ class TripService
                     'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
                 ]);
 
-                $this->syncParticipantsAndPayments($returnTrip, $driver->id, $participantIds, $returnAmounts);
+                $this->syncParticipantsAndPayments($returnTrip, $driver->id, $participantIds, $returnAmounts, $savedRoute);
                 $this->notifyParticipants($returnTrip, $driver->name, 'Trip Created', 'trip');
             }
 
@@ -312,6 +361,7 @@ class TripService
         $visibility = $this->resolveVisibility($data['visibility'] ?? $trip->visibility ?? 'private');
         $isPublic = $visibility === 'public';
         $includeDriverInSplit = $this->shouldIncludeDriverInSplit($data);
+        $data['participant_ids'] = $this->mergePresetPassengerIds($data['participant_ids'] ?? [], $savedRoute);
         $incomingParticipantIds = $this->buildParticipantIds($actor, $data['participant_ids'] ?? [], $includeDriverInSplit, $visibility);
         $existingParticipantIds = $isPublic
             ? $trip->participants()->pluck('user_id')
@@ -363,10 +413,10 @@ class TripService
                     'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
                 ]);
 
-                $this->syncParticipantsAndPayments($trip->returnTrip, $trip->driver_id, $participantIds, $amounts);
+                $this->syncParticipantsAndPayments($trip->returnTrip, $trip->driver_id, $participantIds, $amounts, $savedRoute);
             }
 
-            $this->syncParticipantsAndPayments($trip, $trip->driver_id, $participantIds, $amounts);
+            $this->syncParticipantsAndPayments($trip, $trip->driver_id, $participantIds, $amounts, $savedRoute);
             $this->notifyParticipants($trip, $actor->name, 'Trip Updated', 'trip');
 
             return $trip->refresh()->load(['savedRoute', 'participants.user', 'payments.user']);
@@ -420,6 +470,7 @@ class TripService
     private function resolveOwnedSavedRoute(User $driver, int $savedRouteId): SavedRoute
     {
         $savedRoute = SavedRoute::query()
+            ->with('passengerStops')
             ->where('id', $savedRouteId)
             ->where('user_id', $driver->id)
             ->where('is_active', true)
@@ -483,23 +534,6 @@ class TripService
             ->values();
     }
 
-    private function distributeFare(float $fareTotal, int $participantCount): Collection
-    {
-        if ($participantCount <= 0) {
-            return collect();
-        }
-
-        $totalCents = (int) round($fareTotal * 100);
-        $baseCents = intdiv($totalCents, $participantCount);
-        $remainder = $totalCents - ($baseCents * $participantCount);
-
-        return collect(range(1, $participantCount))->map(function (int $index) use ($baseCents, $remainder): float {
-            $cents = $baseCents + ($index <= $remainder ? 1 : 0);
-
-            return $cents / 100;
-        });
-    }
-
     private function buildActiveParticipantAmounts(float $fareTotal, int $activeCount, int $splitCount): Collection
     {
         if ($activeCount <= 0) {
@@ -525,8 +559,13 @@ class TripService
         Trip $trip,
         int $driverId,
         Collection $participantIds,
-        Collection $amounts
+        Collection $amounts,
+        ?SavedRoute $savedRoute = null
     ): void {
+        $presetStopsByUser = $savedRoute
+            ? $savedRoute->passengerStops->where('is_active', true)->keyBy('user_id')
+            : collect();
+
         TripParticipant::query()->where('trip_id', $trip->id)->delete();
         TripPayment::query()->where('trip_id', $trip->id)->delete();
         if ($trip->visibility === 'private') {
@@ -539,25 +578,56 @@ class TripService
                 ]);
         }
 
-        foreach ($participantIds as $index => $userId) {
-            $fareAmount = (float) $amounts->get($index, 0);
+        $now = now();
+        $participantRows = [];
+        $paymentRows = [];
 
-            $participant = TripParticipant::query()->create([
+        foreach ($participantIds as $index => $userId) {
+            $presetStop = $presetStopsByUser->get($userId);
+            $baseFareAmount = (float) $amounts->get($index, 0);
+            $extraFareAmount = $presetStop?->extra_fee_amount !== null
+                ? (float) $presetStop->extra_fee_amount
+                : 0.0;
+            $fareAmount = round($baseFareAmount + $extraFareAmount, 2);
+
+            $participantRows[] = [
                 'trip_id' => $trip->id,
                 'user_id' => $userId,
                 'is_driver' => $userId === $driverId,
                 'fare_amount' => $fareAmount,
                 'attendance_status' => 'joined',
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
 
-            TripPayment::query()->create([
+            $paymentRows[] = [
                 'trip_id' => $trip->id,
                 'user_id' => $userId,
                 'amount_due' => $fareAmount,
                 'payment_status' => 'unpaid',
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
 
-            if ($trip->visibility === 'private' && $userId !== $driverId) {
+        TripParticipant::insert($participantRows);
+        TripPayment::insert($paymentRows);
+
+        if ($trip->visibility === 'private') {
+            $insertedParticipants = TripParticipant::query()
+                ->where('trip_id', $trip->id)
+                ->whereIn('user_id', $participantIds->all())
+                ->where('is_driver', false)
+                ->get()
+                ->keyBy('user_id');
+
+            foreach ($participantIds as $userId) {
+                if ((int) $userId === $driverId) {
+                    continue;
+                }
+                $presetStop = $presetStopsByUser->get($userId);
+                $participant = $insertedParticipants->get($userId);
+
                 TripPassengerRoutePoint::query()->updateOrCreate(
                     [
                         'trip_id' => $trip->id,
@@ -565,23 +635,16 @@ class TripService
                         'trip_join_request_id' => null,
                     ],
                     [
-                        'trip_participant_id' => $participant->id,
-                        'pickup_name' => $trip->pickup_name,
-                        'pickup_latitude' => $trip->pickup_latitude,
-                        'pickup_longitude' => $trip->pickup_longitude,
-                        'dropoff_name' => $trip->destination_name,
-                        'dropoff_latitude' => $trip->destination_latitude,
-                        'dropoff_longitude' => $trip->destination_longitude,
-                        'uses_default_pickup' => true,
-                        'uses_default_dropoff' => true,
+                        'trip_participant_id' => $participant?->id,
+                        ...$this->routePointPayloadFromPreset($trip, $savedRoute, $presetStop),
                         'requested_pickup_time' => $trip->trip_datetime,
                         'route_fit_score' => 100,
-                        'route_fit_label' => 'Private trip default pickup and destination',
+                        'route_fit_label' => $presetStop ? 'Saved route preset passenger stop' : 'Private trip default pickup and destination',
                         'pickup_distance_km' => 0,
                         'dropoff_distance_km' => 0,
                         'detour_distance_km' => null,
                         'detour_duration_minutes' => null,
-                        'fare_override_amount' => null,
+                        'extra_fee_amount' => $presetStop?->extra_fee_amount,
                         'status' => 'accepted',
                     ]
                 );
@@ -589,29 +652,94 @@ class TripService
         }
     }
 
+    private function mergePresetPassengerIds(array $participantIds, SavedRoute $savedRoute): array
+    {
+        return collect($participantIds)
+            ->merge($savedRoute->passengerStops->where('is_active', true)->pluck('user_id'))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function routePointPayloadFromPreset(Trip $trip, ?SavedRoute $savedRoute, $presetStop): array
+    {
+        if (! $presetStop) {
+            return [
+                'pickup_name' => $trip->pickup_name,
+                'pickup_latitude' => $trip->pickup_latitude,
+                'pickup_longitude' => $trip->pickup_longitude,
+                'dropoff_name' => $trip->destination_name,
+                'dropoff_latitude' => $trip->destination_latitude,
+                'dropoff_longitude' => $trip->destination_longitude,
+                'uses_default_pickup' => true,
+                'uses_default_dropoff' => true,
+            ];
+        }
+
+        $isReversed = $savedRoute
+            && (string) $trip->pickup_name === (string) $savedRoute->point_b_name
+            && (string) $trip->destination_name === (string) $savedRoute->point_a_name;
+
+        if ($isReversed) {
+            return [
+                'pickup_name' => $presetStop->dropoff_name ?: $trip->pickup_name,
+                'pickup_latitude' => $presetStop->dropoff_latitude ?: $trip->pickup_latitude,
+                'pickup_longitude' => $presetStop->dropoff_longitude ?: $trip->pickup_longitude,
+                'dropoff_name' => $presetStop->pickup_name ?: $trip->destination_name,
+                'dropoff_latitude' => $presetStop->pickup_latitude ?: $trip->destination_latitude,
+                'dropoff_longitude' => $presetStop->pickup_longitude ?: $trip->destination_longitude,
+                'uses_default_pickup' => false,
+                'uses_default_dropoff' => false,
+            ];
+        }
+
+        return [
+            'pickup_name' => $presetStop->pickup_name ?: $trip->pickup_name,
+            'pickup_latitude' => $presetStop->pickup_latitude ?: $trip->pickup_latitude,
+            'pickup_longitude' => $presetStop->pickup_longitude ?: $trip->pickup_longitude,
+            'dropoff_name' => $presetStop->dropoff_name ?: $trip->destination_name,
+            'dropoff_latitude' => $presetStop->dropoff_latitude ?: $trip->destination_latitude,
+            'dropoff_longitude' => $presetStop->dropoff_longitude ?: $trip->destination_longitude,
+            'uses_default_pickup' => false,
+            'uses_default_dropoff' => false,
+        ];
+    }
+
     private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type): void
     {
         $trip->loadMissing('participants');
 
-        foreach ($trip->participants as $participant) {
-            if ($participant->user_id === $trip->driver_id) {
-                continue;
-            }
-
-            UserNotification::query()->create([
-                'user_id' => $participant->user_id,
+        $now = now();
+        $rows = $trip->participants
+            ->filter(fn ($p) => $p->user_id !== $trip->driver_id)
+            ->map(fn ($p) => [
+                'user_id' => $p->user_id,
                 'type' => $type,
                 'title' => $title,
                 'message' => "{$actorName} {$title} for trip #{$trip->id}.",
                 'related_type' => 'trip',
                 'related_id' => $trip->id,
                 'is_read' => false,
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->values()
+            ->all();
+
+        if ($rows) {
+            UserNotification::insert($rows);
         }
     }
 
     public function syncLifecycleStatuses(): void
     {
+        if (self::$lifecycleSynced) {
+            return;
+        }
+
+        self::$lifecycleSynced = true;
         $now = now();
 
         Trip::query()

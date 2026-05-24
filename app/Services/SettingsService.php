@@ -44,6 +44,12 @@ class SettingsService
         $paymentBankName = array_key_exists('payment_bank_name', $data)
             ? (($data['payment_bank_name'] !== '') ? $data['payment_bank_name'] : null)
             : $user->payment_bank_name;
+        $vehicleModel = array_key_exists('vehicle_model', $data)
+            ? (($data['vehicle_model'] !== '') ? $data['vehicle_model'] : null)
+            : $user->vehicle_model;
+        $vehiclePlate = array_key_exists('vehicle_plate', $data)
+            ? (($data['vehicle_plate'] !== '') ? strtoupper((string) $data['vehicle_plate']) : null)
+            : $user->vehicle_plate;
 
         $user->update([
             'name' => $name,
@@ -51,6 +57,8 @@ class SettingsService
             'email_visible' => $emailVisible,
             'phone' => $phone,
             'phone_visible' => $phoneVisible,
+            'vehicle_model' => $vehicleModel,
+            'vehicle_plate' => $vehiclePlate,
             'profile_photo' => $photoPath,
             'payment_account_name' => $paymentAccountName,
             'payment_account_number' => $paymentAccountNumber,

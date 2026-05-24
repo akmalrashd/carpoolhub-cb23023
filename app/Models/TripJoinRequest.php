@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,5 +50,15 @@ class TripJoinRequest extends Model
     public function routePoint(): HasOne
     {
         return $this->hasOne(TripPassengerRoutePoint::class);
+    }
+
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status', 'approved');
     }
 }

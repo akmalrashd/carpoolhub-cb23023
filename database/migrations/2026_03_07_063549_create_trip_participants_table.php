@@ -25,6 +25,10 @@ return new class extends Migration
 
             $table->enum('attendance_status', ['joined', 'removed', 'absent'])
                 ->default('joined');
+            $table->timestamp('joined_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('attendance_marked_at')->nullable();
+            $table->string('attendance_source', 50)->nullable();
 
             $table->timestamps();
 

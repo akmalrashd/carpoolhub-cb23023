@@ -17,13 +17,13 @@ return new class extends Migration
 
             $table->string('route_name')->nullable();
 
-            $table->string('pickup_name');
-            $table->decimal('pickup_latitude', 10, 7);
-            $table->decimal('pickup_longitude', 10, 7);
+            $table->string('point_a_name');
+            $table->decimal('point_a_latitude', 10, 7);
+            $table->decimal('point_a_longitude', 10, 7);
 
-            $table->string('destination_name');
-            $table->decimal('destination_latitude', 10, 7);
-            $table->decimal('destination_longitude', 10, 7);
+            $table->string('point_b_name');
+            $table->decimal('point_b_latitude', 10, 7);
+            $table->decimal('point_b_longitude', 10, 7);
 
             $table->decimal('default_fare', 8, 2)->default(0);
 

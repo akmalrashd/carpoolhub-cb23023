@@ -16,21 +16,25 @@ class PaymentService
 {
     private const REMINDER_COOLDOWN_HOURS = 24;
 
-    public function paginateForUser(User $user, int $perPage = 12, ?array $tripIds = null): LengthAwarePaginator
+    public function paginateForUser(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
     {
-        return TripPayment::query()
-            ->with(['trip.savedRoute', 'trip.driver', 'trip.participants.user', 'trip.parentTrip', 'trip.returnTrip', 'user'])
+        $query = TripPayment::query()
+            ->with(['trip.savedRoute', 'trip.driver', 'trip.participants.user', 'trip.passengerRoutePoints.user', 'trip.parentTrip', 'trip.returnTrip', 'user'])
             ->where('user_id', $user->id)
             ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
-            ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds))
+            ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
+
+        $this->applyIndexFilters($query, $filters);
+
+        return $query
             ->latest('id')
             ->paginate($perPage, ['*'], 'mine_page');
     }
 
-    public function paginateForDriver(User $user, int $perPage = 12, ?array $tripIds = null): LengthAwarePaginator
+    public function paginateForDriver(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
     {
-        return TripPayment::query()
-            ->with(['trip.savedRoute', 'trip.driver', 'trip.participants.user', 'trip.parentTrip', 'trip.returnTrip', 'user'])
+        $query = TripPayment::query()
+            ->with(['trip.savedRoute', 'trip.driver', 'trip.participants.user', 'trip.passengerRoutePoints.user', 'trip.parentTrip', 'trip.returnTrip', 'user'])
             ->when(
                 $user->role === 'admin',
                 fn ($query) => $query->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery)),
@@ -38,9 +42,61 @@ class PaymentService
                     ->where('user_id', '!=', $user->id)
             )
             ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
-            ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds))
+            ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
+
+        $this->applyIndexFilters($query, $filters);
+
+        return $query
             ->latest('id')
             ->paginate($perPage, ['*'], 'driver_page');
+    }
+
+    public function indexCountsForUser(User $user, array $filters = [], bool $includeDriverQueue = false, ?array $tripIds = null): array
+    {
+        $payQuery = TripPayment::query()
+            ->where('user_id', $user->id)
+            ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
+            ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
+
+        $collectQuery = TripPayment::query()
+            ->when(
+                $user->role === 'admin',
+                fn ($query) => $query->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery)),
+                fn ($query) => $query->whereHas('trip', fn ($tripQuery) => $tripQuery->where('driver_id', $user->id))
+                    ->where('user_id', '!=', $user->id)
+            )
+            ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
+            ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
+
+        $countFilters = $filters;
+        unset($countFilters['payment_filter']);
+        $this->applyIndexFilters($payQuery, $countFilters);
+        $this->applyIndexFilters($collectQuery, $countFilters);
+
+        $direction = (string) ($filters['direction'] ?? 'all');
+        $statusQueries = collect();
+        if ($direction !== 'collect') {
+            $statusQueries->push(clone $payQuery);
+        }
+        if ($includeDriverQueue && $direction !== 'pay') {
+            $statusQueries->push(clone $collectQuery);
+        }
+
+        $sumStatus = function (string $status) use ($statusQueries): int {
+            return (int) $statusQueries->sum(fn ($query) => (clone $query)->where('payment_status', $status)->count());
+        };
+
+        $payCount = (int) (clone $payQuery)->count();
+        $collectCount = $includeDriverQueue ? (int) (clone $collectQuery)->count() : 0;
+
+        return [
+            'all' => (int) $statusQueries->sum(fn ($query) => (clone $query)->count()),
+            'pay' => $payCount,
+            'collect' => $collectCount,
+            'unpaid' => $sumStatus('unpaid'),
+            'review' => $sumStatus('pending_confirmation'),
+            'confirmed' => $sumStatus('paid'),
+        ];
     }
 
     public function summarizeForUser(User $user, ?array $tripIds = null): array
@@ -372,23 +428,72 @@ class PaymentService
 
     private function summarizeByStatus(Builder $baseQuery): array
     {
-        $statuses = ['unpaid', 'pending_confirmation', 'paid'];
-        $summary = [];
+        $rows = (clone $baseQuery)
+            ->selectRaw("
+                payment_status,
+                COUNT(*) as cnt,
+                SUM(amount_due) as total
+            ")
+            ->groupBy('payment_status')
+            ->get()
+            ->keyBy('payment_status');
 
-        foreach ($statuses as $status) {
-            $statusQuery = (clone $baseQuery)->where('payment_status', $status);
-            $summary[$status] = [
-                'count' => (int) (clone $statusQuery)->count(),
-                'amount' => (float) (clone $statusQuery)->sum('amount_due'),
-            ];
-        }
-
-        $summary['total'] = [
-            'count' => (int) (clone $baseQuery)->count(),
-            'amount' => (float) (clone $baseQuery)->sum('amount_due'),
+        $make = fn (string $status) => [
+            'count' => (int) ($rows->get($status)?->cnt ?? 0),
+            'amount' => (float) ($rows->get($status)?->total ?? 0),
         ];
 
-        return $summary;
+        return [
+            'unpaid' => $make('unpaid'),
+            'pending_confirmation' => $make('pending_confirmation'),
+            'paid' => $make('paid'),
+            'total' => [
+                'count' => (int) $rows->sum('cnt'),
+                'amount' => (float) $rows->sum('total'),
+            ],
+        ];
+    }
+
+    private function applyIndexFilters(Builder $query, array $filters): void
+    {
+        $paymentFilter = (string) ($filters['payment_filter'] ?? 'all');
+        if ($paymentFilter === 'review') {
+            $query->where('payment_status', 'pending_confirmation');
+        } elseif ($paymentFilter === 'confirmed') {
+            $query->where('payment_status', 'paid');
+        } elseif ($paymentFilter === 'unpaid') {
+            $query->where('payment_status', 'unpaid');
+        }
+
+        if (! empty($filters['date_from'])) {
+            $from = Carbon::parse((string) $filters['date_from'])->startOfDay();
+            $query->whereHas('trip', fn ($tripQuery) => $tripQuery->where('trip_datetime', '>=', $from));
+        }
+
+        if (! empty($filters['date_to'])) {
+            $to = Carbon::parse((string) $filters['date_to'])->endOfDay();
+            $query->whereHas('trip', fn ($tripQuery) => $tripQuery->where('trip_datetime', '<=', $to));
+        }
+
+        if (! empty($filters['visibility'])) {
+            $visibility = (string) $filters['visibility'];
+            $query->whereHas('trip', fn ($tripQuery) => $tripQuery->where('visibility', $visibility));
+        }
+
+        if (! empty($filters['payment_search'])) {
+            $search = trim((string) $filters['payment_search']);
+            $query->where(function (Builder $searchQuery) use ($search): void {
+                $searchQuery
+                    ->whereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('trip', function ($tripQuery) use ($search): void {
+                        $tripQuery
+                            ->where('pickup_name', 'like', "%{$search}%")
+                            ->orWhere('destination_name', 'like', "%{$search}%")
+                            ->orWhereHas('driver', fn ($driverQuery) => $driverQuery->where('name', 'like', "%{$search}%"))
+                            ->orWhereHas('savedRoute', fn ($routeQuery) => $routeQuery->where('route_name', 'like', "%{$search}%"));
+                    });
+            });
+        }
     }
 
     private function applyPayableTripScope($tripQuery): void

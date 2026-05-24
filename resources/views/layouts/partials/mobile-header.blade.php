@@ -13,7 +13,8 @@
             </button>
         @endif
         <a href="{{ route('home') }}" class="header-logo-link" aria-label="Go to Home">
-            <img src="{{ asset('build/assets/branding/logo-horizontal-b.png') }}" alt="CarpoolHub" class="mobile-brand-logo">
+            <img src="{{ asset('assets/branding/logo-small-b.png') }}" alt="" class="mobile-brand-logo">
+            <span class="mobile-brand-text">Carpool<span>Hub</span></span>
         </a>
     </div>
 

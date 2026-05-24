@@ -30,7 +30,7 @@ class TripPassengerRoutePoint extends Model
         'dropoff_distance_km',
         'detour_distance_km',
         'detour_duration_minutes',
-        'fare_override_amount',
+        'extra_fee_amount',
         'status',
     ];
 
@@ -49,7 +49,7 @@ class TripPassengerRoutePoint extends Model
             'dropoff_distance_km' => 'decimal:2',
             'detour_distance_km' => 'decimal:2',
             'detour_duration_minutes' => 'integer',
-            'fare_override_amount' => 'decimal:2',
+            'extra_fee_amount' => 'decimal:2',
         ];
     }
 

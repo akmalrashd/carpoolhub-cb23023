@@ -7,12 +7,16 @@
         <span class="icon"><i class="fa-solid fa-compass"></i></span>
         <span>Explore</span>
     </a>
-    <a href="{{ route('trips.index') }}" class="{{ request()->routeIs('trips.*') ? 'active' : '' }}">
+    <a href="{{ route('trips.create') }}" class="nav-fab {{ request()->routeIs('trips.create') ? 'active' : '' }}" aria-label="Create trip">
+        <span class="icon"><i class="fa-solid fa-plus"></i></span>
+        <span>New Trip</span>
+    </a>
+    <a href="{{ route('trips.index') }}" class="{{ request()->routeIs('trips.*') && !request()->routeIs('trips.create') ? 'active' : '' }}">
         <span class="icon"><i class="fa-solid fa-car-side"></i></span>
-        <span>My Trips</span>
+        <span>Trips</span>
     </a>
     <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') || request()->routeIs('settings.*') ? 'active' : '' }}">
-        <span class="icon"><i class="fa-solid fa-user-gear"></i></span>
+        <span class="icon"><i class="fa-solid fa-user"></i></span>
         <span>Profile</span>
     </a>
 </nav>

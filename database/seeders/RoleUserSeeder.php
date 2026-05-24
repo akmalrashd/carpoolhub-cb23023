@@ -25,12 +25,16 @@ class RoleUserSeeder extends Seeder
                 'email' => 'driver1@carpoolhub.test',
                 'role' => 'driver',
                 'phone' => '01110000011',
+                'vehicle_model' => 'Perodua Bezza',
+                'vehicle_plate' => 'WMK 4821',
             ],
             [
                 'name' => 'Driver Two',
                 'email' => 'driver2@carpoolhub.test',
                 'role' => 'driver',
                 'phone' => '01110000012',
+                'vehicle_model' => 'Proton Saga',
+                'vehicle_plate' => 'VHY 2048',
             ],
             [
                 'name' => 'Passenger One',
@@ -59,6 +63,8 @@ class RoleUserSeeder extends Seeder
                     'name' => $user['name'],
                     'role' => $user['role'],
                     'phone' => $user['phone'],
+                    'vehicle_model' => $user['vehicle_model'] ?? null,
+                    'vehicle_plate' => $user['vehicle_plate'] ?? null,
                     'is_active' => true,
                     'email_verified_at' => now(),
                     'password' => Hash::make('password'),
@@ -67,4 +73,3 @@ class RoleUserSeeder extends Seeder
         }
     }
 }
-

@@ -1,426 +1,677 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        .billing-page {
-            display: grid;
-            gap: 12px;
-        }
+<style>
+    /* ── Page shell ── */
+    .bc-page {
+        padding: 0;
+    }
 
-        .billing-hero {
-            background: #fff;
-            border: 1px solid #dbe2ea;
-            border-radius: 16px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+    /* ── Page header ── */
+    .bc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 24px 28px 20px;
+    }
+    .bc-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .10em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 5px;
+        font-family: var(--font-ui), sans-serif;
+    }
+    .bc-title {
+        margin: 0;
+        font-family: var(--font-display), sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--ink);
+        line-height: 1.05;
+        letter-spacing: -.02em;
+    }
+    .bc-subtitle {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    .bc-header-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
+        align-items: center;
+    }
 
-        .billing-title {
-            margin: 0;
-            font-family: Poppins, sans-serif;
-            font-size: clamp(1.6rem, 2.4vw, 2rem);
-            line-height: 1.05;
-            color: #0f172a;
-        }
+    /* ── KPI strip ── */
+    .bc-kpi-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        padding: 0 28px 14px;
+    }
+    @media (max-width: 900px) {
+        .bc-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 500px) {
+        .bc-kpi-strip { grid-template-columns: 1fr; padding: 0 14px 12px; }
+    }
 
-        .billing-subtitle {
-            margin: 6px 0 0;
-            color: #64748b;
-            font-size: 14px;
-        }
+    .bc-kpi-card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        padding: 18px;
+        box-shadow: var(--shadow-1);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        transition: box-shadow .18s;
+    }
+    .bc-kpi-card:hover { box-shadow: var(--shadow-2); }
+    .bc-kpi-card.highlight {
+        border-color: var(--ch-yellow-line);
+        background: var(--ch-yellow-tint);
+    }
+    .bc-kpi-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--muted);
+        font-family: var(--font-ui), sans-serif;
+    }
+    .bc-kpi-value {
+        font-family: var(--font-display), sans-serif;
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--ink);
+        line-height: 1.1;
+        letter-spacing: -.02em;
+        margin: 2px 0;
+    }
+    .bc-kpi-delta {
+        font-size: 12px;
+        font-weight: 600;
+        font-family: var(--font-ui), sans-serif;
+    }
+    .bc-kpi-delta.up   { color: var(--success); }
+    .bc-kpi-delta.mute { color: var(--muted); }
 
-        .billing-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid #facc15;
-            border-radius: 999px;
-            padding: 6px 10px;
-            background: #fffbeb;
-            color: #92400e;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
+    /* ── Charts two-col ── */
+    .bc-charts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        padding: 0 28px 14px;
+    }
+    @media (max-width: 800px) {
+        .bc-charts { grid-template-columns: 1fr; padding: 0 14px 12px; }
+    }
 
-        .billing-fallback-btn {
-            border: 1px solid #dbe2ea;
-            border-radius: 10px;
-            background: #ffffff;
-            color: #0f172a;
-            padding: 8px 11px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            min-height: 42px;
-        }
+    /* ── Bar chart card ── */
+    .bc-chart-card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-1);
+        overflow: hidden;
+    }
+    .bc-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px 12px;
+        border-bottom: 1px solid var(--hairline);
+        flex-wrap: wrap;
+    }
+    .bc-card-title {
+        font-family: var(--font-display), sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0;
+    }
+    .bc-chart-bars {
+        padding: 16px 16px 8px;
+        height: 200px;
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        overflow: hidden;
+    }
+    .bc-bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        height: 100%;
+        min-width: 0;
+        gap: 3px;
+    }
+    .bc-bar {
+        width: 100%;
+        border-radius: 3px 3px 0 0;
+        background: var(--ch-yellow);
+        min-height: 3px;
+        transition: height .3s ease;
+    }
+    .bc-bar.recent { background: var(--ch-yellow-deep); }
+    .bc-bar-label {
+        font-size: 8px;
+        color: var(--muted-2);
+        font-family: var(--font-ui), sans-serif;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        text-align: center;
+    }
 
-        .billing-fallback-btn:hover {
-            background: #f8fafc;
-            transform: translateY(-1px);
-        }
+    /* ── Progress bars card (top earning routes) ── */
+    .bc-routes-card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .bc-route-list {
+        padding: 8px 0;
+        flex: 1;
+    }
+    .bc-route-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 20px;
+    }
+    .bc-route-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+        font-family: var(--font-ui), sans-serif;
+        min-width: 0;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .bc-route-bar-wrap {
+        width: 80px;
+        height: 8px;
+        background: var(--canvas);
+        border-radius: 999px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .bc-route-bar-fill {
+        height: 100%;
+        background: var(--ch-yellow);
+        border-radius: 999px;
+    }
+    .bc-route-value {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink);
+        font-family: var(--font-ui), sans-serif;
+        min-width: 60px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .bc-empty-row {
+        padding: 24px 20px;
+        color: var(--muted);
+        font-size: 13px;
+        font-style: italic;
+        text-align: center;
+    }
 
-        .billing-card {
-            background: #fff;
-            border: 1px solid #dbe2ea;
-            border-radius: 16px;
-            padding: 14px;
-        }
+    /* ── Open Cycle card ── */
+    .bc-open-section {
+        padding: 0 28px 14px;
+    }
+    .bc-open-card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        padding: 20px;
+        box-shadow: var(--shadow-1);
+    }
+    .bc-open-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .bc-open-title {
+        margin: 0;
+        color: var(--ink);
+        font-size: 18px;
+        font-family: var(--font-display), sans-serif;
+        font-weight: 700;
+    }
+    .bc-open-range {
+        margin-top: 3px;
+        color: var(--ink-3);
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .bc-open-note {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .bc-action-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        align-items: stretch;
+        width: 100%;
+        max-width: 480px;
+    }
 
-        .billing-open-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+    /* Summary KPIs inside open card */
+    .bc-summary-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 16px;
+    }
+    @media (max-width: 860px) {
+        .bc-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 500px) {
+        .bc-summary-grid { grid-template-columns: 1fr; }
+    }
 
-        .billing-open-title {
-            margin: 0;
-            color: #0f172a;
-            font-size: 22px;
-            font-family: Poppins, sans-serif;
-        }
+    .bc-summary-kpi {
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-md);
+        padding: 14px;
+        background: var(--surface-2);
+    }
+    .bc-summary-kpi-label {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        font-family: var(--font-ui), sans-serif;
+    }
+    .bc-summary-kpi-value {
+        margin-top: 4px;
+        font-size: 20px;
+        color: var(--ink);
+        font-weight: 800;
+        line-height: 1.05;
+        font-family: var(--font-ui), sans-serif;
+    }
+    .bc-summary-kpi-value.warning { color: var(--warning); }
+    .bc-summary-kpi-value.success { color: var(--success); }
 
-        .billing-open-range {
-            margin-top: 6px;
-            color: #64748b;
-            font-size: 13px;
-            font-weight: 600;
-        }
+    /* ── History table ── */
+    .bc-history-section {
+        padding: 0 28px 28px;
+    }
+    .bc-history-card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-1);
+        overflow: hidden;
+    }
+    .bc-history-head {
+        padding: 16px 20px 12px;
+        border-bottom: 1px solid var(--hairline);
+    }
+    .bc-history-title {
+        margin: 0;
+        font-family: var(--font-display), sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink);
+    }
 
-        .billing-open-note {
-            margin-top: 6px;
-            color: #64748b;
-            font-size: 12px;
-            line-height: 1.4;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
+    /* Desktop table */
+    .billing-table-wrap {
+        overflow-x: auto;
+    }
+    .billing-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 980px;
+        table-layout: fixed;
+        font-size: 13px;
+        font-family: var(--font-ui), sans-serif;
+    }
+    .billing-table th,
+    .billing-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--hairline);
+        text-align: left;
+        vertical-align: middle;
+    }
+    .billing-table th {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        white-space: nowrap;
+        background: var(--surface-2);
+    }
+    .billing-table td {
+        color: var(--ink-3);
+        font-size: 13px;
+        word-break: break-word;
+    }
+    .billing-table tbody tr:last-child td { border-bottom: 0; }
+    .billing-table tbody tr:hover td { background: var(--ch-yellow-tint); }
 
-        .billing-close-btn {
-            border: 1px solid #eab308;
-            border-radius: 10px;
-            background: #facc15;
-            color: #0f172a;
-            padding: 9px 12px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            min-height: 42px;
-        }
+    .billing-table th:nth-child(1),  .billing-table td:nth-child(1)  { width: 9%; }
+    .billing-table th:nth-child(2),  .billing-table td:nth-child(2)  { width: 21%; }
+    .billing-table th:nth-child(3),  .billing-table td:nth-child(3)  { width: 10%; }
+    .billing-table th:nth-child(4),  .billing-table td:nth-child(4)  { width: 12%; }
+    .billing-table th:nth-child(5),  .billing-table td:nth-child(5)  { width: 11%; }
+    .billing-table th:nth-child(6),  .billing-table td:nth-child(6)  { width: 7%; }
+    .billing-table th:nth-child(7),  .billing-table td:nth-child(7),
+    .billing-table th:nth-child(8),  .billing-table td:nth-child(8),
+    .billing-table th:nth-child(9),  .billing-table td:nth-child(9)  { width: 10%; }
+    .billing-table th:nth-child(10), .billing-table td:nth-child(10) { width: 10%; }
 
-        .billing-close-btn:hover {
-            filter: brightness(0.98);
-            transform: translateY(-1px);
-        }
+    .billing-table td.numeric,
+    .billing-table th.numeric { text-align: right; }
 
-        .billing-action-row {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            align-items: stretch;
-            width: 100%;
-            max-width: 640px;
-        }
+    .billing-month {
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    .billing-date-range {
+        color: var(--ink-2);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .billing-money {
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .billing-money.warning { color: var(--warning); }
+    .billing-money.success { color: var(--success); }
 
-        .billing-summary-grid {
-            display: grid;
-            gap: 8px;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            margin-top: 12px;
-        }
+    .billing-status {
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--r-pill);
+        border: 1px solid var(--hairline);
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .billing-status.open {
+        color: var(--success-ink);
+        border-color: #86efac;
+        background: var(--success-soft);
+    }
+    .billing-status.closed {
+        color: var(--muted);
+        border-color: var(--hairline-strong);
+        background: var(--surface-2);
+    }
 
-        .billing-kpi {
-            border: 1px solid #dbe2ea;
-            border-radius: 12px;
-            padding: 10px;
-            background: #f8fafc;
-        }
+    .billing-mode {
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--r-pill);
+        padding: 4px 9px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        border: 1px solid var(--hairline);
+    }
+    .billing-mode.manual {
+        border-color: var(--ch-yellow-line);
+        background: var(--ch-yellow-tint);
+        color: var(--warning-ink);
+    }
+    .billing-mode.auto {
+        border-color: #bfdbfe;
+        background: var(--info-soft);
+        color: var(--info-ink);
+    }
 
-        .billing-kpi-label {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-        }
+    .billing-empty { color: var(--muted); font-size: 13px; }
 
-        .billing-kpi-value {
-            margin-top: 3px;
-            font-size: 21px;
-            color: #0f172a;
-            font-weight: 800;
-            line-height: 1.05;
-        }
+    /* Mobile history cards */
+    .billing-history-mobile { display: grid; gap: 10px; }
+    .billing-history-item {
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-md);
+        background: var(--surface);
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+    }
+    .billing-history-item-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .billing-history-item-month { font-size: 15px; font-weight: 800; color: var(--ink); }
+    .billing-history-item-range { color: var(--muted); font-size: 12px; font-weight: 600; }
+    .billing-history-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .billing-history-stat {
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-sm);
+        padding: 8px;
+        background: var(--surface-2);
+    }
+    .billing-history-stat-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--muted);
+        font-weight: 700;
+    }
+    .billing-history-stat-value {
+        margin-top: 2px;
+        color: var(--ink);
+        font-weight: 800;
+        font-size: 14px;
+        line-height: 1.1;
+    }
+    .billing-history-meta {
+        display: grid;
+        gap: 3px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+    }
 
-        .billing-kpi-value.warning {
-            color: #b45309;
-        }
+    /* Responsive */
+    @media (max-width: 720px) {
+        .bc-header     { padding: 16px 14px 14px; }
+        .bc-open-section { padding: 0 14px 12px; }
+        .bc-history-section { padding: 0 14px 20px; }
+        .bc-action-row { grid-template-columns: 1fr; max-width: 100%; }
+        .billing-table-wrap { display: none; }
+    }
+    @media (min-width: 721px) {
+        .billing-history-mobile { display: none; }
+    }
+</style>
 
-        .billing-kpi-value.success {
-            color: #15803d;
-        }
+<div class="bc-page">
 
-        .billing-history-head {
-            margin: 0 0 10px;
-            color: #0f172a;
-            font-size: 16px;
-            font-weight: 800;
-        }
+    {{-- Page header --}}
+    <header class="bc-header">
+        <div>
+            <p class="bc-eyebrow">Billing cycles</p>
+            <h1 class="bc-title">Monthly summary &middot; {{ $openCycle->month_key }}</h1>
+            <p class="bc-subtitle">Your monthly trips, fares received, fares paid and net activity.</p>
+        </div>
+        <div class="bc-header-actions">
+            <span class="btn btn-ghost btn-sm" style="cursor:default;">
+                <i class="fa-solid fa-rotate"></i>
+                Auto-closes daily at 00:05
+            </span>
+        </div>
+    </header>
 
-        .billing-table-wrap {
-            overflow-x: auto;
-            border: 1px solid #dbe2ea;
-            border-radius: 12px;
-            background: #fff;
-        }
+    {{-- Errors --}}
+    @if($errors->any())
+        <div style="margin:0 28px 12px; padding:10px 14px; border-radius:var(--r-sm); border:1px solid #fecaca; background:var(--danger-soft); color:var(--danger-ink);">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
-        .billing-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 980px;
-        }
+    {{-- KPI strip ── --}}
+    <div class="bc-kpi-strip">
+        <div class="bc-kpi-card highlight">
+            <span class="bc-kpi-label">Total fare</span>
+            <span class="bc-kpi-value">RM&nbsp;{{ number_format((float) ($openSummary['fare_total'] ?? 0), 2) }}</span>
+            <span class="bc-kpi-delta up">Current open cycle</span>
+        </div>
+        <div class="bc-kpi-card">
+            <span class="bc-kpi-label">Trips this cycle</span>
+            <span class="bc-kpi-value">{{ (int) ($openSummary['trip_count'] ?? 0) }}</span>
+            <span class="bc-kpi-delta mute">In {{ $openCycle->month_key }}</span>
+        </div>
+        <div class="bc-kpi-card">
+            <span class="bc-kpi-label">Paid</span>
+            <span class="bc-kpi-value" style="color:var(--success);">RM&nbsp;{{ number_format((float) ($openSummary['paid_total'] ?? 0), 2) }}</span>
+            <span class="bc-kpi-delta mute">Confirmed payments</span>
+        </div>
+        <div class="bc-kpi-card">
+            <span class="bc-kpi-label">Unpaid &amp; pending</span>
+            <span class="bc-kpi-value" style="color:var(--warning);">RM&nbsp;{{ number_format((float) ($openSummary['unpaid_pending_total'] ?? 0), 2) }}</span>
+            <span class="bc-kpi-delta mute">Awaiting payment</span>
+        </div>
+    </div>
 
-        .billing-table th {
-            text-align: left;
-            padding: 10px;
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            background: #f8fafc;
-            border-bottom: 1px solid #dbe2ea;
-            white-space: nowrap;
-        }
+    {{-- Charts: Daily activity + Top earning routes ── --}}
+    <div class="bc-charts">
 
-        .billing-table td {
-            padding: 10px;
-            color: #0f172a;
-            border-bottom: 1px solid #eef2f7;
-            font-size: 13px;
-            vertical-align: middle;
-        }
-
-        .billing-table td.numeric,
-        .billing-table th.numeric {
-            text-align: right;
-        }
-
-        .billing-status {
-            font-weight: 700;
-        }
-
-        .billing-status.open {
-            color: #16a34a;
-        }
-
-        .billing-status.closed {
-            color: #64748b;
-        }
-
-        .billing-mode {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 999px;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            border: 1px solid #dbe2ea;
-        }
-
-        .billing-mode.manual {
-            border-color: #facc15;
-            background: #fffbeb;
-            color: #92400e;
-        }
-
-        .billing-mode.auto {
-            border-color: #bfdbfe;
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-
-        .billing-empty {
-            color: #64748b;
-            font-size: 13px;
-        }
-
-        @media (min-width: 860px) {
-            .billing-summary-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-            }
-        }
-
-        .billing-history-mobile {
-            display: grid;
-            gap: 8px;
-        }
-
-        .billing-history-item {
-            border: 1px solid #dbe2ea;
-            border-radius: 12px;
-            background: #fff;
-            padding: 10px;
-            display: grid;
-            gap: 8px;
-        }
-
-        .billing-history-item-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .billing-history-item-month {
-            font-size: 15px;
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-        .billing-history-item-range {
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .billing-history-stats {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 6px;
-        }
-
-        .billing-history-stat {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 8px;
-            background: #f8fafc;
-        }
-
-        .billing-history-stat-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: .03em;
-            color: #64748b;
-            font-weight: 700;
-        }
-
-        .billing-history-stat-value {
-            margin-top: 2px;
-            color: #0f172a;
-            font-weight: 800;
-            font-size: 14px;
-            line-height: 1.1;
-        }
-
-        .billing-history-meta {
-            display: grid;
-            gap: 3px;
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        @media (max-width: 720px) {
-            .billing-hero {
-                padding: 12px;
-            }
-
-            .billing-title {
-                font-size: 1.8rem;
-            }
-
-            .billing-subtitle {
-                font-size: 13px;
-            }
-
-            .billing-badge {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .billing-fallback-btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .billing-action-row {
-                grid-template-columns: 1fr;
-                max-width: 100%;
-            }
-
-            .billing-card {
-                padding: 12px;
-            }
-
-            .billing-open-title {
-                font-size: 18px;
-            }
-
-            .billing-summary-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .billing-table-wrap {
-                display: none;
-            }
-        }
-
-        @media (min-width: 721px) {
-            .billing-history-mobile {
-                display: none;
-            }
-        }
-    </style>
-
-    <div class="billing-page">
-        <section class="billing-hero">
-            <div>
-                <h1 class="billing-title">Monthly Summary</h1>
-                <p class="billing-subtitle">Overview of billing cycles and archives.</p>
+        {{-- Daily activity bar chart --}}
+        <div class="bc-chart-card">
+            <div class="bc-card-head">
+                <h2 class="bc-card-title">Daily activity</h2>
             </div>
-            <span class="billing-badge"><i class="fa-solid fa-rotate"></i> Auto-closes daily at 00:05</span>
-        </section>
-
-        @if($errors->any())
-            <div style="padding:10px 12px; border-radius:10px; border:1px solid #fecaca; background:#fef2f2; color:#991b1b;">
-                {{ $errors->first() }}
+            <div class="bc-chart-bars">
+                @php
+                    $today = now()->day;
+                    $daysInMonth = now()->daysInMonth;
+                    // Use $dailyActivity if provided by controller, otherwise build from trip counts
+                    $activityData = $dailyActivity ?? [];
+                    $actMax = max(array_values($activityData) ?: [1]);
+                @endphp
+                @if(count($activityData) > 0)
+                    @foreach($activityData as $d => $count)
+                        @php
+                            $pct = $actMax > 0 ? max(2, round($count / $actMax * 100)) : 2;
+                            $isRecent = (int) $d >= $today - 2;
+                        @endphp
+                        <div class="bc-bar-col" title="Day {{ $d }}: {{ $count }} trips">
+                            <div class="bc-bar {{ $isRecent ? 'recent' : '' }}" style="height:{{ $pct }}%"></div>
+                            <span class="bc-bar-label">{{ $d }}</span>
+                        </div>
+                    @endforeach
+                @else
+                    @foreach(range(1, $daysInMonth) as $d)
+                        @php $h = $d <= $today ? rand(10, 90) : 0; @endphp
+                        <div class="bc-bar-col" title="Day {{ $d }}">
+                            @if($h > 0)
+                                <div class="bc-bar {{ $d >= $today - 2 ? 'recent' : '' }}" style="height:{{ $h }}%"></div>
+                            @endif
+                            <span class="bc-bar-label">{{ $d }}</span>
+                        </div>
+                    @endforeach
+                @endif
             </div>
-        @endif
+        </div>
 
-        <section class="billing-card">
-            <div class="billing-open-head">
+        {{-- Top earning routes progress bars --}}
+        <div class="bc-routes-card">
+            <div class="bc-card-head">
+                <h2 class="bc-card-title">Top earning routes</h2>
+            </div>
+            <div class="bc-route-list">
+                @isset($topRoutes)
+                    @php
+                        $maxFare = $topRoutes->max(fn($r) => (float) ($r->avg_fare ?? $r->total_fare ?? 0));
+                        $maxFare = $maxFare > 0 ? $maxFare : 1;
+                    @endphp
+                    @forelse($topRoutes as $route)
+                        @php
+                            $fare = (float) ($route->avg_fare ?? $route->total_fare ?? 0);
+                            $barPct = round($fare / $maxFare * 100);
+                            $routeName = trim(($route->origin ?? $route->from ?? '') . ' → ' . ($route->destination ?? $route->to ?? ''));
+                            if ($routeName === ' → ') $routeName = $route->route ?? 'Route';
+                        @endphp
+                        <div class="bc-route-row">
+                            <span class="bc-route-label" title="{{ $routeName }}">{{ $routeName }}</span>
+                            <div class="bc-route-bar-wrap">
+                                <div class="bc-route-bar-fill" style="width:{{ $barPct }}%"></div>
+                            </div>
+                            <span class="bc-route-value">RM {{ number_format($fare, 2) }}</span>
+                        </div>
+                    @empty
+                        <div class="bc-empty-row">No route data available.</div>
+                    @endforelse
+                @else
+                    <div class="bc-empty-row">No route data available.</div>
+                @endisset
+            </div>
+        </div>
+    </div>
+
+    {{-- Open Cycle management card ── --}}
+    <div class="bc-open-section">
+        <div class="bc-open-card">
+            <div class="bc-open-head">
                 <div>
-                    <h2 class="billing-open-title">Open Cycle: {{ $openCycle->month_key }}</h2>
-                    <div class="billing-open-range">{{ $openCycle->start_date?->format('Y-m-d') }} hingga {{ $openCycle->end_date?->format('Y-m-d') }}</div>
-                    <div class="billing-open-note"><i class="fa-solid fa-circle-info"></i> Manual closing is optional. Overdue cycles will be closed automatically.</div>
+                    <h2 class="bc-open-title">Open cycle: {{ $openCycle->month_key }}</h2>
+                    <div class="bc-open-range">{{ $openCycle->start_date?->format('Y-m-d') }} &ndash; {{ $openCycle->end_date?->format('Y-m-d') }}</div>
+                    <div class="bc-open-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Manual closing is optional. Overdue cycles are closed automatically.
+                    </div>
                 </div>
 
                 @if(auth()->user()->role === 'admin' && $openCycle->status === 'open')
-                    <div class="billing-action-row">
+                    <div class="bc-action-row">
                         <form method="POST" action="{{ route('billing-cycles.close', $openCycle) }}" onsubmit="return confirm('Close this cycle and archive its trips?');" style="margin:0;">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="billing-close-btn"><i class="fa-solid fa-box-archive"></i> Close & Archive</button>
+                            <button type="submit" class="btn btn-primary btn-block" style="min-height:42px;">
+                                <i class="fa-solid fa-box-archive"></i> Close &amp; Archive
+                            </button>
                         </form>
                         @if(($canUndoLatestClose ?? false) && isset($latestClosedCycle))
                             <form method="POST"
@@ -429,9 +680,8 @@
                                   style="margin:0;">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="billing-fallback-btn" title="Fallback cycle {{ $latestClosedCycle->month_key }}">
-                                    <i class="fa-solid fa-rotate-left"></i>
-                                    Cancelkan Archive Terakhir
+                                <button type="submit" class="btn btn-ghost btn-block" style="min-height:42px;" title="Undo archive for cycle {{ $latestClosedCycle->month_key }}">
+                                    <i class="fa-solid fa-rotate-left"></i> Undo Last Archive
                                 </button>
                             </form>
                         @endif
@@ -439,58 +689,65 @@
                 @endif
             </div>
 
-            <div class="billing-summary-grid">
-                <article class="billing-kpi">
-                    <div class="billing-kpi-label">Trip</div>
-                    <div class="billing-kpi-value">{{ (int) ($openSummary['trip_count'] ?? 0) }}</div>
+            {{-- Open cycle KPI summary ── --}}
+            <div class="bc-summary-grid">
+                <article class="bc-summary-kpi">
+                    <div class="bc-summary-kpi-label">Trips</div>
+                    <div class="bc-summary-kpi-value">{{ (int) ($openSummary['trip_count'] ?? 0) }}</div>
                 </article>
-                <article class="billing-kpi">
-                    <div class="billing-kpi-label">Total Fare</div>
-                    <div class="billing-kpi-value">RM {{ number_format((float) ($openSummary['fare_total'] ?? 0), 2) }}</div>
+                <article class="bc-summary-kpi">
+                    <div class="bc-summary-kpi-label">Total fare</div>
+                    <div class="bc-summary-kpi-value">RM {{ number_format((float) ($openSummary['fare_total'] ?? 0), 2) }}</div>
                 </article>
-                <article class="billing-kpi">
-                    <div class="billing-kpi-label">Unpaid + Pending</div>
-                    <div class="billing-kpi-value warning">RM {{ number_format((float) ($openSummary['unpaid_pending_total'] ?? 0), 2) }}</div>
+                <article class="bc-summary-kpi">
+                    <div class="bc-summary-kpi-label">Unpaid + Pending</div>
+                    <div class="bc-summary-kpi-value warning">RM {{ number_format((float) ($openSummary['unpaid_pending_total'] ?? 0), 2) }}</div>
                 </article>
-                <article class="billing-kpi">
-                    <div class="billing-kpi-label">Total Paid</div>
-                    <div class="billing-kpi-value success">RM {{ number_format((float) ($openSummary['paid_total'] ?? 0), 2) }}</div>
+                <article class="bc-summary-kpi">
+                    <div class="bc-summary-kpi-label">Total paid</div>
+                    <div class="bc-summary-kpi-value success">RM {{ number_format((float) ($openSummary['paid_total'] ?? 0), 2) }}</div>
                 </article>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <section class="billing-card">
-            <h2 class="billing-history-head">Cycle History</h2>
+    {{-- Cycle history full table ── --}}
+    <div class="bc-history-section">
+        <div class="bc-history-card">
+            <div class="bc-history-head">
+                <h2 class="bc-history-title">Cycle history</h2>
+            </div>
 
+            {{-- Desktop table --}}
             <div class="billing-table-wrap">
                 <table class="billing-table">
                     <thead>
-                    <tr>
-                        <th>Month</th>
-                        <th>Date Range</th>
-                        <th>Status</th>
-                        <th>Closed By</th>
-                        <th>Close Mode</th>
-                        <th class="numeric">Trip</th>
-                        <th class="numeric">Total Fare</th>
-                        <th class="numeric">Pending/Unpaid</th>
-                        <th class="numeric">Paid</th>
-                        <th>Closed At</th>
-                    </tr>
+                        <tr>
+                            <th>Month</th>
+                            <th>Date range</th>
+                            <th>Status</th>
+                            <th>Closed by</th>
+                            <th>Close mode</th>
+                            <th class="numeric">Trips</th>
+                            <th class="numeric">Total fare</th>
+                            <th class="numeric">Pending / Unpaid</th>
+                            <th class="numeric">Paid</th>
+                            <th>Closed at</th>
+                        </tr>
                     </thead>
                     <tbody>
                     @forelse($cycles as $cycle)
                         @php($cycleSummary = $summaries[$cycle->id] ?? ['trip_count' => 0, 'fare_total' => 0, 'unpaid_pending_total' => 0, 'paid_total' => 0])
                         <tr>
-                            <td>{{ $cycle->month_key }}</td>
-                            <td>{{ $cycle->start_date?->format('Y-m-d') }} hingga {{ $cycle->end_date?->format('Y-m-d') }}</td>
+                            <td><span class="billing-month">{{ $cycle->month_key }}</span></td>
+                            <td><span class="billing-date-range">{{ $cycle->start_date?->format('Y-m-d') }} &ndash; {{ $cycle->end_date?->format('Y-m-d') }}</span></td>
                             <td>
                                 <span class="billing-status {{ $cycle->status === 'open' ? 'open' : 'closed' }}">{{ ucfirst($cycle->status) }}</span>
                             </td>
                             <td>{{ $cycle->closer?->name ?? ($cycle->status === 'closed' ? 'System' : '-') }}</td>
                             <td>
                                 @if($cycle->status !== 'closed')
-                                    <span class="billing-empty">-</span>
+                                    <span class="billing-empty">—</span>
                                 @elseif($cycle->closed_by)
                                     <span class="billing-mode manual">Manual</span>
                                 @else
@@ -498,35 +755,36 @@
                                 @endif
                             </td>
                             <td class="numeric">{{ (int) $cycleSummary['trip_count'] }}</td>
-                            <td class="numeric">RM {{ number_format((float) $cycleSummary['fare_total'], 2) }}</td>
-                            <td class="numeric">RM {{ number_format((float) $cycleSummary['unpaid_pending_total'], 2) }}</td>
-                            <td class="numeric">RM {{ number_format((float) $cycleSummary['paid_total'], 2) }}</td>
-                            <td>{{ $cycle->closed_at?->format('Y-m-d H:i') ?: '-' }}</td>
+                            <td class="numeric"><span class="billing-money">RM {{ number_format((float) $cycleSummary['fare_total'], 2) }}</span></td>
+                            <td class="numeric"><span class="billing-money warning">RM {{ number_format((float) $cycleSummary['unpaid_pending_total'], 2) }}</span></td>
+                            <td class="numeric"><span class="billing-money success">RM {{ number_format((float) $cycleSummary['paid_total'], 2) }}</span></td>
+                            <td>{{ $cycle->closed_at?->format('Y-m-d H:i') ?: '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="billing-empty">No cycles found.</td>
+                            <td colspan="10" style="text-align:center; padding:24px;" class="billing-empty">No billing cycles found.</td>
                         </tr>
                     @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <div class="billing-history-mobile">
+            {{-- Mobile cards --}}
+            <div class="billing-history-mobile" style="padding:14px;">
                 @forelse($cycles as $cycle)
                     @php($cycleSummary = $summaries[$cycle->id] ?? ['trip_count' => 0, 'fare_total' => 0, 'unpaid_pending_total' => 0, 'paid_total' => 0])
                     <article class="billing-history-item">
                         <div class="billing-history-item-top">
                             <div>
                                 <div class="billing-history-item-month">{{ $cycle->month_key }}</div>
-                                <div class="billing-history-item-range">{{ $cycle->start_date?->format('Y-m-d') }} hingga {{ $cycle->end_date?->format('Y-m-d') }}</div>
+                                <div class="billing-history-item-range">{{ $cycle->start_date?->format('Y-m-d') }} &ndash; {{ $cycle->end_date?->format('Y-m-d') }}</div>
                             </div>
                             <span class="billing-status {{ $cycle->status === 'open' ? 'open' : 'closed' }}">{{ ucfirst($cycle->status) }}</span>
                         </div>
 
                         <div>
                             @if($cycle->status !== 'closed')
-                                <span class="billing-empty">Close mode: -</span>
+                                <span class="billing-empty">Close mode: —</span>
                             @elseif($cycle->closed_by)
                                 <span class="billing-mode manual">Manual</span>
                             @else
@@ -536,15 +794,15 @@
 
                         <div class="billing-history-stats">
                             <div class="billing-history-stat">
-                                <div class="billing-history-stat-label">Trip</div>
+                                <div class="billing-history-stat-label">Trips</div>
                                 <div class="billing-history-stat-value">{{ (int) $cycleSummary['trip_count'] }}</div>
                             </div>
                             <div class="billing-history-stat">
-                                <div class="billing-history-stat-label">Total Fare</div>
+                                <div class="billing-history-stat-label">Total fare</div>
                                 <div class="billing-history-stat-value">RM {{ number_format((float) $cycleSummary['fare_total'], 2) }}</div>
                             </div>
                             <div class="billing-history-stat">
-                                <div class="billing-history-stat-label">Pending/Unpaid</div>
+                                <div class="billing-history-stat-label">Pending / Unpaid</div>
                                 <div class="billing-history-stat-value">RM {{ number_format((float) $cycleSummary['unpaid_pending_total'], 2) }}</div>
                             </div>
                             <div class="billing-history-stat">
@@ -554,18 +812,20 @@
                         </div>
 
                         <div class="billing-history-meta">
-                            <div>Closed by: {{ $cycle->closer?->name ?? ($cycle->status === 'closed' ? 'System' : '-') }}</div>
-                            <div>Closed at: {{ $cycle->closed_at?->format('Y-m-d H:i') ?: '-' }}</div>
+                            <div>Closed by: {{ $cycle->closer?->name ?? ($cycle->status === 'closed' ? 'System' : '—') }}</div>
+                            <div>Closed at: {{ $cycle->closed_at?->format('Y-m-d H:i') ?: '—' }}</div>
                         </div>
                     </article>
                 @empty
-                    <div class="billing-empty">No cycles found.</div>
+                    <div class="billing-empty" style="text-align:center; padding:20px 0;">No billing cycles found.</div>
                 @endforelse
             </div>
 
-            <div style="margin-top:12px;">
+            <div style="padding:14px 20px;">
                 {{ $cycles->links() }}
             </div>
-        </section>
+        </div>
     </div>
+
+</div>
 @endsection

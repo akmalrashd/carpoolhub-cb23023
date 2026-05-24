@@ -25,7 +25,7 @@ class StoreTripJoinRequest extends FormRequest
             'dropoff_longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'requested_pickup_time' => ['nullable', 'date'],
             'detour_distance_km' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
-            'fare_override_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'extra_fee_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ];
     }
 }

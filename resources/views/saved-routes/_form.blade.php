@@ -1,84 +1,2055 @@
-@csrf
-<div class="route-form-grid">
-    <div class="field-block">
-        <label for="route_name">Route Name</label>
-        <input id="route_name" type="text" name="route_name" value="{{ old('route_name', $savedRoute->route_name ?? '') }}" placeholder="e.g. Home to Office">
-    </div>
-    <div class="field-block">
-        <label for="default_fare">Default Fare (RM)</label>
-        <input id="default_fare" type="number" step="0.01" min="0" name="default_fare" value="{{ old('default_fare', $savedRoute->default_fare ?? '0.00') }}" required>
-    </div>
+@php
+    $selectableParticipants = $selectableParticipants ?? collect();
+    $storedPresetStops = isset($savedRoute)
+        ? $savedRoute->passengerStops->map(fn ($stop) => [
+            'user_id' => $stop->user_id,
+            'pickup_name' => $stop->pickup_name,
+            'pickup_latitude' => $stop->pickup_latitude,
+            'pickup_longitude' => $stop->pickup_longitude,
+            'dropoff_name' => $stop->dropoff_name,
+            'dropoff_latitude' => $stop->dropoff_latitude,
+            'dropoff_longitude' => $stop->dropoff_longitude,
+            'extra_fee_amount' => $stop->extra_fee_amount,
+            'note' => $stop->note,
+            'is_active' => $stop->is_active,
+        ])->values()->all()
+        : [];
+    $presetStops = collect(old('passenger_stops', $storedPresetStops))->values();
+@endphp
 
-    <div class="field-block field-block-full route-preference-card">
-        <div class="route-section-head">
-            <span class="route-section-title"><i class="fa-solid fa-map-location-dot"></i>Pickup and drop-off</span>
-            <p class="route-section-hint">Use the map above to pin Point A and Point B, then review or refine the route details below.</p>
+<style>
+    /* ── Two-column layout ── */
+    .rf-shell {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 20px 28px 28px;
+    }
+    @media (min-width: 1024px) {
+        .rf-shell { grid-template-columns: 1fr 360px; }
+    }
+
+    /* ── Map card (left column) ── */
+    .rf-map-card {
+        overflow: hidden;
+        padding: 0;
+    }
+    .rf-map-toolbar {
+        padding: 12px;
+        border-bottom: 1px solid var(--hairline);
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .rf-map-toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .rf-map-stat { font-size: 12px; font-weight: 700; color: var(--ink-3); font-family: var(--font-mono, monospace); }
+    .rf-map-stat span { color: var(--muted); font-size: 11px; font-weight: 600; }
+
+    /* Map search row inside toolbar area */
+    .rf-map-inner { padding: 14px; display: grid; gap: 10px; }
+    .rf-map-section-head { display: grid; gap: 4px; }
+    .rf-map-section-title {
+        color: var(--ink); font-size: 14px; font-weight: 800;
+        display: inline-flex; align-items: center; gap: 7px;
+    }
+    .rf-map-section-hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    /* Map search row */
+    .rf-map-search-row {
+        display: grid; gap: 8px;
+        grid-template-columns: minmax(0,1fr) auto auto;
+    }
+    .rf-map-map-shell {
+        position: relative;
+    }
+    .rf-map-map-shell .rf-map-search-row {
+        padding: 14px;
+        border-top: 1px solid var(--hairline);
+        background: var(--surface);
+    }
+    .rf-map-search-wrap { position: relative; min-width: 0; }
+    .rf-map-search-wrap input {
+        width: 100%; box-sizing: border-box;
+        border-radius: var(--r-sm); border: 1px solid var(--hairline-strong);
+        background: var(--surface); color: var(--ink);
+        padding: 9px 12px; font-size: 13px; outline: none;
+        font-family: var(--font-ui), sans-serif;
+    }
+    .rf-map-search-wrap input:focus { border-color: var(--muted); }
+
+    .rf-map-search-suggest {
+        position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+        z-index: 40; border: 1px solid var(--hairline-strong);
+        border-radius: var(--r-sm); background: var(--surface);
+        box-shadow: var(--shadow-2); max-height: 300px; overflow-y: auto;
+        display: none;
+    }
+    .rf-map-search-suggest.show { display: block; }
+    .rf-map-suggest-btn {
+        width: 100%; border: 0; border-bottom: 1px solid var(--hairline);
+        background: var(--surface); color: var(--ink);
+        padding: 8px 10px; text-align: left; cursor: pointer;
+        display: grid; gap: 2px;
+    }
+    .rf-map-suggest-btn:last-child { border-bottom: 0; }
+    .rf-map-suggest-btn:hover { background: var(--canvas); }
+    .rf-map-suggest-main { font-size: 12px; font-weight: 700; color: var(--ink); }
+    .rf-map-suggest-sub  { font-size: 11px; color: var(--muted); line-height: 1.25; }
+
+    .rf-map-btn {
+        border-radius: var(--r-sm); border: 1px solid var(--hairline-strong);
+        background: var(--surface); color: var(--ink-2);
+        font-size: 12px; font-weight: 700; padding: 0 13px;
+        cursor: pointer; white-space: nowrap;
+    }
+    .rf-map-btn:hover { background: var(--canvas); }
+    .rf-map-btn:disabled { opacity: .55; cursor: not-allowed; }
+    #mapLocateBtn {
+        width: 40px; padding: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 14px;
+    }
+    #mapLocateBtn.is-loading i { animation: locateSpin .8s linear infinite; }
+    @keyframes locateSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* Target switch */
+    .rf-target-switch {
+        display: grid; gap: 8px; grid-template-columns: repeat(2, 1fr);
+    }
+    .rf-target-btn {
+        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+        background: var(--surface); color: var(--ink-3);
+        padding: 9px 10px; display: inline-flex; align-items: center;
+        justify-content: center; gap: 7px;
+        font-size: 12px; font-weight: 800; cursor: pointer;
+        transition: background .15s, border-color .15s, color .15s;
+    }
+    .rf-target-btn.active {
+        border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8;
+    }
+    .rf-custom-stop-panel {
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-md);
+        background: var(--surface-2);
+        padding: 12px;
+        display: none;
+        gap: 10px;
+    }
+    .rf-custom-stop-panel.show { display: grid; }
+    .rf-custom-stop-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .rf-custom-stop-title {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .rf-custom-stop-sub {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+    }
+    .rf-custom-stop-toggle {
+        border: 1px solid var(--ch-yellow-line);
+        border-radius: var(--r-sm);
+        background: var(--ch-yellow);
+        color: var(--ink);
+        min-height: 38px;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 900;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+    .rf-custom-stop-toggle.secondary {
+        background: var(--surface);
+        border-color: var(--hairline-strong);
+    }
+
+    /* Preview card */
+    .rf-preview-card {
+        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+        background: var(--canvas); padding: 11px; display: none; gap: 8px;
+    }
+    .rf-preview-card.show { display: grid; }
+    .rf-preview-top {
+        display: flex; align-items: flex-start;
+        justify-content: space-between; gap: 8px;
+    }
+    .rf-preview-title { font-size: 13px; font-weight: 800; color: var(--ink); line-height: 1.25; }
+    .rf-preview-sub { margin-top: 2px; font-size: 11px; color: var(--muted); line-height: 1.35; }
+    .rf-preview-badge {
+        border: 1px solid var(--ch-yellow-line); border-radius: var(--r-pill);
+        background: var(--ch-yellow-tint); color: var(--warning-ink);
+        padding: 3px 8px; font-size: 10px; font-weight: 800; white-space: nowrap;
+    }
+    .rf-preview-actions { display: grid; gap: 7px; grid-template-columns: repeat(2,1fr); }
+    .rf-preview-use-btn, .rf-preview-close-btn {
+        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+        background: var(--surface); color: var(--ink);
+        min-height: 36px; font-size: 12px; font-weight: 800; cursor: pointer;
+    }
+    .rf-preview-use-btn.primary {
+        border-color: var(--ink); background: var(--ink); color: var(--surface);
+    }
+
+    /* Map help */
+    .rf-map-help-row {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; flex-wrap: wrap;
+    }
+    .rf-map-help { margin: 0; color: var(--muted); font-size: 12px; }
+
+    /* Map status */
+    .rf-map-status {
+        border: 1px solid var(--hairline); border-radius: var(--r-sm);
+        background: var(--surface-2); padding: 10px; display: grid; gap: 4px;
+    }
+    .rf-map-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translate(-50%, 12px);
+        z-index: 9999;
+        border: 1px solid var(--warning-line, var(--ch-yellow-line));
+        border-radius: var(--r-pill);
+        background: var(--ink);
+        color: #fff;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 800;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, .25);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .18s ease, transform .18s ease;
+        max-width: min(420px, calc(100vw - 28px));
+        text-align: center;
+    }
+    .rf-map-toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    .rf-step-title { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+    .rf-step-text  { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .rf-step-hint  { font-size: 12px; color: var(--muted); line-height: 1.3; }
+    .rf-step-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 24px; height: 24px; border-radius: var(--r-pill);
+        font-size: 11px; font-weight: 700;
+        border: 1px solid #bfdbfe; color: #1d4ed8; background: #eff6ff;
+        margin-right: 6px;
+    }
+    .rf-reset-btn {
+        border: 1px solid #fecaca; background: var(--danger-soft);
+        color: var(--danger); border-radius: var(--r-sm);
+        padding: 7px 10px; font-size: 12px; font-weight: 700;
+        cursor: pointer; display: none; margin-top: 0;
+    }
+    .rf-reset-btn.show { display: inline-flex; align-items: center; gap: 6px; }
+
+    /* Map element */
+    #routeMap {
+        width: 100%; height: 460px;
+        border-radius: 0; border: none;
+        border-top: 1px solid var(--hairline);
+    }
+    @media (max-width: 1023px) {
+        #routeMap { height: 300px; }
+    }
+
+    .rf-route-options { display: grid; gap: 8px; }
+    .rf-route-option-btn {
+        border: 1px solid var(--hairline); background: var(--surface);
+        border-radius: var(--r-sm); padding: 10px;
+        text-align: left; cursor: pointer; display: grid; gap: 4px;
+        transition: background .15s, border-color .15s;
+    }
+    .rf-route-option-btn.active { border-color: #93c5fd; background: #eff6ff; }
+    .rf-route-option-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .rf-route-option-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .rf-route-option-meta { font-size: 12px; color: var(--ink-3); font-weight: 600; }
+    .rf-route-option-road { font-size: 11px; color: var(--muted); line-height: 1.3; }
+    .rf-route-option-fare {
+        margin-top: 2px; display: inline-flex; align-items: center; gap: 6px;
+        border-radius: var(--r-pill); border: 1px solid var(--ch-yellow-line);
+        background: var(--ch-yellow-tint); color: var(--warning-ink);
+        padding: 3px 9px; font-size: 11px; font-weight: 700; width: fit-content;
+    }
+    .rf-route-option-reason { font-size: 11px; color: var(--ink-3); line-height: 1.35; }
+    .rf-route-empty {
+        border: 1px dashed var(--hairline-strong); border-radius: var(--r-sm);
+        padding: 10px 12px; color: var(--muted); font-size: 12px;
+    }
+
+    /* Map pin styles */
+    .pickup-pin, .destination-pin, .preview-pin {
+        width: 18px; height: 18px; border-radius: 50%;
+        border: 2px solid #fff; box-shadow: 0 2px 8px rgba(15,23,42,.3);
+    }
+    .pickup-pin { background: #16a34a; }
+    .destination-pin { background: #dc2626; }
+    .preview-pin {
+        width: 24px; height: 24px; background: #f59e0b;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 5px rgba(245,158,11,.2), 0 8px 18px rgba(15,23,42,.28);
+    }
+
+    /* ── Right column — controls panel ── */
+    .rf-controls { display: flex; flex-direction: column; gap: 14px; }
+    .rf-ctrl-card { padding: 16px; }
+    .rf-ctrl-head {
+        font-size: 13px; font-weight: 800; color: var(--ink);
+        margin: 0 0 10px; display: flex; align-items: center; gap: 7px;
+    }
+
+    /* Stop rows */
+    .rf-stop-list { display: flex; flex-direction: column; gap: 8px; }
+    .rf-stop-row {
+        display: grid;
+        grid-template-columns: 14px 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid var(--hairline);
+        background: var(--surface-2);
+    }
+    .rf-stop-dot {
+        width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    }
+    .rf-stop-dot.pickup    { background: #16a34a; }
+    .rf-stop-dot.custom    { background: #f59e0b; }
+    .rf-stop-dot.dest      { background: #0f172a; }
+    .rf-stop-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .rf-stop-eyebrow {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .04em; color: var(--muted-2);
+    }
+    .rf-stop-input {
+        width: 100%; box-sizing: border-box;
+        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+        background: var(--surface); color: var(--ink);
+        padding: 6px 9px; font-size: 13px; outline: none;
+        font-family: var(--font-ui), sans-serif;
+    }
+    .rf-stop-input:focus { border-color: var(--muted); }
+    .rf-stop-input[readonly] {
+        background: var(--canvas);
+        color: var(--ink-3);
+        cursor: default;
+    }
+    .rf-stop-coord-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 6px;
+    }
+    .rf-stop-coord-field {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+    }
+    .rf-stop-coord-label {
+        color: var(--muted-2);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+    @media (max-width: 520px) {
+        .rf-stop-row {
+            align-items: start;
+        }
+        .rf-stop-coord-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Hidden coord inputs — visually hidden */
+    .rf-hidden { display: none; }
+
+    .rf-preset-card { display: grid; gap: 12px; }
+    .rf-preset-head {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 10px;
+    }
+    .rf-preset-hint { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .rf-preset-list { display: grid; gap: 10px; }
+    .rf-preset-empty {
+        border: 1px dashed var(--hairline-strong);
+        border-radius: var(--r-sm);
+        padding: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        background: var(--surface-2);
+    }
+    .rf-preset-row {
+        border: 1px solid var(--hairline);
+        border-radius: 14px;
+        background: var(--surface);
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+        cursor: pointer;
+    }
+    .rf-preset-row.is-active-capture {
+        border-color: var(--ch-yellow-line);
+        box-shadow: 0 0 0 3px rgba(246, 199, 0, .18);
+    }
+    .rf-preset-row-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+    }
+    .rf-preset-select,
+    .rf-preset-input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid var(--hairline-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink);
+        padding: 9px 10px;
+        font-size: 13px;
+        font-family: var(--font-ui), sans-serif;
+        outline: none;
+    }
+    .rf-preset-input:focus,
+    .rf-preset-select:focus { border-color: var(--muted); }
+    .rf-preset-grid { display: grid; gap: 8px; }
+    .rf-preset-compact {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .rf-preset-fare {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+    }
+    .rf-preset-fare span {
+        white-space: nowrap;
+    }
+    .rf-preset-fare input {
+        width: 92px;
+        border: 1px solid var(--hairline-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink);
+        padding: 7px 8px;
+        font-size: 13px;
+        font-weight: 900;
+        font-family: var(--font-mono, monospace);
+    }
+    .rf-preset-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+    .rf-preset-mini-btn,
+    .rf-preset-remove,
+    .rf-preset-add {
+        border: 1px solid var(--hairline-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink);
+        padding: 8px 10px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .rf-preset-add {
+        border-color: var(--ch-yellow-line);
+        background: var(--ch-yellow);
+        color: var(--ink);
+    }
+    .rf-preset-remove { color: var(--danger); }
+    .rf-preset-mini-btn:hover,
+    .rf-preset-remove:hover { background: var(--canvas); }
+    .rf-preset-mini-btn.active {
+        border-color: var(--ch-yellow-line);
+        background: var(--ch-yellow-tint);
+        color: var(--warning-ink);
+        box-shadow: 0 0 0 3px rgba(246, 199, 0, .16);
+    }
+    .rf-preset-add:disabled { opacity: .55; cursor: not-allowed; }
+    .rf-preset-distance {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* Fare grid */
+    .rf-fare-grid {
+        display: grid; grid-template-columns: 1fr; gap: 10px;
+    }
+    .rf-fare-field { display: grid; gap: 5px; }
+    .rf-fare-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-2); }
+    .rf-fare-input {
+        width: 100%; box-sizing: border-box;
+        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+        background: var(--surface); color: var(--ink);
+        padding: 8px 10px; font-size: 14px; font-weight: 700;
+        font-family: var(--font-mono, monospace); outline: none;
+    }
+    .rf-fare-input:focus { border-color: var(--muted); }
+
+    /* Default checkbox */
+    .rf-default-label {
+        display: inline-flex; align-items: center; gap: 8px;
+        cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2);
+        margin-top: 4px;
+    }
+    .rf-default-label input { width: 15px; height: 15px; accent-color: var(--ink); }
+
+    /* Error banner */
+    .rf-error-banner {
+        margin-top: 12px;
+        display: flex; align-items: center; gap: 8px;
+        color: var(--danger-ink);
+        border: 1px solid #fecaca; background: var(--danger-soft);
+        border-radius: var(--r-sm); padding: 9px 12px; font-size: 13px;
+    }
+</style>
+
+<div class="rf-shell">
+
+    {{-- LEFT: Full map card --}}
+    <div class="card rf-map-card">
+
+        {{-- Map toolbar --}}
+        <div class="rf-map-toolbar">
+            <div class="rf-map-toolbar-right">
+                <span class="rf-map-stat" id="mapStatDistance"><span>Distance</span> —</span>
+                <span class="rf-map-stat" id="mapStatTime"><span>ETA</span> —</span>
+                <span class="rf-map-stat" id="mapStatFare"><span>Fare</span> —</span>
+            </div>
         </div>
 
-        <div class="route-point-grid">
-            <div class="route-point-group pickup">
-                <div class="route-point-group-head">
-                    <span class="route-point-group-title"><i class="fa-solid fa-location-dot"></i>Pickup Point A</span>
-                    <span class="route-point-group-badge">Start</span>
-                </div>
+        {{-- Inner: search + controls + map --}}
+        <div class="rf-map-inner">
+            <div class="rf-map-section-head">
+                <span class="rf-map-section-title">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    Pickup and Drop-off
+                </span>
+                <p class="rf-map-section-hint">Set the main pickup and drop-off points.</p>
+            </div>
 
-                <div class="field-block">
-                    <label for="point_a_name">Point A Name</label>
-                    <input id="point_a_name" type="text" name="point_a_name" value="{{ old('point_a_name', $savedRoute->point_a_name ?? '') }}" placeholder="e.g. UMPSA Main Gate" required>
-                </div>
+            <div class="rf-target-switch" aria-label="Route point target">
+                <button type="button" class="rf-target-btn active" data-map-target="pickup">
+                    <i class="fa-solid fa-location-dot"></i>Pickup Point A
+                </button>
+                <button type="button" class="rf-target-btn" data-map-target="destination">
+                    <i class="fa-solid fa-flag-checkered"></i>Drop-off Point B
+                </button>
+            </div>
 
-                <div class="coords-head">Koordinat Point A</div>
-                <div class="coords-grid">
+            <div class="rf-preview-card" id="mapSearchPreview">
+                <div class="rf-preview-top">
                     <div>
-                        <label for="point_a_latitude">Latitude</label>
-                        <input id="point_a_latitude" type="number" step="0.0000001" name="point_a_latitude" value="{{ old('point_a_latitude', $savedRoute->point_a_latitude ?? '') }}" required>
+                        <div class="rf-preview-title" id="mapSearchPreviewTitle">Location Preview</div>
+                        <div class="rf-preview-sub" id="mapSearchPreviewSub">Move the map and confirm the correct point.</div>
                     </div>
-                    <div>
-                        <label for="point_a_longitude">Longitude</label>
-                        <input id="point_a_longitude" type="number" step="0.0000001" name="point_a_longitude" value="{{ old('point_a_longitude', $savedRoute->point_a_longitude ?? '') }}" required>
-                    </div>
+                    <span class="rf-preview-badge">Preview only</span>
+                </div>
+                <div class="rf-preview-actions">
+                    <button type="button" class="rf-preview-use-btn primary" id="mapPreviewUseBtn">Use as selected point</button>
+                    <button type="button" class="rf-preview-close-btn" id="mapPreviewCloseBtn">Discard preview</button>
                 </div>
             </div>
 
-            <div class="route-point-group destination">
-                <div class="route-point-group-head">
-                    <span class="route-point-group-title"><i class="fa-solid fa-flag-checkered"></i>Drop-off Point B</span>
-                    <span class="route-point-group-badge">Akhir</span>
+            <div class="rf-map-help-row">
+                <p class="rf-map-help">Search or tap the map, then confirm the point.</p>
+                <button type="button" class="rf-reset-btn" id="mapResetBtn">
+                    <i class="fa-solid fa-rotate-left"></i><span>Reset Route</span>
+                </button>
+            </div>
+
+            <div class="rf-map-status" hidden>
+                <div class="rf-step-title">
+                    <span class="rf-step-badge" id="mapStepNumber"></span>
+                </div>
+                <div class="rf-step-text" id="mapStepText"></div>
+                <div class="rf-step-hint" id="mapStepHint"></div>
+            </div>
+
+            <div class="rf-custom-stop-top">
+                <div>
+                    <p class="rf-custom-stop-title"><i class="fa-solid fa-users-line"></i>Custom passenger stops</p>
+                    <p class="rf-custom-stop-sub">Add only for passengers with fixed pickup or drop-off points.</p>
+                </div>
+                <button type="button" class="rf-custom-stop-toggle {{ $presetStops->isNotEmpty() ? 'secondary' : '' }}" id="togglePresetStopsBtn">
+                    <i class="fa-solid {{ $presetStops->isNotEmpty() ? 'fa-eye-slash' : 'fa-plus' }}"></i>
+                    <span>{{ $presetStops->isNotEmpty() ? 'Hide custom stops' : 'Add custom stop' }}</span>
+                </button>
+            </div>
+
+            <div class="rf-custom-stop-panel {{ $presetStops->isNotEmpty() ? 'show' : '' }}" id="presetStopPanel">
+                <div class="rf-preset-head">
+                    <div>
+                        <h3 class="rf-ctrl-head" style="margin-bottom:0"><i class="fa-solid fa-user-plus"></i> Fixed passenger stops</h3>
+                        <p class="rf-preset-hint">Select a passenger and set their fixed stops.</p>
+                    </div>
+                    <button type="button" class="rf-preset-add" id="addPresetStopBtn" {{ $selectableParticipants->isEmpty() ? 'disabled' : '' }}>
+                        <i class="fa-solid fa-plus"></i>Add
+                    </button>
                 </div>
 
-                <div class="field-block">
-                    <label for="point_b_name">Point B Name</label>
-                    <input id="point_b_name" type="text" name="point_b_name" value="{{ old('point_b_name', $savedRoute->point_b_name ?? '') }}" placeholder="e.g. Library" required>
+                <div class="rf-preset-list" id="presetStopList">
+                    @foreach($presetStops as $index => $presetStop)
+                        <div class="rf-preset-row" data-preset-stop-row>
+                            <div class="rf-preset-row-head">
+                                <select class="rf-preset-select" name="passenger_stops[{{ $index }}][user_id]">
+                                    <option value="">Select passenger</option>
+                                    @foreach($selectableParticipants as $participant)
+                                        <option value="{{ $participant->id }}" {{ (string) ($presetStop['user_id'] ?? '') === (string) $participant->id ? 'selected' : '' }}>
+                                            {{ $participant->name }} · {{ $participant->email }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="rf-preset-remove" data-remove-preset-stop aria-label="Remove preset passenger">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="rf-preset-grid">
+                                <input class="rf-hidden" type="text" name="passenger_stops[{{ $index }}][pickup_name]" value="{{ $presetStop['pickup_name'] ?? '' }}" placeholder="Passenger pickup / boarding point">
+                                <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][pickup_latitude]" value="{{ $presetStop['pickup_latitude'] ?? '' }}">
+                                <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][pickup_longitude]" value="{{ $presetStop['pickup_longitude'] ?? '' }}">
+                                <input class="rf-hidden" type="text" name="passenger_stops[{{ $index }}][dropoff_name]" value="{{ $presetStop['dropoff_name'] ?? '' }}" placeholder="Passenger drop-off point">
+                                <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][dropoff_latitude]" value="{{ $presetStop['dropoff_latitude'] ?? '' }}">
+                                <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][dropoff_longitude]" value="{{ $presetStop['dropoff_longitude'] ?? '' }}">
+                                <div class="rf-preset-compact">
+                                    <span class="rf-preset-distance" data-preset-distance></span>
+                                    <label class="rf-preset-fare"><span>Extra fee</span>
+                                        <input type="number" step="0.01" min="0" name="passenger_stops[{{ $index }}][extra_fee_amount]" value="{{ $presetStop['extra_fee_amount'] ?? '' }}" placeholder="Auto" data-auto-fare="{{ ($presetStop['extra_fee_amount'] ?? '') === '' ? '1' : '0' }}">
+                                    </label>
+                                </div>
+                                <input class="rf-hidden" type="text" name="passenger_stops[{{ $index }}][note]" value="{{ $presetStop['note'] ?? '' }}" placeholder="Optional note">
+                                <input type="hidden" name="passenger_stops[{{ $index }}][is_active]" value="1">
+                            </div>
+                            <div class="rf-preset-actions">
+                                <button type="button" class="rf-preset-mini-btn" data-fill-preset="ab" hidden>
+                                    <i class="fa-solid fa-route"></i>Use A to B
+                                </button>
+                                <button type="button" class="rf-preset-mini-btn" data-fill-preset="ba" hidden>
+                                    <i class="fa-solid fa-right-left"></i>Use B to A
+                                </button>
+                                <button type="button" class="rf-preset-mini-btn" data-capture-preset="pickup">
+                                    <i class="fa-solid fa-location-dot"></i>Passenger pickup
+                                </button>
+                                <button type="button" class="rf-preset-mini-btn" data-capture-preset="dropoff">
+                                    <i class="fa-solid fa-flag-checkered"></i>Passenger drop-off
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+                <p class="rf-preset-empty" id="presetStopEmpty" {{ $presetStops->isNotEmpty() ? 'hidden' : '' }}>
+                    No preset passenger stops yet.
+                </p>
+            </div>
 
-                <div class="coords-head">Koordinat Point B</div>
-                <div class="coords-grid">
-                    <div>
-                        <label for="point_b_latitude">Latitude</label>
-                        <input id="point_b_latitude" type="number" step="0.0000001" name="point_b_latitude" value="{{ old('point_b_latitude', $savedRoute->point_b_latitude ?? '') }}" required>
-                    </div>
-                    <div>
-                        <label for="point_b_longitude">Longitude</label>
-                        <input id="point_b_longitude" type="number" step="0.0000001" name="point_b_longitude" value="{{ old('point_b_longitude', $savedRoute->point_b_longitude ?? '') }}" required>
-                    </div>
-                </div>
+            <div class="rf-route-options" id="routeOptions">
+                <div class="rf-route-empty">Set both points to view route options.</div>
             </div>
         </div>
-    </div>
-</div>
 
-<label class="active-toggle">
-    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $savedRoute->is_active ?? true) ? 'checked' : '' }}>
-    Active route
-</label>
+        {{-- Leaflet map — full width at bottom of card --}}
+        <div class="rf-map-map-shell">
+            <div class="rf-map-search-row">
+                <div class="rf-map-search-wrap">
+                    <input type="text" id="mapSearchInput" placeholder="Search address, place, faculty, or neighbourhood in Malaysia..." autocomplete="off">
+                    <div class="rf-map-search-suggest" id="mapSearchSuggest"></div>
+                </div>
+                <button type="button" id="mapSearchBtn" class="rf-map-btn">Search</button>
+                <button type="button" id="mapLocateBtn" class="rf-map-btn" title="Use current location" aria-label="Use current location">
+                    <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div id="routeMap"></div>
+        </div>
 
-@if($errors->any())
-    <div class="form-error">
-        {{ $errors->first() }}
-    </div>
-@endif
+    </div>{{-- /.rf-map-card --}}
 
-<div class="form-actions">
-    <a href="{{ route('saved-routes.index') }}" class="btn-secondary">Cancel</a>
-    <button type="submit" class="btn-primary">{{ $submitLabel }}</button>
-</div>
+    {{-- RIGHT: Controls panel --}}
+    <div class="rf-controls">
+
+        {{-- Route name card --}}
+        <div class="card rf-ctrl-card">
+            <h3 class="rf-ctrl-head"><i class="fa-solid fa-tag"></i> Route name</h3>
+            <input
+                id="route_name"
+                class="input"
+                type="text"
+                name="route_name"
+                value="{{ old('route_name', $savedRoute->route_name ?? '') }}"
+                placeholder="e.g. Home to Office"
+                autocomplete="off"
+                style="width:100%;box-sizing:border-box"
+            >
+        </div>
+
+        {{-- Stops card --}}
+        <div class="card rf-ctrl-card">
+            <h3 class="rf-ctrl-head"><i class="fa-solid fa-map-pin"></i> Route points</h3>
+            <div class="rf-stop-list">
+
+                {{-- Pickup point --}}
+                <div class="rf-stop-row">
+                    <span class="rf-stop-dot pickup"></span>
+                    <div class="rf-stop-meta">
+                        <span class="rf-stop-eyebrow">Pickup</span>
+                        <input
+                            id="point_a_name"
+                            class="rf-stop-input"
+                            type="text"
+                            name="point_a_name"
+                            value="{{ old('point_a_name', $savedRoute->point_a_name ?? '') }}"
+                            placeholder="Name auto-filled"
+                            readonly
+                            required
+                        >
+                        <div class="rf-stop-coord-grid">
+                            <label class="rf-stop-coord-field" for="point_a_latitude">
+                                <span class="rf-stop-coord-label">Lat</span>
+                                <input id="point_a_latitude" class="rf-stop-input" type="number" step="0.0000001" min="-90" max="90" name="point_a_latitude" value="{{ old('point_a_latitude',  $savedRoute->point_a_latitude  ?? '') }}" placeholder="3.5461234" required>
+                            </label>
+                            <label class="rf-stop-coord-field" for="point_a_longitude">
+                                <span class="rf-stop-coord-label">Lng</span>
+                                <input id="point_a_longitude" class="rf-stop-input" type="number" step="0.0000001" min="-180" max="180" name="point_a_longitude" value="{{ old('point_a_longitude', $savedRoute->point_a_longitude ?? '') }}" placeholder="103.4321234" required>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Destination --}}
+                <div class="rf-stop-row">
+                    <span class="rf-stop-dot dest"></span>
+                    <div class="rf-stop-meta">
+                        <span class="rf-stop-eyebrow">Drop-off</span>
+                        <input
+                            id="point_b_name"
+                            class="rf-stop-input"
+                            type="text"
+                            name="point_b_name"
+                            value="{{ old('point_b_name', $savedRoute->point_b_name ?? '') }}"
+                            placeholder="Name auto-filled"
+                            readonly
+                            required
+                        >
+                        <div class="rf-stop-coord-grid">
+                            <label class="rf-stop-coord-field" for="point_b_latitude">
+                                <span class="rf-stop-coord-label">Lat</span>
+                                <input id="point_b_latitude" class="rf-stop-input" type="number" step="0.0000001" min="-90" max="90" name="point_b_latitude" value="{{ old('point_b_latitude',  $savedRoute->point_b_latitude  ?? '') }}" placeholder="3.5461234" required>
+                            </label>
+                            <label class="rf-stop-coord-field" for="point_b_longitude">
+                                <span class="rf-stop-coord-label">Lng</span>
+                                <input id="point_b_longitude" class="rf-stop-input" type="number" step="0.0000001" min="-180" max="180" name="point_b_longitude" value="{{ old('point_b_longitude', $savedRoute->point_b_longitude ?? '') }}" placeholder="103.4321234" required>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        @if(false)
+        {{-- Preset passenger stops are managed inside the map card. --}}
+        <div class="card rf-ctrl-card rf-preset-card" hidden>
+            <div class="rf-preset-head">
+                <div>
+                    <h3 class="rf-ctrl-head" style="margin-bottom:0"><i class="fa-solid fa-user-plus"></i> Preset passenger stops</h3>
+                    <p class="rf-preset-hint">Optional. Pick accepted connections that should be auto-added when this saved route is used.</p>
+                </div>
+                <button type="button" class="rf-preset-add" id="addPresetStopBtn" {{ $selectableParticipants->isEmpty() ? 'disabled' : '' }}>
+                    <i class="fa-solid fa-plus"></i>Add
+                </button>
+            </div>
+
+            <div class="rf-preset-list" id="presetStopList">
+                @foreach($presetStops as $index => $presetStop)
+                    <div class="rf-preset-row" data-preset-stop-row>
+                        <div class="rf-preset-row-head">
+                            <select class="rf-preset-select" name="passenger_stops[{{ $index }}][user_id]">
+                                <option value="">Select passenger</option>
+                                @foreach($selectableParticipants as $participant)
+                                    <option value="{{ $participant->id }}" {{ (string) ($presetStop['user_id'] ?? '') === (string) $participant->id ? 'selected' : '' }}>
+                                        {{ $participant->name }} · {{ $participant->email }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="button" class="rf-preset-remove" data-remove-preset-stop aria-label="Remove preset passenger">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="rf-preset-grid">
+                            <input class="rf-preset-input" type="text" name="passenger_stops[{{ $index }}][pickup_name]" value="{{ $presetStop['pickup_name'] ?? '' }}" placeholder="Passenger pickup / boarding point">
+                            <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][pickup_latitude]" value="{{ $presetStop['pickup_latitude'] ?? '' }}">
+                            <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][pickup_longitude]" value="{{ $presetStop['pickup_longitude'] ?? '' }}">
+                            <input class="rf-preset-input" type="text" name="passenger_stops[{{ $index }}][dropoff_name]" value="{{ $presetStop['dropoff_name'] ?? '' }}" placeholder="Passenger drop-off point">
+                            <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][dropoff_latitude]" value="{{ $presetStop['dropoff_latitude'] ?? '' }}">
+                            <input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[{{ $index }}][dropoff_longitude]" value="{{ $presetStop['dropoff_longitude'] ?? '' }}">
+                            <input class="rf-preset-input" type="number" step="0.01" min="0" name="passenger_stops[{{ $index }}][extra_fee_amount]" value="{{ $presetStop['extra_fee_amount'] ?? '' }}" placeholder="Optional extra fee for this passenger">
+                            <input class="rf-preset-input" type="text" name="passenger_stops[{{ $index }}][note]" value="{{ $presetStop['note'] ?? '' }}" placeholder="Optional note">
+                            <input type="hidden" name="passenger_stops[{{ $index }}][is_active]" value="1">
+                        </div>
+                        <div class="rf-preset-actions">
+                            <button type="button" class="rf-preset-mini-btn" data-fill-preset="ab">
+                                <i class="fa-solid fa-route"></i>Use A to B
+                            </button>
+                            <button type="button" class="rf-preset-mini-btn" data-fill-preset="ba">
+                                <i class="fa-solid fa-right-left"></i>Use B to A
+                            </button>
+                            <button type="button" class="rf-preset-mini-btn" data-capture-preset="pickup">
+                                <i class="fa-solid fa-location-dot"></i>Set pickup on map
+                            </button>
+                            <button type="button" class="rf-preset-mini-btn" data-capture-preset="dropoff">
+                                <i class="fa-solid fa-flag-checkered"></i>Set drop-off on map
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <p class="rf-preset-empty" id="presetStopEmpty" {{ $presetStops->isNotEmpty() ? 'hidden' : '' }}>
+                No custom stops yet.
+            </p>
+        </div>
+        @endif
+
+        {{-- Fare card --}}
+        <div class="card rf-ctrl-card">
+            <h3 class="rf-ctrl-head"><i class="fa-solid fa-coins"></i> Fare</h3>
+            <div class="rf-fare-grid">
+                <div class="rf-fare-field">
+                    <label class="rf-fare-label" for="default_fare">Default fare</label>
+                    <input
+                        id="default_fare"
+                        class="rf-fare-input"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="default_fare"
+                        value="{{ old('default_fare', $savedRoute->default_fare ?? '0.00') }}"
+                        placeholder="0.00"
+                        required
+                    >
+                    <p class="field-hint" style="margin:0">Default fare for this route. You can change it anytime.</p>
+                </div>
+            </div>
+            <label class="rf-default-label" style="margin-top:12px">
+                <input
+                    type="checkbox"
+                    name="is_default"
+                    value="1"
+                    {{ old('is_default', $savedRoute->is_default ?? false) ? 'checked' : '' }}
+                >
+                Make default route
+            </label>
+            {{-- Keep is_active hidden so existing toggle logic is preserved --}}
+            <input type="hidden" name="is_active" value="{{ old('is_active', $savedRoute->is_active ?? 1) ? '1' : '0' }}">
+        </div>
+
+        {{-- Validation errors --}}
+        @if($errors->any())
+            <div class="rf-error-banner">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ $errors->first() }}
+            </div>
+        @endif
+
+    </div>{{-- /.rf-controls --}}
+
+</div>{{-- /.rf-shell --}}
+
+<script>
+    (function () {
+        if (typeof L === 'undefined') {
+            return;
+        }
+
+        var malaysiaCenter = [3.139, 101.6869];
+        var map = L.map('routeMap').setView(malaysiaCenter, 12);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var searchInput = document.getElementById('mapSearchInput');
+        var searchBtn = document.getElementById('mapSearchBtn');
+        var searchSuggest = document.getElementById('mapSearchSuggest');
+        var locateBtn = document.getElementById('mapLocateBtn');
+        var previewCard = document.getElementById('mapSearchPreview');
+        var previewTitle = document.getElementById('mapSearchPreviewTitle');
+        var previewSub = document.getElementById('mapSearchPreviewSub');
+        var previewUseBtn = document.getElementById('mapPreviewUseBtn');
+        var previewCloseBtn = document.getElementById('mapPreviewCloseBtn');
+        var routeOptionsEl = document.getElementById('routeOptions');
+        var mapStepNumber = document.getElementById('mapStepNumber');
+        var mapStepText = document.getElementById('mapStepText');
+        var mapStepHint = document.getElementById('mapStepHint');
+        var mapResetBtn = document.getElementById('mapResetBtn');
+
+        var pickupName = document.getElementById('point_a_name');
+        var pickupLat = document.getElementById('point_a_latitude');
+        var pickupLng = document.getElementById('point_a_longitude');
+        var destinationName = document.getElementById('point_b_name');
+        var destinationLat = document.getElementById('point_b_latitude');
+        var destinationLng = document.getElementById('point_b_longitude');
+        var defaultFareInput = document.getElementById('default_fare');
+        var presetStopList = document.getElementById('presetStopList');
+        var presetStopEmpty = document.getElementById('presetStopEmpty');
+        var addPresetStopBtn = document.getElementById('addPresetStopBtn');
+        var presetStopPanel = document.getElementById('presetStopPanel');
+        var togglePresetStopsBtn = document.getElementById('togglePresetStopsBtn');
+        var statDistance = document.getElementById('mapStatDistance');
+        var statTime = document.getElementById('mapStatTime');
+        var statFare = document.getElementById('mapStatFare');
+        var passengerOptionsHtml = @json($selectableParticipants->map(fn ($participant) => [
+            'id' => $participant->id,
+            'label' => $participant->name.' · '.$participant->email,
+        ])->values());
+        var presetStopIndex = presetStopList ? presetStopList.querySelectorAll('[data-preset-stop-row]').length : 0;
+
+        var nextTarget = 'pickup';
+        var pickupMarker = null;
+        var destinationMarker = null;
+        var routeLayers = [];
+        var selectedRouteIndex = 0;
+        var fetchedRoutes = [];
+        var previewMarker = null;
+        var previewPlace = null;
+        var fareEditedByUser = defaultFareInput && parseFloat(defaultFareInput.value || '0') > 0;
+        var presetCapture = null;
+        var activePresetRow = null;
+        var presetRadiusKm = 3;
+        var presetMarkerLayer = L.layerGroup().addTo(map);
+        var presetRadiusLayers = [];
+        var mapToastTimer = null;
+
+        function toNumber(value) {
+            var num = parseFloat(value);
+            return Number.isFinite(num) ? num : null;
+        }
+
+        function escapeText(value) {
+            return String(value || '').replace(/[&<>"']/g, function (char) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char] || char;
+            });
+        }
+
+        function showMapToast(message) {
+            var toast = document.getElementById('savedRouteMapToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'savedRouteMapToast';
+                toast.className = 'rf-map-toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('show');
+            if (mapToastTimer) clearTimeout(mapToastTimer);
+            mapToastTimer = setTimeout(function () {
+                toast.classList.remove('show');
+            }, 2600);
+        }
+
+        function updatePresetStopEmpty() {
+            if (!presetStopList || !presetStopEmpty) return;
+            presetStopEmpty.hidden = presetStopList.querySelectorAll('[data-preset-stop-row]').length > 0;
+            syncPresetStopMarkers();
+        }
+
+        function setCustomStopPanel(open) {
+            if (!presetStopPanel || !togglePresetStopsBtn) return;
+            presetStopPanel.classList.toggle('show', open);
+            togglePresetStopsBtn.classList.toggle('secondary', open);
+            togglePresetStopsBtn.innerHTML = open
+                ? '<i class="fa-solid fa-eye-slash"></i><span>Hide custom stops</span>'
+                : '<i class="fa-solid fa-plus"></i><span>Add custom stop</span>';
+        }
+
+        function passengerOptions(selectedValue) {
+            var html = '<option value="">Select passenger</option>';
+            passengerOptionsHtml.forEach(function (participant) {
+                var selected = String(selectedValue || '') === String(participant.id) ? ' selected' : '';
+                html += '<option value="' + escapeText(participant.id) + '"' + selected + '>' + escapeText(participant.label) + '</option>';
+            });
+            return html;
+        }
+
+        function presetInput(row, namePart) {
+            return row.querySelector('[name$="[' + namePart + ']"]');
+        }
+
+        function latLngFromInputs(latInput, lngInput) {
+            var lat = latInput ? toNumber(latInput.value) : null;
+            var lng = lngInput ? toNumber(lngInput.value) : null;
+            return lat !== null && lng !== null ? L.latLng(lat, lng) : null;
+        }
+
+        function distanceKmBetween(a, b) {
+            if (!a || !b) return null;
+            return a.distanceTo(b) / 1000;
+        }
+
+        function formatRadiusDistance(km) {
+            if (km === null) return '';
+            return km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1) + ' km';
+        }
+
+        function customPinIcon(kind, sequence) {
+            var color = kind === 'dropoff' ? '#ea580c' : '#16a34a';
+            return L.divIcon({
+                className: '',
+                html: '<div style="width:24px;height:24px;border-radius:999px;background:' + color + ';border:3px solid #fff;box-shadow:0 6px 12px rgba(15,23,42,.25);color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center">' + sequence + '</div>',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+        }
+
+        function customPinLabel(kind, sequence) {
+            return (kind === 'dropoff' ? 'Drop-off ' : 'Pickup ') + sequence;
+        }
+
+        function syncPresetRadius() {
+            presetRadiusLayers.forEach(function (layer) { map.removeLayer(layer); });
+            presetRadiusLayers = [];
+            if (pickupMarker) {
+                presetRadiusLayers.push(L.circle(pickupMarker.getLatLng(), {
+                    radius: presetRadiusKm * 1000,
+                    color: '#16a34a',
+                    weight: 1,
+                    fillColor: '#16a34a',
+                    fillOpacity: .06,
+                    dashArray: '4 5'
+                }).addTo(map));
+            }
+            if (destinationMarker) {
+                presetRadiusLayers.push(L.circle(destinationMarker.getLatLng(), {
+                    radius: presetRadiusKm * 1000,
+                    color: '#ea580c',
+                    weight: 1,
+                    fillColor: '#ea580c',
+                    fillOpacity: .06,
+                    dashArray: '4 5'
+                }).addTo(map));
+            }
+        }
+
+        function presetRows() {
+            return presetStopList ? Array.prototype.slice.call(presetStopList.querySelectorAll('[data-preset-stop-row]')) : [];
+        }
+
+        function setActivePresetRow(row) {
+            activePresetRow = row || presetRows()[0] || null;
+            presetRows().forEach(function (item) {
+                item.classList.toggle('is-active-capture', item === activePresetRow);
+            });
+        }
+
+        function syncPresetCaptureButtons() {
+            presetRows().forEach(function (row) {
+                row.querySelectorAll('[data-capture-preset]').forEach(function (button) {
+                    var isActive = presetCapture
+                        && presetCapture.row === row
+                        && button.getAttribute('data-capture-preset') === presetCapture.kind;
+                    button.classList.toggle('active', Boolean(isActive));
+                });
+            });
+        }
+
+        function clearPresetCapture() {
+            presetCapture = null;
+            syncTargetButtons();
+            syncPresetCaptureButtons();
+        }
+
+        function syncPresetStopMarkers() {
+            if (!presetMarkerLayer) return;
+            presetMarkerLayer.clearLayers();
+            presetRows().forEach(function (row, index) {
+                var pickupPoint = latLngFromInputs(presetInput(row, 'pickup_latitude'), presetInput(row, 'pickup_longitude'));
+                var dropoffPoint = latLngFromInputs(presetInput(row, 'dropoff_latitude'), presetInput(row, 'dropoff_longitude'));
+                var distanceText = row.querySelector('[data-preset-distance]');
+                var pickupDistance = distanceKmBetween(pickupPoint, pickupMarker ? pickupMarker.getLatLng() : null);
+                var dropoffDistance = distanceKmBetween(dropoffPoint, destinationMarker ? destinationMarker.getLatLng() : null);
+
+                if (pickupPoint) {
+                    L.marker(pickupPoint, { icon: customPinIcon('pickup', index + 1) })
+                        .bindTooltip(customPinLabel('pickup', index + 1), { permanent: true, direction: 'top', offset: [0, -10], className: 'map-point-tooltip' })
+                        .addTo(presetMarkerLayer);
+                }
+                if (dropoffPoint) {
+                    L.marker(dropoffPoint, { icon: customPinIcon('dropoff', index + 1) })
+                        .bindTooltip(customPinLabel('dropoff', index + 1), { permanent: true, direction: 'top', offset: [0, -10], className: 'map-point-tooltip' })
+                        .addTo(presetMarkerLayer);
+                }
+                if (distanceText) {
+                    var parts = [];
+                    if (pickupDistance !== null) parts.push('Pickup ' + formatRadiusDistance(pickupDistance) + ' from A');
+                    if (dropoffDistance !== null) parts.push('Drop-off ' + formatRadiusDistance(dropoffDistance) + ' from B');
+                    distanceText.textContent = parts.join(' · ');
+                }
+            });
+        }
+
+        function startPresetCapture(kind, row) {
+            setCustomStopPanel(true);
+            if (row) {
+                setActivePresetRow(row);
+            }
+            if (!activePresetRow) {
+                addPresetStopRow();
+            }
+            if (!activePresetRow) return;
+            setActivePresetRow(activePresetRow);
+            presetCapture = {
+                row: activePresetRow,
+                kind: kind === 'dropoff' ? 'dropoff' : 'pickup'
+            };
+            mapStepNumber.textContent = 'Preset';
+            mapStepText.textContent = presetCapture.kind === 'dropoff'
+                ? 'Tap the map near Point B to set passenger drop-off.'
+                : 'Tap the map near Point A to set passenger pickup.';
+            mapStepHint.textContent = 'Allowed radius is ' + presetRadiusKm + ' km from the original route point.';
+            syncTargetButtons();
+            syncPresetCaptureButtons();
+        }
+
+        function applyPresetMapPoint(row, kind, lat, lng, placeName) {
+            var targetPrefix = kind === 'dropoff' ? 'dropoff' : 'pickup';
+            var anchor = targetPrefix === 'dropoff'
+                ? (destinationMarker ? destinationMarker.getLatLng() : null)
+                : (pickupMarker ? pickupMarker.getLatLng() : null);
+            var selectedPoint = L.latLng(lat, lng);
+            var distanceFromAnchor = distanceKmBetween(selectedPoint, anchor);
+
+            if (!anchor) {
+                var missingMessage = targetPrefix === 'dropoff'
+                    ? 'Set Drop-off Point B first, then choose passenger drop-off.'
+                    : 'Set Pickup Point A first, then choose passenger pickup.';
+                showMapToast(missingMessage);
+                mapStepText.textContent = targetPrefix === 'dropoff'
+                    ? 'Set Point B first before adding a passenger drop-off.'
+                    : 'Set Point A first before adding a passenger pickup.';
+                mapStepHint.textContent = 'Custom stops are tied to the fixed route points.';
+                return false;
+            }
+
+            if (distanceFromAnchor !== null && distanceFromAnchor > presetRadiusKm) {
+                showMapToast('Pick a point within ' + presetRadiusKm + ' km of the original route point.');
+                mapStepText.textContent = 'That point is too far from the route point.';
+                mapStepHint.textContent = 'Choose a point within ' + presetRadiusKm + ' km. Current distance: ' + formatRadiusDistance(distanceFromAnchor) + '.';
+                return false;
+            }
+
+            var nameInput = presetInput(row, targetPrefix + '_name');
+            var latInput = presetInput(row, targetPrefix + '_latitude');
+            var lngInput = presetInput(row, targetPrefix + '_longitude');
+
+            if (nameInput && placeName) nameInput.value = placeName;
+            if (latInput) latInput.value = Number(lat).toFixed(7);
+            if (lngInput) lngInput.value = Number(lng).toFixed(7);
+
+            syncPresetStopMarkers();
+            syncPresetFares(false);
+            fetchRouteOptions();
+            return true;
+        }
+
+        function selectedRouteDistanceKm() {
+            var selectedRoute = fetchedRoutes[selectedRouteIndex] || fetchedRoutes[0] || null;
+            if (selectedRoute && Number.isFinite(Number(selectedRoute.distance)) && Number(selectedRoute.distance) > 0) {
+                return Number(selectedRoute.distance) / 1000;
+            }
+            if (pickupMarker && destinationMarker) {
+                return Math.max(0.1, distanceKmBetween(pickupMarker.getLatLng(), destinationMarker.getLatLng()) || 0.1);
+            }
+            return 1;
+        }
+
+        function suggestedPresetFare(row) {
+            var baseFare = defaultFareInput ? (parseFloat(defaultFareInput.value || '0') || 0) : 0;
+            var pickupPoint = latLngFromInputs(presetInput(row, 'pickup_latitude'), presetInput(row, 'pickup_longitude'));
+            var dropoffPoint = latLngFromInputs(presetInput(row, 'dropoff_latitude'), presetInput(row, 'dropoff_longitude'));
+            var pickupDistance = distanceKmBetween(pickupPoint, pickupMarker ? pickupMarker.getLatLng() : null) || 0;
+            var dropoffDistance = distanceKmBetween(dropoffPoint, destinationMarker ? destinationMarker.getLatLng() : null) || 0;
+            var detour = pickupDistance + dropoffDistance;
+            var routeDistanceKm = selectedRouteDistanceKm();
+            var fare = baseFare > 0 ? ((detour / routeDistanceKm) * baseFare) : 0;
+
+            return Math.max(0, Math.round(fare * 20) / 20);
+        }
+
+        function syncPresetFares(force) {
+            presetRows().forEach(function (row) {
+                var input = presetInput(row, 'extra_fee_amount');
+                if (!input) return;
+                if (!force && input.dataset.autoFare === '0') return;
+                input.value = suggestedPresetFare(row).toFixed(2);
+                input.dataset.autoFare = '1';
+            });
+        }
+
+        function fillPresetFromRoute(row, direction) {
+            if (!row) return;
+            var pickupSource = direction === 'ba'
+                ? { name: destinationName, lat: destinationLat, lng: destinationLng }
+                : { name: pickupName, lat: pickupLat, lng: pickupLng };
+            var dropoffSource = direction === 'ba'
+                ? { name: pickupName, lat: pickupLat, lng: pickupLng }
+                : { name: destinationName, lat: destinationLat, lng: destinationLng };
+
+            var pickup = presetInput(row, 'pickup_name');
+            var pickupLatInput = presetInput(row, 'pickup_latitude');
+            var pickupLngInput = presetInput(row, 'pickup_longitude');
+            var dropoff = presetInput(row, 'dropoff_name');
+            var dropoffLatInput = presetInput(row, 'dropoff_latitude');
+            var dropoffLngInput = presetInput(row, 'dropoff_longitude');
+
+            if (pickup && pickupSource.name) pickup.value = pickupSource.name.value || '';
+            if (pickupLatInput && pickupSource.lat) pickupLatInput.value = pickupSource.lat.value || '';
+            if (pickupLngInput && pickupSource.lng) pickupLngInput.value = pickupSource.lng.value || '';
+            if (dropoff && dropoffSource.name) dropoff.value = dropoffSource.name.value || '';
+            if (dropoffLatInput && dropoffSource.lat) dropoffLatInput.value = dropoffSource.lat.value || '';
+            if (dropoffLngInput && dropoffSource.lng) dropoffLngInput.value = dropoffSource.lng.value || '';
+            syncPresetStopMarkers();
+            syncPresetFares(true);
+            fetchRouteOptions();
+        }
+
+        function bindPresetRow(row) {
+            if (!row) return;
+            row.addEventListener('click', function (event) {
+                if (event.target && event.target.closest && event.target.closest('button')) return;
+                setActivePresetRow(row);
+            });
+            var fareInput = presetInput(row, 'extra_fee_amount');
+            if (fareInput) {
+                fareInput.addEventListener('input', function () {
+                    fareInput.dataset.autoFare = '0';
+                });
+            }
+            row.querySelectorAll('[data-fill-preset]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    fillPresetFromRoute(row, button.getAttribute('data-fill-preset') || 'ab');
+                });
+            });
+            row.querySelectorAll('[data-capture-preset]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    startPresetCapture(button.getAttribute('data-capture-preset'), row);
+                });
+            });
+            var removeBtn = row.querySelector('[data-remove-preset-stop]');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function () {
+                    row.remove();
+                    updatePresetStopEmpty();
+                });
+            }
+        }
+
+        function addPresetStopRow() {
+            if (!presetStopList || !passengerOptionsHtml.length) return;
+            var index = presetStopIndex++;
+            var row = document.createElement('div');
+            row.className = 'rf-preset-row';
+            row.setAttribute('data-preset-stop-row', '');
+            row.innerHTML =
+                '<div class="rf-preset-row-head">' +
+                    '<select class="rf-preset-select" name="passenger_stops[' + index + '][user_id]">' + passengerOptions('') + '</select>' +
+                    '<button type="button" class="rf-preset-remove" data-remove-preset-stop aria-label="Remove preset passenger"><i class="fa-solid fa-trash"></i></button>' +
+                '</div>' +
+                '<div class="rf-preset-grid">' +
+                    '<input class="rf-hidden" type="text" name="passenger_stops[' + index + '][pickup_name]" placeholder="Passenger pickup / boarding point">' +
+                    '<input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[' + index + '][pickup_latitude]">' +
+                    '<input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[' + index + '][pickup_longitude]">' +
+                    '<input class="rf-hidden" type="text" name="passenger_stops[' + index + '][dropoff_name]" placeholder="Passenger drop-off point">' +
+                    '<input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[' + index + '][dropoff_latitude]">' +
+                    '<input class="rf-hidden" type="number" step="0.0000001" name="passenger_stops[' + index + '][dropoff_longitude]">' +
+                    '<div class="rf-preset-compact">' +
+                        '<span class="rf-preset-distance" data-preset-distance></span>' +
+                        '<label class="rf-preset-fare"><span>Extra fee</span><input type="number" step="0.01" min="0" name="passenger_stops[' + index + '][extra_fee_amount]" placeholder="Auto" data-auto-fare="1"></label>' +
+                    '</div>' +
+                    '<input class="rf-hidden" type="text" name="passenger_stops[' + index + '][note]" placeholder="Optional note">' +
+                    '<input type="hidden" name="passenger_stops[' + index + '][is_active]" value="1">' +
+                '</div>' +
+                '<div class="rf-preset-actions">' +
+                    '<button type="button" class="rf-preset-mini-btn" data-fill-preset="ab" hidden><i class="fa-solid fa-route"></i>Use A to B</button>' +
+                    '<button type="button" class="rf-preset-mini-btn" data-fill-preset="ba" hidden><i class="fa-solid fa-right-left"></i>Use B to A</button>' +
+                    '<button type="button" class="rf-preset-mini-btn" data-capture-preset="pickup"><i class="fa-solid fa-location-dot"></i>Passenger pickup</button>' +
+                    '<button type="button" class="rf-preset-mini-btn" data-capture-preset="dropoff"><i class="fa-solid fa-flag-checkered"></i>Passenger drop-off</button>' +
+                    '<span class="rf-preset-distance" data-preset-distance></span>' +
+                '</div>';
+            presetStopList.appendChild(row);
+            bindPresetRow(row);
+            setActivePresetRow(row);
+            syncPresetStopMarkers();
+            syncPresetFares(false);
+            updatePresetStopEmpty();
+        }
+
+        function setActiveTarget(target) {
+            nextTarget = target === 'destination' ? 'destination' : 'pickup';
+            clearPresetCapture();
+            Array.prototype.forEach.call(document.querySelectorAll('.rf-target-btn'), function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-map-target') === nextTarget);
+            });
+            if (!pickupMarker && nextTarget === 'destination') {
+                mapStepText.textContent = 'Point B selected. Set Point A first if this is a new route.';
+                mapStepHint.textContent = 'You can still preview places, but the route requires both points.';
+            }
+        }
+
+        function syncTargetButtons() {
+            Array.prototype.forEach.call(document.querySelectorAll('.rf-target-btn'), function (btn) {
+                var routeActive = !presetCapture && btn.getAttribute('data-map-target') === nextTarget;
+                var presetActive = presetCapture && btn.getAttribute('data-preset-target') === presetCapture.kind;
+                btn.classList.toggle('active', Boolean(routeActive || presetActive));
+            });
+        }
+
+        function updateFields(target, lat, lng, placeName) {
+            var fallbackName = 'Coordinates ' + Number(lat).toFixed(7) + ', ' + Number(lng).toFixed(7);
+            if (target === 'pickup') {
+                pickupLat.value = lat.toFixed(7);
+                pickupLng.value = lng.toFixed(7);
+                pickupName.value = placeName || pickupName.value.trim() || fallbackName;
+            } else {
+                destinationLat.value = lat.toFixed(7);
+                destinationLng.value = lng.toFixed(7);
+                destinationName.value = placeName || destinationName.value.trim() || fallbackName;
+            }
+        }
+
+        function syncMarkerFromCoordinateInputs(target) {
+            var latInput = target === 'pickup' ? pickupLat : destinationLat;
+            var lngInput = target === 'pickup' ? pickupLng : destinationLng;
+            var lat = parseFloat(latInput.value);
+            var lng = parseFloat(lngInput.value);
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                return;
+            }
+
+            setMarker(target, lat, lng);
+            reverseGeocode(lat, lng, function (resolvedName) {
+                if (target === 'pickup') pickupName.value = resolvedName || pickupName.value;
+                if (target === 'destination') destinationName.value = resolvedName || destinationName.value;
+            });
+            updateStepIndicator();
+        }
+
+        function bindCoordinateInputs(target) {
+            var latInput = target === 'pickup' ? pickupLat : destinationLat;
+            var lngInput = target === 'pickup' ? pickupLng : destinationLng;
+            var timer = null;
+            var schedule = function () {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(function () { syncMarkerFromCoordinateInputs(target); }, 350);
+            };
+            latInput.addEventListener('input', schedule);
+            lngInput.addEventListener('input', schedule);
+            latInput.addEventListener('change', function () { syncMarkerFromCoordinateInputs(target); });
+            lngInput.addEventListener('change', function () { syncMarkerFromCoordinateInputs(target); });
+        }
+
+        function getMarker(target) {
+            return target === 'pickup' ? pickupMarker : destinationMarker;
+        }
+
+        function updateStepIndicator() {
+            if (!pickupMarker) {
+                syncTargetButtons();
+                mapStepNumber.textContent = '1/3';
+                mapStepText.textContent = nextTarget === 'destination'
+                    ? 'Point B target selected.'
+                    : 'Tap the map to set Point A.';
+                mapStepHint.textContent = nextTarget === 'destination'
+                    ? 'You can set Point B first, but the route still requires Point A before options appear.'
+                    : 'Search results can preview a place first. Confirm only when the pin is correct.';
+                mapResetBtn.classList.remove('show');
+                return;
+            }
+
+            if (pickupMarker && !destinationMarker) {
+                syncTargetButtons();
+                mapStepNumber.textContent = '2/3';
+                mapStepText.textContent = nextTarget === 'pickup'
+                    ? 'Point A is set. You can adjust it or switch to Point B.'
+                    : 'Tap now to set Point B.';
+                mapStepHint.textContent = nextTarget === 'pickup'
+                    ? 'The search preview will replace Point A and reset Point B.'
+                    : 'Use the search preview or tap the exact drop-off point.';
+                mapResetBtn.classList.remove('show');
+                return;
+            }
+
+            syncTargetButtons();
+            mapStepNumber.textContent = '3/3';
+            mapStepText.textContent = 'Route complete.';
+            mapStepHint.textContent = 'Add passenger stops if needed, then review the shortest route option.';
+            mapResetBtn.classList.add('show');
+        }
+
+        function getMarkerIcon(target) {
+            var className = target === 'pickup' ? 'pickup-pin' : 'destination-pin';
+            return L.divIcon({ className: '', html: '<div class="' + className + '"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
+        }
+
+        function setMarker(target, lat, lng, placeName) {
+            var marker = getMarker(target);
+
+            if (!marker) {
+                marker = L.marker([lat, lng], { draggable: true, icon: getMarkerIcon(target) }).addTo(map);
+                marker.bindTooltip(target === 'pickup' ? 'Point A' : 'Point B', { permanent: true, direction: 'top', offset: [0, -10], className: 'map-point-tooltip' });
+                marker.on('dragend', function (event) {
+                    var pos = event.target.getLatLng();
+                    updateFields(target, pos.lat, pos.lng);
+                    reverseGeocode(pos.lat, pos.lng, function (resolvedName) {
+                        if (target === 'pickup' && resolvedName) pickupName.value = resolvedName;
+                        if (target === 'destination' && resolvedName) destinationName.value = resolvedName;
+                        fetchRouteOptions();
+                    });
+                    fetchRouteOptions();
+                });
+
+                if (target === 'pickup') pickupMarker = marker;
+                if (target === 'destination') destinationMarker = marker;
+            } else {
+                marker.setLatLng([lat, lng]);
+            }
+
+            updateFields(target, lat, lng, placeName);
+            syncPresetRadius();
+            syncPresetStopMarkers();
+            fetchRouteOptions();
+        }
+
+        function clearRoute() {
+            routeLayers.forEach(function (layer) { map.removeLayer(layer); });
+            routeLayers = [];
+        }
+
+        function clearRouteOptions(message) {
+            fetchedRoutes = [];
+            selectedRouteIndex = 0;
+            clearRoute();
+            routeOptionsEl.innerHTML = '<div class="rf-route-empty">' + message + '</div>';
+            updateStepIndicator();
+            updateToolbarStats(null);
+            syncPresetFares(false);
+        }
+
+        function formatDistance(meters) { return (meters / 1000).toFixed(1) + ' km'; }
+
+        function formatDuration(seconds) {
+            var totalMinutes = Math.round(seconds / 60);
+            if (totalMinutes < 60) return totalMinutes + ' min';
+            var hours = Math.floor(totalMinutes / 60);
+            var mins = totalMinutes % 60;
+            return hours + 'h ' + mins + 'm';
+        }
+
+        function suggestedFare(distanceMeters, durationSeconds) {
+            var distanceKm = (distanceMeters || 0) / 1000;
+            var base = 2.5;
+            var perKm = 1.1;
+            var timeBuffer = (durationSeconds || 0) >= 1800 ? 1.2 : ((durationSeconds || 0) >= 900 ? 0.6 : 0.3);
+            var fare = base + (distanceKm * perKm) + timeBuffer;
+            return Math.max(2.5, Math.round(fare * 20) / 20);
+        }
+
+        function updateToolbarStats(route) {
+            if (!route) {
+                statDistance.innerHTML = '<span>Distance</span> —';
+                statTime.innerHTML = '<span>ETA</span> —';
+                statFare.innerHTML = '<span>Fare</span> —';
+                return;
+            }
+            statDistance.innerHTML = '<span>Distance</span> ' + formatDistance(route.distance);
+            statTime.innerHTML = '<span>ETA</span> ' + formatDuration(route.duration);
+            statFare.innerHTML = '<span>Fare</span> RM ' + suggestedFare(route.distance, route.duration).toFixed(2);
+        }
+
+        function autoFillLowestSuggestedFare() {
+            if (!defaultFareInput || fareEditedByUser || !fetchedRoutes.length) return;
+            var lowestFare = fetchedRoutes.reduce(function (lowest, route) {
+                var fare = suggestedFare(route.distance, route.duration);
+                return lowest === null ? fare : Math.min(lowest, fare);
+            }, null);
+            if (lowestFare !== null && Number.isFinite(lowestFare)) {
+                defaultFareInput.value = lowestFare.toFixed(2);
+            }
+        }
+
+        function fillFareFromRoute(route) {
+            if (!defaultFareInput || !route) return;
+            var fare = suggestedFare(route.distance, route.duration);
+            if (Number.isFinite(fare)) { defaultFareInput.value = fare.toFixed(2); }
+        }
+
+        function suggestionReason(route) {
+            var distanceKm = ((route.distance || 0) / 1000);
+            var minutes = Math.round((route.duration || 0) / 60);
+            var timeBuffer = (route.duration || 0) >= 1800 ? 1.2 : ((route.duration || 0) >= 900 ? 0.6 : 0.3);
+            return 'AI reason: base fare + distance (' + distanceKm.toFixed(1) + ' km) + buffer time for ~' + minutes + ' min travel. Time affects the fare, but distance remains the main factor.';
+        }
+
+        function summarizeRoads(route) {
+            if (!route || !route.legs || !route.legs.length || !route.legs[0].steps) return 'Main route';
+            var names = [];
+            route.legs[0].steps.forEach(function (step) {
+                var name = (step.name || '').trim();
+                if (name && names.indexOf(name) === -1) names.push(name);
+            });
+            return names.slice(0, 3).join(' • ') || 'Main route';
+        }
+
+        function drawSelectedRoute() {
+            if (!fetchedRoutes.length) { clearRoute(); return; }
+            var minDuration = Math.min.apply(null, fetchedRoutes.map(function (r) { return r.duration || 0; }));
+            clearRoute();
+            fetchedRoutes.forEach(function (route, index) {
+                var coordinates = route.geometry.coordinates.map(function (pair) { return [pair[1], pair[0]]; });
+                var isPrimary = index === selectedRouteIndex;
+                var isSlower = (route.duration || 0) > (minDuration + 60);
+                var layer = L.polyline(coordinates, {
+                    color: isPrimary ? '#2563eb' : (isSlower ? '#bfdbfe' : '#93c5fd'),
+                    weight: isPrimary ? 4.5 : 3,
+                    opacity: isPrimary ? 0.94 : 0.75
+                }).addTo(map);
+                routeLayers.push(layer);
+            });
+        }
+
+        function renderRouteOptions() {
+            if (!fetchedRoutes.length) { clearRouteOptions('No route options found. Try another point.'); return; }
+            routeOptionsEl.innerHTML = fetchedRoutes.map(function (route, index) {
+                var activeClass = index === selectedRouteIndex ? ' active' : '';
+                var roadSummary = summarizeRoads(route);
+                return '<button type="button" class="rf-route-option-btn' + activeClass + '" data-route-index="' + index + '">'
+                    + '<div class="rf-route-option-top">'
+                    + '<span class="rf-route-option-name">Option ' + (index + 1) + '</span>'
+                    + '<span class="rf-route-option-meta">' + formatDistance(route.distance) + ' • ' + formatDuration(route.duration) + '</span>'
+                    + '</div>'
+                    + '<div class="rf-route-option-road">' + roadSummary + '</div>'
+                    + '<div class="rf-route-option-fare">Suggested Fare RM ' + suggestedFare(route.distance, route.duration).toFixed(2) + '</div>'
+                    + '<div class="rf-route-option-reason">' + suggestionReason(route) + '</div>'
+                    + '</button>';
+            }).join('');
+            Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.rf-route-option-btn'), function (btn) {
+                btn.addEventListener('click', function () {
+                    selectedRouteIndex = parseInt(btn.getAttribute('data-route-index'), 10) || 0;
+                    fillFareFromRoute(fetchedRoutes[selectedRouteIndex]);
+                    updateToolbarStats(fetchedRoutes[selectedRouteIndex]);
+                    syncPresetFares(false);
+                    renderRouteOptions();
+                    drawSelectedRoute();
+                });
+            });
+        }
+
+        function drawStraightLine() {
+            if (!pickupMarker || !destinationMarker) { clearRoute(); return; }
+            clearRoute();
+            routeLayers.push(L.polyline(routeWaypoints(), { color: '#2563eb', weight: 4, opacity: 0.9, dashArray: '8 8' }).addTo(map));
+        }
+
+        function middleCustomStops() {
+            var points = [];
+            presetRows().forEach(function (row) {
+                var pickupPoint = latLngFromInputs(presetInput(row, 'pickup_latitude'), presetInput(row, 'pickup_longitude'));
+                var dropoffPoint = latLngFromInputs(presetInput(row, 'dropoff_latitude'), presetInput(row, 'dropoff_longitude'));
+                if (pickupPoint) points.push(pickupPoint);
+                if (dropoffPoint) points.push(dropoffPoint);
+            });
+            return points;
+        }
+
+        function pathDistance(points) {
+            var total = 0;
+            for (var i = 1; i < points.length; i += 1) {
+                total += points[i - 1].distanceTo(points[i]);
+            }
+            return total;
+        }
+
+        function permutations(items) {
+            if (items.length <= 1) return [items.slice()];
+            var result = [];
+            items.forEach(function (item, index) {
+                var rest = items.slice(0, index).concat(items.slice(index + 1));
+                permutations(rest).forEach(function (tail) {
+                    result.push([item].concat(tail));
+                });
+            });
+            return result;
+        }
+
+        function nearestNeighborOrder(start, middle) {
+            var remaining = middle.slice();
+            var ordered = [];
+            var cursor = start;
+            while (remaining.length) {
+                var bestIndex = 0;
+                var bestDistance = cursor.distanceTo(remaining[0]);
+                for (var i = 1; i < remaining.length; i += 1) {
+                    var distance = cursor.distanceTo(remaining[i]);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        bestIndex = i;
+                    }
+                }
+                cursor = remaining.splice(bestIndex, 1)[0];
+                ordered.push(cursor);
+            }
+            return ordered;
+        }
+
+        function optimizedMiddleStops(start, middle, end) {
+            if (middle.length <= 1) return middle;
+            if (middle.length > 7) return nearestNeighborOrder(start, middle);
+
+            var best = middle;
+            var bestDistance = Infinity;
+            permutations(middle).forEach(function (order) {
+                var distance = pathDistance([start].concat(order, [end]));
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = order;
+                }
+            });
+            return best;
+        }
+
+        function routeWaypoints() {
+            if (!pickupMarker || !destinationMarker) return [];
+            var start = pickupMarker.getLatLng();
+            var end = destinationMarker.getLatLng();
+            var middle = optimizedMiddleStops(start, middleCustomStops(), end);
+            return [start].concat(middle, [end]);
+        }
+
+        function fetchRouteOptions() {
+            if (!pickupMarker || !destinationMarker) {
+                clearRouteOptions('Set both points to view route options.');
+                return;
+            }
+            syncPresetRadius();
+            syncPresetStopMarkers();
+            var points = routeWaypoints();
+            var url = 'https://router.project-osrm.org/route/v1/driving/'
+                + points.map(function (point) {
+                    return encodeURIComponent(point.lng) + ',' + encodeURIComponent(point.lat);
+                }).join(';')
+                + '?overview=full&geometries=geojson&steps=true&alternatives=true';
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (!data || !data.routes || !data.routes.length) {
+                        drawStraightLine();
+                        routeOptionsEl.innerHTML = '<div class="rf-route-empty">Routing service is unavailable. Showing a straight line only.</div>';
+                        return;
+                    }
+                    fetchedRoutes = data.routes.slice(0, 3);
+                    selectedRouteIndex = 0;
+                    renderRouteOptions();
+                    drawSelectedRoute();
+                    autoFillLowestSuggestedFare();
+                    updateToolbarStats(fetchedRoutes[0]);
+                    syncPresetFares(false);
+                })
+                .catch(function () {
+                    drawStraightLine();
+                    routeOptionsEl.innerHTML = '<div class="rf-route-empty">Could not fetch route options. Showing a straight line only.</div>';
+                });
+        }
+
+        function clearMarker(target) {
+            if (target === 'pickup' && pickupMarker) {
+                map.removeLayer(pickupMarker); pickupMarker = null;
+                pickupLat.value = ''; pickupLng.value = ''; pickupName.value = '';
+            }
+            if (target === 'destination' && destinationMarker) {
+                map.removeLayer(destinationMarker); destinationMarker = null;
+                destinationLat.value = ''; destinationLng.value = ''; destinationName.value = '';
+            }
+            syncPresetRadius();
+            syncPresetStopMarkers();
+            updateStepIndicator();
+        }
+
+        function resetRouteSelection() {
+            clearMarker('pickup');
+            clearMarker('destination');
+            clearSearchPreview();
+            nextTarget = 'pickup';
+            clearRouteOptions('Set both points to view route options.');
+            updateStepIndicator();
+        }
+
+        function reverseGeocode(lat, lng, onDone) {
+            var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng);
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) { if (!data) return; onDone(data.display_name || ''); })
+                .catch(function () {});
+        }
+
+        function searchPlace() {
+            var query = (searchInput.value || '').trim();
+            if (!query) return;
+            fetchMalaysiaPlaces(query, 10)
+                .then(function (items) {
+                    if (!items.length) return;
+                    previewSearchResult(items[0], query);
+                    renderSearchSuggestions(items);
+                })
+                .catch(function () {});
+        }
+
+        function previewSearchResult(item, fallbackText) {
+            if (!item) return;
+            var lat = parseFloat(item.lat);
+            var lng = parseFloat(item.lon);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+            previewPlace = { lat: lat, lng: lng, name: item.display_name || fallbackText || '', type: item.type || item.class || '' };
+            if (previewMarker) map.removeLayer(previewMarker);
+            previewMarker = L.marker([lat, lng], {
+                draggable: true,
+                icon: L.divIcon({ className: '', html: '<div class="preview-pin"></div>', iconSize: [24, 24], iconAnchor: [12, 12] })
+            }).addTo(map);
+            previewMarker.bindTooltip('Preview pin', { permanent: true, direction: 'top', offset: [0, -12], className: 'map-point-tooltip' });
+            previewMarker.on('dragend', function (event) {
+                var pos = event.target.getLatLng();
+                previewPlace.lat = pos.lat; previewPlace.lng = pos.lng;
+                reverseGeocode(pos.lat, pos.lng, function (resolvedName) {
+                    if (resolvedName) { previewPlace.name = resolvedName; updatePreviewCard(); }
+                });
+                updatePreviewCard();
+            });
+            map.setView([lat, lng], Math.max(map.getZoom(), 16));
+            updatePreviewCard();
+        }
+
+        function updatePreviewCard() {
+            if (!previewPlace || !previewCard) return;
+            var targetText = presetCapture
+                ? (presetCapture.kind === 'dropoff' ? 'passenger drop-off' : 'passenger pickup')
+                : (nextTarget === 'pickup' ? 'pickup Point A' : 'drop-off Point B');
+            var title = String(previewPlace.name || 'Selected location').split(',')[0] || 'Selected location';
+            previewTitle.textContent = title;
+            previewSub.textContent = String(previewPlace.name || '').trim() || 'Drag the preview pin or confirm this point.';
+            previewUseBtn.textContent = 'Use as ' + targetText;
+            previewCard.classList.add('show');
+        }
+
+        function clearSearchPreview() {
+            previewPlace = null;
+            if (previewMarker) { map.removeLayer(previewMarker); previewMarker = null; }
+            if (previewCard) previewCard.classList.remove('show');
+        }
+
+        function applyPreviewAsTarget(target) {
+            if (!previewPlace) return;
+            if (presetCapture && presetCapture.row) {
+                applyPresetMapPoint(presetCapture.row, presetCapture.kind, previewPlace.lat, previewPlace.lng, previewPlace.name || '');
+                presetCapture.row.classList.remove('is-active-capture');
+                clearSearchPreview();
+                clearPresetCapture();
+                updateStepIndicator();
+                return;
+            }
+            if (target === 'pickup') clearMarker('pickup');
+            if (target === 'destination') clearMarker('destination');
+            setMarker(target, previewPlace.lat, previewPlace.lng, previewPlace.name || '');
+            nextTarget = nextTarget === 'pickup' ? 'destination' : 'pickup';
+            clearSearchPreview();
+            updateStepIndicator();
+        }
+
+        function renderSearchSuggestions(items) {
+            if (!searchSuggest) return;
+            if (!items || !items.length) { searchSuggest.classList.remove('show'); searchSuggest.innerHTML = ''; return; }
+            searchSuggest.innerHTML = items.map(function (item, index) {
+                var display = String(item.display_name || '').trim();
+                var main = display.split(',')[0] || 'Select location';
+                return '<button type="button" class="rf-map-suggest-btn" data-index="' + index + '">'
+                    + '<span class="rf-map-suggest-main">' + escapeText(main) + '</span>'
+                    + '<span class="rf-map-suggest-sub">' + escapeText(display) + '</span>'
+                    + '</button>';
+            }).join('');
+            searchSuggest.classList.add('show');
+            Array.from(searchSuggest.querySelectorAll('.rf-map-suggest-btn')).forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(btn.getAttribute('data-index') || '-1', 10);
+                    var picked = items[idx];
+                    if (!picked) return;
+                    searchInput.value = String(picked.display_name || '').trim();
+                    renderSearchSuggestions([]);
+                    previewSearchResult(picked, searchInput.value);
+                });
+            });
+        }
+
+        function uniqueSearchItems(items) {
+            var seen = {};
+            return (items || []).filter(function (item) {
+                var lat = parseFloat(item.lat);
+                var lng = parseFloat(item.lon);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+                var key = lat.toFixed(5) + ':' + lng.toFixed(5) + ':' + String(item.display_name || '').toLowerCase().slice(0, 48);
+                if (seen[key]) return false;
+                seen[key] = true;
+                return true;
+            });
+        }
+
+        function rankMalaysiaResult(item, query) {
+            var display = String(item.display_name || '').toLowerCase();
+            var main = display.split(',')[0] || '';
+            var q = String(query || '').toLowerCase();
+            var score = 0;
+            if (String(item.provider || '') === 'Photon') score += 10;
+            if (display.indexOf('malaysia') !== -1) score += 40;
+            if (display.indexOf('pahang') !== -1) score += 10;
+            if (display.indexOf('pekan') !== -1) score += 8;
+            if (main.indexOf(q) !== -1) score += 28;
+            if (display.indexOf(q) !== -1) score += 18;
+            if (['university','college','school','hospital','clinic','bus_stop','fuel','parking','residential','road','house','street','locality'].indexOf(String(item.type || '')) !== -1) score += 8;
+            if (['amenity','highway','building','place','tourism','street'].indexOf(String(item.class || '')) !== -1) score += 6;
+            if (/taman|kampung|jalan|lorong|persiaran|universiti|fakulti|sekolah|masjid|surau|klinik|hospital|terminal|stesen/.test(display)) score += 8;
+            score += Math.max(0, Math.min(20, Number(item.importance || 0) * 20));
+            return score;
+        }
+
+        function normalizePhotonFeature(feature) {
+            var props = feature && feature.properties ? feature.properties : {};
+            var coordinates = feature && feature.geometry && Array.isArray(feature.geometry.coordinates) ? feature.geometry.coordinates : [];
+            var lng = parseFloat(coordinates[0]);
+            var lat = parseFloat(coordinates[1]);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            var parts = [props.name, props.street, props.district, props.city, props.county, props.state, props.country].filter(function (part, index, items) {
+                return part && items.indexOf(part) === index;
+            });
+            return { provider: 'Photon', display_name: parts.join(', ') || props.name || 'Selected location', lat: String(lat), lon: String(lng), type: props.type || props.osm_value || 'place', class: props.osm_key || 'place', importance: 0.7, address: { road: props.street || '', suburb: props.district || '', city: props.city || '', town: props.city || '', county: props.county || '', state: props.state || '', country: props.country || '' } };
+        }
+
+        function normalizeNominatimItem(item) {
+            if (!item) return null;
+            return { provider: 'OSM', display_name: item.display_name || '', lat: item.lat, lon: item.lon, type: item.type || '', class: item.class || '', importance: item.importance || 0, address: item.address || {} };
+        }
+
+        function fetchPhotonPlaces(query, limit) {
+            var clean = String(query || '').trim();
+            if (!clean) return Promise.resolve([]);
+            var url = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(clean) + '&limit=' + encodeURIComponent(limit || 10) + '&lang=en&lat=3.139&lon=101.6869';
+            return fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (payload) {
+                    var features = payload && Array.isArray(payload.features) ? payload.features : [];
+                    return features.map(normalizePhotonFeature).filter(function (item) {
+                        return item && String(item.display_name || '').toLowerCase().indexOf('malaysia') !== -1;
+                    });
+                })
+                .catch(function () { return []; });
+        }
+
+        function fetchNominatimPlaces(query, limit) {
+            var clean = String(query || '').trim();
+            if (!clean) return Promise.resolve([]);
+            var queries = [clean];
+            if (!/malaysia|malaisie|malaysian/i.test(clean)) queries.push(clean + ', Malaysia');
+            var params = function (q) {
+                return 'format=jsonv2&addressdetails=1&namedetails=1&dedupe=1&countrycodes=my&bounded=1&viewbox=99.0,7.8,119.5,0.5&accept-language=en-MY,ms,en&limit=' + encodeURIComponent(limit || 10) + '&q=' + encodeURIComponent(q);
+            };
+            return Promise.all(queries.map(function (q) {
+                var url = 'https://nominatim.openstreetmap.org/search?' + params(q);
+                return fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : []; })
+                    .catch(function () { return []; });
+            })).then(function (groups) {
+                return groups.reduce(function (carry, group) {
+                    return carry.concat(Array.isArray(group) ? group.map(normalizeNominatimItem).filter(Boolean) : []);
+                }, []);
+            });
+        }
+
+        function fetchMalaysiaPlaces(query, limit) {
+            var clean = String(query || '').trim();
+            if (!clean) return Promise.resolve([]);
+            return Promise.all([fetchPhotonPlaces(clean, limit || 10), fetchNominatimPlaces(clean, limit || 10)])
+                .then(function (groups) {
+                    return uniqueSearchItems(groups.reduce(function (carry, group) {
+                        return carry.concat(Array.isArray(group) ? group : []);
+                    }, [])).sort(function (a, b) {
+                        return rankMalaysiaResult(b, clean) - rankMalaysiaResult(a, clean);
+                    }).slice(0, limit || 10);
+                });
+        }
+
+        var searchDebounceTimer = null;
+        function fetchSearchSuggestions() {
+            var query = (searchInput.value || '').trim();
+            if (query.length < 1) { renderSearchSuggestions([]); return; }
+            fetchMalaysiaPlaces(query, 10)
+                .then(function (items) { renderSearchSuggestions(Array.isArray(items) ? items : []); })
+                .catch(function () { renderSearchSuggestions([]); });
+        }
+
+        function goToCurrentLocation() {
+            if (!navigator.geolocation) return;
+            locateBtn.disabled = true;
+            locateBtn.classList.add('is-loading');
+            locateBtn.innerHTML = '<i class="fa-solid fa-spinner" aria-hidden="true"></i>';
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                map.setView([lat, lng], 16);
+                locateBtn.disabled = false;
+                locateBtn.classList.remove('is-loading');
+                locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>';
+            }, function () {
+                locateBtn.disabled = false;
+                locateBtn.classList.remove('is-loading');
+                locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>';
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+        }
+
+        map.on('click', function (event) {
+            if (presetCapture && presetCapture.row) {
+                var activeRow = presetCapture.row;
+                var activeKind = presetCapture.kind;
+                if (!applyPresetMapPoint(activeRow, activeKind, event.latlng.lat, event.latlng.lng, '')) {
+                    return;
+                }
+                reverseGeocode(event.latlng.lat, event.latlng.lng, function (resolvedName) {
+                    if (resolvedName) {
+                        applyPresetMapPoint(activeRow, activeKind, event.latlng.lat, event.latlng.lng, resolvedName);
+                    }
+                });
+                activeRow.classList.remove('is-active-capture');
+                clearPresetCapture();
+                updateStepIndicator();
+                return;
+            }
+
+            var assignedTarget = nextTarget;
+            clearSearchPreview();
+            if (assignedTarget === 'pickup') {
+                clearMarker('pickup');
+                setMarker('pickup', event.latlng.lat, event.latlng.lng);
+                nextTarget = 'destination';
+            } else {
+                clearMarker('destination');
+                setMarker('destination', event.latlng.lat, event.latlng.lng);
+                nextTarget = 'pickup';
+            }
+            reverseGeocode(event.latlng.lat, event.latlng.lng, function (resolvedName) {
+                if (assignedTarget === 'pickup' && resolvedName) pickupName.value = resolvedName;
+                if (assignedTarget === 'destination' && resolvedName) destinationName.value = resolvedName;
+            });
+            updateStepIndicator();
+        });
+
+        Array.prototype.forEach.call(document.querySelectorAll('.rf-target-btn'), function (btn) {
+            btn.addEventListener('click', function () {
+                setActiveTarget(btn.getAttribute('data-map-target'));
+                updatePreviewCard();
+                updateStepIndicator();
+            });
+        });
+
+        searchBtn.addEventListener('click', searchPlace);
+        locateBtn.addEventListener('click', goToCurrentLocation);
+        mapResetBtn.addEventListener('click', resetRouteSelection);
+
+        if (defaultFareInput) {
+            defaultFareInput.addEventListener('input', function () { fareEditedByUser = true; });
+        }
+
+        bindCoordinateInputs('pickup');
+        bindCoordinateInputs('destination');
+
+        previewUseBtn.addEventListener('click', function () { applyPreviewAsTarget(nextTarget); });
+        previewCloseBtn.addEventListener('click', clearSearchPreview);
+
+        searchInput.addEventListener('input', function () {
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(fetchSearchSuggestions, 220);
+        });
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); searchPlace(); }
+        });
+        document.addEventListener('click', function (e) {
+            if (!searchSuggest) return;
+            var inWrap = e.target && e.target.closest ? e.target.closest('.rf-map-search-wrap') : null;
+            if (!inWrap) renderSearchSuggestions([]);
+        });
+
+        // Toolbar ghost buttons — wire up after map is ready
+        if (togglePresetStopsBtn) {
+            togglePresetStopsBtn.addEventListener('click', function () {
+                setCustomStopPanel(!presetStopPanel.classList.contains('show'));
+            });
+        }
+
+        if (addPresetStopBtn) {
+            addPresetStopBtn.addEventListener('click', function () {
+                setCustomStopPanel(true);
+                addPresetStopRow();
+            });
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-preset-stop-row]'), bindPresetRow);
+        updatePresetStopEmpty();
+        setCustomStopPanel(Boolean(presetStopPanel && presetStopPanel.classList.contains('show')));
+
+        var existingPickupLat = toNumber(pickupLat.value);
+        var existingPickupLng = toNumber(pickupLng.value);
+        var existingDestLat = toNumber(destinationLat.value);
+        var existingDestLng = toNumber(destinationLng.value);
+
+        if (existingPickupLat !== null && existingPickupLng !== null) {
+            setMarker('pickup', existingPickupLat, existingPickupLng);
+            map.setView([existingPickupLat, existingPickupLng], 14);
+            nextTarget = 'destination';
+        }
+        if (existingDestLat !== null && existingDestLng !== null) {
+            setMarker('destination', existingDestLat, existingDestLng);
+            if (existingPickupLat === null || existingPickupLng === null) map.setView([existingDestLat, existingDestLng], 14);
+            nextTarget = 'pickup';
+        }
+        if (existingPickupLat !== null && existingPickupLng !== null && existingDestLat !== null && existingDestLng !== null) {
+            fetchRouteOptions();
+        }
+
+        updateStepIndicator();
+
+        if (existingPickupLat === null && existingPickupLng === null && existingDestLat === null && existingDestLng === null) {
+            setTimeout(goToCurrentLocation, 350);
+        }
+    })();
+</script>

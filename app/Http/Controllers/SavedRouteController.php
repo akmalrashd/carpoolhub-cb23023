@@ -23,9 +23,11 @@ class SavedRouteController extends Controller
         return view('saved-routes.index', compact('savedRoutes'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('saved-routes.create');
+        $selectableParticipants = $this->savedRouteService->selectablePassengersFor($request->user());
+
+        return view('saved-routes.create', compact('selectableParticipants'));
     }
 
     public function store(StoreSavedRouteRequest $request): RedirectResponse
@@ -43,8 +45,10 @@ class SavedRouteController extends Controller
     public function edit(Request $request, SavedRoute $savedRoute): View
     {
         $this->authorizeOwner($request, $savedRoute);
+        $savedRoute->load('passengerStops.user');
+        $selectableParticipants = $this->savedRouteService->selectablePassengersFor($request->user());
 
-        return view('saved-routes.edit', compact('savedRoute'));
+        return view('saved-routes.edit', compact('savedRoute', 'selectableParticipants'));
     }
 
     public function update(UpdateSavedRouteRequest $request, SavedRoute $savedRoute): RedirectResponse

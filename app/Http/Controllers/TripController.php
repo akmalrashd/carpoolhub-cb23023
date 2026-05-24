@@ -25,11 +25,14 @@ class TripController extends Controller
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'visibility' => ['nullable', 'in:public,private'],
+            'status_filter' => ['nullable', 'in:all,upcoming,completed,draft,cancelled'],
         ]);
 
+        $filters['status_filter'] = $filters['status_filter'] ?? 'upcoming';
+        $tripStatusCounts = $this->tripService->statusCountsForUser($request->user(), $filters);
         $trips = $this->tripService->paginateForUser($request->user(), 10, $filters);
 
-        return view('trips.index', compact('trips', 'filters'));
+        return view('trips.index', compact('trips', 'filters', 'tripStatusCounts'));
     }
 
     public function create(Request $request): View
@@ -37,6 +40,7 @@ class TripController extends Controller
         $this->ensureCanManage($request);
 
         $savedRoutes = SavedRoute::query()
+            ->with('passengerStops.user')
             ->where('user_id', $request->user()->id)
             ->where('is_active', true)
             ->orderBy('route_name')
@@ -83,11 +87,13 @@ class TripController extends Controller
             'driver',
             'participants.user',
             'payments.user',
+            'passengerRoutePoints.user',
             'joinRequests.user',
             'returnTrip.savedRoute',
             'returnTrip.driver',
             'returnTrip.participants.user',
             'returnTrip.payments.user',
+            'returnTrip.passengerRoutePoints.user',
         ]);
 
         $rollups = $this->buildGroupPaymentRollups($displayTrip);
@@ -102,6 +108,7 @@ class TripController extends Controller
         $trip->load('returnTrip');
 
         $savedRoutes = SavedRoute::query()
+            ->with('passengerStops.user')
             ->where('user_id', $request->user()->id)
             ->where('is_active', true)
             ->orderBy('route_name')
@@ -145,36 +152,6 @@ class TripController extends Controller
     private function ensureCanManage(Request $request): void
     {
         abort_unless(in_array($request->user()->role, ['admin', 'driver'], true), 403);
-    }
-
-    private function buildPaymentRollups(Trip $trip): array
-    {
-        $sumAmount = fn (string $status): float => (float) $trip->payments
-            ->where('payment_status', $status)
-            ->sum('amount_due');
-
-        $countByStatus = fn (string $status): int => (int) $trip->payments
-            ->where('payment_status', $status)
-            ->count();
-
-        return [
-            'unpaid' => [
-                'count' => $countByStatus('unpaid'),
-                'amount' => $sumAmount('unpaid'),
-            ],
-            'pending_confirmation' => [
-                'count' => $countByStatus('pending_confirmation'),
-                'amount' => $sumAmount('pending_confirmation'),
-            ],
-            'paid' => [
-                'count' => $countByStatus('paid'),
-                'amount' => $sumAmount('paid'),
-            ],
-            'total' => [
-                'count' => (int) $trip->payments->count(),
-                'amount' => (float) $trip->payments->sum('amount_due'),
-            ],
-        ];
     }
 
     private function buildGroupPaymentRollups(Trip $trip): array

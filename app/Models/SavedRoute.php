@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -76,8 +77,23 @@ class SavedRoute extends Model
         return $this->hasMany(Trip::class);
     }
 
+    public function passengerStops(): HasMany
+    {
+        return $this->hasMany(SavedRoutePassengerStop::class);
+    }
+
     public function archivedTrips(): HasMany
     {
         return $this->hasMany(ArchivedTrip::class);
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeForUser(Builder $query, int $userId): Builder
+    {
+        return $query->where('user_id', $userId);
     }
 }

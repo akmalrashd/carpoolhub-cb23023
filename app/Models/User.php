@@ -27,6 +27,8 @@ class User extends Authenticatable
         'role',
         'phone',
         'phone_visible',
+        'vehicle_model',
+        'vehicle_plate',
         'profile_photo',
         'payment_account_name',
         'payment_account_number',

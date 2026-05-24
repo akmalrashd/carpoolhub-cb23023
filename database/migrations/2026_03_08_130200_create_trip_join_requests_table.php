@@ -17,6 +17,8 @@ return new class extends Migration
             $table->text('response_note')->nullable();
             $table->foreignId('responded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('responded_at')->nullable();
+            $table->unsignedInteger('decision_duration_minutes')->nullable();
+            $table->json('decision_feature_snapshot')->nullable();
             $table->timestamps();
 
             $table->unique(['trip_id', 'user_id']);

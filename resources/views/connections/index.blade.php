@@ -2,610 +2,689 @@
 
 @section('content')
     <style>
-        .connections-page {
-            display: grid;
-            gap: 12px;
+        /* ── Page header ── */
+        .pg-eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+            font-family: var(--font-ui), sans-serif;
+            margin: 0 0 4px;
         }
 
-        .connections-card {
-            background: #fff;
-            border: 1px solid #dbe2ea;
-            border-radius: 18px;
-            padding: 14px;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        .pg-title {
+            margin: 0 0 2px;
+            font-family: var(--font-display), sans-serif;
+            font-size: clamp(1.4rem, 2.2vw, 1.75rem);
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.1;
         }
 
-        .connections-header {
+        .pg-sub {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .pg-header {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
-        .connections-title {
-            margin: 0;
-            font-family: Poppins, sans-serif;
-            font-size: 30px;
-            color: #0f172a;
-            line-height: 1.05;
-        }
-
-        .connections-subtitle {
-            margin: 6px 0 0;
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .connections-badges {
+        .pg-header-actions {
             display: inline-flex;
             gap: 8px;
             flex-wrap: wrap;
-        }
-
-        .count-chip {
-            border: 1px solid #dbe2ea;
-            border-radius: 999px;
-            padding: 6px 10px;
-            background: #f8fafc;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 700;
-            display: inline-flex;
             align-items: center;
-            gap: 6px;
+            flex-shrink: 0;
         }
 
-        .section-title {
-            margin: 0;
-            font-size: 18px;
-            color: #0f172a;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .search-row {
-            margin-top: 10px;
+        /* ── Page shell ── */
+        .conn-page {
             display: grid;
-            gap: 8px;
-            grid-template-columns: 1fr auto;
+            gap: 14px;
         }
 
-        .search-input {
-            width: 100%;
-            border-radius: 10px;
-            border: 1px solid #dbe2ea;
-            background: #f8fafc;
-            color: #0f172a;
-            padding: 9px 11px;
-            font-size: 14px;
-            outline: none;
+        /* ── Generic section card ── */
+        .conn-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-1);
         }
 
-        .search-input:focus {
-            border-color: #94a3b8;
-            background: #fff;
-        }
-
-        .btn {
-            border-radius: 10px;
-            border: 1px solid #dbe2ea;
-            padding: 9px 12px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
+        .conn-section-title {
+            margin: 0 0 12px;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--ink);
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 8px;
+        }
+
+        .conn-section-title i {
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        /* ── Count chips in header ── */
+        .conn-chips {
+            display: inline-flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .conn-chip {
+            display: inline-flex;
+            align-items: center;
             gap: 6px;
-        }
-
-        .btn-dark {
-            background: #0f172a;
-            border-color: #0f172a;
-            color: #fff;
-        }
-
-        .btn-success {
-            background: #dcfce7;
-            border-color: #86efac;
-            color: #166534;
-        }
-
-        .btn-danger {
-            background: #fef2f2;
-            border-color: #fecaca;
-            color: #b91c1c;
-        }
-        .btn-danger-soft {
-            background: #fff;
-            border-color: #fecaca;
-            color: #b91c1c;
-            padding: 8px 12px;
-            border-radius: 8px;
-        }
-        .btn-danger-soft:hover {
-            background: #fef2f2;
-        }
-
-        .btn-sm {
-            padding: 7px 10px;
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-pill);
+            padding: 5px 11px;
+            background: var(--surface-2);
+            color: var(--ink-3);
             font-size: 12px;
-            border-radius: 8px;
+            font-weight: 700;
+            white-space: nowrap;
         }
 
-        .form-error {
-            margin-top: 8px;
-            color: #b91c1c;
-            border: 1px solid rgba(185, 28, 28, 0.25);
-            background: rgba(185, 28, 28, 0.06);
-            border-radius: 10px;
-            padding: 8px 10px;
-            font-size: 13px;
+        .conn-chip i { color: var(--muted); }
+
+        /* ── Search row ── */
+        .conn-search-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: stretch;
         }
 
-        .hint-text {
+        .conn-search-input {
+            width: 100%;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--hairline-strong);
+            background: var(--canvas);
+            color: var(--ink);
+            padding: 9px 13px;
+            font-size: 14px;
+            font-family: var(--font-ui), sans-serif;
+            outline: none;
+            transition: border-color .18s, background .18s;
+        }
+
+        .conn-search-input::placeholder { color: var(--muted-2); }
+
+        .conn-search-input:focus {
+            border-color: var(--ch-yellow-line);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(250,204,21,.18);
+        }
+
+        /* ── Hint / error ── */
+        .conn-hint {
             margin: 8px 0 0;
-            color: #64748b;
+            color: var(--muted);
             font-size: 13px;
         }
 
-        .table-wrap {
-            margin-top: 12px;
-            overflow: auto;
-            border: 0;
-            border-radius: 0;
-            background: #fff;
-            padding: 0;
-            box-shadow: none;
+        .conn-form-error {
+            margin-top: 8px;
+            color: var(--danger);
+            border: 1px solid rgba(220,38,38,.25);
+            background: var(--danger-soft);
+            border-radius: var(--r-sm);
+            padding: 8px 12px;
+            font-size: 13px;
         }
 
-        .ui-table {
+        /* ── Search results table ── */
+        .conn-table-wrap {
+            margin-top: 14px;
+            overflow-x: auto;
+        }
+
+        .conn-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .ui-table th,
-        .ui-table td {
-            padding: 11px;
-            border: 0;
-            border-bottom: 1px solid #e2e8f0;
+        .conn-table th,
+        .conn-table td {
+            padding: 11px 10px;
+            border-bottom: 1px solid var(--hairline);
             text-align: left;
             vertical-align: middle;
-            background: transparent;
         }
 
-        .ui-table th {
-            color: #64748b;
-            font-size: 12px;
+        .conn-table th {
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .02em;
+            letter-spacing: .04em;
+            color: var(--muted);
             white-space: nowrap;
             background: transparent;
         }
 
-        .ui-table td:last-child,
-        .ui-table th:last-child {
-            text-align: right;
+        .conn-table td:last-child,
+        .conn-table th:last-child { text-align: right; }
+
+        .conn-table tbody tr { transition: background .15s; }
+
+        .conn-table tbody tr:hover td {
+            background: var(--ch-yellow-tint);
         }
-        .ui-table tbody tr td:first-child {
-            padding-left: 11px;
-        }
-        .ui-table tbody tr td:last-child {
-            padding-right: 11px;
-        }
-        .ui-table tbody tr {
-            transition: background-color .18s ease;
-        }
-        .ui-table tbody tr:hover td {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        .ui-table form {
+
+        .conn-table tbody tr:last-child td { border-bottom: 0; }
+
+        .conn-table form {
             margin: 0;
             display: inline-flex;
             justify-content: flex-end;
         }
 
+        /* ── Person cell ── */
         .person-cell {
             display: flex;
             align-items: center;
             gap: 10px;
             min-width: 0;
         }
+
         .person-avatar {
             width: 40px;
             height: 40px;
-            border-radius: 999px;
-            border: 1px solid #dbe2ea;
-            background: #f8fafc;
-            color: #0f172a;
+            border-radius: var(--r-pill);
+            border: 2px solid var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
+            display: grid;
+            place-items: center;
+            font-size: 15px;
+            font-weight: 800;
+            flex: 0 0 auto;
+            text-transform: uppercase;
+        }
+
+        .person-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.25;
+        }
+
+        .person-sub {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 320px;
+            display: block;
+        }
+
+        /* ── Status chips ── */
+        .rel-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: var(--r-pill);
+            border: 1px solid var(--hairline-strong);
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .rel-accepted         { color: var(--success-ink); border-color: #86efac; background: var(--success-soft); }
+        .rel-outgoing_pending { color: var(--warning-ink); border-color: #fde68a; background: var(--warning-soft); }
+        .rel-incoming_pending { color: var(--info-ink);    border-color: #bfdbfe; background: var(--info-soft); }
+        .rel-rejected_by_you,
+        .rel-rejected_you,
+        .rel-blocked          { color: var(--danger-ink);  border-color: #fecaca; background: var(--danger-soft); }
+        .rel-none             { color: var(--ink-3);       border-color: var(--hairline-strong); background: var(--surface-2); }
+
+        /* ── Panel grid (incoming / outgoing) ── */
+        .conn-panel-grid {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 900px) {
+            .conn-panel-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        /* ── Request list ── */
+        .req-list {
+            display: grid;
+            gap: 9px;
+            margin-top: 4px;
+        }
+
+        .req-item {
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            padding: 12px 14px;
+            background: var(--surface-2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .req-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--r-pill);
+            border: 2px solid var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
             display: grid;
             place-items: center;
             font-size: 14px;
             font-weight: 800;
             flex: 0 0 auto;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-        }
-        .person-meta {
-            min-width: 0;
-            display: grid;
-            gap: 1px;
-        }
-        .person-name {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.25;
-        }
-        .person-sub {
-            font-size: 12px;
-            color: #64748b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 340px;
-        }
-        .connection-email {
-            display: inline-block;
-            max-width: 100%;
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 600;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            vertical-align: middle;
-        }
-        .role-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #0f172a;
-            font-size: 14px;
-            font-weight: 500;
-            white-space: nowrap;
+            text-transform: uppercase;
         }
 
-        .status-chip {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 999px;
-            border: 1px solid #dbe2ea;
-            padding: 4px 9px;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
+        .req-info { flex: 1 1 0; min-width: 0; }
 
-        .status-accepted { color: #166534; border-color: #86efac; background: #f0fdf4; }
-        .status-outgoing_pending { color: #854d0e; border-color: #fde68a; background: #fefce8; }
-        .status-incoming_pending { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
-        .status-rejected_by_you,
-        .status-rejected_you,
-        .status-blocked { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
-        .status-none { color: #475569; border-color: #dbe2ea; background: #f8fafc; }
-
-        .panel-grid {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-        }
-
-        .request-list {
-            margin-top: 10px;
-            display: grid;
-            gap: 9px;
-        }
-
-        .request-item {
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 11px;
-            background: #fff;
-            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
-        }
-
-        .request-name {
+        .req-name {
             margin: 0;
             font-size: 14px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--ink);
+            line-height: 1.25;
         }
 
-        .request-email {
-            margin: 4px 0 0;
+        .req-email {
+            margin: 2px 0 0;
             font-size: 12px;
-            color: #64748b;
+            color: var(--muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .request-actions {
-            margin-top: 9px;
+        .req-actions {
             display: inline-flex;
-            flex-wrap: wrap;
             gap: 7px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
-        .empty {
-            margin: 8px 0 0;
-            color: #64748b;
-            font-size: 13px;
+        /* ── Accepted connections card grid ── */
+        .accept-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            margin-top: 4px;
         }
 
-        @media (min-width: 1024px) {
-            .connections-card {
-                padding: 16px;
-            }
+        @media (min-width: 640px)  { .accept-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .accept-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-            .panel-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+        .accept-card {
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            padding: 16px;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            transition: box-shadow .18s, transform .18s;
         }
 
-        @media (max-width: 767px) {
-            .search-row {
+        .accept-card:hover {
+            box-shadow: var(--shadow-2);
+            transform: translateY(-2px);
+        }
+
+        .accept-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--r-pill);
+            border: 2px solid var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
+            display: grid;
+            place-items: center;
+            font-size: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .accept-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.25;
+        }
+
+        .accept-email {
+            font-size: 12px;
+            color: var(--muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .role-pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: var(--r-pill);
+            border: 1px solid var(--hairline-strong);
+            padding: 3px 9px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--ink-3);
+            background: var(--canvas);
+        }
+
+        .accept-card form { margin: 0; width: 100%; }
+
+        /* ── Empty state ── */
+        .conn-empty {
+            padding: 28px 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .conn-empty-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--r-pill);
+            background: var(--canvas);
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            color: var(--muted-2);
+        }
+
+        .conn-empty-text {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        /* ── Responsive: mobile table ── */
+        @media (max-width: 640px) {
+            .conn-search-row {
                 grid-template-columns: 1fr;
             }
 
-            .table-wrap {
-                overflow: visible;
-                padding: 0;
-                background: transparent;
-                border: 0;
-            }
+            .conn-table,
+            .conn-table tbody,
+            .conn-table tr,
+            .conn-table td { display: block; width: 100%; }
 
-            .ui-table,
-            .ui-table tbody,
-            .ui-table tr,
-            .ui-table td {
-                display: block;
-                width: 100%;
-            }
+            .conn-table thead { display: none; }
 
-            .ui-table thead {
-                display: none;
-            }
-
-            .ui-table tr {
-                border: 1px solid #e2e8f0;
-                border-radius: 14px;
-                background: #fff;
+            .conn-table tr {
+                border: 1px solid var(--hairline);
+                border-radius: var(--r-md);
+                background: var(--surface);
                 padding: 10px 12px;
                 margin-bottom: 10px;
-                box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
             }
 
-            .ui-table td {
+            .conn-table td {
                 border: 0 !important;
                 padding: 6px 0;
                 text-align: left !important;
-                box-shadow: none !important;
             }
 
-            .ui-table td::before {
+            .conn-table td::before {
                 content: attr(data-label);
                 display: block;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: .02em;
-                color: #64748b;
+                letter-spacing: .04em;
+                color: var(--muted);
                 margin-bottom: 2px;
             }
-            .ui-table td:first-child::before {
-                display: none;
-            }
-            .ui-table td[data-label="Actions"] {
-                padding-top: 10px;
-            }
-            .ui-table td[data-label="Actions"] form,
-            .ui-table td[data-label="Actions"] .btn {
-                width: 100%;
-            }
-            .person-avatar {
-                width: 40px;
-                height: 40px;
-            }
-            .connection-email {
-                max-width: 100%;
-            }
+
+            .conn-table td:first-child::before { display: none; }
+
+            .conn-table td[data-label="Actions"],
+            .conn-table td[data-label="Actions"] form,
+            .conn-table td[data-label="Actions"] .btn { width: 100%; }
         }
     </style>
 
-    <div class="connections-page">
-        <section class="connections-card">
-            <div class="connections-header">
-                <div>
-                    <h1 class="connections-title">Connections</h1>
-                    <p class="connections-subtitle">Build and manage your trusted passenger network.</p>
-                </div>
-                <div class="connections-badges">
-                    <span class="count-chip"><i class="fa-solid fa-inbox"></i> Incoming {{ $incomingRequests->count() }}</span>
-                    <span class="count-chip"><i class="fa-regular fa-paper-plane"></i> Outgoing {{ $outgoingRequests->count() }}</span>
-                    <span class="count-chip"><i class="fa-solid fa-user-check"></i> Accepted {{ $acceptedConnections->count() }}</span>
-                </div>
+    {{-- ── Page header ── --}}
+    <div class="pg-header">
+        <div>
+            <p class="pg-eyebrow">Your network</p>
+            <h1 class="pg-title">Connections</h1>
+            <p class="pg-sub">Trusted carpoolers you ride with.</p>
+        </div>
+        <div class="pg-header-actions">
+            <div class="conn-chips">
+                <span class="conn-chip"><i class="fa-solid fa-inbox"></i> Incoming <strong>{{ $incomingRequests->count() }}</strong></span>
+                <span class="conn-chip"><i class="fa-regular fa-paper-plane"></i> Outgoing <strong>{{ $outgoingRequests->count() }}</strong></span>
+                <span class="conn-chip"><i class="fa-solid fa-user-check"></i> Accepted <strong>{{ $acceptedConnections->count() }}</strong></span>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <section class="connections-card">
-            <h2 class="section-title"><i class="fa-solid fa-user-plus"></i> Search Users</h2>
-            <form method="GET" action="{{ route('connections.index') }}" class="search-row">
+    <div class="conn-page">
+
+        {{-- ── Search ── --}}
+        <section class="conn-card">
+            <h2 class="conn-section-title"><i class="fa-solid fa-magnifying-glass"></i> Find Users</h2>
+
+            <form method="GET" action="{{ route('connections.index') }}" class="conn-search-row">
                 <input
-                    class="search-input"
+                    class="conn-search-input"
                     type="text"
                     name="q"
                     value="{{ $q }}"
-                    placeholder="Search by name or email"
+                    placeholder="Search by name or email…"
+                    autocomplete="off"
                 >
-                <button type="submit" class="btn btn-dark">Search</button>
+                <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Search
+                </button>
             </form>
 
             @if($errors->has('receiver_id'))
-                <div class="form-error">{{ $errors->first('receiver_id') }}</div>
+                <div class="conn-form-error">{{ $errors->first('receiver_id') }}</div>
             @endif
 
             @if($searchResults->isNotEmpty())
-                <div class="table-wrap">
-                    <table class="ui-table">
+                <div class="conn-table-wrap">
+                    <table class="conn-table">
                         <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        @foreach($searchResults as $user)
-                            @php
-                                $statusMap = [
-                                    'accepted' => 'Accepted',
-                                    'outgoing_pending' => 'Pending (Outgoing)',
-                                    'incoming_pending' => 'Pending (Incoming)',
-                                    'rejected_by_you' => 'Rejected (You)',
-                                    'rejected_you' => 'Rejected (Them)',
-                                    'blocked' => 'Disekat',
-                                    'none' => 'No Connections',
-                                ];
-                                $statusLabel = $statusMap[$user->relationship_status] ?? 'Unknown';
-                            @endphp
-                            <tr>
-                                <td data-label="Name">
-                                    <div class="person-cell">
-                                        <span class="person-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
-                                        <div class="person-meta">
-                                            <span class="person-name">{{ $user->name }}</span>
-                                            <span class="person-sub">{{ ucfirst($user->role) }}</span>
+                            @foreach($searchResults as $user)
+                                @php
+                                    $statusMap = [
+                                        'accepted'         => 'Connected',
+                                        'outgoing_pending' => 'Pending (Outgoing)',
+                                        'incoming_pending' => 'Pending (Incoming)',
+                                        'rejected_by_you'  => 'Rejected by You',
+                                        'rejected_you'     => 'Rejected by Them',
+                                        'blocked'          => 'Blocked',
+                                        'none'             => 'Not Connected',
+                                    ];
+                                    $statusLabel = $statusMap[$user->relationship_status] ?? 'Unknown';
+                                @endphp
+                                <tr>
+                                    <td data-label="Name">
+                                        <div class="person-cell">
+                                            <span class="person-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                            <div>
+                                                <span class="person-name">{{ $user->name }}</span>
+                                                <span class="person-sub">{{ ucfirst($user->role) }}</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td data-label="Email"><span class="person-sub" style="max-width:280px; display:inline-block;">{{ $user->email }}</span></td>
-                                <td data-label="Status">
-                                    <span class="status-chip status-{{ $user->relationship_status }}">{{ $statusLabel }}</span>
-                                </td>
-                                <td data-label="Actions">
-                                    @if(in_array($user->relationship_status, ['none', 'rejected_by_you', 'rejected_you'], true))
-                                        <form method="POST" action="{{ route('connections.requests.store') }}">
-                                            @csrf
-                                            <input type="hidden" name="receiver_id" value="{{ $user->id }}">
-                                            <button type="submit" class="btn btn-dark btn-sm">Send Request</button>
-                                        </form>
-                                    @elseif($user->relationship_status === 'incoming_pending')
-                                        <span class="hint-text" style="margin:0;">Respon di bawah</span>
-                                    @else
-                                        <span class="hint-text" style="margin:0;">-</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
+                                    </td>
+                                    <td data-label="Email">
+                                        <span class="person-sub" style="max-width:260px;">{{ $user->email }}</span>
+                                    </td>
+                                    <td data-label="Status">
+                                        <span class="rel-chip rel-{{ $user->relationship_status }}">{{ $statusLabel }}</span>
+                                    </td>
+                                    <td data-label="Actions">
+                                        @if(in_array($user->relationship_status, ['none', 'rejected_by_you', 'rejected_you'], true))
+                                            <form method="POST" action="{{ route('connections.requests.store') }}">
+                                                @csrf
+                                                <input type="hidden" name="receiver_id" value="{{ $user->id }}">
+                                                <button type="submit" class="btn btn-dark btn-sm">
+                                                    <i class="fa-solid fa-user-plus"></i> Send Request
+                                                </button>
+                                            </form>
+                                        @elseif($user->relationship_status === 'incoming_pending')
+                                            <span style="font-size:12px; color:var(--muted); font-weight:600;">Respond below</span>
+                                        @else
+                                            <span style="color:var(--muted-2);">—</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
             @elseif($q !== '')
-                <p class="hint-text">No users found for "{{ $q }}".</p>
+                <p class="conn-hint">No users found for "<strong>{{ $q }}</strong>".</p>
             @endif
         </section>
 
-        <section class="panel-grid">
-            <div class="connections-card">
-                <h2 class="section-title"><i class="fa-solid fa-inbox"></i> Incoming Requests</h2>
+        {{-- ── Incoming / Outgoing ── --}}
+        <div class="conn-panel-grid">
+
+            {{-- Incoming --}}
+            <section class="conn-card">
+                <h2 class="conn-section-title"><i class="fa-solid fa-inbox"></i> Incoming Requests</h2>
+
                 @if($incomingRequests->isEmpty())
-                    <p class="empty">No incoming requests.</p>
+                    <div class="conn-empty">
+                        <div class="conn-empty-icon"><i class="fa-solid fa-inbox"></i></div>
+                        <p class="conn-empty-text">No incoming requests.</p>
+                    </div>
                 @else
-                    <div class="request-list">
+                    <div class="req-list">
                         @foreach($incomingRequests as $connection)
-                            <article class="request-item">
-                                <h3 class="request-name">{{ $connection->requester->name }}</h3>
-                                <p class="request-email">{{ $connection->requester->email }}</p>
-                                <div class="request-actions">
+                            <article class="req-item">
+                                <span class="req-avatar">{{ strtoupper(substr($connection->requester->name, 0, 1)) }}</span>
+                                <div class="req-info">
+                                    <p class="req-name">{{ $connection->requester->name }}</p>
+                                    <p class="req-email">{{ $connection->requester->email }}</p>
+                                </div>
+                                <div class="req-actions">
                                     <form method="POST" action="{{ route('connections.respond', $connection) }}">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="accept">
-                                        <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                                        <button type="submit" class="btn btn-soft btn-sm" style="background:var(--success-soft); border-color:#86efac; color:var(--success-ink);">
+                                            <i class="fa-solid fa-check"></i> Accept
+                                        </button>
                                     </form>
                                     <form method="POST" action="{{ route('connections.respond', $connection) }}">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="reject">
-                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                    </form>
-                                </div>
-                            </article>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-
-            <div class="connections-card">
-                <h2 class="section-title"><i class="fa-regular fa-paper-plane"></i> Outgoing Requests</h2>
-                @if($outgoingRequests->isEmpty())
-                    <p class="empty">No outgoing requests.</p>
-                @else
-                    <div class="request-list">
-                        @foreach($outgoingRequests as $connection)
-                            <article class="request-item">
-                                <h3 class="request-name">{{ $connection->receiver->name }}</h3>
-                                <p class="request-email">{{ $connection->receiver->email }}</p>
-                                <div class="request-actions">
-                                    <span class="status-chip status-outgoing_pending">Pending</span>
-                                </div>
-                            </article>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-        </section>
-
-        <section class="connections-card">
-            <h2 class="section-title"><i class="fa-solid fa-user-check"></i> Connections Accepted</h2>
-            @if($acceptedConnections->isEmpty())
-                <p class="empty">No accepted connections yet.</p>
-            @else
-                <div class="table-wrap">
-                    <table class="ui-table">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Peranan</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($acceptedConnections as $connectionUser)
-                            <tr>
-                                <td data-label="Name">
-                                    <div class="person-cell">
-                                        <span class="person-avatar">{{ strtoupper(substr($connectionUser->name, 0, 1)) }}</span>
-                                        <div class="person-meta">
-                                            <span class="person-name">{{ $connectionUser->name }}</span>
-                                            <span class="person-sub">{{ ucfirst($connectionUser->role) }}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td data-label="Email"><span class="connection-email">{{ $connectionUser->email }}</span></td>
-                                <td data-label="Peranan"><span class="role-pill">{{ ucfirst($connectionUser->role) }}</span></td>
-                                <td data-label="Actions">
-                                    <form method="POST" action="{{ route('connections.remove', $connectionUser) }}" onsubmit="return confirm('Remove this connection?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger-soft btn-sm">
-                                            <i class="fa-solid fa-user-minus"></i>
-                                            <span>Discard</span>
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa-solid fa-xmark"></i> Reject
                                         </button>
                                     </form>
-                                </td>
-                            </tr>
+                                </div>
+                            </article>
                         @endforeach
-                        </tbody>
-                    </table>
+                    </div>
+                @endif
+            </section>
+
+            {{-- Outgoing --}}
+            <section class="conn-card">
+                <h2 class="conn-section-title"><i class="fa-regular fa-paper-plane"></i> Outgoing Requests</h2>
+
+                @if($outgoingRequests->isEmpty())
+                    <div class="conn-empty">
+                        <div class="conn-empty-icon"><i class="fa-regular fa-paper-plane"></i></div>
+                        <p class="conn-empty-text">No outgoing requests.</p>
+                    </div>
+                @else
+                    <div class="req-list">
+                        @foreach($outgoingRequests as $connection)
+                            <article class="req-item">
+                                <span class="req-avatar">{{ strtoupper(substr($connection->receiver->name, 0, 1)) }}</span>
+                                <div class="req-info">
+                                    <p class="req-name">{{ $connection->receiver->name }}</p>
+                                    <p class="req-email">{{ $connection->receiver->email }}</p>
+                                </div>
+                                <div class="req-actions">
+                                    <span class="rel-chip rel-outgoing_pending">
+                                        <i class="fa-regular fa-clock" style="margin-right:4px;"></i> Pending
+                                    </span>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
+        </div>
+
+        {{-- ── Accepted Connections ── --}}
+        <section class="conn-card">
+            <h2 class="conn-section-title"><i class="fa-solid fa-user-check"></i> Accepted Connections</h2>
+
+            @if($acceptedConnections->isEmpty())
+                <div class="conn-empty">
+                    <div class="conn-empty-icon"><i class="fa-solid fa-users"></i></div>
+                    <p class="conn-empty-text">No accepted connections yet.</p>
+                    <a href="{{ route('trips.index') }}" class="btn btn-primary btn-sm" style="margin-top:4px;">
+                        <i class="fa-solid fa-route"></i> Explore Trips
+                    </a>
+                </div>
+            @else
+                <div class="accept-grid">
+                    @foreach($acceptedConnections as $connectionUser)
+                        <article class="accept-card">
+                            <span class="accept-avatar">{{ strtoupper(substr($connectionUser->name, 0, 1)) }}</span>
+                            <div class="accept-name">{{ $connectionUser->name }}</div>
+                            <div class="accept-email">{{ $connectionUser->email }}</div>
+                            <span class="role-pill">{{ ucfirst($connectionUser->role) }}</span>
+                            <form method="POST" action="{{ route('connections.remove', $connectionUser) }}" onsubmit="return confirm('Remove this connection?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm btn-block" style="margin-top:4px;">
+                                    <i class="fa-solid fa-user-minus"></i> Remove
+                                </button>
+                            </form>
+                        </article>
+                    @endforeach
                 </div>
             @endif
         </section>
+
     </div>
 @endsection

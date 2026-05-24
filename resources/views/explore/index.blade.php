@@ -1,689 +1,1546 @@
 @extends('layouts.app')
 
 @section('content')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
     <style>
-        .explore-page { display: grid; gap: 14px; }
-        .explore-card {
-            background: #fff;
-            border: 1px solid #dbe2ea;
-            border-radius: 16px;
-            padding: 14px;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-        }
-        .explore-title { margin: 0; font-family: Poppins, sans-serif; font-size: 28px; color: #0f172a; line-height: 1.08; }
-        .explore-subtitle { margin: 6px 0 0; color: #64748b; font-size: 14px; }
+        /* ── Explore Index Page ─────────────────────────────────────── */
 
-        .explore-search-cta {
-            border: 1px solid #dbe2ea;
-            border-radius: 12px;
-            background: #fff;
-            text-decoration: none;
-            color: inherit;
-            padding: 12px;
+        .xp-wrap {
+            padding: 0 18px 28px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* ── Page Header ───────────────────────────────────────────── */
+        .xp-page-header {
+            padding: 20px 0 0;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
-        }
-        .explore-search-cta:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
-            transform: translateY(-1px);
-        }
-        .explore-search-left { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
-        .explore-search-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 999px;
-            border: 1px solid #fde68a;
-            background: #fffbeb;
-            color: #92400e;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex: 0 0 auto;
-        }
-        .explore-search-text { display: grid; gap: 1px; min-width: 0; }
-        .explore-search-title { color: #0f172a; font-size: 16px; font-weight: 700; line-height: 1.2; }
-        .explore-search-hint { color: #64748b; font-size: 12px; line-height: 1.2; }
-        .explore-search-right { color: #92400e; font-size: 12px; font-weight: 700; white-space: nowrap; }
-
-        .explore-custom-notice {
-            position: sticky;
-            top: 84px;
-            z-index: 5;
-            border: 1px solid #fde68a;
-            border-radius: 12px;
-            background: #fffbeb;
-            color: #713f12;
-            padding: 10px 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 8px 18px rgba(146, 64, 14, 0.08);
-        }
-        .explore-custom-notice-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 999px;
-            background: #fef3c7;
-            color: #92400e;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 auto;
-        }
-        .explore-custom-notice-text {
-            display: grid;
-            gap: 1px;
-            min-width: 0;
-        }
-        .explore-custom-notice-title {
-            color: #0f172a;
-            font-size: 13px;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-        .explore-custom-notice-copy {
-            color: #92400e;
-            font-size: 12px;
-            font-weight: 700;
-            line-height: 1.35;
-        }
-
-        .explore-chip-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
-        .explore-filter-chip {
-            border: 1px solid #dbe2ea;
-            border-radius: 999px;
-            background: #fff;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 5px 10px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: border-color .16s ease, background-color .16s ease, color .16s ease;
-        }
-        .explore-filter-chip.active { border-color: #fde68a; background: #fffbeb; color: #92400e; }
-        .explore-filter-chip:hover { border-color: #fde68a; background: #fffbeb; color: #92400e; }
-
-        .explore-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-        .explore-section-title { margin: 0; color: #0f172a; font-size: 16px; font-weight: 700; }
-        .explore-section-link { color: #92400e; font-size: 12px; font-weight: 700; text-decoration: none; }
-
-        .explore-grid { display: grid; gap: 12px; }
-        .explore-grid.domino-float .explore-item {
-            animation: none;
-        }
-        .explore-grid.domino-float:hover .explore-item {
-            animation-play-state: paused;
-        }
-        @keyframes exploreDominoFloat {
-            0%, 8% {
-                transform: translateY(0);
-                box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
-            }
-            12% {
-                transform: translateY(-5px);
-                box-shadow: 0 14px 24px rgba(15, 23, 42, 0.12);
-            }
-            18%, 100% {
-                transform: translateY(0);
-                box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
-            }
-        }
-        .explore-item {
-            border: 1px solid #dbe2ea;
-            border-radius: 14px;
-            background: #fff;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 14px rgba(15, 23, 42, 0.04);
-            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-        }
-        .open-explore-card { cursor: pointer; }
-        .explore-item:hover {
-            transform: translateY(-2px);
-            border-color: #cbd5e1;
-            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
-        }
-        .explore-item.is-focus {
-            border-color: #facc15;
-            box-shadow: 0 0 0 3px rgba(250, 204, 21, .22), 0 12px 24px rgba(15, 23, 42, .1);
-            animation: exploreFocusPulse 1.2s ease;
-        }
-        @keyframes exploreFocusPulse {
-            0% { transform: scale(1); }
-            35% { transform: scale(1.01); }
-            100% { transform: scale(1); }
-        }
-        .explore-item-head {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
             align-items: flex-start;
-            gap: 10px;
-            min-width: 0;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
         }
-        .explore-item-head > div { min-width: 0; width: 100%; flex: 1 1 auto; }
-        .explore-route {
-            margin: 0;
-            font-size: 16px;
-            line-height: 1.25;
-            color: #0f172a;
-            font-weight: 700;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .explore-price-stack {
-            display: grid;
-            gap: 2px;
-            justify-items: end;
-            white-space: nowrap;
-        }
-        .explore-price-label {
-            color: #64748b;
-            font-size: 10px;
+        .xp-header-copy { min-width: 0; }
+        .xp-eyebrow {
+            font-size: 11px;
             font-weight: 800;
-            letter-spacing: .04em;
             text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            margin: 0 0 4px;
         }
-        .explore-price {
-            color: #0f172a;
-            font-size: 18px;
+        .xp-title {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 28px;
             font-weight: 800;
+            color: var(--ink);
             line-height: 1.1;
         }
-        .explore-quick-row {
+        .xp-subtitle {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .xp-header-actions {
             display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px 10px;
-            color: #475569;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .explore-quick-row span {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            min-width: 0;
-        }
-        .explore-quick-row i {
-            color: #64748b;
-            font-size: 11px;
-        }
-        .explore-meta {
-            margin: 3px 0 0;
-            color: #64748b;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            width: 100%;
-            max-width: 100%;
-        }
-        .explore-meta i {
-            color: #92400e;
-            font-size: 11px;
-            flex: 0 0 auto;
-        }
-        .explore-meta span {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: block;
-        }
-        .explore-meta-inline {
-            margin: 0;
-            color: #64748b;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            min-width: 0;
-        }
-        .explore-meta-inline-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            min-width: 0;
-            white-space: nowrap;
-            border: 0;
-            background: transparent;
-            border-radius: 0;
-            padding: 0;
-        }
-        .explore-meta-inline-item i {
-            color: #92400e;
-            font-size: 11px;
-            flex: 0 0 auto;
-        }
-        .explore-meta-inline-item span {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .explore-meta-line {
-            margin: 2px 0 0;
-            color: #64748b;
-            font-size: 12px;
-            display: grid;
-            grid-template-columns: 12px auto minmax(0, 1fr);
-            align-items: center;
-            column-gap: 6px;
-            width: 100%;
-            max-width: 100%;
-            overflow: hidden;
-            min-width: 0;
-        }
-        .explore-meta-line i {
-            color: #92400e;
-            font-size: 11px;
-            width: 12px;
-            text-align: center;
-        }
-        .explore-meta-line .meta-label {
-            font-weight: 700;
-            white-space: nowrap;
-        }
-        .explore-meta-line .meta-value {
-            flex: 1 1 auto;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: block;
-        }
-        .explore-route-path {
-            display: grid;
-            gap: 6px;
-            padding: 8px 10px;
-            border: 1px solid #edf2f7;
-            border-radius: 10px;
-            background: #fbfdff;
-        }
-        .explore-route-point {
-            display: grid;
-            grid-template-columns: 22px minmax(0, 1fr);
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        /* ── Search bar ────────────────────────────────────────────── */
+        .xp-search-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: 10px;
+            padding: 9px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-1);
+        }
+        .xp-search-field {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline-strong);
+            border-radius: 8px;
+            padding: 8px 11px;
+        }
+        .xp-search-field input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            color: var(--ink);
+            font-size: 13px;
+            outline: none;
+        }
+        .xp-search-field input::placeholder { color: var(--muted); }
+        .xp-search-field i { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+        .xp-search-field i.pickup-pin { color: #16a34a; }
+        .xp-search-separator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .xp-search-date {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline-strong);
+            border-radius: 8px;
+            padding: 8px 11px;
+        }
+        .xp-search-date input {
+            border: none;
+            background: transparent;
+            color: var(--ink);
+            font-size: 13px;
+            outline: none;
+        }
+        .xp-search-date i { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+        .xp-advanced-mobile {
+            display: none;
+        }
+
+        /* ── Filter chips row ──────────────────────────────────────── */
+        .xp-chips-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 11px 0 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .xp-chips-row::-webkit-scrollbar { display: none; }
+        .xp-chips-spacer { flex: 1; }
+        .xp-mobile-chip { display: none; }
+        .xp-desktop-chip {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 7px 13px;
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--ink-2);
+        }
+        .xp-desktop-chip.active {
+            background: var(--ch-yellow);
+            border-color: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+        }
+        .xp-sort-label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* ── Main body grid ────────────────────────────────────────── */
+        .xp-body {
+            padding-top: 14px;
+            display: grid;
+            gap: 18px;
+        }
+        @media (min-width: 1024px) {
+            .xp-body { grid-template-columns: minmax(0, 700px) minmax(300px, 1fr); }
+        }
+
+        /* ── Left: trip list ───────────────────────────────────────── */
+        .xp-list { display: grid; gap: 12px; align-content: start; }
+
+        /* ── Empty state ───────────────────────────────────────────── */
+        .xp-empty {
+            border: 1.5px dashed var(--hairline-strong);
+            border-radius: var(--r-md);
+            background: var(--surface-2);
+            padding: 48px 24px;
+            text-align: center;
+        }
+        .xp-empty-icon {
+            font-size: 34px;
+            color: var(--muted-2);
+            display: block;
+            margin-bottom: 12px;
+        }
+        .xp-empty-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink-3);
+            margin: 0 0 4px;
+        }
+        .xp-empty-copy {
+            font-size: 13px;
+            color: var(--muted-2);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* ── Trip card ─────────────────────────────────────────────── */
+        .xp-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-1);
+            cursor: pointer;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        .xp-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--hairline-strong);
+            box-shadow: var(--shadow-2);
+        }
+        .xp-card.is-focus {
+            border-color: var(--ch-yellow);
+            box-shadow: 0 0 0 3px rgba(250,204,21,.22), var(--shadow-3);
+        }
+        .xp-card-body {
+            padding: 13px 14px;
+            display: grid;
+            gap: 10px;
+        }
+        .xp-card-main {
+            display: grid;
+            gap: 10px;
             min-width: 0;
         }
-        .explore-route-point + .explore-route-point {
-            padding-top: 6px;
-            border-top: 1px solid #eef2f7;
+
+        /* Driver row */
+        .xp-driver-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .explore-route-point-icon {
-            width: 22px;
-            height: 22px;
-            border-radius: 999px;
+        .xp-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--r-pill);
+            background: var(--ch-yellow);
+            border: 1px solid var(--ch-yellow-line);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 11px;
+            color: var(--ch-yellow-ink);
+            flex-shrink: 0;
             font-weight: 800;
-            flex: 0 0 auto;
+            text-transform: uppercase;
         }
-        .explore-route-point.pickup .explore-route-point-icon {
-            color: #15803d;
-            background: #dcfce7;
-            border: 1px solid #86efac;
-        }
-        .explore-route-point.destination .explore-route-point-icon {
-            color: #b45309;
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-        }
-        .explore-route-point-text {
-            display: grid;
+        .xp-driver-info {
+            display: flex;
+            flex-direction: column;
             gap: 2px;
             min-width: 0;
         }
-        .explore-route-point-label {
-            color: #64748b;
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: .04em;
-            text-transform: uppercase;
-        }
-        .explore-route-point-value {
-            color: #0f172a;
-            font-size: 12px;
+        .xp-driver-name {
+            font-size: 13px;
             font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+        }
+        .xp-driver-rating {
+            font-size: 11px;
+            color: var(--warning-ink);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .xp-driver-badge {
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
-        .explore-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            max-width: 100%;
-            border-radius: 999px;
-            border: 1px solid #dbe2ea;
-            padding: 4px 9px;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-            flex: 0 0 auto;
-            align-self: flex-start;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
-        }
-        .chip-available { color: #166534; border-color: #86efac; background: #f0fdf4; }
-        .chip-full { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
-        .chip-request { color: #854d0e; border-color: #fde68a; background: #fefce8; }
-        .chip-joined { color: #92400e; border-color: #fde68a; background: #fffbeb; }
-        .chip-ai { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
-        .chip-custom-ok { color: #166534; border-color: #86efac; background: #f0fdf4; }
-        .chip-custom-review { color: #854d0e; border-color: #fde68a; background: #fffbeb; }
-        .chip-custom-blocked { color: #991b1b; border-color: #fecaca; background: #fff1f2; }
-        .explore-ai-reasons { display: flex; gap: 6px; flex-wrap: wrap; }
-        .explore-ai-reason {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 999px;
-            border: 1px solid #dbe2ea;
-            background: #f8fafc;
-            color: #475569;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .explore-route-insights {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            padding: 0;
-        }
-        .explore-route-insights-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .explore-route-insights-title {
-            color: #0f172a;
-            font-size: 12px;
-            font-weight: 800;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .explore-route-insights-title i { color: #92400e; font-size: 11px; }
-        .explore-route-insights-meta {
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .explore-route-insight-list { display: flex; flex-wrap: wrap; gap: 6px; }
-        .explore-route-note {
-            display: none;
-            margin: 0;
-            color: #64748b;
-            font-size: 11px;
-            line-height: 1.35;
-        }
-
-        .explore-detail-grid {
+        /* Route timeline */
+        .xp-route-timeline {
             display: grid;
-            gap: 8px;
+            gap: 1px;
         }
-
-        .explore-status-stack {
-            width: 100%;
+        .xp-timeline-row {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: flex-start;
-            min-width: 0;
+            align-items: flex-start;
+            gap: 10px;
         }
-
-        .explore-detail {
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            background: #fff;
-            padding: 10px 11px;
+        .xp-timeline-track {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+            width: 14px;
+            padding-top: 3px;
+        }
+        .xp-timeline-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .xp-timeline-dot.pickup {
+            background: #16a34a;
+            border: 2px solid #86efac;
+        }
+        .xp-timeline-dot.dest {
+            background: #1e293b;
+            border: 2px solid #94a3b8;
+        }
+        .xp-timeline-dot.custom {
+            background: var(--ch-yellow-deep);
+            border: 2px solid var(--ch-yellow-line);
+        }
+        .xp-timeline-line {
+            width: 2px;
+            height: 18px;
+            background: var(--hairline-strong);
+            margin: 2px 0;
+            flex-shrink: 0;
+        }
+        .xp-timeline-text {
             font-size: 13px;
-            color: #334155;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            color: var(--ink);
             min-width: 0;
-        }
-        .explore-detail span {
-            min-width: 0;
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: .04em;
-            text-transform: uppercase;
-        }
-        .explore-detail strong {
-            color: #0f172a;
-            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            text-align: left;
-            font-size: 16px;
+            line-height: 1.4;
+            padding-top: 1px;
         }
-        .explore-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            padding-top: 0;
+        .xp-timeline-note {
+            font-size: 11.5px;
+            color: var(--muted);
+            font-weight: 500;
+            padding-top: 1px;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .explore-actions form { margin: 0; }
 
-        .explore-btn {
-            border: 1px solid #dbe2ea;
-            border-radius: 9px;
-            background: #fff;
-            color: #0f172a;
-            padding: 9px 11px;
-            font-size: 12px;
+        /* Card footer */
+        .xp-card-footer {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding-top: 9px;
+            border-top: 1px solid var(--hairline);
+        }
+        .xp-footer-time {
+            font-family: var(--font-mono);
+            font-size: 13px;
             font-weight: 700;
-            text-decoration: none;
+            color: var(--ink-3);
+        }
+        .xp-footer-dot {
+            color: var(--muted-2);
+            font-size: 12px;
+        }
+        .xp-footer-seats {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-3);
+        }
+        .xp-footer-fare {
+            margin-left: auto;
+            font-family: var(--font-display);
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+        .xp-footer-fare.free { color: var(--success-ink); }
+        .xp-footer-vehicle {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .xp-desktop-fare-panel {
+            display: none;
+            min-width: 0;
+        }
+        .xp-fare-label {
+            margin: 0 0 3px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .xp-fare-price {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 29px;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--ink);
+        }
+        .xp-fare-price.free { color: var(--success-ink); }
+        .xp-fare-note {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .xp-fare-actions {
+            display: grid;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        /* ── Right: sticky map panel ───────────────────────────────── */
+        .xp-map-panel {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-1);
+            position: sticky;
+            top: 82px;
+            height: fit-content;
+        }
+        .xp-map-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--hairline);
+            gap: 8px;
+        }
+        .xp-map-panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0;
+        }
+        #explore-map {
+            width: 100%;
+            height: 350px;
+            background:
+                radial-gradient(ellipse at 58% 28%, rgba(34,197,94,.22) 0 13%, transparent 14%),
+                linear-gradient(90deg, transparent 0 28%, rgba(255,255,255,.9) 28% 31%, transparent 31% 100%),
+                linear-gradient(0deg, transparent 0 47%, rgba(255,255,255,.95) 47% 51%, transparent 51% 100%),
+                #ede6d2;
+        }
+        .xp-map-legend {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 10px 16px;
+            border-top: 1px solid var(--hairline);
+            background: var(--surface-2);
+        }
+        .xp-map-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+        .xp-legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: var(--r-pill);
+            flex-shrink: 0;
+        }
+        .xp-legend-dot.pickup      { background: #16a34a; }
+        .xp-legend-dot.destination { background: #1e293b; }
+        .xp-legend-dot.custom      { background: var(--ch-yellow-deep); }
+
+        /* ── Pagination ────────────────────────────────────────────── */
+        .xp-pagination { display: flex; justify-content: center; padding-top: 4px; }
+
+        .xp-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, .48);
+            backdrop-filter: blur(4px);
+        }
+        .xp-modal.is-open { display: flex; }
+        .xp-modal-card {
+            width: min(100%, 620px);
+            max-height: min(86vh, 720px);
+            border-radius: 20px;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+        .xp-modal-head {
+            padding: 14px 18px 12px;
+            border-bottom: 1px solid var(--hairline);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+        }
+        .xp-modal-title {
+            margin: 0;
+            color: var(--ink);
+            font: 900 18px/1.15 var(--font-display), sans-serif;
+        }
+        .xp-modal-sub {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+        .xp-modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            font-size: 18px;
+            flex: 0 0 auto;
+        }
+        .xp-modal-body {
+            overflow: auto;
+            padding: 16px 18px;
+            display: grid;
+            gap: 12px;
+        }
+        .xp-modal-driver {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .xp-modal-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 1px solid var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+            flex: 0 0 auto;
+        }
+        .xp-modal-kv {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .xp-modal-kv-item {
+            border: 1px solid var(--hairline);
+            border-radius: 13px;
+            background: var(--surface-2);
+            padding: 11px 12px;
+            display: grid;
+            gap: 2px;
+        }
+        .xp-modal-kv-item span {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .xp-modal-kv-item strong {
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+        .xp-modal-route {
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            padding: 14px;
+            display: grid;
+            gap: 13px;
+        }
+        .xp-modal-point {
+            display: grid;
+            grid-template-columns: 18px minmax(0, 1fr);
+            gap: 9px;
+            align-items: start;
+        }
+        .xp-modal-point-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            margin-top: 4px;
+            background: #16a34a;
+            box-shadow: 0 0 0 4px #dcfce7;
+        }
+        .xp-modal-point-dot.dest {
+            background: #1e293b;
+            box-shadow: 0 0 0 4px #e2e8f0;
+        }
+        .xp-modal-point span {
+            display: block;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .xp-modal-point strong {
+            display: block;
+            margin-top: 2px;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+        .xp-modal-join-fields {
+            display: grid;
+            gap: 8px;
+        }
+        .xp-modal-pref {
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            background: var(--surface);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .xp-modal-pref-title {
+            margin: 0;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
             gap: 6px;
-            transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+        }
+        .xp-modal-pref-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .xp-modal-pref-group {
+            display: grid;
+            gap: 7px;
             min-width: 0;
         }
-        .explore-btn:hover {
-            transform: translateY(-1px);
-            border-color: #cbd5e1;
-            box-shadow: 0 8px 14px rgba(15, 23, 42, 0.08);
+        .xp-modal-pref-label {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
         }
-        .explore-btn.primary { background: #0f172a; border-color: #0f172a; color: #fff; }
-        .explore-btn.success { background: #f0fdf4; border-color: #86efac; color: #166534; }
-        .explore-btn.warning { background: #fefce8; border-color: #fde68a; color: #854d0e; }
-        .explore-btn.disabled { background: #f1f5f9; border-color: #e2e8f0; color: #94a3b8; pointer-events: none; }
-
-        .explore-suggested-list { display: grid; gap: 8px; margin: 0; }
-        .explore-suggested-item {
-            border: 1px solid #dbe2ea;
-            border-radius: 12px;
-            background: #fff;
-            color: #334155;
+        .xp-modal-radio-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+        }
+        .xp-modal-radio {
+            border: 1px solid var(--hairline-strong);
+            border-radius: 10px;
+            background: var(--surface-2);
+            color: var(--ink-2);
+            padding: 8px;
             font-size: 12px;
+            font-weight: 850;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .xp-modal-radio:has(input:checked) {
+            border-color: var(--ch-yellow-deep);
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
+        }
+        .xp-modal-radio input {
+            accent-color: var(--ch-yellow-deep);
+            margin: 0;
+        }
+        .xp-modal-input {
+            width: 100%;
+            min-height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 0 11px;
+            font: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+        .xp-modal-input[hidden] {
+            display: none;
+        }
+        .xp-modal-help {
+            margin: 0;
+            color: var(--muted);
+            font-size: 11px;
             font-weight: 700;
             line-height: 1.35;
+        }
+        .xp-modal-fare-preview {
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: 12px;
+            background: var(--ch-yellow-tint);
             padding: 10px 12px;
-            text-decoration: none;
-            transition: border-color .16s ease, background-color .16s ease, color .16s ease;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .xp-modal-fare-preview span {
+            color: var(--warning-ink);
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .xp-modal-fare-preview strong {
+            color: var(--ch-yellow-ink);
+            font-size: 15px;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+        .request-map-card {
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            background: var(--surface-2);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .request-map-card[hidden] {
+            display: none;
+        }
+        .request-map-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .request-map-title {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .request-map-targets {
+            display: inline-flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .request-map-target {
+            border: 1px solid var(--hairline-strong);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--ink-2);
+            height: 30px;
+            padding: 0 12px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .request-map-target.active {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: #fff;
+        }
+        .request-route-map {
+            width: 100%;
+            height: 260px;
+            border: 1px solid var(--hairline);
+            border-radius: 10px;
             overflow: hidden;
-            text-overflow: ellipsis;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            background: #eef2f7;
         }
-        .explore-suggested-item:hover {
-            border-color: #fde68a;
-            background: #fffbeb;
-            color: #92400e;
+        .request-route-map .leaflet-control-attribution {
+            display: none;
+        }
+        .request-map-legend {
+            display: flex;
+            align-items: center;
+            gap: 7px 10px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .request-map-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .request-map-legend i {
+            width: 18px;
+            height: 5px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+        .legend-route { background: #94a3b8; }
+        .legend-preview { background: #1d4ed8; }
+        .legend-zone { background: rgba(15, 23, 42, .18); }
+        .legend-pin {
+            width: 8px !important;
+            height: 8px !important;
+            background: var(--ink);
+        }
+        .request-map-status {
+            border: 1px solid var(--hairline);
+            background: var(--surface);
+            border-radius: 10px;
+            color: var(--ink-3);
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.4;
+        }
+        .request-map-status.blocked {
+            border-color: #fecaca;
+            background: var(--danger-soft);
+            color: var(--danger-ink);
+        }
+        .request-map-status.ok {
+            border-color: #86efac;
+            background: var(--success-soft);
+            color: var(--success-ink);
+        }
+        .request-fare-preview {
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: 10px;
+            background: var(--ch-yellow-tint);
+            padding: 10px;
+            display: grid;
+            gap: 8px;
+        }
+        .request-fare-preview-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .request-fare-preview-title {
+            color: var(--warning-ink);
+            font-size: 12px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .request-fare-preview-badge {
+            border: 1px solid #fcd34d;
+            border-radius: 999px;
+            background: rgba(255,255,255,.75);
+            color: var(--warning-ink);
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 900;
+        }
+        .request-fare-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
+        }
+        .request-fare-item {
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: 10px;
+            background: rgba(255,255,255,.72);
+            padding: 8px;
+            display: grid;
+            gap: 2px;
+        }
+        .request-fare-label {
+            color: var(--warning);
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .request-fare-value {
+            color: var(--ch-yellow-ink);
+            font-size: 15px;
+            font-weight: 900;
+        }
+        .request-fare-note {
+            margin: 0;
+            color: var(--warning-ink);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .passenger-pin-icon {
+            position: relative;
+            width: 25px;
+            height: 25px;
+            border-radius: 999px 999px 999px 4px;
+            transform: rotate(-45deg);
+            border: 2px solid #fff;
+            box-shadow: 0 6px 12px rgba(15, 23, 42, .28), 0 0 0 1px rgba(15, 23, 42, .14);
+            display: block;
+        }
+        .passenger-pin-icon.pickup { background: #7c3aed; }
+        .passenger-pin-icon.dropoff { background: #ea580c; }
+        .passenger-pin-icon::after {
+            content: "";
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #fff;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .xp-modal-note {
+            width: 100%;
+            min-height: 76px;
+            border-radius: 12px;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 10px 12px;
+            resize: vertical;
+            font: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+        .xp-modal-foot {
+            border-top: 1px solid var(--hairline);
+            background: rgba(255,255,255,.96);
+            padding: 12px 18px;
+            display: grid;
+            gap: 8px;
+        }
+        .xp-modal-join-btn {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid var(--ch-yellow-deep);
+            border-radius: 13px;
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .xp-modal-join-btn:disabled {
+            border-color: var(--hairline-strong);
+            background: var(--surface-2);
+            color: var(--muted);
+            cursor: default;
+        }
+        .xp-modal-feedback {
+            color: var(--success-ink);
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
         }
 
-        .empty-state { border: 1px dashed #dbe2ea; border-radius: 12px; background: #f8fafc; padding: 48px 24px; color: #64748b; font-size: 14px; text-align: center; }
-        .empty-state-icon { font-size: 32px; color: #cbd5e1; margin-bottom: 12px; display: block; }
-        .empty-state-title { font-size: 15px; font-weight: 700; color: #475569; margin: 0 0 4px; }
-        .empty-state-copy { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
-
-        @media (min-width: 768px) {
-            .explore-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+        @media (max-width: 639px) {
+            .xp-modal {
+                align-items: center;
+                padding: 92px 8px calc(96px + env(safe-area-inset-bottom, 0px));
             }
-            .explore-detail-grid {
+            .xp-modal-card {
+                width: 100%;
+                max-height: min(74dvh, 680px);
+                border-radius: 18px;
+            }
+            .xp-modal-head {
+                padding: 13px 16px 10px;
+            }
+            .xp-modal-title {
+                font-size: 17px;
+            }
+            .xp-modal-sub {
+                font-size: 11px;
+            }
+            .xp-modal-close {
+                width: 36px;
+                height: 36px;
+                border-radius: 11px;
+            }
+            .xp-modal-body {
+                padding: 14px 16px 12px;
+                gap: 10px;
+            }
+            .xp-modal-driver {
+                gap: 9px;
+            }
+            .xp-modal-avatar {
+                width: 38px;
+                height: 38px;
+            }
+            .xp-modal-kv {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px;
             }
-            .explore-suggested-list {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+            .xp-modal-kv-item {
+                padding: 10px;
+                min-width: 0;
+            }
+            .xp-modal-kv-item strong {
+                font-size: 12px;
+            }
+            .xp-modal-route {
+                padding: 12px;
+                gap: 12px;
+            }
+            .xp-modal-point {
+                gap: 8px;
+            }
+            .xp-modal-point strong {
+                font-size: 12.5px;
+                line-height: 1.28;
+            }
+            .xp-modal-note {
+                min-height: 64px;
+                max-height: 96px;
+            }
+            .xp-modal-pref-grid {
+                grid-template-columns: 1fr;
+            }
+            .xp-modal-foot {
+                padding: 10px 16px 14px;
+            }
+            .xp-modal-join-btn {
+                min-height: 44px;
             }
         }
-        @media (min-width: 640px) {
-            .explore-item-head {
-                gap: 16px;
-            }
-            .explore-item-head > div { width: auto; }
-            .explore-status-stack {
-                width: auto;
-                flex: 0 0 auto;
-                justify-content: flex-end;
-            }
-            .explore-chip {
-                align-self: auto;
-                justify-content: center;
-                min-width: 73px;
-            }
-            .explore-status-stack .chip-ai {
-                min-width: 112px;
-            }
-        }
-        @media (min-width: 768px) and (max-width: 1120px) {
-            .explore-grid {
+
+        @media (max-width: 390px) {
+            .xp-modal-kv {
                 grid-template-columns: 1fr;
             }
         }
-        @media (max-width: 767px) {
-            .explore-page,
-            .explore-card,
-            .explore-grid,
-            .explore-item {
+
+        /* ── Mobile overrides ──────────────────────────────────────── */
+        @media (max-width: 1023px) {
+            .xp-wrap {
+                padding: 12px 10px 104px;
+                max-width: 430px;
+                background: var(--canvas);
+            }
+            .xp-page-header { display: none; }
+            .xp-search-card {
+                border: 0;
+                border-radius: 12px 12px 0 0;
+                padding: 12px 12px 0;
+                background: #fff;
+                box-shadow: none;
+                gap: 8px;
+                position: relative;
+            }
+            .xp-search-field {
+                min-width: 100%;
+                height: 40px;
+                background: #fff;
+                border-color: var(--hairline-strong);
+                border-radius: 7px;
+                padding: 0 11px;
+                box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
+            }
+            .xp-search-card .xp-search-field:first-child {
+                padding-right: 50px;
+            }
+            .xp-search-separator {
+                width: 32px;
+                height: 32px;
+                margin: 0;
+                border: 1px solid var(--hairline-strong);
+                border-radius: 8px;
+                background: #fff;
+                position: absolute;
+                top: 16px;
+                right: 20px;
+                z-index: 2;
+                box-shadow: 0 2px 6px rgba(15, 23, 42, .05);
+            }
+            .xp-search-date {
+                flex: 1 1 100%;
+                min-width: 100%;
+                height: 40px;
+                background: #fff;
+                border-radius: 7px;
+                padding: 0 11px;
+                box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
+            }
+            .xp-search-card .btn {
+                height: 38px;
+                padding: 0 15px;
+                border-radius: 9px;
+                gap: 7px;
+            }
+            .xp-search-card button.btn {
+                flex: 1 1 0;
+                order: 5;
+                background: var(--ch-yellow);
+                color: var(--ch-yellow-ink);
+                border-color: var(--ch-yellow);
+                font-weight: 900;
+            }
+            .xp-search-card button.btn:hover {
+                background: var(--ch-yellow-deep);
+            }
+            .xp-advanced-mobile {
+                display: inline-flex;
+                flex: 1 1 0;
+                order: 4;
+                background: #fff;
+                color: var(--ink);
+                border-color: var(--hairline-strong);
+                font-weight: 800;
+            }
+            .xp-desktop-label { display: none; }
+            .xp-mobile-label { display: inline; }
+            .xp-mobile-chip { display: inline-flex; }
+            .xp-desktop-chip,
+            .xp-sort-label,
+            .xp-chips-spacer {
+                display: none !important;
+            }
+            .xp-chips-row {
+                padding-top: 11px;
+                gap: 6px;
+                margin-left: 0;
+                margin-right: 0;
+                padding-left: 12px;
+                padding-right: 12px;
+                padding-bottom: 12px;
+                background: #fff;
+                border-radius: 0 0 12px 12px;
+            }
+            .xp-chips-row .chip {
+                min-height: 31px;
+                padding: 0 12px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
+                line-height: 1;
+                flex: 0 0 auto;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 800;
+            }
+            .xp-chips-row .chip.active {
+                background: var(--ch-yellow);
+                border-color: var(--ch-yellow);
+                color: var(--ch-yellow-ink);
+            }
+            .xp-sort-label {
+                display: none !important;
+            }
+            .xp-chips-row .xp-desktop-chip[href*="sort"] {
+                display: inline-flex !important;
+            }
+            .xp-body { padding-top: 12px; gap: 12px; }
+            .xp-list { gap: 10px; }
+            .xp-card {
+                border-radius: 13px;
+                border-color: var(--hairline);
+                box-shadow: 0 5px 12px rgba(15,23,42,.06);
+            }
+            .xp-card:hover { transform: none; }
+            .xp-card-body { padding: 12px 13px 11px; gap: 0; }
+            .xp-card-main { display: grid; gap: 9px; }
+            .xp-avatar {
+                width: 26px;
+                height: 26px;
+                font-size: 10px;
+                background: #fff7d6;
+            }
+            .xp-driver-row {
+                display: grid;
+                grid-template-columns: 26px minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 8px;
+            }
+            .xp-driver-info { min-width: 0; }
+            .xp-driver-name {
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 12.5px;
+                font-weight: 800;
+                line-height: 1.1;
+            }
+            .xp-driver-rating {
+                font-size: 10px;
+                line-height: 1.1;
+            }
+            .xp-driver-row .badge:not(.xp-driver-badge) {
+                display: none;
+            }
+            .xp-driver-badge {
+                grid-column: 3;
+                grid-row: 1;
+                max-width: 72px;
+                justify-self: end;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                padding: 4px 10px;
+                font-size: 10px;
+                border-radius: 999px;
+            }
+            .xp-route-timeline {
                 min-width: 0;
+                gap: 0;
+                padding-left: 1px;
+                position: relative;
             }
-            .explore-card {
-                padding: 12px;
-                border-radius: 16px;
+            .xp-route-timeline::before {
+                content: "";
+                position: absolute;
+                left: 5px;
+                top: 12px;
+                bottom: 12px;
+                width: 0;
+                border-left: 2px dotted #b8c6d8;
             }
-            .explore-custom-notice {
-                top: 76px;
-                align-items: flex-start;
+            .xp-timeline-row {
+                min-width: 0;
+                display: grid;
+                grid-template-columns: 12px minmax(0, 1fr);
+                align-items: center;
+                gap: 7px;
+                min-height: 34px;
             }
-            .explore-section-head {
-                align-items: flex-start;
+            .xp-timeline-track {
+                width: 12px;
+                padding-top: 0;
+                align-items: center;
+                justify-content: center;
             }
-            .explore-section-title {
-                line-height: 1.2;
+            .xp-timeline-dot {
+                width: 12px;
+                height: 12px;
+                border: 2px solid #dbeafe;
+                position: relative;
+                z-index: 1;
             }
-            .explore-subtitle {
-                line-height: 1.45;
-                overflow-wrap: anywhere;
+            .xp-timeline-text,
+            .xp-timeline-note {
+                display: grid;
+                gap: 1px;
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 12px;
+                font-weight: 800;
+                line-height: 1.15;
+                padding-top: 0;
             }
-            .explore-meta-inline {
-                gap: 6px 9px;
+            .xp-mobile-route-label {
+                display: block;
+                color: #64748b;
+                font-size: 9px;
+                font-weight: 900;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+                line-height: 1;
             }
-            .explore-actions {
-                justify-content: stretch;
-                align-items: stretch;
+            .xp-timeline-value {
+                display: block;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
-            .explore-actions .explore-btn,
-            .explore-actions form {
-                flex: 1 1 132px;
+            .xp-timeline-line {
+                display: none;
             }
-            .explore-actions form .explore-btn {
+            .xp-card-footer {
+                display: grid;
+                grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+                gap: 5px;
+                align-items: center;
+                border-top-style: dashed;
+                padding-top: 11px;
+            }
+            .xp-footer-time,
+            .xp-footer-seats {
+                font-size: 11px;
+                color: var(--muted);
+                font-weight: 700;
+            }
+            .xp-footer-fare {
+                margin-left: 0;
+                justify-self: end;
+                font-size: 14.5px;
+                font-weight: 900;
+            }
+            .xp-card-footer .btn {
+                min-width: 68px;
+                height: 31px;
+                padding-left: 10px;
+                padding-right: 10px;
+                border-radius: 9px;
+                font-size: 11px;
+                font-weight: 900;
+            }
+            .xp-map-panel { display: none; }
+        }
+
+        @media (min-width: 1024px) {
+            .xp-mobile-label { display: none; }
+            .xp-mobile-route-label { display: none; }
+            .xp-mobile-chip { display: none !important; }
+            .xp-desktop-label { display: inline; }
+            .xp-list {
+                max-width: 700px;
                 width: 100%;
             }
-        }
-        @media (max-width: 430px) {
-            .explore-item-head {
-                grid-template-columns: minmax(0, 1fr);
+            .xp-card {
+                border-color: var(--ch-yellow-line);
+                max-width: 700px;
             }
-            .explore-price-stack {
-                justify-items: start;
-                grid-template-columns: auto auto;
-                align-items: baseline;
-                gap: 6px;
+            .xp-card-body {
+                grid-template-columns: minmax(0, 1fr) 200px;
+                gap: 0;
+                padding: 0;
             }
-            .explore-section-head,
-            .explore-search-cta {
+            .xp-card-main {
+                padding: 14px 22px 12px;
+                overflow: hidden;
+            }
+            .xp-driver-row {
+                display: grid;
+                grid-template-columns: 38px minmax(0, 1fr);
+                align-items: center;
+                gap: 12px;
+            }
+            .xp-driver-info { min-width: 0; }
+            .xp-avatar {
+                width: 38px;
+                height: 38px;
+                font-size: 12px;
+                background: var(--surface);
+            }
+            .xp-driver-name {
+                font-size: 15px;
+                line-height: 1.15;
+            }
+            .xp-driver-rating {
+                font-size: 11px;
+            }
+            .xp-driver-badge {
+                margin-left: 0;
+                max-width: 82px;
+                justify-self: end;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .xp-driver-row .xp-driver-badge {
+                display: none;
+            }
+            .xp-route-timeline {
+                gap: 2px;
+                padding-left: 3px;
+            }
+            .xp-timeline-row {
+                display: grid;
+                grid-template-columns: 16px minmax(0, 1fr);
+                gap: 10px;
+                min-width: 0;
+            }
+            .xp-timeline-track {
+                width: 16px;
+            }
+            .xp-timeline-dot {
+                width: 13px;
+                height: 13px;
+            }
+            .xp-timeline-line {
+                height: 16px;
+                border-left: 2px dotted #cbd5e1;
+                background: transparent;
+                width: 0;
+            }
+            .xp-timeline-text {
+                display: grid;
+                gap: 3px;
+                min-width: 0;
+                font-size: 13.5px;
+                font-weight: 800;
+                line-height: 1.35;
+                white-space: normal;
+            }
+            .xp-timeline-value {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .xp-timeline-text .xp-desktop-label,
+            .xp-timeline-note .xp-desktop-label {
+                display: block;
+                margin: 0;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: .08em;
+                color: var(--muted);
+            }
+            .xp-timeline-note {
+                display: grid;
+                gap: 3px;
+                min-width: 0;
+                font-size: 13px;
+                color: var(--ink);
+                font-weight: 800;
+                white-space: normal;
+            }
+            .xp-card-footer {
+                border-top: 0;
+                padding-top: 2px;
+                display: grid;
+                grid-template-columns: 95px 105px minmax(130px, 1fr);
+                gap: 12px;
+                color: var(--muted);
+                min-width: 0;
+                align-items: start;
+            }
+            .xp-card-footer .xp-footer-dot,
+            .xp-card-footer .xp-footer-fare,
+            .xp-card-footer .btn {
+                display: none;
+            }
+            .xp-footer-time,
+            .xp-footer-seats,
+            .xp-footer-vehicle {
+                display: block;
+                min-width: 0;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: normal;
+                font-family: var(--font-sans);
+                font-size: 11.5px;
+                font-weight: 700;
+                line-height: 1.25;
+                color: #64748b;
+            }
+            .xp-footer-time i,
+            .xp-footer-seats i,
+            .xp-footer-vehicle i {
+                margin-right: 5px;
+                color: #94a3b8;
+                font-size: 10px;
+            }
+            .xp-footer-vehicle {
+                font-weight: 600;
+                letter-spacing: .02em;
+            }
+            .xp-vehicle-model,
+            .xp-vehicle-plate {
+                display: block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .xp-desktop-fare-panel {
+                display: flex;
                 flex-direction: column;
-                align-items: stretch;
+                padding: 22px 18px 18px;
+                border-left: 1px solid var(--hairline);
+                background: var(--surface-2);
             }
-            .explore-section-link,
-            .explore-search-right {
-                align-self: flex-start;
+            .xp-fare-price {
+                font-size: 26px;
             }
-            .explore-detail {
-                padding: 9px 10px;
+            .xp-fare-note {
+                margin-top: 6px;
             }
-            .explore-detail strong {
-                max-width: 48%;
+            .xp-fare-actions {
+                gap: 7px;
+            }
+            .xp-desktop-fare-panel .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
+
+        @media (min-width: 1024px) and (max-width: 1180px) {
+            .xp-body { grid-template-columns: 1fr; }
+            .xp-list {
+                max-width: 780px;
+                width: 100%;
+            }
+            .xp-map-panel { display: none; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-            .explore-grid.domino-float .explore-item {
-                animation: none !important;
-            }
-        }
-        html, body {
-            overflow-x: clip;
+            .xp-card { transition: none !important; }
         }
     </style>
 
     @php
         $aiRecommendationMap = $aiRecommendationMap ?? [];
-        $recommendedTripIds = $recommendedTripIds ?? [];
-        $activeTimeframe = $filters['timeframe'] ?? request('timeframe', '');
-        $activeSeats = $filters['seats'] ?? request('seats', '');
-        $focusTripId = (int) request('focus_trip', 0);
-        $searchEditQuery = request()->except(['page', 'focus_trip']);
-        $searchDestination = trim((string) request('destination', ''));
-        $searchPickup = trim((string) request('pickup', ''));
-        $searchDate = trim((string) request('date', ''));
-        $searchSeats = trim((string) request('seats', ''));
-        $searchSort = trim((string) request('sort', 'nearest'));
-        $searchRadiusRaw = request('radius_km');
-        $searchRadius = is_numeric($searchRadiusRaw) ? (float) $searchRadiusRaw : null;
-        $searchPickupLat = is_numeric(request('pickup_lat')) ? (float) request('pickup_lat') : null;
-        $searchPickupLng = is_numeric(request('pickup_lng')) ? (float) request('pickup_lng') : null;
+        $recommendedTripIds  = $recommendedTripIds ?? [];
+        $activeTimeframe     = $filters['timeframe'] ?? request('timeframe', '');
+        $activeSeats         = $filters['seats']     ?? request('seats', '');
+        $activeFareMax       = $filters['fare_max']  ?? request('fare_max', '');
+        $activeConnections   = $filters['connections'] ?? request('connections', '');
+        $focusTripId         = (int) request('focus_trip', 0);
+        $searchEditQuery     = request()->except(['page', 'focus_trip']);
+        $searchDestination   = trim((string) request('destination', ''));
+        $searchPickup        = trim((string) request('pickup', ''));
+        $searchDate          = trim((string) request('date', ''));
+        $searchSeats         = trim((string) request('seats', ''));
+        $searchSort          = trim((string) request('sort', 'nearest'));
+        $searchRadiusRaw     = request('radius_km');
+        $searchRadius        = is_numeric($searchRadiusRaw) ? (float) $searchRadiusRaw : null;
+        $searchPickupLat     = is_numeric(request('pickup_lat'))      ? (float) request('pickup_lat')      : null;
+        $searchPickupLng     = is_numeric(request('pickup_lng'))      ? (float) request('pickup_lng')      : null;
         $searchDestinationLat = is_numeric(request('destination_lat')) ? (float) request('destination_lat') : null;
         $searchDestinationLng = is_numeric(request('destination_lng')) ? (float) request('destination_lng') : null;
-        $hasPickupPin = $searchPickupLat !== null && $searchPickupLng !== null;
-        $hasDestinationPin = $searchDestinationLat !== null && $searchDestinationLng !== null;
-        $hasSearchSummary = $searchDestination !== '' || $searchPickup !== '' || $searchDate !== '' || $searchSeats !== '' || (request()->filled('center_lat') && request()->filled('center_lng')) || $hasPickupPin || $hasDestinationPin;
+        $hasPickupPin        = $searchPickupLat !== null && $searchPickupLng !== null;
+        $hasDestinationPin   = $searchDestinationLat !== null && $searchDestinationLng !== null;
+        $hasSearchSummary    = $searchDestination !== '' || $searchPickup !== '' || $searchDate !== '' || $searchSeats !== '' || (request()->filled('center_lat') && request()->filled('center_lng')) || $hasPickupPin || $hasDestinationPin;
 
         $distanceKm = static function (float $lat1, float $lng1, float $lat2, float $lng2): float {
             $earthKm = 6371;
@@ -691,7 +1548,6 @@
             $dLng = deg2rad($lng2 - $lng1);
             $a = sin($dLat / 2) ** 2
                 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * (sin($dLng / 2) ** 2);
-
             return $earthKm * 2 * atan2(sqrt($a), sqrt(max(0, 1 - $a)));
         };
         $pointToLocalKm = static function (float $lat, float $lng, float $originLat, float $originLng): array {
@@ -704,59 +1560,43 @@
             $p = $pointToLocalKm($pointLat, $pointLng, $startLat, $startLng);
             $b = $pointToLocalKm($endLat, $endLng, $startLat, $startLng);
             $lengthSquared = ($b['x'] ** 2) + ($b['y'] ** 2);
-
             if ($lengthSquared <= 0) {
                 return sqrt(($p['x'] ** 2) + ($p['y'] ** 2));
             }
-
             $t = max(0, min(1, (($p['x'] * $b['x']) + ($p['y'] * $b['y'])) / $lengthSquared));
             $projection = ['x' => $t * $b['x'], 'y' => $t * $b['y']];
-
             return sqrt((($p['x'] - $projection['x']) ** 2) + (($p['y'] - $projection['y']) ** 2));
         };
         $allowedRadiiForKm = static function (float $routeKm): array {
-            if ($routeKm <= 3) {
-                return ['route' => 0.40, 'endpoint' => 0.50];
-            }
-            if ($routeKm <= 10) {
-                return ['route' => 0.70, 'endpoint' => 0.80];
-            }
-            if ($routeKm <= 25) {
-                return ['route' => 1.00, 'endpoint' => 1.20];
-            }
-
+            if ($routeKm <= 3)  return ['route' => 0.40, 'endpoint' => 0.50];
+            if ($routeKm <= 10) return ['route' => 0.70, 'endpoint' => 0.80];
+            if ($routeKm <= 25) return ['route' => 1.00, 'endpoint' => 1.20];
             return ['route' => 1.30, 'endpoint' => 1.50];
         };
         $searchPointFit = static function ($trip, ?float $pointLat, ?float $pointLng) use ($distanceKm, $distanceToSegmentKm, $allowedRadiiForKm): ?array {
-            if ($pointLat === null || $pointLng === null) {
-                return null;
-            }
-
-            $pickupLat = is_numeric($trip->pickup_latitude) ? (float) $trip->pickup_latitude : null;
-            $pickupLng = is_numeric($trip->pickup_longitude) ? (float) $trip->pickup_longitude : null;
-            $dropoffLat = is_numeric($trip->destination_latitude) ? (float) $trip->destination_latitude : null;
+            if ($pointLat === null || $pointLng === null) return null;
+            $pickupLat  = is_numeric($trip->pickup_latitude)       ? (float) $trip->pickup_latitude       : null;
+            $pickupLng  = is_numeric($trip->pickup_longitude)      ? (float) $trip->pickup_longitude      : null;
+            $dropoffLat = is_numeric($trip->destination_latitude)  ? (float) $trip->destination_latitude  : null;
             $dropoffLng = is_numeric($trip->destination_longitude) ? (float) $trip->destination_longitude : null;
-
             if ($pickupLat === null || $pickupLng === null || $dropoffLat === null || $dropoffLng === null) {
                 return ['state' => 'review', 'distance' => null, 'label' => 'Route map unavailable'];
             }
-
-            $routeKm = max(0.01, $distanceKm($pickupLat, $pickupLng, $dropoffLat, $dropoffLng));
-            $radii = $allowedRadiiForKm($routeKm);
-            $routeDistance = $distanceToSegmentKm($pointLat, $pointLng, $pickupLat, $pickupLng, $dropoffLat, $dropoffLng);
+            $routeKm        = max(0.01, $distanceKm($pickupLat, $pickupLng, $dropoffLat, $dropoffLng));
+            $radii          = $allowedRadiiForKm($routeKm);
+            $routeDistance  = $distanceToSegmentKm($pointLat, $pointLng, $pickupLat, $pickupLng, $dropoffLat, $dropoffLng);
             $endpointDistance = min(
                 $distanceKm($pointLat, $pointLng, $pickupLat, $pickupLng),
                 $distanceKm($pointLat, $pointLng, $dropoffLat, $dropoffLng)
             );
             $nearestDistance = min($routeDistance, $endpointDistance);
             $isAllowed = $routeDistance <= $radii['route'] || $endpointDistance <= $radii['endpoint'];
-
             return [
-                'state' => $isAllowed ? 'ok' : 'blocked',
-                'distance' => $nearestDistance,
-                'route_radius' => $radii['route'],
+                'state'           => $isAllowed ? 'ok' : 'blocked',
+                'distance'        => $nearestDistance,
+                'route_radius'    => $radii['route'],
                 'endpoint_radius' => $radii['endpoint'],
-                'label' => $isAllowed
+                'label'           => $isAllowed
                     ? (number_format($nearestDistance, 2) . ' km from driver route')
                     : (number_format($nearestDistance, 2) . ' km away, needs manual check'),
             ];
@@ -776,253 +1616,531 @@
                 $summaryParts[] = 'on ' . $searchDate;
             }
         }
-        if ($searchSeats === '1') {
-            $summaryParts[] = 'with 1 seat';
-        } elseif ($searchSeats === '2plus') {
-            $summaryParts[] = 'with 2+ seats';
+        if ($searchSeats === '1')      { $summaryParts[] = 'with 1 seat'; }
+        elseif ($searchSeats === '2plus') { $summaryParts[] = 'with 2+ seats'; }
+        if ($activeFareMax !== '' && is_numeric($activeFareMax)) {
+            $summaryParts[] = 'under RM ' . number_format((float) $activeFareMax, 0);
+        }
+        if ($activeConnections === '1') {
+            $summaryParts[] = 'from connections';
         }
         if (request()->filled('center_lat') && request()->filled('center_lng') && $searchRadius !== null && $searchRadius > 0) {
             $summaryParts[] = 'within ' . rtrim(rtrim(number_format($searchRadius, 1, '.', ''), '0'), '.') . ' km pin radius';
         }
-        if ($hasPickupPin) {
-            $summaryParts[] = 'pickup pin set';
-        }
-        if ($hasDestinationPin) {
-            $summaryParts[] = 'destination pin set';
-        }
+        if ($hasPickupPin)      { $summaryParts[] = 'pickup pin set'; }
+        if ($hasDestinationPin) { $summaryParts[] = 'destination pin set'; }
         if ($searchSort === 'latest') {
             $summaryParts[] = 'sorted by latest date';
         } else {
             $summaryParts[] = 'sorted by nearest date';
         }
 
-        $searchSummaryText = $summaryParts
+        $searchSummaryText  = $summaryParts
             ? ('Showing trips ' . implode(', ', $summaryParts) . '.')
-            : 'Tap to search destination, date, and seats';
-        $searchSummaryTitle = $hasSearchSummary
-            ? 'Search Summary'
-            : 'Where do you want to go?';
+            : 'Tap to search by destination, date, and seats.';
+        $searchSummaryTitle = $hasSearchSummary ? 'Search Summary' : 'Where do you want to go?';
+        $acceptedConnectionIdsForChips = auth()->user()?->acceptedConnections()->pluck('users.id')->all() ?? [];
+        $visibleTripsForChips = $trips->getCollection();
+        $publicTripsCount = $visibleTripsForChips->where('visibility', 'public')->count();
+        $connectionTripsCount = $visibleTripsForChips->filter(fn ($trip) => in_array((int) $trip->driver_id, $acceptedConnectionIdsForChips, true))->count();
     @endphp
 
-    <div class="explore-page">
-        <section class="explore-card">
-            <h1 class="explore-title">Explore Public Trips</h1>
-            <p class="explore-subtitle">Browse upcoming trips or search destination to find your ride.</p>
+    <div class="xp-wrap">
 
-            <a href="{{ route('explore.search', $searchEditQuery) }}" class="explore-search-cta" style="margin-top:10px;">
-                <span class="explore-search-left">
-                    <span class="explore-search-icon"><i class="fa-solid fa-location-dot"></i></span>
-                    <span class="explore-search-text">
-                        <span class="explore-search-title">{{ $searchSummaryTitle }}</span>
-                        <span class="explore-search-hint">{{ $searchSummaryText }}</span>
-                    </span>
-                </span>
-                <span class="explore-search-right">Search <i class="fa-solid fa-arrow-right"></i></span>
-            </a>
-
-            <div class="explore-chip-row">
-                <a href="{{ route('explore.index', array_merge(request()->except(['page', 'timeframe']), ['timeframe' => 'today'])) }}" class="explore-filter-chip {{ $activeTimeframe === 'today' ? 'active' : '' }}">Today</a>
-                <a href="{{ route('explore.index', array_merge(request()->except(['page', 'timeframe']), ['timeframe' => 'tomorrow'])) }}" class="explore-filter-chip {{ $activeTimeframe === 'tomorrow' ? 'active' : '' }}">Tomorrow</a>
-                <a href="{{ route('explore.index', array_merge(request()->except(['page', 'timeframe']), ['timeframe' => 'weekend'])) }}" class="explore-filter-chip {{ $activeTimeframe === 'weekend' ? 'active' : '' }}">Weekend</a>
-                <a href="{{ route('explore.index', array_merge(request()->except(['page', 'seats']), ['seats' => '1'])) }}" class="explore-filter-chip {{ $activeSeats === '1' ? 'active' : '' }}">1 seat</a>
-                <a href="{{ route('explore.index', array_merge(request()->except(['page', 'seats']), ['seats' => '2plus'])) }}" class="explore-filter-chip {{ $activeSeats === '2plus' ? 'active' : '' }}">2+ seats</a>
-                <a href="{{ route('explore.index') }}" class="explore-filter-chip">Clear</a>
+        {{-- ── Page Header ─────────────────────────────────────────── --}}
+        <div class="xp-page-header">
+            <div class="xp-header-copy">
+                <p class="xp-eyebrow">Discover</p>
+                <h1 class="xp-title">Explore public trips</h1>
+                <p class="xp-subtitle">Find rides along your usual routes, or request a custom pickup point.</p>
             </div>
-        </section>
-
-        <div class="explore-custom-notice">
-            <span class="explore-custom-notice-icon">
-                <i class="fa-solid fa-map-pin"></i>
-            </span>
-            <span class="explore-custom-notice-text">
-                <span class="explore-custom-notice-title">Need a nearby pickup or drop-off?</span>
-                <span class="explore-custom-notice-copy">Open a trip and request a custom pickup or destination before sending your join request.</span>
-            </span>
+            <div class="xp-header-actions">
+                <a href="{{ route('explore.search', $searchEditQuery) }}" class="btn btn-ghost btn-sm">
+                    <i class="fa-solid fa-sliders"></i> Advanced filters
+                </a>
+                <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-plus"></i> Offer a trip
+                </a>
+            </div>
         </div>
 
-        <section class="explore-card">
-            <div class="explore-section-head">
-                <h2 class="explore-section-title">Upcoming Public Trips</h2>
-                <a href="{{ route('explore.search', $searchEditQuery) }}" class="explore-section-link">Advanced Search</a>
+        {{-- ── Search bar ───────────────────────────────────────────── --}}
+        <form method="GET" action="{{ route('explore.index') }}" class="xp-search-card">
+            <div class="xp-search-field">
+                <i class="fa-solid fa-location-dot pickup-pin"></i>
+                <input type="text" name="pickup" value="{{ $searchPickup }}" placeholder="From" autocomplete="off">
             </div>
-            <p class="explore-subtitle" style="margin:0 0 10px;">AI matching ranks route fit, usual timing, seat availability, fare, and connection trust.</p>
+            <div class="xp-search-separator">
+                <i class="fa-solid fa-arrow-right-arrow-left" style="font-size:13px;"></i>
+            </div>
+            <div class="xp-search-field">
+                <i class="fa-solid fa-location-dot" style="color:var(--ink-3);"></i>
+                <input type="text" name="destination" value="{{ $searchDestination }}" placeholder="To" autocomplete="off">
+            </div>
+            <div class="xp-search-date">
+                <i class="fa-regular fa-calendar"></i>
+                <input type="date" name="date" value="{{ $searchDate }}">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;flex-shrink:0;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Search</span>
+            </button>
+            <a href="{{ route('explore.search', $searchEditQuery) }}" class="btn btn-ghost btn-sm xp-advanced-mobile">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Advanced</span>
+            </a>
+        </form>
 
-            @if($trips->isEmpty())
-                <div class="empty-state">
-                    <i class="fa-solid fa-compass empty-state-icon"></i>
-                    <p class="empty-state-title">No trips available</p>
-                    <p class="empty-state-copy">No public trips are available right now. Check again later or use advanced search.</p>
-                </div>
-            @else
-                <div class="explore-grid domino-float" style="--domino-count: {{ max($trips->count(), 1) }};">
+        {{-- ── Filter chips + sort ─────────────────────────────────── --}}
+        <div class="xp-chips-row">
+            <a href="{{ route('explore.index') }}"
+               class="chip xp-mobile-chip {{ ($activeTimeframe === '' && $activeSeats === '' && $activeFareMax === '' && $activeConnections === '') ? 'active' : '' }}">
+                All @if(!$trips->isEmpty()) &middot; {{ $trips->total() }} @endif
+            </a>
+            <a href="{{ route('explore.index', array_merge(request()->except(['page', 'fare_max']), ['fare_max' => 10])) }}"
+               class="chip xp-mobile-chip {{ (string) $activeFareMax === '10' ? 'active' : '' }}">&le; RM 10</a>
+            <a href="{{ route('explore.index', array_merge(request()->except(['page', 'seats']), ['seats' => '2plus'])) }}"
+               class="chip xp-mobile-chip {{ $activeSeats === '2plus' ? 'active' : '' }}">2+ seats</a>
+            <a href="{{ route('explore.index', array_merge(request()->except(['page', 'connections']), ['connections' => 1])) }}"
+               class="chip xp-mobile-chip {{ (string) $activeConnections === '1' ? 'active' : '' }}">Connections</a>
+
+            <a href="{{ route('explore.index') }}"
+               class="chip xp-desktop-chip {{ ($activeTimeframe === '' && $activeSeats === '' && $activeFareMax === '' && $activeConnections === '') ? 'active' : '' }}">
+                All trips @if(!$trips->isEmpty()) &middot; {{ $trips->total() }} @endif
+            </a>
+            <a href="{{ route('explore.index', request()->except(['page', 'connections', 'fare_max', 'seats'])) }}"
+               class="chip xp-desktop-chip">
+                Public Trips &middot; {{ $publicTripsCount }}
+            </a>
+            <a href="{{ route('explore.index', array_merge(request()->except(['page', 'connections']), ['connections' => 1])) }}"
+               class="chip xp-desktop-chip {{ (string) $activeConnections === '1' ? 'active' : '' }}">
+                Within Connections &middot; {{ $connectionTripsCount }}
+            </a>
+            <a href="{{ route('explore.index', array_merge(request()->except(['page', 'fare_max']), ['fare_max' => 10])) }}"
+               class="chip xp-desktop-chip {{ (string) $activeFareMax === '10' ? 'active' : '' }}">&le; RM 10</a>
+            <a href="{{ route('explore.index', array_merge(request()->except(['page', 'seats']), ['seats' => '2plus'])) }}"
+               class="chip xp-desktop-chip {{ $activeSeats === '2plus' ? 'active' : '' }}">2+ seats</a>
+            <a href="{{ route('explore.index', request()->except(['page'])) }}"
+               class="chip xp-desktop-chip">Auto-approve</a>
+            @if($hasSearchSummary || $activeTimeframe !== '' || $activeSeats !== '' || $activeFareMax !== '' || $activeConnections !== '')
+                <a href="{{ route('explore.index') }}" class="chip xp-desktop-chip" style="color:var(--danger);border-color:var(--danger-soft);">
+                    <i class="fa-solid fa-xmark"></i> Clear
+                </a>
+            @endif
+
+            @if(!$trips->isEmpty())
+                <div class="xp-chips-spacer"></div>
+                <span class="xp-sort-label">Sort:</span>
+                <a href="{{ route('explore.index', array_merge(request()->except(['page', 'sort']), ['sort' => 'nearest'])) }}"
+                   class="chip {{ ($searchSort === 'nearest' || $searchSort === '') ? 'active' : '' }}">Nearest Date</a>
+                <a href="{{ route('explore.index', array_merge(request()->except(['page', 'sort']), ['sort' => 'latest'])) }}"
+                   class="chip {{ $searchSort === 'latest' ? 'active' : '' }}">Latest Date</a>
+            @endif
+        </div>
+
+        {{-- ── Main body: list + map ───────────────────────────────── --}}
+        <div class="xp-body">
+
+            {{-- Left: trip list --}}
+            <div class="xp-list">
+                @if($trips->isEmpty())
+                    <div class="xp-empty">
+                        <i class="fa-solid fa-compass xp-empty-icon"></i>
+                        <p class="xp-empty-title">No trips found</p>
+                        <p class="xp-empty-copy">No public trips match your filters right now. Try changing your search or check back later.</p>
+                        <a href="{{ route('explore.index') }}" class="btn btn-soft" style="margin-top:14px;">Clear Filters</a>
+                    </div>
+                @else
                     @foreach($trips as $trip)
                         @php
-                            $routeName = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' -> ' . ($trip->destination_name ?? 'Destination'));
-                            $pickupText = $trip->pickup_name ?? 'Pickup';
-                            $destinationText = $trip->destination_name ?? 'Destination';
-                            $pickupShortText = \Illuminate\Support\Str::limit($pickupText, 52, '...');
-                            $destinationShortText = \Illuminate\Support\Str::limit($destinationText, 52, '...');
-                            $tripTypeText = ((string) ($trip->trip_mode ?? 'one_way')) === 'two_way' ? 'Two Way' : 'One Way';
-                            $visibilityText = ucfirst((string) ($trip->visibility ?? 'public')) . ' Trip';
-                            $visibilityIcon = ($trip->visibility ?? 'public') === 'public' ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
-                            $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
-                            $availableSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;
-                            $myRequest = $trip->joinRequests->first();
-                            $isJoined = $trip->participants->contains(fn ($participant) => (int) $participant->user_id === (int) auth()->id());
-                            $aiRecommendation = $aiRecommendationMap[$trip->id] ?? null;
-                            $isRecommended = in_array((int) $trip->id, $recommendedTripIds, true);
-                            $stateText = $isJoined
-                                ? 'Joined'
-                                : (($myRequest && $myRequest->status === 'pending')
-                                    ? 'Request Sent'
-                                    : (($availableSeats !== null && $availableSeats <= 0) ? 'Full' : 'Available'));
-                            $chipClass = $isJoined
-                                ? 'chip-joined'
-                                : (($myRequest && $myRequest->status === 'pending')
-                                    ? 'chip-request'
-                                    : (($availableSeats !== null && $availableSeats <= 0) ? 'chip-full' : 'chip-available'));
-                            $pickupFit = $searchPointFit($trip, $searchPickupLat, $searchPickupLng);
-                            $destinationFit = $searchPointFit($trip, $searchDestinationLat, $searchDestinationLng);
-                            $hasAnySearchPin = $pickupFit !== null || $destinationFit !== null;
-                            $customFitRows = [];
-                            if ($pickupFit !== null) {
-                                $customFitRows[] = [
-                                    'text' => ($pickupFit['state'] === 'ok' ? 'Pickup can be custom' : 'Pickup needs review'),
-                                    'class' => $pickupFit['state'] === 'ok' ? 'chip-custom-ok' : 'chip-custom-blocked',
-                                    'note' => $pickupFit['label'],
-                                ];
-                            }
-                            if ($destinationFit !== null) {
-                                $customFitRows[] = [
-                                    'text' => ($destinationFit['state'] === 'ok' ? 'Drop-off can be custom' : 'Drop-off needs review'),
-                                    'class' => $destinationFit['state'] === 'ok' ? 'chip-custom-ok' : 'chip-custom-blocked',
-                                    'note' => $destinationFit['label'],
-                                ];
-                            }
-                            if (! $hasAnySearchPin) {
-                                $routeHasCoordinates = is_numeric($trip->pickup_latitude)
-                                    && is_numeric($trip->pickup_longitude)
-                                    && is_numeric($trip->destination_latitude)
-                                    && is_numeric($trip->destination_longitude);
-                                $customFitRows[] = [
-                                    'text' => $routeHasCoordinates ? 'Driver review required' : 'Custom route needs review',
-                                    'class' => $routeHasCoordinates ? 'chip-custom-review' : 'chip-custom-blocked',
-                                    'note' => $routeHasCoordinates
-                                        ? 'You can request a nearby pickup or drop-off. The driver will approve or reject it after reviewing the route.'
-                                        : 'Driver route has no complete map coordinates.',
-                                ];
-                            }
-                            $customRadiusLabel = null;
-                            if (is_numeric($trip->pickup_latitude) && is_numeric($trip->pickup_longitude) && is_numeric($trip->destination_latitude) && is_numeric($trip->destination_longitude)) {
-                                $routeKmForRadius = max(0.01, $distanceKm((float) $trip->pickup_latitude, (float) $trip->pickup_longitude, (float) $trip->destination_latitude, (float) $trip->destination_longitude));
-                                $radiusInfo = $allowedRadiiForKm($routeKmForRadius);
-                                $customRadiusLabel = 'route ' . number_format($radiusInfo['route'] * 1000, 0) . 'm / endpoints ' . number_format($radiusInfo['endpoint'] * 1000, 0) . 'm';
-                            }
+                            $routeName         = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' → ' . ($trip->destination_name ?? 'Destination'));
+                            $pickupText        = $trip->pickup_name ?? 'Pickup';
+                            $destinationText   = $trip->destination_name ?? 'Destination';
+                            $pickupShortText   = \Illuminate\Support\Str::limit($pickupText, 52, '...');
+                            $destShortText     = \Illuminate\Support\Str::limit($destinationText, 52, '...');
+                            $tripTypeText      = ((string) ($trip->trip_mode ?? 'one_way')) === 'two_way' ? 'Two Way' : 'One Way';
+                            $visibilityText    = ucfirst((string) ($trip->visibility ?? 'public')) . ' Trip';
+                            $visibilityShortText = ucfirst((string) ($trip->visibility ?? 'public'));
+                            $visibilityBadge   = ($trip->visibility ?? 'public') === 'public' ? 'badge-info' : 'badge-dark';
+                            $takenSeats        = (int) $trip->participants->where('is_driver', false)->count();
+                            $availableSeats    = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;
+                            $isFull            = $availableSeats !== null && $availableSeats <= 0;
+                            $isFree            = (float) $trip->fare_per_person <= 0;
+                            $myRequest         = $trip->joinRequests->first();
+                            $isJoined          = $trip->participants->contains(fn ($p) => (int) $p->user_id === (int) auth()->id());
+                            $aiRecommendation  = $aiRecommendationMap[$trip->id] ?? null;
+                            $isRecommended     = in_array((int) $trip->id, $recommendedTripIds, true);
+                            $driverInitial     = strtoupper(substr($trip->driver?->name ?? '?', 0, 2));
+                            $vehicleModel      = trim((string) ($trip->driver?->vehicle_model ?? ''));
+                            $vehiclePlate      = trim((string) ($trip->driver?->vehicle_plate ?? ''));
+                            $joinState         = $isJoined ? 'joined' : (($myRequest && $myRequest->status === 'pending') ? 'pending' : ($isFull ? 'full' : (! $trip->is_open_for_request ? 'closed' : 'open')));
+                            $vehicleText       = trim($vehicleModel . ($vehicleModel && $vehiclePlate ? ' · ' : '') . $vehiclePlate);
                         @endphp
+
                         <article
                             id="exploreTripCard{{ $trip->id }}"
-                            class="explore-item open-explore-card {{ $focusTripId === (int) $trip->id ? 'is-focus' : '' }}"
+                            class="xp-card {{ $focusTripId === (int) $trip->id ? 'is-focus' : '' }} open-explore-card"
                             data-trip-url="{{ route('explore.show', $trip) }}"
-                            style="--domino-index: {{ $loop->index }};"
+                            data-join-url="{{ route('explore.request-join', $trip) }}"
+                            data-join-state="{{ $joinState }}"
+                            data-driver="{{ $trip->driver?->name ?: 'Driver' }}"
+                            data-driver-initial="{{ $driverInitial }}"
+                            data-rating="{{ number_format($trip->driver?->rating ?? 5.0, 2) }}"
+                            data-route-name="{{ $routeName }}"
+                            data-pickup="{{ $pickupText }}"
+                            data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
+                            data-pickup-lng="{{ $trip->pickup_longitude ?? '' }}"
+                            data-destination="{{ $destinationText }}"
+                            data-destination-lat="{{ $trip->destination_latitude ?? '' }}"
+                            data-destination-lng="{{ $trip->destination_longitude ?? '' }}"
+                            data-time="{{ $trip->trip_datetime?->format('d M Y, H:i') ?: '-' }}"
+                            data-seats="{{ $availableSeats !== null ? $availableSeats : '?' }} / {{ (int) $trip->seat_limit }} seats"
+                            data-fare="{{ $isFree ? 'Free' : ('RM ' . number_format((float) $trip->fare_per_person, 2)) }}"
+                            data-fare-raw="{{ number_format((float) $trip->fare_per_person, 2, '.', '') }}"
+                            data-fare-total="{{ number_format((float) ($trip->fare_total ?? $trip->savedRoute?->default_fare ?? $trip->fare_per_person), 2, '.', '') }}"
+                            data-vehicle="{{ $vehicleText !== '' ? $vehicleText : 'Vehicle not set' }}"
+                            data-visibility="{{ $visibilityText }}"
                             tabindex="0"
-                            role="link"
+                            role="button"
                             @if($focusTripId === (int) $trip->id) data-explore-focus-card="1" @endif
                         >
-                            <div class="explore-item-head">
-                                <div>
-                                    <h2 class="explore-route">{{ $routeName }}</h2>
-                                    <div class="explore-quick-row" style="margin-top:7px;">
-                                        <span>
-                                            <i class="fa-regular fa-calendar"></i>
-                                            {{ $trip->trip_datetime?->format('D, d M Y') ?: '-' }}
-                                        </span>
-                                        <span>
-                                            <i class="fa-regular fa-clock"></i>
-                                            {{ $trip->trip_datetime?->format('H:i') ?: '-' }}
-                                        </span>
-                                        <span>
-                                            <i class="fa-solid fa-chair"></i>
-                                            {{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit . ' seats') : 'Open seats' }}
+                            <div class="xp-card-body">
+                                <div class="xp-card-main">
+
+                                {{-- Driver row --}}
+                                    <div class="xp-driver-row">
+                                    <span class="xp-avatar">{{ $driverInitial }}</span>
+                                    <div class="xp-driver-info">
+                                        <span class="xp-driver-name">{{ $trip->driver?->name ?: '—' }}</span>
+                                        <span class="xp-driver-rating">
+                                            <i class="fa-solid fa-star"></i>
+                                            {{ number_format($trip->driver?->rating ?? 5.0, 2) }}
+                                            <span class="xp-desktop-label">&middot; {{ $trip->driver?->trips_count ?? 0 }} trips</span>
                                         </span>
                                     </div>
-                                    <div class="explore-meta-inline" style="margin-top:7px;">
-                                        <span class="explore-meta-inline-item">
-                                            <i class="fa-solid fa-user"></i>
-                                            <span>{{ $trip->driver?->name ?: '-' }}</span>
+                                    <span class="badge {{ $visibilityBadge }} xp-driver-badge">
+                                        <span class="xp-desktop-label">{{ $visibilityText }}</span>
+                                        <span class="xp-mobile-label">{{ $visibilityShortText }}</span>
+                                    </span>
+                                    </div>
+
+                                {{-- Route timeline --}}
+                                    <div class="xp-route-timeline">
+                                    {{-- Pickup --}}
+                                    <div class="xp-timeline-row">
+                                        <div class="xp-timeline-track">
+                                            <span class="xp-timeline-dot pickup"></span>
+                                            <span class="xp-timeline-line"></span>
+                                        </div>
+                                        <span class="xp-timeline-text">
+                                            <span class="xp-desktop-label">PICKUP</span>
+                                            <span class="xp-mobile-route-label">Pickup</span>
+                                            <span class="xp-timeline-value">{{ $pickupShortText }}</span>
                                         </span>
-                                        @if($aiRecommendation)
-                                            <span class="explore-meta-inline-item">
-                                                <i class="fa-solid fa-sparkles"></i>
-                                                <span>{{ number_format((float) ($aiRecommendation['match_score'] ?? 0), 0) }}% match</span>
+                                    </div>
+
+                                    {{-- Optional note stop --}}
+                                    @if($trip->public_note)
+                                        <div class="xp-timeline-row">
+                                            <div class="xp-timeline-track">
+                                                <span class="xp-timeline-dot custom"></span>
+                                                <span class="xp-timeline-line"></span>
+                                            </div>
+                                            <span class="xp-timeline-note">
+                                                <span class="xp-desktop-label">CUSTOM STOP</span>
+                                                <span class="xp-mobile-route-label">Custom stop</span>
+                                                <span class="xp-timeline-value">{{ \Illuminate\Support\Str::limit($trip->public_note, 70, '...') }}</span>
+                                            </span>
+                                        </div>
+                                    @endif
+
+                                    {{-- Destination --}}
+                                    <div class="xp-timeline-row">
+                                        <div class="xp-timeline-track">
+                                            <span class="xp-timeline-dot dest"></span>
+                                        </div>
+                                        <span class="xp-timeline-text">
+                                            <span class="xp-desktop-label">DESTINATION</span>
+                                            <span class="xp-mobile-route-label">Destination</span>
+                                            <span class="xp-timeline-value">{{ $destShortText }}</span>
+                                        </span>
+                                    </div>
+                                    </div>
+
+                                {{-- Footer: time · seats | fare + button --}}
+                                    <div class="xp-card-footer">
+                                    <span class="xp-footer-time">
+                                        <span class="xp-desktop-label">
+                                            <i class="fa-regular fa-clock"></i>{{ $trip->trip_datetime?->isTomorrow() ? 'Tomorrow' : ($trip->trip_datetime?->format('D') ?: '—') }}<br>
+                                            <span style="padding-left:15px;">{{ $trip->trip_datetime?->format('H:i') ?: '—' }}</span>
+                                        </span>
+                                        <span class="xp-mobile-label">{{ $trip->trip_datetime?->format('H:i') ?: '—' }}</span>
+                                    </span>
+                                    <span class="xp-footer-dot">&middot;</span>
+                                    @if($isFull)
+                                        <span class="badge badge-danger" style="font-size:11px;">Full</span>
+                                    @else
+                                        <span class="xp-footer-seats">
+                                            <span class="xp-desktop-label"><i class="fa-regular fa-user"></i>{{ $availableSeats !== null ? $availableSeats : '?' }} / {{ (int) $trip->seat_limit }} seats</span>
+                                            <span class="xp-mobile-label">{{ $availableSeats !== null ? $availableSeats : '?' }} seat{{ ($availableSeats !== 1) ? 's' : '' }}</span>
+                                        </span>
+                                        @endif
+
+                                        @if($vehicleText !== '')
+                                            <span class="xp-footer-vehicle xp-desktop-label">
+                                                <span class="xp-vehicle-model">{{ $vehicleModel }} @if($vehiclePlate !== '') &middot; @endif</span>
+                                                @if($vehiclePlate !== '')
+                                                    <span class="xp-vehicle-plate">{{ $vehiclePlate }}</span>
+                                                @endif
+                                            </span>
+                                        @else
+                                            <span class="xp-footer-vehicle xp-desktop-label">
+                                                <span class="xp-vehicle-model">Vehicle</span>
+                                                <span class="xp-vehicle-plate">Not set</span>
                                             </span>
                                         @endif
-                                        <span class="explore-meta-inline-item">
-                                            <i class="fa-solid fa-route"></i>
-                                            <span>{{ $tripTypeText }}</span>
+
+                                        @if($isFree)
+                                        <span class="xp-footer-fare free">Free</span>
+                                    @else
+                                        <span class="xp-footer-fare">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
+                                    @endif
+
+                                    @if($isJoined)
+                                        <span class="btn btn-soft btn-sm" style="color:var(--success-ink);border-color:var(--success-soft);">
+                                            <i class="fa-solid fa-check"></i> Joined
                                         </span>
-                                        <span class="explore-meta-inline-item">
-                                            <i class="{{ $visibilityIcon }}"></i>
-                                            <span>{{ $visibilityText }}</span>
+                                    @elseif($myRequest && $myRequest->status === 'pending')
+                                        <span class="btn btn-soft btn-sm" style="color:var(--warning-ink);border-color:var(--warning-soft);">
+                                            <i class="fa-regular fa-clock"></i> Pending
                                         </span>
+                                    @elseif($isFull)
+                                        <span class="btn btn-soft btn-sm" style="color:var(--muted);cursor:default;">
+                                            Full
+                                        </span>
+                                    @else
+                                        <a href="{{ route('explore.show', $trip) }}#join-request" class="btn btn-primary btn-sm open-explore-modal">
+                                            Request
+                                        </a>
+                                    @endif
                                     </div>
                                 </div>
-                                <div class="explore-price-stack">
-                                    <span class="explore-price-label">Fare</span>
-                                    <span class="explore-price">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
-                                </div>
-                            </div>
-                            <div class="explore-route-path">
-                                <div class="explore-route-point pickup" title="{{ $pickupText }}">
-                                    <span class="explore-route-point-icon">A</span>
-                                    <span class="explore-route-point-text">
-                                        <span class="explore-route-point-label">Pickup</span>
-                                        <span class="explore-route-point-value">{{ $pickupShortText }}</span>
-                                    </span>
-                                </div>
-                                <div class="explore-route-point destination" title="{{ $destinationText }}">
-                                    <span class="explore-route-point-icon">B</span>
-                                    <span class="explore-route-point-text">
-                                        <span class="explore-route-point-label">Destination</span>
-                                        <span class="explore-route-point-value">{{ $destinationShortText }}</span>
-                                    </span>
-                                </div>
-                            </div>
-                            @if($trip->public_note)
-                                <div class="explore-ai-reasons">
-                                    <span class="explore-ai-reason">Note: {{ \Illuminate\Support\Str::limit($trip->public_note, 56, '...') }}</span>
-                                </div>
-                            @endif
-                            <div class="explore-actions">
-                                <a href="{{ route('explore.show', $trip) }}" class="explore-btn">
-                                    <i class="fa-regular fa-eye"></i>
-                                    View Details
-                                </a>
-                                @if($isJoined)
-                                    <span class="explore-btn success disabled"><i class="fa-solid fa-check"></i> Already Joined</span>
-                                @elseif($myRequest && $myRequest->status === 'pending')
-                                    <span class="explore-btn warning disabled"><i class="fa-regular fa-clock"></i> Request Sent</span>
-                                @elseif($availableSeats !== null && $availableSeats <= 0)
-                                    <span class="explore-btn disabled"><i class="fa-solid fa-ban"></i> Penuh</span>
-                                @else
-                                    <a href="{{ route('explore.show', $trip) }}#join-request" class="explore-btn primary">
-                                        <i class="fa-solid fa-user-plus"></i>
-                                        Request to Join
-                                    </a>
-                                @endif
+
+                                <aside class="xp-desktop-fare-panel">
+                                    <p class="xp-fare-label">Per seat</p>
+                                    @if($isFree)
+                                        <p class="xp-fare-price free">Free</p>
+                                    @else
+                                        <p class="xp-fare-price">RM {{ number_format((float) $trip->fare_per_person, 2) }}</p>
+                                    @endif
+                                    <p class="xp-fare-note">Splits fuel + tolls equally</p>
+                                    <div class="xp-fare-actions">
+                                        @if($isJoined)
+                                            <span class="btn btn-soft btn-sm" style="color:var(--success-ink);border-color:var(--success-soft);">
+                                                <i class="fa-solid fa-check"></i> Joined
+                                            </span>
+                                        @elseif($myRequest && $myRequest->status === 'pending')
+                                            <span class="btn btn-soft btn-sm" style="color:var(--warning-ink);border-color:var(--warning-soft);">
+                                                <i class="fa-regular fa-clock"></i> Pending
+                                            </span>
+                                        @elseif($isFull)
+                                            <span class="btn btn-soft btn-sm" style="color:var(--muted);cursor:default;">
+                                                Full
+                                            </span>
+                                        @else
+                                            <a href="{{ route('explore.show', $trip) }}#join-request" class="btn btn-primary btn-sm open-explore-modal">
+                                                Request seat
+                                            </a>
+                                        @endif
+                                        <a href="{{ route('explore.show', $trip) }}" class="btn btn-ghost btn-sm open-explore-modal">
+                                            View details
+                                        </a>
+                                    </div>
+                                </aside>
                             </div>
                         </article>
                     @endforeach
-                </div>
-            @endif
-        </section>
 
-        <div>
-            {{ $trips->appends(request()->query())->links() }}
+                    {{-- Pagination --}}
+                    @if($trips->hasPages())
+                        <div class="xp-pagination">
+                            {{ $trips->appends(request()->query())->links() }}
+                        </div>
+                    @endif
+                @endif
+            </div>
+
+            {{-- Right: sticky map panel --}}
+            <div class="xp-map-panel">
+                <div class="xp-map-panel-header">
+                    <h3 class="xp-map-panel-title">Map of nearby trips</h3>
+                    @if($trips->total() > 0)
+                        <span class="badge badge-dark">{{ $trips->total() }} {{ $trips->total() === 1 ? 'route' : 'routes' }}</span>
+                    @endif
+                </div>
+                <div id="explore-map"></div>
+                <div class="xp-map-legend">
+                    <span class="xp-map-legend-item">
+                        <span class="xp-legend-dot pickup"></span> Pickup
+                    </span>
+                    <span class="xp-map-legend-item">
+                        <span class="xp-legend-dot destination"></span> Destination
+                    </span>
+                    <span class="xp-map-legend-item">
+                        <span class="xp-legend-dot custom"></span> Custom stop
+                    </span>
+                </div>
+            </div>
+
+        </div>{{-- .xp-body --}}
+
+    </div>{{-- .xp-wrap --}}
+
+    <div class="xp-modal" id="exploreTripModal" aria-hidden="true">
+        <div class="xp-modal-card" role="dialog" aria-modal="true" aria-labelledby="exploreTripModalTitle">
+            <div class="xp-modal-head">
+                <div>
+                    <h3 class="xp-modal-title" id="exploreTripModalTitle">Trip details</h3>
+                    <span class="xp-modal-sub" id="exploreTripModalSub">Review the trip before requesting a seat.</span>
+                </div>
+                <button type="button" class="xp-modal-close" id="exploreTripModalClose" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="xp-modal-body">
+                <div class="xp-modal-driver">
+                    <span class="xp-modal-avatar" id="exploreModalDriverAvatar">DR</span>
+                    <span>
+                        <strong class="xp-driver-name" id="exploreModalDriver">Driver</strong>
+                        <span class="xp-driver-rating"><i class="fa-solid fa-star"></i><span id="exploreModalRating">5.00</span></span>
+                    </span>
+                    <span class="badge badge-info" id="exploreModalVisibility" style="margin-left:auto">Public</span>
+                </div>
+                <div class="xp-modal-kv">
+                    <div class="xp-modal-kv-item"><span>Time</span><strong id="exploreModalTime">-</strong></div>
+                    <div class="xp-modal-kv-item"><span>Seats</span><strong id="exploreModalSeats">-</strong></div>
+                    <div class="xp-modal-kv-item"><span>Fare</span><strong id="exploreModalFare">-</strong></div>
+                </div>
+                <div class="xp-modal-route">
+                    <div class="xp-modal-point">
+                        <span class="xp-modal-point-dot"></span>
+                        <span><span>Pickup</span><strong id="exploreModalPickup">-</strong></span>
+                    </div>
+                    <div class="xp-modal-point">
+                        <span class="xp-modal-point-dot dest"></span>
+                        <span><span>Destination</span><strong id="exploreModalDestination">-</strong></span>
+                    </div>
+                </div>
+                <div class="xp-modal-kv">
+                    <div class="xp-modal-kv-item" style="grid-column:1/-1"><span>Vehicle</span><strong id="exploreModalVehicle">-</strong></div>
+                </div>
+                <div class="xp-modal-pref" id="exploreModalRoutePreference">
+                    <h4 class="xp-modal-pref-title"><i class="fa-solid fa-route"></i> Your route preference</h4>
+                    <div class="xp-modal-pref-grid">
+                        <div class="xp-modal-pref-group">
+                            <span class="xp-modal-pref-label">Pickup point</span>
+                            <div class="xp-modal-radio-row">
+                                <label class="xp-modal-radio">
+                                    <input type="radio" name="pickup_mode" value="default" form="exploreModalJoinForm" checked>
+                                    Use trip pickup
+                                </label>
+                                <label class="xp-modal-radio">
+                                    <input type="radio" name="pickup_mode" value="custom" form="exploreModalJoinForm">
+                                    Custom pickup
+                                </label>
+                            </div>
+                        </div>
+                        <div class="xp-modal-pref-group">
+                            <span class="xp-modal-pref-label">Drop-off point</span>
+                            <div class="xp-modal-radio-row">
+                                <label class="xp-modal-radio">
+                                    <input type="radio" name="dropoff_mode" value="default" form="exploreModalJoinForm" checked>
+                                    Use destination
+                                </label>
+                                <label class="xp-modal-radio">
+                                    <input type="radio" name="dropoff_mode" value="custom" form="exploreModalJoinForm">
+                                    Custom drop-off
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xp-modal-pref-group">
+                        <span class="xp-modal-pref-label">Preferred pickup time</span>
+                        <input class="xp-modal-input" type="datetime-local" name="requested_pickup_time" form="exploreModalJoinForm">
+                    </div>
+                    <p class="xp-modal-help">Use the standard trip points or pin nearby stops along the current route. The driver will review your request before approval.</p>
+                    <div class="request-map-card" id="exploreModalMapCard" data-route-picker>
+                        <div class="request-map-head">
+                            <span class="request-map-title">Pin custom stops</span>
+                            <span class="request-map-targets">
+                                <button type="button" class="request-map-target active" data-map-target="pickup" hidden>Pin Pickup</button>
+                                <button type="button" class="request-map-target" data-map-target="dropoff" hidden>Pin Drop-off</button>
+                            </span>
+                        </div>
+                        <div id="requestRouteMapForm" class="request-route-map"></div>
+                        <div class="request-map-legend">
+                            <span><i class="legend-route"></i>Current route</span>
+                            <span><i class="legend-preview"></i>Suggested join route</span>
+                            <span><i class="legend-zone"></i><span id="routeAllowedLabel">Allowed area</span></span>
+                            <span><i class="legend-pin"></i>Your pin</span>
+                        </div>
+                        <div id="requestMapStatus" class="request-map-status">Default trip points selected. Choose custom pickup or drop-off to pin a nearby stop.</div>
+                        <div class="request-fare-preview" id="requestFarePreview">
+                            <div class="request-fare-preview-head">
+                                <span class="request-fare-preview-title">
+                                    <i class="fa-solid fa-receipt"></i>
+                                    Fare preview
+                                </span>
+                                <span class="request-fare-preview-badge" id="farePreviewBadge">Default split</span>
+                            </div>
+                            <div class="request-fare-grid">
+                                <div class="request-fare-item">
+                                    <span class="request-fare-label">Base route</span>
+                                    <span class="request-fare-value" id="farePreviewRoute">-</span>
+                                </div>
+                                <div class="request-fare-item">
+                                    <span class="request-fare-label">Route detour</span>
+                                    <span class="request-fare-value" id="farePreviewSegment">-</span>
+                                </div>
+                                <div class="request-fare-item">
+                                    <span class="request-fare-label">Your total</span>
+                                    <span class="request-fare-value" id="farePreviewPassenger">-</span>
+                                </div>
+                                <div class="request-fare-item">
+                                    <span class="request-fare-label">Base split</span>
+                                    <span class="request-fare-value" id="farePreviewOthers">-</span>
+                                </div>
+                            </div>
+                            <p class="request-fare-note" id="farePreviewNote">The normal fare remains the base. Custom pickup/drop-off only adds an extra charge based on distance from the original route.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="xp-modal-join-fields" id="exploreModalJoinFields">
+                    <textarea class="xp-modal-note" id="exploreModalNote" name="request_note" form="exploreModalJoinForm" placeholder="Optional note for the driver"></textarea>
+                </div>
+            </div>
+            <form class="xp-modal-foot" id="exploreModalJoinForm" method="POST">
+                @csrf
+                <input type="hidden" name="pickup_latitude" value="">
+                <input type="hidden" name="pickup_longitude" value="">
+                <input type="hidden" name="pickup_name" value="">
+                <input type="hidden" name="dropoff_latitude" value="">
+                <input type="hidden" name="dropoff_longitude" value="">
+                <input type="hidden" name="dropoff_name" value="">
+                <input type="hidden" name="extra_fee_amount" value="">
+                <input type="hidden" name="detour_distance_km" value="">
+                <button type="submit" class="xp-modal-join-btn" id="exploreModalJoinButton">
+                    <i class="fa-solid fa-user-plus"></i>
+                    Request seat
+                </button>
+                <div class="xp-modal-feedback" id="exploreModalFeedback" hidden></div>
+            </form>
         </div>
     </div>
 
     <script>
         (() => {
+            // Scroll to focused card on page load
             const target = document.querySelector('[data-explore-focus-card="1"]');
             if (!target) return;
             window.setTimeout(() => {
@@ -1032,28 +2150,539 @@
         })();
 
         (() => {
+            // Whole-card popup details
             const cards = document.querySelectorAll('.open-explore-card[data-trip-url]');
+            const modal = document.getElementById('exploreTripModal');
+            const closeBtn = document.getElementById('exploreTripModalClose');
+            const form = document.getElementById('exploreModalJoinForm');
+            const noteInput = document.getElementById('exploreModalNote');
+            const joinBtn = document.getElementById('exploreModalJoinButton');
+            const feedback = document.getElementById('exploreModalFeedback');
+            const mapCard = document.getElementById('exploreModalMapCard');
+            const mapStatus = document.getElementById('requestMapStatus');
+            const mapTargetButtons = document.querySelectorAll('[data-map-target]');
+            let activeCard = null;
+            let activeMapTarget = 'pickup';
+            let modalMap = null;
+            let routeLayerGroup = null;
+            let markerLayerGroup = null;
+            let previewLayerGroup = null;
+            let pickupMarker = null;
+            let dropoffMarker = null;
+            let routeLinePoints = [];
+            let pickupEndpoint = null;
+            let dropoffEndpoint = null;
+            let baseRouteDistanceKm = null;
+            let previewRequestToken = 0;
+            let allowedRouteRadiusKm = 0.2;
+            let allowedEndpointRadiusKm = 0.5;
             if (!cards.length) return;
 
-            const isInteractiveTarget = (target) => {
-                return !!target.closest('a, button, input, textarea, select, label, form');
+            const isInteractive = (el) => !!el.closest('a, button, input, textarea, select, label, form');
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value || '-';
+            };
+            const configureJoinButton = (card) => {
+                const state = card.dataset.joinState || 'open';
+                const config = {
+                    joined: ['Joined', 'fa-solid fa-check', true],
+                    pending: ['Request pending', 'fa-regular fa-clock', true],
+                    full: ['Trip full', 'fa-solid fa-ban', true],
+                    closed: ['Requests closed', 'fa-solid fa-lock', true],
+                    open: ['Request seat', 'fa-solid fa-user-plus', false],
+                }[state] || ['Request seat', 'fa-solid fa-user-plus', false];
+
+                joinBtn.innerHTML = `<i class="${config[1]}"></i>${config[0]}`;
+                joinBtn.disabled = config[2];
+                document.querySelectorAll('#exploreModalRoutePreference input').forEach((input) => {
+                    input.disabled = false;
+                });
+            };
+            const toNumber = (value) => {
+                const number = Number.parseFloat(String(value ?? ''));
+                return Number.isFinite(number) ? number : null;
+            };
+            const formatMoney = (value) => `RM ${Math.max(0, Number(value) || 0).toFixed(2)}`;
+            const currentPassengerName = @json(auth()->user()?->name ?? 'Passenger');
+            const passengerLabel = (suffix) => `${currentPassengerName} ${suffix}`;
+            const formInput = (name) => form.querySelector(`[name="${name}"]`);
+            const setStatus = (message, type = '') => {
+                if (!mapStatus) return;
+                mapStatus.textContent = message;
+                mapStatus.classList.toggle('blocked', type === 'blocked');
+                mapStatus.classList.toggle('ok', type === 'ok');
+            };
+            const setMode = (target, mode) => {
+                const modeInput = document.querySelector(`#exploreModalRoutePreference input[name="${target}_mode"][value="${mode}"]`);
+                if (modeInput) modeInput.checked = true;
+            };
+            const readMode = (target) => {
+                const checked = document.querySelector(`#exploreModalRoutePreference input[name="${target}_mode"]:checked`);
+                return checked?.value === 'custom' ? 'custom' : 'default';
+            };
+            const setCoordinate = (target, lat, lng) => {
+                const latInput = formInput(`${target}_latitude`);
+                const lngInput = formInput(`${target}_longitude`);
+                if (latInput) latInput.value = lat === null ? '' : lat.toFixed(7);
+                if (lngInput) lngInput.value = lng === null ? '' : lng.toFixed(7);
+            };
+            const setPlaceName = (target, value) => {
+                const input = formInput(`${target}_name`);
+                if (input) input.value = value || '';
+            };
+            const distanceForPointsKm = (points) => {
+                let total = 0;
+                for (let index = 0; index < points.length - 1; index += 1) {
+                    total += points[index].distanceTo(points[index + 1]) / 1000;
+                }
+                return total;
+            };
+            const updateAllowedRadiusForDistance = (distanceKm) => {
+                const routeKm = Number(distanceKm) || (pickupEndpoint && dropoffEndpoint ? distanceForPointsKm([pickupEndpoint, dropoffEndpoint]) : 1) || 1;
+                if (routeKm <= 3) {
+                    allowedRouteRadiusKm = 0.40;
+                    allowedEndpointRadiusKm = 0.50;
+                } else if (routeKm <= 10) {
+                    allowedRouteRadiusKm = 0.70;
+                    allowedEndpointRadiusKm = 0.80;
+                } else if (routeKm <= 25) {
+                    allowedRouteRadiusKm = 1.00;
+                    allowedEndpointRadiusKm = 1.20;
+                } else {
+                    allowedRouteRadiusKm = 1.30;
+                    allowedEndpointRadiusKm = 1.50;
+                }
+                const label = document.getElementById('routeAllowedLabel');
+                if (label) label.textContent = `Allowed: route ${Math.round(allowedRouteRadiusKm * 1000)}m, Point A/B ${Math.round(allowedEndpointRadiusKm * 1000)}m`;
+            };
+            const setMapTarget = (target) => {
+                activeMapTarget = target === 'dropoff' ? 'dropoff' : 'pickup';
+                mapTargetButtons.forEach((button) => {
+                    button.classList.toggle('active', button.dataset.mapTarget === activeMapTarget);
+                });
+                setStatus(`Tap near the route to pin ${activeMapTarget === 'pickup' ? 'pickup' : 'drop-off'}.`);
+            };
+            const pointIcon = (type) => window.L.divIcon({
+                className: '',
+                html: `<span class="passenger-pin-icon ${type === 'dropoff' ? 'dropoff' : 'pickup'}"></span>`,
+                iconSize: [25, 25],
+                iconAnchor: [12, 25],
+                tooltipAnchor: [0, -23],
+            });
+            const drawRoute = (points) => {
+                if (!routeLayerGroup || !modalMap || !pickupEndpoint || !dropoffEndpoint) return;
+                routeLayerGroup.clearLayers();
+                const latLngs = points.map((point) => Array.isArray(point) ? window.L.latLng(point[0], point[1]) : point);
+                window.L.polyline(latLngs, { color: '#475569', weight: 18, opacity: 0.16, lineCap: 'round', interactive: false }).addTo(routeLayerGroup);
+                window.L.polyline(latLngs, { color: '#64748b', weight: 4, opacity: 0.82, lineCap: 'round', interactive: false }).addTo(routeLayerGroup);
+                window.L.circle(pickupEndpoint, { radius: allowedEndpointRadiusKm * 1000, color: '#16a34a', weight: 1, fillColor: '#16a34a', fillOpacity: 0.07, opacity: 0.28, interactive: false }).addTo(routeLayerGroup);
+                window.L.circle(dropoffEndpoint, { radius: allowedEndpointRadiusKm * 1000, color: '#2563eb', weight: 1, fillColor: '#2563eb', fillOpacity: 0.07, opacity: 0.28, interactive: false }).addTo(routeLayerGroup);
+                window.L.circleMarker(pickupEndpoint, { radius: 6, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1, interactive: false }).addTo(routeLayerGroup);
+                window.L.circleMarker(dropoffEndpoint, { radius: 6, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1, interactive: false }).addTo(routeLayerGroup);
+                modalMap.fitBounds(window.L.latLngBounds(latLngs), { padding: [22, 22] });
+            };
+            const pointToLocalKm = (latLng, origin) => {
+                const lat = latLng.lat ?? latLng[0];
+                const lng = latLng.lng ?? latLng[1];
+                const originLat = origin.lat ?? origin[0];
+                const originLng = origin.lng ?? origin[1];
+                return {
+                    x: (lng - originLng) * 111.32 * Math.cos((originLat * Math.PI) / 180),
+                    y: (lat - originLat) * 110.57,
+                };
+            };
+            const distanceToSegmentKm = (point, start, end) => {
+                const p = pointToLocalKm(point, start);
+                const b = pointToLocalKm(end, start);
+                const lengthSquared = (b.x ** 2) + (b.y ** 2);
+                if (lengthSquared === 0) return Math.sqrt((p.x ** 2) + (p.y ** 2));
+                const t = Math.max(0, Math.min(1, ((p.x * b.x) + (p.y * b.y)) / lengthSquared));
+                return Math.sqrt(((p.x - (t * b.x)) ** 2) + ((p.y - (t * b.y)) ** 2));
+            };
+            const distanceToRouteKm = (latLng) => {
+                if (routeLinePoints.length < 2) return null;
+                let nearest = Infinity;
+                for (let index = 0; index < routeLinePoints.length - 1; index += 1) {
+                    nearest = Math.min(nearest, distanceToSegmentKm(latLng, routeLinePoints[index], routeLinePoints[index + 1]));
+                }
+                return Number.isFinite(nearest) ? nearest : null;
+            };
+            const endpointDistanceKm = (latLng) => {
+                if (!pickupEndpoint || !dropoffEndpoint) return Infinity;
+                return Math.min(latLng.distanceTo(pickupEndpoint) / 1000, latLng.distanceTo(dropoffEndpoint) / 1000);
+            };
+            const uniqueWaypoints = (points) => points.reduce((items, point) => {
+                if (!point) return items;
+                const last = items[items.length - 1];
+                if (!last || Math.abs(last.lat - point.lat) > 0.00001 || Math.abs(last.lng - point.lng) > 0.00001) {
+                    items.push(point);
+                }
+                return items;
+            }, []);
+            const fetchRoute = async (points) => {
+                const waypoints = uniqueWaypoints(points);
+                if (waypoints.length < 2) return { points: waypoints, distanceKm: 0 };
+
+                const coordinates = waypoints
+                    .map((point) => `${encodeURIComponent(point.lng)},${encodeURIComponent(point.lat)}`)
+                    .join(';');
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson&alternatives=false&steps=false`;
+
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('route');
+                    const payload = await response.json();
+                    const route = payload?.routes?.[0];
+                    const routePoints = (route?.geometry?.coordinates ?? [])
+                        .map((coord) => window.L.latLng(Number(coord[1]), Number(coord[0])))
+                        .filter((coord) => Number.isFinite(coord.lat) && Number.isFinite(coord.lng));
+
+                    return {
+                        points: routePoints.length > 1 ? routePoints : waypoints,
+                        distanceKm: route?.distance ? Number(route.distance) / 1000 : distanceForPointsKm(waypoints),
+                    };
+                } catch (_error) {
+                    return {
+                        points: waypoints,
+                        distanceKm: distanceForPointsKm(waypoints),
+                    };
+                }
+            };
+            const updateFarePreview = async () => {
+                const token = ++previewRequestToken;
+                const defaultFarePerPerson = Number(activeCard?.dataset.fareRaw || 0);
+                const tripFareTotal = Number(activeCard?.dataset.fareTotal || defaultFarePerPerson);
+                const customPickup = readMode('pickup') === 'custom';
+                const customDropoff = readMode('dropoff') === 'custom';
+                const pickupLat = toNumber(formInput('pickup_latitude')?.value);
+                const pickupLng = toNumber(formInput('pickup_longitude')?.value);
+                const dropoffLat = toNumber(formInput('dropoff_latitude')?.value);
+                const dropoffLng = toNumber(formInput('dropoff_longitude')?.value);
+                const passengerPickup = customPickup
+                    ? (pickupLat !== null && pickupLng !== null ? window.L.latLng(pickupLat, pickupLng) : null)
+                    : pickupEndpoint;
+                const passengerDropoff = customDropoff
+                    ? (dropoffLat !== null && dropoffLng !== null ? window.L.latLng(dropoffLat, dropoffLng) : null)
+                    : dropoffEndpoint;
+                const hasCustom = customPickup || customDropoff;
+
+                if (!pickupEndpoint || !dropoffEndpoint) return;
+                if ((customPickup && !passengerPickup) || (customDropoff && !passengerDropoff)) {
+                    const previewPickup = customPickup && passengerPickup ? passengerPickup : pickupEndpoint;
+                    const previewDropoff = customDropoff && passengerDropoff ? passengerDropoff : dropoffEndpoint;
+                    const previewPoints = [pickupEndpoint, ...(customPickup && passengerPickup ? [passengerPickup] : []), ...(customDropoff && passengerDropoff ? [passengerDropoff] : []), dropoffEndpoint];
+                    const previewRoute = await fetchRoute(previewPoints.length > 1 ? previewPoints : [previewPickup, previewDropoff]);
+                    if (token !== previewRequestToken) return;
+                    previewLayerGroup?.clearLayers();
+                    if (previewLayerGroup && previewRoute.points.length > 1) {
+                        window.L.polyline(previewRoute.points, { color: '#1d4ed8', weight: 6, opacity: 0.9, lineCap: 'round', interactive: false }).addTo(previewLayerGroup);
+                        window.L.polyline(previewRoute.points, { color: '#facc15', weight: 2, opacity: 0.95, dashArray: '7 8', lineCap: 'round', interactive: false }).addTo(previewLayerGroup);
+                    }
+                    formInput('extra_fee_amount').value = '';
+                    formInput('detour_distance_km').value = '';
+                    setText('farePreviewBadge', 'Waiting for pin');
+                    setText('farePreviewRoute', previewRoute.distanceKm ? `${previewRoute.distanceKm.toFixed(2)} km` : '-');
+                    setText('farePreviewSegment', '-');
+                    setText('farePreviewPassenger', formatMoney(defaultFarePerPerson));
+                    setText('farePreviewOthers', formatMoney(defaultFarePerPerson));
+                    setText('farePreviewNote', customDropoff && !passengerDropoff && customPickup && passengerPickup
+                        ? 'Pickup custom is already in the suggested route. Pin the custom drop-off to finish fare preview.'
+                        : 'Pin custom points to preview base split + extra fee.');
+                    return;
+                }
+
+                const routePoints = [pickupEndpoint, ...(customPickup ? [passengerPickup] : []), ...(customDropoff ? [passengerDropoff] : []), dropoffEndpoint];
+                const suggestedRoute = await fetchRoute(routePoints);
+                if (token !== previewRequestToken) return;
+
+                previewLayerGroup?.clearLayers();
+                if (previewLayerGroup && suggestedRoute.points.length > 1) {
+                    window.L.polyline(suggestedRoute.points, { color: '#1d4ed8', weight: 6, opacity: 0.9, lineCap: 'round', interactive: false }).addTo(previewLayerGroup);
+                    window.L.polyline(suggestedRoute.points, { color: '#facc15', weight: 2, opacity: 0.95, dashArray: '7 8', lineCap: 'round', interactive: false }).addTo(previewLayerGroup);
+                }
+
+                const baseKm = baseRouteDistanceKm || distanceForPointsKm([pickupEndpoint, dropoffEndpoint]) || 1;
+                const routeDeviationKm = hasCustom
+                    ? Math.max(0, suggestedRoute.distanceKm - baseKm)
+                    : 0;
+                const passengerFare = hasCustom ? defaultFarePerPerson + ((routeDeviationKm / baseKm) * tripFareTotal) : defaultFarePerPerson;
+                const passengerDelta = passengerFare - defaultFarePerPerson;
+                formInput('extra_fee_amount').value = hasCustom ? passengerDelta.toFixed(2) : '';
+                formInput('detour_distance_km').value = hasCustom ? routeDeviationKm.toFixed(2) : '';
+                setText('farePreviewBadge', hasCustom ? 'Extra fee added' : 'Default split');
+                setText('farePreviewRoute', `${baseKm.toFixed(2)} km`);
+                setText('farePreviewSegment', `${routeDeviationKm.toFixed(2)} km`);
+                setText('farePreviewPassenger', formatMoney(passengerFare));
+                setText('farePreviewOthers', formatMoney(defaultFarePerPerson));
+                setText('farePreviewNote', hasCustom
+                    ? `Normal split stays as base fare. Extra ${formatMoney(passengerDelta)} is based on ${routeDeviationKm.toFixed(2)} km custom deviation from the driver's original route. Driver can review before approve.`
+                    : 'Default trip points selected, normal fare split is used.');
+            };
+            const applyPin = (target, latLng) => {
+                setMode(target, 'custom');
+                setCoordinate(target, latLng.lat, latLng.lng);
+                setPlaceName(target, `Pinned ${target === 'pickup' ? 'pickup' : 'drop-off'} near route (${latLng.lat.toFixed(5)}, ${latLng.lng.toFixed(5)})`);
+                if (target === 'pickup') {
+                    if (pickupMarker) pickupMarker.remove();
+                    pickupMarker = window.L.marker(latLng, { icon: pointIcon('pickup') }).addTo(markerLayerGroup);
+                    pickupMarker.bindTooltip(passengerLabel('pickup pin'), { permanent: true, direction: 'top', offset: [0, -10] });
+                } else {
+                    if (dropoffMarker) dropoffMarker.remove();
+                    dropoffMarker = window.L.marker(latLng, { icon: pointIcon('dropoff') }).addTo(markerLayerGroup);
+                    dropoffMarker.bindTooltip(passengerLabel('drop-off pin'), { permanent: true, direction: 'top', offset: [0, -10] });
+                }
+                updateFarePreview();
+            };
+            const restorePinnedMarkers = () => {
+                if (!markerLayerGroup) return;
+                const pickupLat = toNumber(formInput('pickup_latitude')?.value);
+                const pickupLng = toNumber(formInput('pickup_longitude')?.value);
+                const dropoffLat = toNumber(formInput('dropoff_latitude')?.value);
+                const dropoffLng = toNumber(formInput('dropoff_longitude')?.value);
+                if (readMode('pickup') === 'custom' && pickupLat !== null && pickupLng !== null) {
+                    pickupMarker = window.L.marker(window.L.latLng(pickupLat, pickupLng), { icon: pointIcon('pickup') }).addTo(markerLayerGroup);
+                    pickupMarker.bindTooltip(passengerLabel('pickup pin'), { permanent: true, direction: 'top', offset: [0, -10] });
+                }
+                if (readMode('dropoff') === 'custom' && dropoffLat !== null && dropoffLng !== null) {
+                    dropoffMarker = window.L.marker(window.L.latLng(dropoffLat, dropoffLng), { icon: pointIcon('dropoff') }).addTo(markerLayerGroup);
+                    dropoffMarker.bindTooltip(passengerLabel('drop-off pin'), { permanent: true, direction: 'top', offset: [0, -10] });
+                }
+            };
+            const handleMapClick = (latLng) => {
+                if (readMode('pickup') !== 'custom' && readMode('dropoff') !== 'custom') {
+                    setStatus('Default trip points selected. Choose custom pickup or drop-off to pin a nearby stop.');
+                    return;
+                }
+                const routeDistance = distanceToRouteKm(latLng);
+                const pointDistance = endpointDistanceKm(latLng);
+                const allowed = (routeDistance !== null && routeDistance <= allowedRouteRadiusKm) || pointDistance <= allowedEndpointRadiusKm;
+                if (!allowed) {
+                    const routeDistanceText = routeDistance === null ? 'unknown' : `${routeDistance.toFixed(1)} km`;
+                    setStatus(`Blocked: selected point is outside the allowed route area. Nearest route distance: ${routeDistanceText}.`, 'blocked');
+                    window.L.circleMarker(latLng, { radius: 8, color: '#b91c1c', weight: 2, fillColor: '#ef4444', fillOpacity: 0.2 }).addTo(markerLayerGroup).bindTooltip('Outside allowed area', { direction: 'top', offset: [0, -8] }).openTooltip();
+                    return;
+                }
+                applyPin(activeMapTarget, latLng);
+                const distanceText = routeDistance === null ? 'near endpoint' : `${routeDistance.toFixed(2)} km from route`;
+                setStatus(`${activeMapTarget === 'pickup' ? passengerLabel('pickup') : passengerLabel('drop-off')} pin saved, ${distanceText}.`, 'ok');
+            };
+            const ensureModalMap = async () => {
+                if (typeof window.L === 'undefined' || !mapCard || !activeCard) return;
+                const pickupLat = toNumber(activeCard.dataset.pickupLat);
+                const pickupLng = toNumber(activeCard.dataset.pickupLng);
+                const destLat = toNumber(activeCard.dataset.destinationLat);
+                const destLng = toNumber(activeCard.dataset.destinationLng);
+                const hasDriverPoints = [pickupLat, pickupLng, destLat, destLng].every((value) => value !== null);
+                const center = hasDriverPoints ? [pickupLat, pickupLng] : [3.139, 101.6869];
+
+                if (!modalMap) {
+                    modalMap = window.L.map('requestRouteMapForm', { zoomControl: true, attributionControl: false, scrollWheelZoom: false }).setView(center, hasDriverPoints ? 13 : 7);
+                    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(modalMap);
+                    modalMap.on('click', (event) => handleMapClick(event.latlng));
+                    routeLayerGroup = window.L.layerGroup().addTo(modalMap);
+                    markerLayerGroup = window.L.layerGroup().addTo(modalMap);
+                    previewLayerGroup = window.L.layerGroup().addTo(modalMap);
+                }
+
+                routeLayerGroup.clearLayers();
+                markerLayerGroup.clearLayers();
+                previewLayerGroup.clearLayers();
+                pickupMarker = null;
+                dropoffMarker = null;
+
+                if (!hasDriverPoints) {
+                    modalMap.setView(center, 7);
+                    setStatus('Map is unavailable because this route has no coordinates.', 'blocked');
+                    return;
+                }
+
+                pickupEndpoint = window.L.latLng(pickupLat, pickupLng);
+                dropoffEndpoint = window.L.latLng(destLat, destLng);
+                routeLinePoints = [[pickupLat, pickupLng], [destLat, destLng]];
+                baseRouteDistanceKm = null;
+                updateAllowedRadiusForDistance(distanceForPointsKm([pickupEndpoint, dropoffEndpoint]));
+                drawRoute(routeLinePoints);
+                restorePinnedMarkers();
+                updateFarePreview();
+                setTimeout(() => modalMap?.invalidateSize(), 80);
+
+                const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${encodeURIComponent(pickupLng)},${encodeURIComponent(pickupLat)};${encodeURIComponent(destLng)},${encodeURIComponent(destLat)}?overview=full&geometries=geojson&alternatives=false&steps=false`;
+                try {
+                    const response = await fetch(osrmUrl);
+                    const payload = response.ok ? await response.json() : null;
+                    if (payload?.routes?.[0]?.distance) {
+                        baseRouteDistanceKm = Number(payload.routes[0].distance) / 1000;
+                        updateAllowedRadiusForDistance(baseRouteDistanceKm);
+                    }
+                    const points = (payload?.routes?.[0]?.geometry?.coordinates ?? [])
+                        .map((coord) => [Number(coord[1]), Number(coord[0])])
+                        .filter((coord) => Number.isFinite(coord[0]) && Number.isFinite(coord[1]));
+                    if (points.length > 1) {
+                        routeLinePoints = points;
+                        drawRoute(routeLinePoints);
+                    }
+                    updateFarePreview();
+                } catch (_error) {
+                    updateFarePreview();
+                }
+            };
+            const syncCustomFields = (preferredTarget = null) => {
+                const pickupMode = document.querySelector('#exploreModalRoutePreference input[name="pickup_mode"]:checked')?.value || 'default';
+                const dropoffMode = document.querySelector('#exploreModalRoutePreference input[name="dropoff_mode"]:checked')?.value || 'default';
+                const hasCustom = pickupMode === 'custom' || dropoffMode === 'custom';
+                const pickupTarget = document.querySelector('.request-map-target[data-map-target="pickup"]');
+                const dropoffTarget = document.querySelector('.request-map-target[data-map-target="dropoff"]');
+                if (pickupTarget) pickupTarget.hidden = pickupMode !== 'custom';
+                if (dropoffTarget) dropoffTarget.hidden = dropoffMode !== 'custom';
+                mapCard.hidden = false;
+                if (pickupMode !== 'custom') {
+                    setCoordinate('pickup', null, null);
+                    setPlaceName('pickup', '');
+                    if (pickupMarker) {
+                        pickupMarker.remove();
+                        pickupMarker = null;
+                    }
+                }
+                if (dropoffMode !== 'custom') {
+                    setCoordinate('dropoff', null, null);
+                    setPlaceName('dropoff', '');
+                    if (dropoffMarker) {
+                        dropoffMarker.remove();
+                        dropoffMarker = null;
+                    }
+                }
+                if (hasCustom) {
+                    if (preferredTarget === 'dropoff' && dropoffMode === 'custom') {
+                        setMapTarget('dropoff');
+                    } else if (preferredTarget === 'pickup' && pickupMode === 'custom') {
+                        setMapTarget('pickup');
+                    } else {
+                        setMapTarget(pickupMode === 'custom' ? 'pickup' : 'dropoff');
+                    }
+                } else {
+                    mapTargetButtons.forEach((button) => button.classList.remove('active'));
+                    setStatus('Default trip points selected. Choose custom pickup or drop-off to pin a nearby stop.');
+                }
+                ensureModalMap();
+                updateFarePreview();
+            };
+            const openModal = (card) => {
+                activeCard = card;
+                setText('exploreTripModalTitle', card.dataset.routeName || 'Trip details');
+                setText('exploreTripModalSub', `${card.dataset.driver || 'Driver'} · ${card.dataset.time || '-'}`);
+                setText('exploreModalDriverAvatar', card.dataset.driverInitial || 'DR');
+                setText('exploreModalDriver', card.dataset.driver || 'Driver');
+                setText('exploreModalRating', card.dataset.rating || '5.00');
+                setText('exploreModalVisibility', card.dataset.visibility || 'Public');
+                setText('exploreModalTime', card.dataset.time || '-');
+                setText('exploreModalSeats', card.dataset.seats || '-');
+                setText('exploreModalFare', card.dataset.fare || '-');
+                setText('exploreModalPickup', card.dataset.pickup || '-');
+                setText('exploreModalDestination', card.dataset.destination || '-');
+                setText('exploreModalVehicle', card.dataset.vehicle || '-');
+                form.action = card.dataset.joinUrl || card.dataset.tripUrl || '';
+                form.dataset.cardId = card.id || '';
+                form.reset();
+                form.querySelector('input[name="pickup_latitude"]').value = '';
+                form.querySelector('input[name="pickup_longitude"]').value = '';
+                form.querySelector('input[name="pickup_name"]').value = '';
+                form.querySelector('input[name="dropoff_latitude"]').value = '';
+                form.querySelector('input[name="dropoff_longitude"]').value = '';
+                form.querySelector('input[name="dropoff_name"]').value = '';
+                form.querySelector('input[name="extra_fee_amount"]').value = '';
+                form.querySelector('input[name="detour_distance_km"]').value = '';
+                if (pickupMarker && modalMap) modalMap.removeLayer(pickupMarker);
+                if (dropoffMarker && modalMap) modalMap.removeLayer(dropoffMarker);
+                pickupMarker = null;
+                dropoffMarker = null;
+                noteInput.value = '';
+                feedback.hidden = true;
+                feedback.textContent = '';
+                configureJoinButton(card);
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                syncCustomFields();
+            };
+            const closeModal = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
             };
 
             cards.forEach((card) => {
-                const url = card.getAttribute('data-trip-url');
-                if (!url) return;
-
-                card.addEventListener('click', (event) => {
-                    if (isInteractiveTarget(event.target)) return;
-                    window.location.href = url;
+                card.addEventListener('click', (e) => {
+                    if (isInteractive(e.target) && !e.target.closest('.open-explore-modal')) return;
+                    e.preventDefault();
+                    openModal(card);
                 });
 
-                card.addEventListener('keydown', (event) => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return;
-                    if (isInteractiveTarget(event.target)) return;
-                    event.preventDefault();
-                    window.location.href = url;
+                card.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    if (isInteractive(e.target)) return;
+                    e.preventDefault();
+                    openModal(card);
                 });
+            });
+            closeBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+            });
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (joinBtn.disabled) return;
+
+                const original = joinBtn.innerHTML;
+                joinBtn.disabled = true;
+                joinBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>Sending';
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(payload.message || 'Join request could not be submitted.');
+
+                    const card = document.getElementById(form.dataset.cardId || '');
+                    if (card) {
+                        card.dataset.joinState = 'pending';
+                        card.querySelectorAll('.btn-primary').forEach((button) => {
+                            button.classList.remove('btn-primary');
+                            button.classList.add('btn-soft');
+                            button.innerHTML = '<i class="fa-regular fa-clock"></i> Pending';
+                        });
+                    }
+                    joinBtn.innerHTML = '<i class="fa-solid fa-check"></i>Request sent';
+                    feedback.textContent = payload.message || 'Join request submitted.';
+                    feedback.hidden = false;
+                } catch (error) {
+                    joinBtn.disabled = false;
+                    joinBtn.innerHTML = original;
+                    feedback.textContent = error.message || 'Join request could not be submitted.';
+                    feedback.hidden = false;
+                }
+            });
+            form.addEventListener('change', (event) => {
+                if (event.target.matches('input[name="pickup_mode"], input[name="dropoff_mode"]')) {
+                    syncCustomFields(event.target.name.replace('_mode', ''));
+                }
+            });
+            document.getElementById('exploreModalRoutePreference')?.addEventListener('change', (event) => {
+                if (event.target.matches('input[name="pickup_mode"], input[name="dropoff_mode"]')) {
+                    syncCustomFields(event.target.name.replace('_mode', ''));
+                }
+            });
+            mapTargetButtons.forEach((button) => {
+                button.addEventListener('click', () => setMapTarget(button.dataset.mapTarget || 'pickup'));
             });
         })();
     </script>

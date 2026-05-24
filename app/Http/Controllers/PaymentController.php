@@ -11,6 +11,7 @@ use App\Services\ArchiveService;
 use App\Services\ArchivedPaymentService;
 use App\Services\PaymentService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -27,6 +28,17 @@ class PaymentController extends Controller
 
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'payment_filter' => ['nullable', 'in:all,unpaid,review,confirmed'],
+            'direction' => ['nullable', 'in:all,pay,collect'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'visibility' => ['nullable', 'in:public,private'],
+            'payment_search' => ['nullable', 'string', 'max:120'],
+        ]);
+        $filters['payment_filter'] = $filters['payment_filter'] ?? 'all';
+        $filters['direction'] = $filters['direction'] ?? 'all';
+
         $role = (string) $request->user()->role;
         $showMyPayments = $role !== 'admin';
         $canReviewQueue = in_array($role, ['admin', 'driver'], true);
@@ -35,9 +47,14 @@ class PaymentController extends Controller
         // Any trip_id/trip_ids query param is used only for client-side scroll/highlight.
         $tripIds = null;
 
-        $myPayments = $this->paymentService->paginateForUser($request->user(), 12, $tripIds);
-        $driverPayments = $canReviewQueue
-            ? $this->paymentService->paginateForDriver($request->user(), 12, $tripIds)
+        $showPayRecords = ($filters['direction'] ?? 'all') !== 'collect';
+        $showCollectRecords = $canReviewQueue && ($filters['direction'] ?? 'all') !== 'pay';
+
+        $myPayments = $showPayRecords
+            ? $this->paymentService->paginateForUser($request->user(), 12, $filters, $tripIds)
+            : null;
+        $driverPayments = $showCollectRecords
+            ? $this->paymentService->paginateForDriver($request->user(), 12, $filters, $tripIds)
             : null;
         $archivedDriverPayments = $canReviewQueue
             ? $this->archiveService->paginateArchivedPaymentsForDriver(
@@ -55,6 +72,7 @@ class PaymentController extends Controller
             ? $this->archivedPaymentService->reminderStateForPayments($archivedDriverPayments->getCollection())
             : [];
         $summary = $this->paymentService->summarizeForUser($request->user(), $tripIds);
+        $paymentCounts = $this->paymentService->indexCountsForUser($request->user(), $filters, $canReviewQueue, $tripIds);
         $archivedSummary = $this->archiveService->summarizeArchivedPayments($request->user(), null);
         $passengerDebtSummary = $canReviewQueue
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
@@ -67,40 +85,69 @@ class PaymentController extends Controller
                 'driverPayments',
                 'archivedDriverPayments',
                 'summary',
+                'paymentCounts',
                 'archivedSummary',
                 'passengerDebtSummary',
                 'reminderState',
                 'archivedReminderState',
                 'showMyPayments',
-                'canReviewQueue'
+                'canReviewQueue',
+                'filters'
             )
         );
     }
 
-    public function markPaid(MarkPaidRequest $request, TripPayment $payment): RedirectResponse
+    public function markPaid(MarkPaidRequest $request, TripPayment $payment): RedirectResponse|JsonResponse
     {
         try {
             $payment = $this->paymentService->markPaid($request->user(), $payment, $request->validated());
         } catch (ValidationException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first() ?: 'Payment could not be updated.',
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
             return back()->withErrors($exception->errors());
+        }
+
+        $message = $payment->payment_status === 'paid'
+            ? 'Payment marked as paid.'
+            : 'Payment marked as paid. Waiting for driver confirmation.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'payment_status' => $payment->payment_status,
+            ]);
         }
 
         return redirect()
             ->route('payments.index')
-            ->with(
-                'status',
-                $payment->payment_status === 'paid'
-                    ? 'Payment marked as paid.'
-                    : 'Payment marked as paid. Waiting for driver confirmation.'
-            );
+            ->with('status', $message);
     }
 
-    public function confirmPaid(ConfirmPaidRequest $request, TripPayment $payment): RedirectResponse
+    public function confirmPaid(ConfirmPaidRequest $request, TripPayment $payment): RedirectResponse|JsonResponse
     {
         try {
             $this->paymentService->confirmPaid($request->user(), $payment);
         } catch (ValidationException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first() ?: 'Payment could not be confirmed.',
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
             return back()->withErrors($exception->errors());
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Payment confirmed as paid.',
+                'payment_status' => 'paid',
+            ]);
         }
 
         return redirect()
@@ -108,12 +155,26 @@ class PaymentController extends Controller
             ->with('status', 'Payment confirmed as paid.');
     }
 
-    public function rejectPaid(RejectPaidRequest $request, TripPayment $payment): RedirectResponse
+    public function rejectPaid(RejectPaidRequest $request, TripPayment $payment): RedirectResponse|JsonResponse
     {
         try {
             $this->paymentService->rejectPaidRequest($request->user(), $payment, $request->validated('rejection_reason'));
         } catch (ValidationException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first() ?: 'Payment request could not be rejected.',
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
             return back()->withErrors($exception->errors());
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Payment request rejected. Passenger has been notified to resubmit.',
+                'payment_status' => 'unpaid',
+            ]);
         }
 
         return redirect()
@@ -121,12 +182,25 @@ class PaymentController extends Controller
             ->with('status', 'Payment request rejected. Passenger has been notified to resubmit.');
     }
 
-    public function sendReminder(SendReminderRequest $request, TripPayment $payment): RedirectResponse
+    public function sendReminder(SendReminderRequest $request, TripPayment $payment): RedirectResponse|JsonResponse
     {
         try {
             $this->paymentService->sendReminder($request->user(), $payment);
         } catch (ValidationException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first() ?: 'Passenger could not be notified.',
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
             return back()->withErrors($exception->errors());
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Passenger notified.',
+            ]);
         }
 
         return redirect()

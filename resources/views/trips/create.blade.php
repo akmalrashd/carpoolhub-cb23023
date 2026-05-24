@@ -1,80 +1,36 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        .trip-create-page {
-            display: grid;
-            gap: 12px;
-        }
+<form id="tripCreateForm" action="{{ route('trips.store') }}" method="POST">
+    @csrf
 
-        .trip-create-card {
-            background: #fff;
-            border: 1px solid #dbe2ea;
-            border-radius: 16px;
-            padding: 14px;
-        }
-
-        .trip-title-card {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .trip-title-card::after {
-            content: "";
-            position: absolute;
-            right: -18px;
-            top: -8px;
-            width: 128px;
-            height: 128px;
-            background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%230f172a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 58c8-16 16-10 24-24 7-13 16-13 22-22'/%3E%3Ccircle cx='16' cy='60' r='5'/%3E%3Cpath d='M66 13l5 9h-10z' fill='%230f172a' stroke='none'/%3E%3Cpath d='M34 44l5-5M40 50l5-5'/%3E%3C/g%3E%3C/svg%3E");
-            opacity: .08;
-            transform: rotate(18deg);
-            pointer-events: none;
-        }
-
-        .trip-title {
-            margin: 0;
-            font-family: Poppins, sans-serif;
-            font-size: 28px;
-            line-height: 1.1;
-            color: #0f172a;
-        }
-
-        .trip-subtitle {
-            margin: 6px 0 0;
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        @media (min-width: 768px) {
-            .trip-create-card {
-                padding: 16px;
-            }
-        }
-    </style>
-
-    <div class="trip-create-page">
-        <section class="trip-create-card trip-title-card">
-            <h1 class="trip-title">Create Trip</h1>
-            <p class="trip-subtitle">Set the route, schedule, and passengers for a new trip.</p>
-        </section>
-
-        <section class="trip-create-card">
-            <form action="{{ route('trips.store') }}" method="POST">
-                @include('trips._form', ['submitLabel' => 'Create Trip', 'trip' => null, 'selectedParticipants' => []])
-            </form>
-        </section>
+    {{-- Page header --}}
+    <div style="padding:20px 28px 0">
+        <div style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">New trip</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-top:6px">
+            <div>
+                <h1 style="margin:0;font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--ink)">Create a trip</h1>
+                <p style="margin:4px 0 0;color:var(--muted);font-size:13px">Pick a Saved Route to autofill, or build from scratch.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0">
+                <a href="{{ route('trips.index') }}" class="btn btn-ghost trip-create-cancel-top">Cancel</a>
+                <button type="submit" class="btn btn-primary trip-publish-btn" data-trip-publish-button>Publish trip <i class="fa-solid fa-arrow-right" style="font-size:12px"></i></button>
+            </div>
+        </div>
     </div>
 
-    <script>
-        (() => {
-            window.addEventListener('pageshow', (event) => {
-                const nav = performance.getEntriesByType('navigation')[0];
-                const isBackForward = event.persisted || (nav && nav.type === 'back_forward');
-                if (isBackForward) {
-                    window.location.reload();
-                }
-            });
-        })();
-    </script>
+    @include('trips._form', ['submitLabel' => 'Publish trip', 'trip' => null, 'selectedParticipants' => []])
+</form>
+
+<script>
+    (() => {
+        window.addEventListener('pageshow', (event) => {
+            const nav = performance.getEntriesByType('navigation')[0];
+            const isBackForward = event.persisted || (nav && nav.type === 'back_forward');
+            if (isBackForward) {
+                window.location.reload();
+            }
+        });
+    })();
+</script>
 @endsection

@@ -65,775 +65,1279 @@
             'admin' => 'Monitor users, trips, reports, and payment activity from one place.',
             default => 'Publish rides, review requests, and keep your route workflow running smoothly.',
         };
+
+        $hour = (int) now()->format('G');
+        $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+
+        // Stat values
+        $reviewQueue = $driverReviewQueue ?? collect();
+        $upcomingCreatedTrips = $upcomingCreatedTrips ?? collect($upcomingCreatedTrip ? [$upcomingCreatedTrip] : []);
+        $upcomingJoinedTrips = $upcomingJoinedTrips ?? collect($upcomingJoinedTrip ? [$upcomingJoinedTrip] : []);
+        $nextTrip = $upcomingCreatedTrip ?? $upcomingJoinedTrip;
+        $nextRoute = $nextTrip
+            ? ($nextTrip->savedRoute?->route_name ?: (($nextTrip->pickup_name ?? 'Pickup') . ' -> ' . ($nextTrip->destination_name ?? 'Destination')))
+            : null;
+        $nextTripMinutes = $nextTrip?->trip_datetime ? max(0, now()->diffInMinutes($nextTrip->trip_datetime, false)) : null;
+        $nextTripCountdown = $nextTripMinutes !== null
+            ? (int) floor($nextTripMinutes / 60) . ' h ' . ($nextTripMinutes % 60) . ' min'
+            : null;
+        $mobileHeroPrimaryUrl = $nextTrip
+            ? route('trips.index', ['focus_trip' => $nextTrip->id])
+            : route($heroPrimary['route']);
+        $mobileHeroPrimaryLabel = $nextTrip ? 'Open Trip' : $heroPrimary['label'];
+        $mobileHeroSecondaryUrl = $nextTrip
+            ? route($heroSecondary['route'])
+            : route('explore.index');
+        $mobileHeroSecondaryLabel = $nextTrip ? $heroSecondary['label'] : 'Browse Trips';
+        $tripsThisWeek    = (int) ($stats['trips_this_week'] ?? $stats['trips_this_month'] ?? $stats['driver_trips'] ?? 0);
+        $totalEarnings    = $stats['total_earnings'] ?? 'RM 0.00';
+        $pendingReviews   = (int) $reviewQueue->count();
+        $pendingRequests  = (int) ($pendingJoinRequests ?? 0);
+        $driverRating     = $stats['driver_rating'] ?? '-';
+        $unpaidCount      = (int) ($stats['unpaid_count'] ?? 0);
+
+        // Stat subtitle
+        $totalTripsAll    = (int) ($stats['total_trips'] ?? 0);
+        $statSubtitle = ($upcomingCreatedTrips->count() + $upcomingJoinedTrips->count()) . ' trip'
+            . (($upcomingCreatedTrips->count() + $upcomingJoinedTrips->count()) !== 1 ? 's' : '')
+            . ' on your schedule'
+            . ($pendingRequests > 0 ? ' · ' . $pendingRequests . ' new request' . ($pendingRequests !== 1 ? 's' : '') : '');
+
     @endphp
 
     <style>
-        .home-page { display: grid; gap: 12px; }
-        .home-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            padding: 14px;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        /* ── Desktop layout wrapper ───────────────────────────── */
+        .hp-wrap {
+            padding: 0 28px 28px;
         }
-        .home-hero {
-            display: grid;
-            gap: 14px;
+
+        /* ── Page header ──────────────────────────────────────── */
+        .hp-page-header {
+            padding: 28px 28px 20px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
         }
-        .home-title { margin: 0; font-family: Poppins, sans-serif; font-size: 31px; color: #0f172a; line-height: 1.05; letter-spacing: -0.02em; }
-        .home-subtitle { margin: 8px 0 0; color: #475569; font-size: 15px; line-height: 1.4; max-width: 58ch; }
-        .home-hero-actions {
-            display: grid;
-            gap: 10px;
+        .hp-page-header-left { display: grid; gap: 4px; }
+        .hp-eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            color: var(--muted);
         }
-        .home-hero-cta-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: 10px;
+        .hp-h1 {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
         }
-        .home-hero-cta {
-            min-height: 50px;
-            border-radius: 14px;
-            border: 1px solid #dbe2ea;
-            background: #fff;
-            color: #0f172a;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .hp-subtitle {
+            margin: 4px 0 0;
             font-size: 14px;
-            font-weight: 900;
-            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+            color: var(--muted);
+            font-weight: 500;
         }
-        .home-hero-cta.primary {
-            background: #0f172a;
-            border-color: #0f172a;
-            color: #fff;
-        }
-        .home-hero-route-card {
-            border: 1px solid #dbe2ea;
-            border-radius: 16px;
-            background: #f8fafc;
-            padding: 12px;
-            display: grid;
-            gap: 10px;
-        }
-        .home-hero-route-line {
-            display: grid;
-            grid-template-columns: 28px minmax(0, 1fr);
-            gap: 10px;
+        .hp-header-actions {
+            display: flex;
             align-items: center;
-            color: inherit;
-            text-decoration: none;
-            border-radius: 12px;
-            padding: 2px;
-            transition: background-color .16s ease, transform .16s ease;
+            gap: 10px;
+            flex-shrink: 0;
         }
-        .home-hero-route-line:hover,
-        .home-hero-route-line:focus-visible {
-            background: #fff;
-            transform: translateY(-1px);
-            outline: none;
+
+        /* ── Stats strip ──────────────────────────────────────── */
+        .hp-stats-strip {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            padding: 0 28px 14px;
         }
-        .home-hero-route-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        @media (min-width: 680px) {
+            .hp-stats-strip { grid-template-columns: repeat(4, 1fr); }
+        }
+        .hp-stat-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            padding: 18px;
+            box-shadow: var(--shadow-1);
+            display: grid;
+            gap: 6px;
+            position: relative;
+        }
+        .hp-stat-card.highlighted {
+            background: #fffdf4;
+            border-color: #f8e7a1;
+        }
+        .hp-stat-card.warning-tone {
+            background: var(--warning-soft);
+            border-color: rgba(180,83,9,0.25);
+        }
+        .hp-stat-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--r-sm);
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            display: grid;
+            place-items: center;
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .hp-stat-card.highlighted .hp-stat-icon {
+            background: #fff8cf;
+            border-color: #f4df8a;
+            color: var(--warning);
+        }
+        .hp-stat-card.warning-tone .hp-stat-icon {
+            background: var(--warning-soft);
+            border-color: rgba(180,83,9,0.25);
+            color: var(--warning);
+        }
+        .hp-stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-right: 40px;
+        }
+        .hp-stat-value {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: -0.025em;
+            line-height: 1;
+        }
+        .hp-stat-delta {
             font-size: 12px;
-            color: #fff;
-            background: #16a34a;
+            font-weight: 600;
+            color: var(--muted-2);
         }
-        .home-hero-route-icon.destination {
-            background: #ef4444;
-        }
-        .home-hero-route-copy {
-            min-width: 0;
+
+        /* ── Main body grid ───────────────────────────────────── */
+        .hp-body {
             display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+            padding: 0 28px 28px;
+        }
+        @media (min-width: 1024px) {
+            .hp-body { grid-template-columns: 2fr 1fr; }
+        }
+
+        /* ── Card shared ──────────────────────────────────────── */
+        .hp-section {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-1);
+            overflow: hidden;
+        }
+        .hp-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 16px 18px 0;
+        }
+        .hp-section-title {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.01em;
+        }
+        .hp-section-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--warning);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .hp-section-link:hover { text-decoration: underline; }
+        .hp-section-body { padding: 14px 18px 18px; }
+
+        /* ── Tab strip ────────────────────────────────────────── */
+        .hp-tabs {
+            display: inline-flex;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-sm);
+            padding: 3px;
             gap: 2px;
         }
-        .home-hero-route-label {
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .04em;
+        .hp-tab {
+            padding: 5px 12px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: background-color .15s, color .15s, box-shadow .15s;
+            white-space: nowrap;
         }
-        .home-hero-route-value {
-            color: #0f172a;
+        .hp-tab.active {
+            background: var(--surface);
+            color: var(--ink);
+            box-shadow: var(--shadow-1);
+        }
+
+        /* ── Trip row ─────────────────────────────────────────── */
+        .hp-trip-list { display: grid; gap: 8px; }
+        .hp-trip-row {
+            display: grid;
+            grid-template-columns: 110px 1fr auto auto auto;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid var(--hairline);
+            border-radius: 12px;
+            background: var(--surface);
+            text-decoration: none;
+            color: inherit;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .hp-trip-row:hover {
+            border-color: var(--hairline-strong);
+            box-shadow: var(--shadow-2);
+        }
+        .hp-trip-time-date {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.2;
+        }
+        .hp-trip-time-clock {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        .hp-trip-route {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .hp-trip-stops {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .hp-trip-seats {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink-3);
+            white-space: nowrap;
+            text-align: center;
+        }
+        .hp-trip-fare {
+            text-align: right;
+        }
+        .hp-trip-fare-amount {
+            font-family: var(--font-display);
             font-size: 14px;
             font-weight: 800;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+        .hp-trip-fare-chevron {
+            color: var(--muted-2);
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        /* ── Quick actions right col ──────────────────────────── */
+        .hp-quick-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .hp-quick-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            padding: 12px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--surface);
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            transition: border-color .15s, box-shadow .15s, transform .15s;
+        }
+        .hp-quick-item:hover {
+            border-color: var(--hairline-strong);
+            box-shadow: var(--shadow-2);
+            transform: translateY(-2px);
+        }
+        .hp-quick-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--r-sm);
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            display: grid;
+            place-items: center;
+            font-size: 15px;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+        .hp-quick-icon.yellow {
+            background: var(--ch-yellow);
+            border-color: var(--ch-yellow-deep);
+            color: var(--ch-yellow-ink);
+        }
+        .hp-quick-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.2;
+        }
+        .hp-quick-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: var(--r-pill);
+            padding: 0 4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Public trips mini grid ───────────────────────────── */
+        .hp-pub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 600px) {
+            .hp-pub-grid { grid-template-columns: 1fr; }
+        }
+        .hp-pub-mini {
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--surface);
+            padding: 14px;
+            display: grid;
+            gap: 8px;
+            box-shadow: var(--shadow-1);
+            transition: border-color .15s, box-shadow .15s, transform .15s;
+        }
+        .hp-pub-mini:hover {
+            border-color: var(--hairline-strong);
+            box-shadow: var(--shadow-2);
+            transform: translateY(-2px);
+        }
+        .hp-pub-mini-route {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .hp-pub-mini-meta {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .hp-pub-mini-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .hp-pub-mini-fare {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--ink);
+        }
+        .hp-pub-mobile-time {
+            margin-left: auto;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 800;
+            color: #7c8ba1;
+        }
+        .hp-pub-mobile-route {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--ink);
+        }
+        .hp-pub-mobile-route span {
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        @media (max-width: 540px) {
-            .home-title { font-size: 28px; }
-            .home-subtitle { font-size: 14px; }
-            .home-hero-cta-row { grid-template-columns: 1fr; }
+        .hp-pub-mobile-driver {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
         }
-        .home-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-        .home-section-title { margin: 0; color: #0f172a; font-family: Poppins, sans-serif; font-size: 18px; }
-        .home-shortcuts { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .home-shortcut {
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            background: #ffffff;
-            padding: 12px;
-            text-decoration: none;
-            color: #0f172a;
+        .hp-pub-mobile-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
             display: grid;
-            gap: 6px;
-            min-height: 122px;
-            align-content: start;
-            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+            place-items: center;
+            background: var(--ch-yellow-tint);
+            border: 1px solid var(--ch-yellow-line);
+            color: var(--ch-yellow-ink);
+            font-size: 10px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* ── Driver review queue ──────────────────────────────── */
+        .hp-review-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .hp-review-row:last-child { border-bottom: 0; }
+        .hp-review-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            background: var(--ch-yellow-tint);
+            border: 1px solid var(--ch-yellow-line);
+            display: grid;
+            place-items: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--warning-ink);
+            flex-shrink: 0;
+        }
+        .hp-review-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .hp-review-sub {
+            font-size: 11px;
+            color: var(--muted);
+        }
+        .hp-review-amount {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ── Mobile hero card ─────────────────────────────────── */
+        .hp-mobile-hero {
+            background: linear-gradient(135deg, #fffbea 0%, #ffe26a 100%);
+            border: 1px solid #f3da73;
+            border-radius: 18px;
+            padding: 17px 16px 14px;
+            box-shadow: 0 8px 20px rgba(180, 133, 10, 0.08);
+            display: grid;
+            gap: 12px;
             position: relative;
+            overflow: hidden;
         }
-        .home-shortcut:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
-            border-color: #cbd5e1;
+        .hp-mobile-hero::before { display: none; }
+        .hp-mobile-hero-eyebrow {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: var(--ch-yellow-ink);
+            opacity: 0.72;
         }
-        .home-shortcut-media {
-            width: 54px;
-            height: 54px;
-            border-radius: 0;
-            border: 0;
-            background: transparent;
+        .hp-mobile-hero-title {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--ch-yellow-ink);
+            letter-spacing: 0;
+            line-height: 1.1;
+        }
+        .hp-mobile-hero-next {
+            font-size: 13px;
+            color: var(--ch-yellow-ink);
+            font-weight: 600;
+            opacity: 0.85;
+            margin: 4px 0 0;
+        }
+        .hp-mobile-hero-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .hp-mobile-cta {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: none;
+            gap: 7px;
+            min-height: 34px;
+            padding: 0 13px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: transform .15s ease;
         }
-        .home-shortcut.tone-sky .home-shortcut-media,
-        .home-shortcut.tone-emerald .home-shortcut-media,
-        .home-shortcut.tone-slate .home-shortcut-media,
-        .home-shortcut.tone-amber .home-shortcut-media {
-            border: 0;
-            background: transparent;
-            box-shadow: none;
+        .hp-mobile-cta:hover { transform: translateY(-1px); }
+        .hp-mobile-cta.dark {
+            background: var(--ink);
+            color: #fff;
         }
-        .home-shortcut-media img {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-            display: block;
+        .hp-mobile-cta.ghost {
+            background: rgba(255,255,255,0.24);
+            color: var(--ch-yellow-ink);
+            border: 1px solid rgba(42,30,4,0.12);
         }
-        .home-shortcut-title { font-size: 15px; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em; }
-        .home-shortcut-meta { font-size: 12px; color: #64748b; line-height: 1.3; font-weight: 600; }
-        .home-shortcut-unpaid-note {
-            margin-top: -2px;
+
+        /* ── Mobile 2-col mini stats ──────────────────────────── */
+        .hp-mobile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .hp-mobile-stat {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: 16px;
+            padding: 16px 14px;
+            display: grid;
+            gap: 4px;
+            box-shadow: var(--shadow-1);
+        }
+        .hp-mobile-stat-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #7c8ba1;
+            text-transform: uppercase;
+            letter-spacing: 0.13em;
+        }
+        .hp-mobile-stat-value {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: 0;
+            line-height: 1;
+        }
+        .hp-mobile-stat-delta {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--success-ink);
+        }
+        .hp-mobile-stat-delta.warning {
+            color: var(--warning-ink);
+        }
+
+        /* ── Mobile 4-col quick actions ───────────────────────── */
+        .hp-mobile-quick {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .hp-mobile-quick-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            color: inherit;
+            min-height: 78px;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            position: relative;
+            box-shadow: var(--shadow-1);
+        }
+        .hp-mobile-quick-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--surface-2);
+            border: none;
+            display: grid;
+            place-items: center;
+            font-size: 14px;
+            color: var(--ch-yellow-ink);
+        }
+        .hp-mobile-quick-icon.yellow {
+            background: var(--ch-yellow-tint);
+            color: var(--ch-yellow-ink);
+        }
+        .hp-mobile-quick-label {
             font-size: 11px;
-            font-weight: 700;
-            color: #b91c1c;
+            font-weight: 800;
+            color: var(--ink-2);
+            text-align: center;
             line-height: 1.2;
-            text-transform: lowercase;
         }
-        .home-shortcut-badge {
+        .hp-mobile-quick-badge {
             position: absolute;
             top: 8px;
             right: 8px;
-            min-width: 22px;
-            height: 22px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
             border-radius: 999px;
-            padding: 0 6px;
-            border: 1px solid #fca5a5;
-            background: #ef4444;
-            color: #ffffff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 10px;
             font-weight: 800;
-            line-height: 1;
-            box-shadow: none;
-            animation: homeBadgePulse 1.8s ease-in-out infinite;
-            pointer-events: none;
         }
-        @keyframes homeBadgePulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.04); opacity: .9; }
-        }
-        .home-stats { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .home-stat {
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            background: #ffffff;
-            padding: 11px;
-            display: grid;
-            gap: 4px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-        }
-        .home-stat-label { font-size: 12px; color: #64748b; font-weight: 700; }
-        .home-stat-value { font-size: 22px; color: #0f172a; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; }
-        .home-stat-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        .home-stat-link:hover .home-stat {
-            border-color: #cbd5e1;
-            box-shadow: 0 10px 16px rgba(15, 23, 42, 0.08);
-            transform: translateY(-1px);
-        }
-        .home-note {
-            margin-top: 10px;
-            display: grid;
-            gap: 8px;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-        }
-        .home-note-item {
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            background: #ffffff;
-            padding: 11px;
-            display: grid;
-            gap: 4px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-        }
-        .home-note-label { font-size: 12px; color: #64748b; font-weight: 700; }
-        .home-note-value { font-size: 20px; color: #0f172a; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
-        .home-note-meta { color: #64748b; font-size: 12px; font-weight: 600; }
-        .home-note-muted { color: #64748b; font-weight: 700; }
-        .home-note-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        .home-note-link:hover .home-note-item {
-            border-color: #cbd5e1;
-            box-shadow: 0 10px 16px rgba(15, 23, 42, 0.08);
-            transform: translateY(-1px);
-        }
-        .home-public-wrap { display: grid; gap: 10px; }
-        .home-public-head-link {
-            color: #92400e;
-            font-size: 11px;
-            font-weight: 700;
-            text-decoration: none;
-            letter-spacing: .01em;
-        }
-        .home-public-head-tools {
-            display: inline-flex;
-            align-items: center;
-        }
-        .home-public-carousel {
-            overflow: hidden;
-            border-radius: 14px;
-            background: transparent;
-        }
-        .home-public-track {
+        .hp-mobile-section-head {
             display: flex;
-            transition: transform .42s cubic-bezier(0.22, 1, 0.36, 1);
-            will-change: transform;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 0 0 8px;
         }
-        .home-public-slide {
-            flex: 0 0 100%;
-            min-width: 100%;
-            padding: 12px;
-            text-decoration: none;
-            color: inherit;
-        }
-        .home-public-card {
-            border: 1px solid #dbe2ea;
-            border-radius: 12px;
-            background: #ffffff;
-            padding: 12px;
-            display: grid;
-            gap: 8px;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
-            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-        }
-        .home-public-slide:hover .home-public-card,
-        .home-public-slide:focus-visible .home-public-card {
-            transform: translateY(-2px);
-            border-color: #cbd5e1;
-            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
-        }
-        .home-public-title { margin: 0; font-size: 16px; color: #0f172a; font-weight: 800; line-height: 1.25; }
-        .home-public-meta {
+        .hp-mobile-section-title {
             margin: 0;
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            min-width: 0;
+            font-family: var(--font-display);
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--ink);
         }
-        .home-public-meta i {
-            color: #92400e;
-            font-size: 11px;
-            flex: 0 0 auto;
-        }
-        .home-public-meta span {
-            display: block;
-            min-width: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .home-public-meta-inline {
-            margin: 2px 0 0;
-            color: #64748b;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            min-width: 0;
-        }
-        .home-public-meta-inline-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-        }
-        .home-public-meta-inline-item i {
-            color: #92400e;
-            font-size: 11px;
-            flex: 0 0 auto;
-        }
-        .home-public-meta-line {
-            margin: 0;
-            color: #64748b;
-            font-size: 12px;
-            display: grid;
-            grid-template-columns: 12px auto minmax(0, 1fr);
-            align-items: center;
-            column-gap: 6px;
-            width: 100%;
-            max-width: 100%;
-            overflow: hidden;
-            min-width: 0;
-        }
-        .home-public-meta-line i {
-            color: #92400e;
-            font-size: 11px;
-            width: 12px;
-            text-align: center;
-        }
-        .home-public-meta-label {
-            font-weight: 700;
-            white-space: nowrap;
-        }
-        .home-public-meta-value {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: block;
-        }
-        .home-public-mini-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 6px;
-        }
-        .home-public-pill {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            background: #f8fafc;
-            padding: 7px 8px;
-            display: grid;
-            gap: 2px;
-        }
-        .home-public-pill-label { font-size: 11px; color: #64748b; font-weight: 700; }
-        .home-public-pill-value { font-size: 13px; color: #0f172a; font-weight: 800; }
-        .home-public-nav {
-            width: 30px;
-            height: 30px;
-            border-radius: 9px;
-            border: 1px solid #dbe2ea;
-            background: #fff;
-            color: #334155;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
-        }
-        .home-public-nav:hover {
-            background: #fffbeb;
-            border-color: #fde68a;
-            color: #92400e;
-            transform: translateY(-1px);
-        }
-        .home-public-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .home-public-dots {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            padding: 0;
-        }
-        .home-public-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 999px;
+        .hp-mobile-section-link {
             border: 0;
-            background: #cbd5e1;
+            background: transparent;
             padding: 0;
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
             cursor: pointer;
         }
-        .home-public-dot.active { background: #eab308; }
-        .home-public-empty {
-            border: 1px dashed #dbe2ea;
-            border-radius: 12px;
-            background: #f8fafc;
-            padding: 14px;
-            color: #64748b;
-            font-size: 13px;
-            text-align: center;
-            font-weight: 600;
+        .hp-mobile-extra-actions {
+            display: none;
+            margin-top: 10px;
         }
-        @media (min-width: 900px) {
-            .home-shortcuts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-            .home-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-            .home-note { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .hp-mobile-extra-actions.open {
+            display: grid;
+        }
+
+        /* ── Show/hide by breakpoint ──────────────────────────── */
+        .hp-desktop-only { display: none; }
+        .hp-mobile-only  { display: block; }
+        @media (min-width: 1024px) {
+            .hp-desktop-only { display: block; }
+            .hp-mobile-only  { display: none; }
+        }
+
+        /* Mobile wrapper padding */
+        .hp-mobile-wrap {
+            display: grid;
+            gap: 14px;
+            padding: 14px 14px 92px;
+            background: transparent;
+            min-height: calc(100vh - 72px);
+        }
+        @media (max-width: 1023px) {
+            .hp-mobile-only .hp-section {
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none;
+                overflow: visible;
+            }
+            .hp-mobile-only .hp-section-head,
+            .hp-mobile-only .hp-section-body {
+                padding: 0;
+            }
+            .hp-mobile-only .hp-pub-mini {
+                border-radius: 16px;
+                padding: 14px;
+                gap: 10px;
+            }
+            .hp-mobile-only .hp-pub-mini-footer {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto auto;
+                gap: 10px;
+                align-items: center;
+            }
+            .hp-mobile-only .hp-pub-mobile-driver {
+                min-width: 0;
+                gap: 7px;
+                overflow: hidden;
+            }
+            .hp-mobile-only .hp-pub-mobile-driver > span:last-child {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .hp-mobile-only .hp-pub-mobile-avatar {
+                width: 26px;
+                height: 26px;
+                font-size: 10px;
+                border-width: 1px;
+                background: #fff7d6;
+            }
+            .hp-mobile-only .hp-pub-mini-fare {
+                justify-self: end;
+                font-size: 15px;
+                white-space: nowrap;
+                margin-right: 2px;
+            }
+            .hp-mobile-only .hp-pub-mini-footer .btn {
+                min-width: 86px;
+                height: 38px;
+                justify-content: center;
+                border-radius: 10px;
+                font-weight: 900;
+            }
         }
     </style>
 
-    <div class="home-page">
-        <section class="home-card">
-            <div class="home-hero">
-                <div>
-                    <h1 class="home-title">Hi, {{ $user->name }}! 👋</h1>
-                    <p class="home-subtitle">{{ $heroKicker }}</p>
-                </div>
-                <div class="home-hero-actions">
-                    <div class="home-hero-cta-row">
-                        <a href="{{ route($heroPrimary['route']) }}" class="home-hero-cta primary">
-                            <i class="{{ $heroPrimary['icon'] }}"></i>
-                            <span>{{ $heroPrimary['label'] }}</span>
-                        </a>
-                        <a href="{{ route($heroSecondary['route']) }}" class="home-hero-cta">
-                            <i class="{{ $heroSecondary['icon'] }}"></i>
-                            <span>{{ $heroSecondary['label'] }}</span>
-                        </a>
-                    </div>
-                    <div class="home-hero-route-card" aria-label="Quick route context">
-                        <a href="{{ route($heroPrimary['route']) }}" class="home-hero-route-line">
-                            <span class="home-hero-route-icon"><i class="fa-solid fa-location-dot"></i></span>
-                            <span class="home-hero-route-copy">
-                                <span class="home-hero-route-label">Start</span>
-                                <span class="home-hero-route-value">{{ $heroPrimary['label'] }}</span>
-                            </span>
-                        </a>
-                        <a href="{{ route($heroSecondary['route']) }}" class="home-hero-route-line">
-                            <span class="home-hero-route-icon destination"><i class="fa-solid fa-flag-checkered"></i></span>
-                            <span class="home-hero-route-copy">
-                                <span class="home-hero-route-label">Destination</span>
-                                <span class="home-hero-route-value">{{ $heroSecondary['label'] }}</span>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
+    {{-- ════════════════════════════════════════════════════════════════════════
+         DESKTOP LAYOUT  (≥ 1024px)
+    ════════════════════════════════════════════════════════════════════════ --}}
+    <div class="hp-desktop-only">
 
-        <section class="home-card">
-            <div class="home-section-head">
-                <h2 class="home-section-title">Quick Actions</h2>
+        {{-- 1. Page header ------------------------------------------------- --}}
+        <div class="hp-page-header">
+            <div class="hp-page-header-left">
+                <span class="hp-eyebrow">{{ $greeting }}, {{ $user->name }}</span>
+                <h1 class="hp-h1">Today's ride hub</h1>
+                <p class="hp-subtitle">{{ $statSubtitle }}</p>
             </div>
-            <div class="home-shortcuts">
-                @foreach($quickActions as $item)
-                    @php
-                        $isPayFareAction = (($item['route'] ?? '') === 'payments.index') && (($item['title'] ?? '') === 'Pay Fare');
-                        $quickUnpaidCount = (int) ($stats['unpaid_count'] ?? 0);
-                    @endphp
-                    <a href="{{ $item['url'] ?? route($item['route']) }}" class="home-shortcut tone-{{ $item['tone'] ?? 'amber' }}">
-                        @if($isPayFareAction && $quickUnpaidCount > 0)
-                            <span class="home-shortcut-badge">{{ $quickUnpaidCount > 99 ? '99+' : $quickUnpaidCount }}</span>
-                        @endif
-                        <span class="home-shortcut-media">
-                            <img src="{{ asset('assets/illustrations/' . $item['art']) }}" alt="" aria-hidden="true">
-                        </span>
-                        <span class="home-shortcut-title">{{ $item['title'] }}</span>
-                        <span class="home-shortcut-meta">{{ $item['meta'] }}</span>
-                        @if($isPayFareAction && $quickUnpaidCount > 0)
-                            <span class="home-shortcut-unpaid-note">{{ $quickUnpaidCount }} unpaid fares</span>
-                        @endif
-                    </a>
-                @endforeach
-            </div>
-        </section>
-
-        @if($role !== 'passenger')
-            <section class="home-card">
-                <div class="home-section-head">
-                <h2 class="home-section-title">Management</h2>
-            </div>
-            <div class="home-shortcuts">
-                @foreach($managementActions as $item)
-                        <a href="{{ $item['url'] ?? route($item['route']) }}" class="home-shortcut tone-{{ $item['tone'] ?? 'amber' }}">
-                            <span class="home-shortcut-media">
-                                <img src="{{ asset('assets/illustrations/' . $item['art']) }}" alt="" aria-hidden="true">
-                            </span>
-                            <span class="home-shortcut-title">{{ $item['title'] }}</span>
-                            <span class="home-shortcut-meta">{{ $item['meta'] }}</span>
-                        </a>
-                    @endforeach
-                </div>
-            </section>
-        @endif
-
-        <section class="home-card">
-            <div class="home-section-head">
-                <h2 class="home-section-title">Key Status</h2>
-            </div>
-            <div class="home-stats">
-                <a href="{{ route('trips.index') }}" class="home-stat-link">
-                    <div class="home-stat">
-                        <span class="home-stat-label">Total Trips</span>
-                        <span class="home-stat-value">{{ (int) ($stats['total_trips'] ?? 0) }}</span>
-                    </div>
+            <div class="hp-header-actions">
+                <a href="{{ route('trips.index') }}" class="btn btn-ghost btn-sm">
+                    <i class="fa-regular fa-calendar-days"></i> This week
                 </a>
-                <a href="{{ route('payments.index') }}" class="home-stat-link">
-                    <div class="home-stat">
-                        <span class="home-stat-label">Outstanding (All Cycles)</span>
-                        <span class="home-stat-value">RM {{ number_format((float) ($stats['unpaid_amount'] ?? 0), 2) }}</span>
-                    </div>
-                </a>
-                <a href="{{ route('notifications.index') }}" class="home-stat-link">
-                    <div class="home-stat">
-                        <span class="home-stat-label">Unread Notifications</span>
-                        <span class="home-stat-value">{{ (int) ($stats['unread_notifications'] ?? 0) }}</span>
-                    </div>
-                </a>
-                <a href="{{ route('saved-routes.index') }}" class="home-stat-link">
-                    <div class="home-stat">
-                        <span class="home-stat-label">Active Routes</span>
-                        <span class="home-stat-value">{{ (int) ($stats['saved_routes'] ?? 0) }}</span>
-                    </div>
+                <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-plus"></i> Create Trip
                 </a>
             </div>
+        </div>
 
-            @if($role === 'passenger')
-                <div class="home-note">
-                    @if($upcomingJoinedTrip)
-                        <a href="{{ route('trips.index', ['focus_trip' => $upcomingJoinedTrip->id]) }}" class="home-note-link">
-                            <div class="home-note-item">
-                                <span class="home-note-label">Upcoming Joined Trips</span>
-                                <span class="home-note-value">{{ $upcomingJoinedTrip->savedRoute?->route_name ?? ('Trip #' . $upcomingJoinedTrip->id) }}</span>
-                                <span class="home-note-meta">{{ $upcomingJoinedTrip->trip_datetime?->format('d M Y, H:i') }}</span>
+        {{-- 2. Stats strip -------------------------------------------------- --}}
+        <div class="hp-stats-strip">
+
+            {{-- Card 1: Trips this month --}}
+            <div class="hp-stat-card">
+                <div class="hp-stat-icon"><i class="fa-solid fa-car"></i></div>
+                <span class="hp-stat-label">Trips this week</span>
+                <span class="hp-stat-value">{{ $tripsThisWeek }}</span>
+                <span class="hp-stat-delta">Current schedule</span>
+            </div>
+
+            {{-- Card 2: Earnings · highlighted --}}
+            <div class="hp-stat-card highlighted">
+                <div class="hp-stat-icon"><i class="fa-solid fa-receipt"></i></div>
+                <span class="hp-stat-label">Earnings &middot; Month</span>
+                <span class="hp-stat-value" style="font-size:20px;">{{ $totalEarnings }}</span>
+                <span class="hp-stat-delta">Current cycle total</span>
+            </div>
+
+            {{-- Card 3: Payment review --}}
+            <div class="hp-stat-card {{ $pendingReviews > 0 ? 'warning-tone' : '' }}">
+                <div class="hp-stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <span class="hp-stat-label">Payment review</span>
+                <span class="hp-stat-value" style="{{ $pendingReviews > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingReviews }}</span>
+                <span class="hp-stat-delta">{{ $pendingReviews > 0 ? 'Awaiting your approval' : 'No pending reviews' }}</span>
+            </div>
+
+            {{-- Card 4: Driver rating --}}
+            <div class="hp-stat-card">
+                <div class="hp-stat-icon"><i class="fa-solid fa-star"></i></div>
+                <span class="hp-stat-label">Driver rating</span>
+                <span class="hp-stat-value">{{ $driverRating }}</span>
+                <span class="hp-stat-delta">Overall score</span>
+            </div>
+
+        </div>
+
+        {{-- 3. Main body: 2fr + 1fr ---------------------------------------- --}}
+        <div class="hp-body">
+
+            {{-- ── LEFT COLUMN (2fr) ──────────────────────────────────────── --}}
+            <div style="display:grid;gap:18px;align-content:start;">
+
+                {{-- Upcoming trips card --}}
+                <div class="hp-section">
+                    <div class="hp-section-head">
+                        <h3 class="hp-section-title">Upcoming trips</h3>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div class="hp-tabs" id="hp-trip-tabs">
+                                <button type="button" class="hp-tab active" onclick="hpSwitchTab('driver', this)">As driver</button>
+                                <button type="button" class="hp-tab" onclick="hpSwitchTab('passenger', this)">As passenger</button>
                             </div>
-                        </a>
-                    @else
-                        <div class="home-note-item">
-                            <span class="home-note-label">Upcoming Joined Trips</span>
-                            <span class="home-note-value">No joined trips scheduled yet.</span>
                         </div>
-                    @endif
-                </div>
-            @elseif($role === 'driver')
-                <div class="home-note">
-                    @if($upcomingCreatedTrip)
-                        <a href="{{ route('trips.index', ['focus_trip' => $upcomingCreatedTrip->id]) }}" class="home-note-link">
-                            <div class="home-note-item">
-                                <span class="home-note-label">Upcoming Created Trips</span>
-                                <span class="home-note-value">{{ $upcomingCreatedTrip->savedRoute?->route_name ?? ('Trip #' . $upcomingCreatedTrip->id) }}</span>
-                                <span class="home-note-meta">{{ $upcomingCreatedTrip->trip_datetime?->format('d M Y, H:i') }}</span>
-                            </div>
-                        </a>
-                    @else
-                        <div class="home-note-item">
-                            <span class="home-note-label">Upcoming Created Trips</span>
-                            <span class="home-note-value">No created trips scheduled yet.</span>
-                        </div>
-                    @endif
-                    @if($upcomingCreatedTrip)
-                        <a href="{{ route('trips.requests.index', $upcomingCreatedTrip) }}" class="home-note-link">
-                            <div class="home-note-item">
-                                <span class="home-note-label">Pending Join Requests</span>
-                                <span class="home-note-value">{{ (int) ($pendingJoinRequests ?? 0) }}</span>
-                            </div>
-                        </a>
-                    @else
-                        <a href="{{ route('trips.index') }}" class="home-note-link">
-                            <div class="home-note-item">
-                                <span class="home-note-label">Pending Join Requests</span>
-                                <span class="home-note-value">{{ (int) ($pendingJoinRequests ?? 0) }}</span>
-                            </div>
-                        </a>
-                    @endif
-                </div>
-            @elseif($role === 'admin')
-                <div class="home-note">
-                    <a href="{{ route('admin.reports.index') }}" class="home-note-link">
-                        <div class="home-note-item">
-                            <span class="home-note-label">Admin Focus</span>
-                            <span class="home-note-value">Review users, reports, and operational summaries.</span>
-                        </div>
-                    </a>
-                </div>
-            @endif
-        </section>
-
-        <section class="home-card">
-            <div class="home-section-head">
-                <h2 class="home-section-title">Join Public Trips</h2>
-                <div class="home-public-head-tools">
-                    <a href="{{ route('explore.index') }}" class="home-public-head-link">Explore Public Trips</a>
-                </div>
-            </div>
-            <div class="home-public-wrap">
-                @if(($publicExploreTrips ?? collect())->isNotEmpty())
-                    <div class="home-public-carousel" data-home-public-carousel>
-                        <div class="home-public-track" data-carousel-track>
-                            @foreach($publicExploreTrips as $trip)
-                                @php
-                                    $routeName = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' - ' . ($trip->destination_name ?? 'Destination'));
-                                    $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
-                                    $availableSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;
-                                    $tripTypeText = ((string) ($trip->trip_mode ?? 'one_way')) === 'two_way' ? 'Two-way' : 'One-way';
-                                    $pickupText = $trip->pickup_name ?? 'Pickup';
-                                    $destinationText = $trip->destination_name ?? 'Destination';
-                                    $visibilityText = ((string) ($trip->visibility ?? 'public')) === 'public' ? 'Public Trip' : 'Private Trip';
-                                    $visibilityIcon = ($trip->visibility ?? 'public') === 'public' ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
-                                @endphp
-                                <a href="{{ route('explore.index', ['sort' => 'latest', 'focus_trip' => $trip->id]) }}" class="home-public-slide">
-                                    <article class="home-public-card">
-                                        <h3 class="home-public-title">{{ $routeName }}</h3>
-                                        <div class="home-public-meta-inline">
-                                            <span class="home-public-meta-inline-item">
-                                                <i class="fas fa-user"></i>
-                                                <span>{{ $trip->driver?->name ?? '-' }}</span>
-                                            </span>
-                                            <span class="home-public-meta-inline-item">
-                                                <i class="fas fa-route"></i>
-                                                <span>{{ $tripTypeText }}</span>
-                                            </span>
-                                            <span class="home-public-meta-inline-item">
-                                                <i class="{{ $visibilityIcon }}"></i>
-                                                <span>{{ $visibilityText }}</span>
-                                            </span>
+                    </div>
+                    <div class="hp-section-body">
+                        {{-- As driver panel --}}
+                        <div id="hp-tab-driver">
+                            @if($upcomingCreatedTrips->isNotEmpty())
+                                <div class="hp-trip-list">
+                                    @foreach($upcomingCreatedTrips as $trip)
+                                    @php
+                                        $routeLabel = $trip->savedRoute?->route_name ?? ('Trip #' . $trip->id);
+                                        $stops = trim(($trip->pickup_name ?? '') . ' → ' . ($trip->destination_name ?? ''));
+                                        $seats = $trip->participants->where('is_driver', false)->count();
+                                        $seatLimit = $trip->seat_limit ?? '?';
+                                        $statusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
+                                    @endphp
+                                    <a href="{{ route('trips.index', ['focus_trip' => $trip->id]) }}" class="hp-trip-row">
+                                        <div>
+                                            <div class="hp-trip-time-date">{{ $trip->trip_datetime?->format('d M Y') ?? '—' }}</div>
+                                            <div class="hp-trip-time-clock">{{ $trip->trip_datetime?->format('H:i') ?? '' }}</div>
                                         </div>
-                                        <p class="home-public-meta-line" title="{{ $pickupText }}">
-                                            <i class="fas fa-location-dot"></i>
-                                            <span class="home-public-meta-label">Pickup :</span>
-                                            <span class="home-public-meta-value">{{ $pickupText }}</span>
-                                        </p>
-                                        <p class="home-public-meta-line" title="{{ $destinationText }}">
-                                            <i class="fas fa-flag-checkered"></i>
-                                            <span class="home-public-meta-label">Destination :</span>
-                                            <span class="home-public-meta-value">{{ $destinationText }}</span>
-                                        </p>
-                                        <div class="home-public-mini-grid">
-                                            <div class="home-public-pill">
-                                                <span class="home-public-pill-label">Date & Time</span>
-                                                <span class="home-public-pill-value">{{ $trip->trip_datetime?->format('d M Y, H:i') ?? '-' }}</span>
-                                            </div>
-                                            <div class="home-public-pill">
-                                                <span class="home-public-pill-label">Fare</span>
-                                                <span class="home-public-pill-value">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
-                                            </div>
-                                            <div class="home-public-pill">
-                                                <span class="home-public-pill-label">Seats</span>
-                                                <span class="home-public-pill-value">{{ $availableSeats !== null ? ($availableSeats . ' / ' . (int) $trip->seat_limit) : 'Open' }}</span>
-                                            </div>
-                                            <div class="home-public-pill">
-                                                <span class="home-public-pill-label">Trip ID</span>
-                                                <span class="home-public-pill-value">#{{ $trip->id }}</span>
-                                            </div>
+                                        <div>
+                                            <div class="hp-trip-route">{{ $routeLabel }}</div>
+                                            <div class="hp-trip-stops">{{ $stops }}</div>
                                         </div>
-                                    </article>
+                                        <span class="badge {{ $statusClass }}">{{ ucfirst($trip->status ?? 'pending') }}</span>
+                                        <span class="hp-trip-seats"><i class="fa-solid fa-users" style="font-size:11px;color:var(--muted-2);"></i> {{ $seats }}/{{ $seatLimit }}</span>
+                                        <div class="hp-trip-fare">
+                                            <span class="hp-trip-fare-amount">RM {{ number_format((float) ($trip->fare_per_person ?? 0), 2) }}</span>
+                                            <i class="fa-solid fa-chevron-right hp-trip-fare-chevron"></i>
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started." />
+                            @endif
+                        </div>
+                        {{-- As passenger panel --}}
+                        <div id="hp-tab-passenger" style="display:none;">
+                            @if($upcomingJoinedTrips->isNotEmpty())
+                                <div class="hp-trip-list">
+                                    @foreach($upcomingJoinedTrips as $trip)
+                                    @php
+                                        $routeLabel = $trip->savedRoute?->route_name ?? ('Trip #' . $trip->id);
+                                        $stops = trim(($trip->pickup_name ?? '') . ' → ' . ($trip->destination_name ?? ''));
+                                        $seats = $trip->participants->where('is_driver', false)->count();
+                                        $seatLimit = $trip->seat_limit ?? '?';
+                                        $statusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
+                                    @endphp
+                                    <a href="{{ route('trips.index', ['focus_trip' => $trip->id]) }}" class="hp-trip-row">
+                                        <div>
+                                            <div class="hp-trip-time-date">{{ $trip->trip_datetime?->format('d M Y') ?? '—' }}</div>
+                                            <div class="hp-trip-time-clock">{{ $trip->trip_datetime?->format('H:i') ?? '' }}</div>
+                                        </div>
+                                        <div>
+                                            <div class="hp-trip-route">{{ $routeLabel }}</div>
+                                            <div class="hp-trip-stops">{{ $stops }}</div>
+                                        </div>
+                                        <span class="badge {{ $statusClass }}">{{ ucfirst($trip->status ?? 'pending') }}</span>
+                                        <span class="hp-trip-seats"><i class="fa-solid fa-users" style="font-size:11px;color:var(--muted-2);"></i> {{ $seats }}/{{ $seatLimit }}</span>
+                                        <div class="hp-trip-fare">
+                                            <span class="hp-trip-fare-amount">RM {{ number_format((float) ($trip->fare_per_person ?? 0), 2) }}</span>
+                                            <i class="fa-solid fa-chevron-right hp-trip-fare-chevron"></i>
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started." />
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Public trips near you --}}
+                <div class="hp-section">
+                    <div class="hp-section-head">
+                        <h3 class="hp-section-title">Public trips near you</h3>
+                        <a href="{{ route('explore.index') }}" class="btn btn-ghost btn-sm">Open Explore</a>
+                    </div>
+                    <div class="hp-section-body">
+                        @php $exploreSlice = ($publicExploreTrips ?? collect())->take(4); @endphp
+                        @if($exploreSlice->isNotEmpty())
+                            <div class="hp-pub-grid">
+                                @foreach($exploreSlice as $trip)
+                                    @php
+                                        $routeName = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' → ' . ($trip->destination_name ?? 'Destination'));
+                                        $parts = preg_split('/\s*(?:->|→|-)\s*/u', $routeName);
+                                        $origin = $parts[0] ?? 'Pickup';
+                                        $dest = $parts[1] ?? 'Destination';
+                                        $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
+                                        $availSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : 0;
+                                    @endphp
+                                    <div class="hp-pub-mini">
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <span class="badge badge-info"><span class="dot"></span>Public &middot; {{ $availSeats }} seats</span>
+                                            <span class="hp-pub-mobile-time">{{ $trip->trip_datetime?->format('H:i') ?? '-' }}</span>
+                                        </div>
+                                        <div class="hp-pub-mobile-route">
+                                            <span>{{ $origin }}</span>
+                                            <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--muted);flex-shrink:0;"></i>
+                                            <span>{{ $dest }}</span>
+                                        </div>
+                                        <div class="hp-pub-mini-footer">
+                                        <span class="hp-pub-mobile-driver">
+                                            <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
+                                            <span>{{ $trip->driver?->name ?? '-' }}</span>
+                                        </span>
+                                            <span class="hp-pub-mini-fare">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
+                                            <a href="{{ route('explore.show', $trip->id) }}" class="btn btn-primary btn-sm">Request</a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div style="text-align:center;padding:24px 0;font-size:13px;color:var(--muted);font-weight:600;">
+                                <i class="fa-solid fa-car-side" style="font-size:20px;display:block;margin-bottom:8px;color:var(--muted-2);"></i>
+                                No public trips near you right now.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+            </div>{{-- /left column --}}
+
+            {{-- ── RIGHT COLUMN (1fr) ─────────────────────────────────────── --}}
+            <div style="display:grid;gap:18px;align-content:start;">
+
+                {{-- Quick actions --}}
+                <div class="hp-section">
+                    <div class="hp-section-head">
+                        <h3 class="hp-section-title">Quick actions</h3>
+                    </div>
+                    <div class="hp-section-body">
+                        <div class="hp-quick-grid">
+                            @php
+                                $qaDriver = [
+                                    ['icon' => 'fa-solid fa-plus',           'label' => 'New Trip',     'route' => 'trips.create',         'yellow' => true],
+                                    ['icon' => 'fa-solid fa-route',          'label' => 'Saved Routes', 'route' => 'saved-routes.index',   'yellow' => false],
+                                    ['icon' => 'fa-solid fa-credit-card',    'label' => 'Payments',     'route' => 'payments.index',       'yellow' => false, 'badge' => $pendingReviews],
+                                    ['icon' => 'fa-solid fa-users',          'label' => 'Connections',  'route' => 'connections.index',    'yellow' => false],
+                                    ['icon' => 'fa-solid fa-chart-bar',      'label' => 'Billing',      'route' => 'billing-cycles.index', 'yellow' => false],
+                                    ['icon' => 'fa-solid fa-box-archive',    'label' => 'Archive',      'route' => 'archive.index',        'yellow' => false],
+                                ];
+                                $qaPassenger = [
+                                    ['icon' => 'fa-solid fa-magnifying-glass-location', 'label' => 'Explore',     'route' => 'explore.index',  'yellow' => true],
+                                    ['icon' => 'fa-solid fa-car',                       'label' => 'My Trips',    'route' => 'trips.index',    'yellow' => false],
+                                    ['icon' => 'fa-solid fa-credit-card',               'label' => 'Payments',    'route' => 'payments.index', 'yellow' => false],
+                                    ['icon' => 'fa-solid fa-users',                     'label' => 'Connections', 'route' => 'connections.index', 'yellow' => false],
+                                ];
+                                $qaAdmin = [
+                                    ['icon' => 'fa-solid fa-users-gear',  'label' => 'Users',   'route' => 'admin.users.index',   'yellow' => true],
+                                    ['icon' => 'fa-solid fa-chart-line',  'label' => 'Reports', 'route' => 'admin.reports.index', 'yellow' => false],
+                                    ['icon' => 'fa-solid fa-car',         'label' => 'Trips',   'route' => 'trips.index',         'yellow' => false],
+                                    ['icon' => 'fa-solid fa-route',       'label' => 'Routes',  'route' => 'saved-routes.index',  'yellow' => false],
+                                ];
+                                $qaItems = match($role) {
+                                    'passenger' => $qaPassenger,
+                                    'admin'     => $qaAdmin,
+                                    default     => $qaDriver,
+                                };
+                            @endphp
+                            @foreach($qaItems as $qa)
+                                <a href="{{ route($qa['route']) }}" class="hp-quick-item">
+                                    @if(!empty($qa['badge']) && $qa['badge'] > 0)
+                                        <span class="hp-quick-badge">{{ $qa['badge'] > 99 ? '99+' : $qa['badge'] }}</span>
+                                    @endif
+                                    <span class="hp-quick-icon {{ $qa['yellow'] ? 'yellow' : '' }}">
+                                        <i class="{{ $qa['icon'] }}"></i>
+                                    </span>
+                                    <span class="hp-quick-label">{{ $qa['label'] }}</span>
                                 </a>
                             @endforeach
                         </div>
                     </div>
-                    <div class="home-public-controls">
-                        <button type="button" class="home-public-nav prev" data-carousel-prev aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
-                        <div class="home-public-dots" data-carousel-dots></div>
-                        <button type="button" class="home-public-nav next" data-carousel-next aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+
+                {{-- Driver review queue --}}
+                @if($role === 'driver')
+                    <div class="hp-section">
+                        <div class="hp-section-head">
+                            <div>
+                                <h3 class="hp-section-title">Driver review queue</h3>
+                                <p style="margin:3px 0 0;font-size:12px;color:var(--muted);">Confirm passenger payments</p>
+                            </div>
+                        </div>
+                        <div class="hp-section-body">
+                            @if($reviewQueue->isNotEmpty())
+                                @foreach($reviewQueue->take(5) as $item)
+                                    <div class="hp-review-row">
+                                        <div class="hp-review-avatar">
+                                            {{ strtoupper(substr($item->passenger?->name ?? $item->user?->name ?? '?', 0, 1)) }}
+                                        </div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div class="hp-review-name">{{ $item->passenger?->name ?? $item->user?->name ?? 'Passenger' }}</div>
+                                            <div class="hp-review-sub">{{ $item->payment_method ?? 'Payment' }} &middot; {{ $item->updated_at?->diffForHumans() ?? '' }}</div>
+                                        </div>
+                                        <span class="hp-review-amount">RM {{ number_format((float) ($item->amount_due ?? $item->amount ?? $item->fare_per_person ?? 0), 2) }}</span>
+                                        <a href="{{ route('payments.index') }}" class="btn btn-primary btn-sm" style="margin-left:8px;">Review</a>
+                                    </div>
+                                @endforeach
+                            @else
+                                {{-- Fallback: show pending count without detail rows --}}
+                                <div style="padding:10px 0 4px;">
+                                    <p style="font-size:13px;color:var(--warning-ink);font-weight:700;margin:0 0 4px;">
+                                        {{ $pendingReviews }} request(s) awaiting review
+                                    </p>
+                                    <p style="font-size:12px;color:var(--muted);margin:0;">
+                                        Open driver payments to review individual entries.
+                                    </p>
+                                </div>
+                            @endif
+                            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--hairline);">
+                                <a href="{{ route('payments.index') }}" class="btn btn-ghost btn-sm btn-block">
+                                    Open Driver Review <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                @else
-                    <div class="home-public-empty">No public trips are available right now.</div>
                 @endif
+
+                {{-- Pending requests alert for driver when no review queue card shown --}}
+                @if($role === 'driver' && $pendingReviews > 0 && $reviewQueue->isEmpty())
+                    {{-- already handled above via fallback --}}
+                @elseif($role === 'driver' && ($pendingJoinRequests ?? 0) > 0 && empty($upcomingCreatedTrip) && $pendingReviews === 0)
+                    <div class="hp-section" style="background:var(--warning-soft);border-color:rgba(180,83,9,.22);">
+                        <div class="hp-section-body" style="display:flex;align-items:center;gap:14px;">
+                            <div style="width:42px;height:42px;border-radius:var(--r-md);background:var(--warning);color:#fff;display:grid;place-items:center;font-size:18px;flex-shrink:0;">
+                                <i class="fa-solid fa-inbox"></i>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <p style="margin:0 0 2px;font-size:15px;font-weight:800;color:var(--warning-ink);">Pending Join Requests</p>
+                                <p style="margin:0;font-size:13px;color:var(--warning);font-weight:600;">{{ (int) $pendingJoinRequests }} request(s) awaiting your approval</p>
+                            </div>
+                            <a href="{{ route('trips.index') }}" class="btn btn-sm" style="background:var(--surface);color:var(--warning-ink);border-color:rgba(180,83,9,.30);white-space:nowrap;">
+                                Review <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+            </div>{{-- /right column --}}
+
+        </div>{{-- /.hp-body --}}
+
+    </div>{{-- /.hp-desktop-only --}}
+
+    {{-- ════════════════════════════════════════════════════════════════════════
+         MOBILE LAYOUT  (< 1024px)
+    ════════════════════════════════════════════════════════════════════════ --}}
+    <div class="hp-mobile-only">
+        <div class="hp-mobile-wrap">
+
+            {{-- Yellow gradient hero --}}
+            <div class="hp-mobile-hero">
+                <div>
+                    <div class="hp-mobile-hero-eyebrow">{{ strtoupper($greeting) }}, {{ strtoupper(strtok($user->name, ' ') ?: $user->name) }}</div>
+                    @if(!empty($nextTrip))
+                        <h1 class="hp-mobile-hero-title">Your next trip is in {{ $nextTripCountdown ?? '0 h 0 min' }}</h1>
+                        <p class="hp-mobile-hero-next">
+                            {{ $nextRoute }} &middot; {{ $nextTrip->trip_datetime?->format('H:i') ?? '-' }}
+                        </p>
+                    @else
+                        <h1 class="hp-mobile-hero-title">No upcoming trip yet</h1>
+                        <p class="hp-mobile-hero-next">Create or join a trip to get started.</p>
+                    @endif
+                </div>
+                <div class="hp-mobile-hero-actions">
+                    <a href="{{ $mobileHeroPrimaryUrl }}" class="hp-mobile-cta dark">{{ $mobileHeroPrimaryLabel }}</a>
+                    <a href="{{ $mobileHeroSecondaryUrl }}" class="hp-mobile-cta ghost">{{ $mobileHeroSecondaryLabel }}</a>
+                </div>
             </div>
-        </section>
-    </div>
+
+            {{-- 2-col mini stats --}}
+            <div class="hp-mobile-stats">
+                <div class="hp-mobile-stat">
+                    <span class="hp-mobile-stat-label">Earnings &middot; May</span>
+                    <span class="hp-mobile-stat-value">{{ str_replace('.00', '', $totalEarnings) }}</span>
+                    <span class="hp-mobile-stat-delta">+12%</span>
+                </div>
+                <div class="hp-mobile-stat {{ $pendingReviews > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $pendingReviews > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
+                    <span class="hp-mobile-stat-label">Reviews</span>
+                    <span class="hp-mobile-stat-value">{{ $pendingReviews }}</span>
+                    <span class="hp-mobile-stat-delta warning">Action needed</span>
+                </div>
+            </div>
+
+            {{-- Quick actions: 4-col icon grid --}}
+            @php
+                $mobileQuick = match($role) {
+                    'passenger' => [
+                        ['icon' => 'fa-solid fa-magnifying-glass-location', 'label' => 'Explore',     'route' => 'explore.index',     'yellow' => true],
+                        ['icon' => 'fa-solid fa-car',                       'label' => 'My Trips',    'route' => 'trips.index',       'yellow' => false],
+                        ['icon' => 'fa-solid fa-credit-card',               'label' => 'Payments',    'route' => 'payments.index',    'yellow' => false],
+                        ['icon' => 'fa-solid fa-users',                     'label' => 'Connections', 'route' => 'connections.index', 'yellow' => false],
+                    ],
+                    'admin' => [
+                        ['icon' => 'fa-solid fa-users-gear',  'label' => 'Users',   'route' => 'admin.users.index',   'yellow' => true],
+                        ['icon' => 'fa-solid fa-chart-line',  'label' => 'Reports', 'route' => 'admin.reports.index', 'yellow' => false],
+                        ['icon' => 'fa-solid fa-car',         'label' => 'Trips',   'route' => 'trips.index',         'yellow' => false],
+                        ['icon' => 'fa-solid fa-route',       'label' => 'Routes',  'route' => 'saved-routes.index',  'yellow' => false],
+                    ],
+                    default => [
+                        ['icon' => 'fa-solid fa-compass',     'label' => 'Explore',   'route' => 'explore.index',      'yellow' => false],
+                        ['icon' => 'fa-solid fa-route',       'label' => 'Routes',    'route' => 'saved-routes.index', 'yellow' => false],
+                        ['icon' => 'fa-solid fa-receipt',     'label' => 'Payments',  'route' => 'payments.index',     'yellow' => false],
+                        ['icon' => 'fa-solid fa-users',       'label' => 'Connect',   'route' => 'connections.index',  'yellow' => false],
+                    ],
+                };
+                $mobileExtraQuick = match($role) {
+                    'passenger' => [
+                        ['icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'route' => 'notifications.index'],
+                        ['icon' => 'fa-solid fa-user-gear', 'label' => 'Settings', 'route' => 'settings.index'],
+                    ],
+                    'admin' => [
+                        ['icon' => 'fa-solid fa-compass', 'label' => 'Explore', 'route' => 'explore.index'],
+                        ['icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'route' => 'notifications.index'],
+                        ['icon' => 'fa-solid fa-user-gear', 'label' => 'Settings', 'route' => 'settings.index'],
+                    ],
+                    default => [
+                        ['icon' => 'fa-solid fa-plus', 'label' => 'New Trip', 'route' => 'trips.create'],
+                        ['icon' => 'fa-solid fa-car-side', 'label' => 'My Trips', 'route' => 'trips.index'],
+                        ['icon' => 'fa-solid fa-calendar-check', 'label' => 'Billing', 'route' => 'billing-cycles.index'],
+                        ['icon' => 'fa-solid fa-box-archive', 'label' => 'Archive', 'route' => 'archive.index'],
+                        ['icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'route' => 'notifications.index'],
+                        ['icon' => 'fa-solid fa-user-gear', 'label' => 'Settings', 'route' => 'settings.index'],
+                    ],
+                };
+            @endphp
+            <div>
+                <div class="hp-mobile-section-head">
+                    <h3 class="hp-mobile-section-title">Quick actions</h3>
+                    <button type="button" class="hp-mobile-section-link" onclick="hpToggleMobileActions(this)">View all</button>
+                </div>
+            <div class="hp-mobile-quick">
+                @foreach($mobileQuick as $mqa)
+                    <a href="{{ route($mqa['route']) }}" class="hp-mobile-quick-item">
+                        @if(($mqa['route'] ?? '') === 'payments.index' && $pendingReviews > 0)
+                            <span class="hp-mobile-quick-badge">{{ $pendingReviews > 99 ? '99+' : $pendingReviews }}</span>
+                        @endif
+                        <span class="hp-mobile-quick-icon {{ $mqa['yellow'] ? 'yellow' : '' }}">
+                            <i class="{{ $mqa['icon'] }}"></i>
+                        </span>
+                        <span class="hp-mobile-quick-label">{{ $mqa['label'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+            <div class="hp-mobile-quick hp-mobile-extra-actions" id="hp-mobile-extra-actions">
+                @foreach($mobileExtraQuick as $mqa)
+                    <a href="{{ route($mqa['route']) }}" class="hp-mobile-quick-item">
+                        <span class="hp-mobile-quick-icon">
+                            <i class="{{ $mqa['icon'] }}"></i>
+                        </span>
+                        <span class="hp-mobile-quick-label">{{ $mqa['label'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+            </div>
+
+            {{-- Public trips today --}}
+            <div class="hp-section">
+                <div class="hp-mobile-section-head">
+                    <h3 class="hp-mobile-section-title">Public trips today</h3>
+                    <a href="{{ route('explore.index') }}" class="hp-mobile-section-link">Explore &rarr;</a>
+                </div>
+                <div class="hp-section-body">
+                    @php $mobileExplore = ($publicExploreTrips ?? collect())->take(4); @endphp
+                    @if($mobileExplore->isNotEmpty())
+                        <div style="display:grid;gap:10px;">
+                            @foreach($mobileExplore as $trip)
+                                @php
+                                    $rn = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' → ' . ($trip->destination_name ?? 'Destination'));
+                                    $parts = preg_split('/\s*(?:->|→|-)\s*/u', $rn);
+                                    $origin = $parts[0] ?? 'Pickup';
+                                    $dest = $parts[1] ?? 'Destination';
+                                    $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
+                                    $seatCount = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : 0;
+                                @endphp
+                                <div class="hp-pub-mini">
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <span class="badge badge-info"><span class="dot"></span>Public &middot; {{ $seatCount }} seats</span>
+                                        <span class="hp-pub-mobile-time">{{ $trip->trip_datetime?->format('H:i') ?? '-' }}</span>
+                                    </div>
+                                    <div class="hp-pub-mobile-route">
+                                        <span>{{ $origin }}</span>
+                                        <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--muted);"></i>
+                                        <span>{{ $dest }}</span>
+                                    </div>
+                                    <div class="hp-pub-mini-footer">
+                                        <span class="hp-pub-mobile-driver">
+                                            <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
+                                            <span>{{ $trip->driver?->name ?? '-' }}</span>
+                                        </span>
+                                        <span class="hp-pub-mini-fare">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
+                                        <a href="{{ route('explore.show', $trip->id) }}" class="btn btn-primary btn-sm">Request</a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div style="text-align:center;padding:20px 0;font-size:13px;color:var(--muted);">
+                            No public trips available right now.
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+        </div>{{-- /.hp-mobile-wrap --}}
+    </div>{{-- /.hp-mobile-only --}}
 
     <script>
-        (() => {
-            const carousel = document.querySelector('[data-home-public-carousel]');
-            if (!carousel) return;
+        function hpToggleMobileActions(btn) {
+            var panel = document.getElementById('hp-mobile-extra-actions');
+            if (!panel) return;
+            var open = panel.classList.toggle('open');
+            btn.textContent = open ? 'Show less' : 'View all';
+        }
 
-            const track = carousel.querySelector('[data-carousel-track]');
-            const slides = Array.from(track.querySelectorAll('.home-public-slide'));
-            const prevBtn = document.querySelector('[data-carousel-prev]');
-            const nextBtn = document.querySelector('[data-carousel-next]');
-            const dotsWrap = document.querySelector('[data-carousel-dots]');
-            if (slides.length <= 1) {
-                if (prevBtn) prevBtn.style.display = 'none';
-                if (nextBtn) nextBtn.style.display = 'none';
-                return;
-            }
-
-            let index = 0;
-            let timerId = null;
-            const dots = slides.map((_, i) => {
-                const dot = document.createElement('button');
-                dot.type = 'button';
-                dot.className = 'home-public-dot' + (i === 0 ? ' active' : '');
-                dot.setAttribute('aria-label', `Slide ${i + 1}`);
-                dot.addEventListener('click', () => {
-                    index = i;
-                    render();
-                    restart();
-                });
-                dotsWrap.appendChild(dot);
-                return dot;
+        function hpSwitchTab(panel, btn) {
+            // Hide all panels
+            document.getElementById('hp-tab-driver').style.display    = 'none';
+            document.getElementById('hp-tab-passenger').style.display = 'none';
+            // Show target panel
+            document.getElementById('hp-tab-' + panel).style.display = 'block';
+            // Update tab active state
+            document.querySelectorAll('#hp-trip-tabs .hp-tab').forEach(function(t) {
+                t.classList.remove('active');
             });
-
-            const render = () => {
-                track.style.transform = `translateX(-${index * 100}%)`;
-                dots.forEach((dot, dotIndex) => dot.classList.toggle('active', dotIndex === index));
-            };
-            const next = () => {
-                index = (index + 1) % slides.length;
-                render();
-            };
-            const prev = () => {
-                index = (index - 1 + slides.length) % slides.length;
-                render();
-            };
-            const start = () => {
-                timerId = window.setInterval(next, 4200);
-            };
-            const stop = () => {
-                if (timerId) {
-                    window.clearInterval(timerId);
-                    timerId = null;
-                }
-            };
-            const restart = () => {
-                stop();
-                start();
-            };
-
-            nextBtn?.addEventListener('click', () => {
-                next();
-                restart();
-            });
-            prevBtn?.addEventListener('click', () => {
-                prev();
-                restart();
-            });
-            carousel.addEventListener('mouseenter', stop);
-            carousel.addEventListener('mouseleave', start);
-            carousel.addEventListener('focusin', stop);
-            carousel.addEventListener('focusout', start);
-
-            render();
-            start();
-        })();
+            btn.classList.add('active');
+        }
     </script>
 @endsection

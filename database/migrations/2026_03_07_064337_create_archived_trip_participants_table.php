@@ -26,10 +26,17 @@ return new class extends Migration
                 'removed',
                 'absent'
             ])->default('joined');
+            $table->timestamp('joined_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('attendance_marked_at')->nullable();
+            $table->string('attendance_source', 50)->nullable();
 
             $table->timestamp('archived_at')->nullable();
 
             $table->timestamps();
+
+            $table->index('archived_trip_id');
+            $table->index('user_id');
         });
     }
 

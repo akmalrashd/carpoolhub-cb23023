@@ -10,6 +10,7 @@ use App\Services\Ai\AiDecisionSupportService;
 use App\Services\TripJoinRequestService;
 use App\Services\TripService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -34,6 +35,8 @@ class ExploreController extends Controller
             'sort' => ['nullable', 'in:nearest,latest'],
             'timeframe' => ['nullable', 'in:today,tomorrow,weekend'],
             'seats' => ['nullable', 'in:1,2plus'],
+            'fare_max' => ['nullable', 'numeric', 'min:0', 'max:9999'],
+            'connections' => ['nullable', 'in:1'],
             'center_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'center_lng' => ['nullable', 'numeric', 'between:-180,180'],
             'pickup_lat' => ['nullable', 'numeric', 'between:-90,90'],
@@ -153,7 +156,7 @@ class ExploreController extends Controller
         ));
     }
 
-    public function requestJoin(StoreTripJoinRequest $request, Trip $trip): RedirectResponse
+    public function requestJoin(StoreTripJoinRequest $request, Trip $trip): RedirectResponse|JsonResponse
     {
         try {
             $validated = $request->validated();
@@ -164,7 +167,21 @@ class ExploreController extends Controller
                 $validated
             );
         } catch (ValidationException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first() ?: 'Join request could not be submitted.',
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
             return back()->withErrors($exception->errors());
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Join request submitted.',
+                'status' => 'pending',
+            ]);
         }
 
         return back()->with('status', 'Join request submitted.');

@@ -131,16 +131,16 @@
                             <div class="request-route-point-item">
                                 <span class="request-route-point-label">Pickup</span>
                                 <span class="request-route-point-value">{{ $routePoint->uses_default_pickup ? 'Default Point A' : 'Custom pickup' }}</span>
-                                <span class="request-route-point-meta">{{ $routePoint->uses_default_pickup ? 'Use driver's route starting point' : 'View numbered map pin' }}</span>
+                                <span class="request-route-point-meta">{{ $routePoint->uses_default_pickup ? "Use driver's route starting point" : 'View numbered map pin' }}</span>
                             </div>
                             <div class="request-route-point-item">
                                 <span class="request-route-point-label">Drop-off</span>
                                 <span class="request-route-point-value">{{ $routePoint->uses_default_dropoff ? 'Default Point B' : 'Custom drop-off' }}</span>
-                                <span class="request-route-point-meta">{{ $routePoint->uses_default_dropoff ? 'Use driver's route ending point' : 'View numbered map pin' }}</span>
+                                <span class="request-route-point-meta">{{ $routePoint->uses_default_dropoff ? "Use driver's route ending point" : 'View numbered map pin' }}</span>
                             </div>
                             <div class="request-route-point-item">
-                                <span class="request-route-point-label">Suggested Fare</span>
-                                <span class="request-route-point-value">{{ $routePoint->fare_override_amount !== null ? ('RM ' . number_format((float) $routePoint->fare_override_amount, 2)) : 'Agihan biasa' }}</span>
+                                <span class="request-route-point-label">Extra fee</span>
+                                <span class="request-route-point-value">{{ $routePoint->extra_fee_amount !== null ? ('+ RM ' . number_format((float) $routePoint->extra_fee_amount, 2)) : 'No extra fee' }}</span>
                             <span class="request-route-point-meta">
                                 {{ $routePoint->detour_distance_km !== null ? ('Detour ' . number_format((float) $routePoint->detour_distance_km, 2) . ' km from original route') : 'Preview only, driver review before approval' }}
                                 {{ $distanceSummary ? (' - ' . $distanceSummary . ' from route') : '' }}
