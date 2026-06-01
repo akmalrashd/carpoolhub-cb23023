@@ -153,59 +153,58 @@
         /* ── Date/visibility filter form ── */
         .trips-filter-form {
             display: grid;
-            gap: 10px;
-            background: var(--surface-2, #f8fafc);
-            border: 1px solid var(--hairline, #dbe2ea);
-            border-radius: var(--r-lg, 14px);
-            padding: 14px;
+            gap: 12px;
+            background: #fff;
+            border: 1px solid #dbe2ea;
+            border-radius: 14px;
+            padding: 14px 16px;
             margin: 12px 20px 0;
         }
         @media (min-width: 640px) {
             .trips-filter-form {
-                grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(160px,200px) auto;
+                grid-template-columns: minmax(0,1fr) minmax(0,1fr) 180px auto;
                 align-items: end;
             }
         }
         .trips-filter-hint {
-            margin: 0;
-            color: var(--muted);
+            margin: 0 0 2px;
+            color: #64748b;
             font-size: 12px;
             font-weight: 700;
             grid-column: 1 / -1;
         }
         .trips-filter-field {
             display: grid;
-            gap: 5px;
+            gap: 6px;
         }
         .trips-filter-label {
             display: block;
             font-size: 11px;
-            color: var(--muted);
-            font-weight: 700;
+            color: #64748b;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .05em;
+            letter-spacing: .06em;
         }
         .trips-filter-input {
             width: 100%;
-            min-height: 44px;
-            border: 1px solid var(--hairline-strong, #dbe2ea);
-            border-radius: var(--r-md, 12px);
-            background: var(--surface, #fff);
-            color: var(--ink);
+            min-height: 46px;
+            border: 1px solid #dbe2ea;
+            border-radius: 12px;
+            background: #fff;
+            color: #0f172a;
             padding: 10px 12px;
             font-size: 14px;
             outline: none;
-            font-family: var(--font-ui), sans-serif;
-            transition: border-color .15s;
+            font-family: inherit;
+            transition: border-color .15s, box-shadow .15s;
         }
         .trips-filter-input:focus {
-            border-color: var(--ch-yellow, #facc15);
-            box-shadow: 0 0 0 3px rgba(250,204,21,.15);
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 3px rgba(148,163,184,.2);
         }
         .trips-filter-actions {
             display: flex;
             align-items: flex-end;
-            gap: 8px;
         }
 
         /* ── Empty state ── */
@@ -2199,7 +2198,7 @@
                     </select>
                 </div>
                 <div class="trips-filter-actions">
-                    <a href="{{ route('trips.index') }}" class="btn btn-ghost btn-sm" style="min-height:44px; border-radius:12px; font-size:13px; font-weight:800; padding:0 16px;">Reset</a>
+                    <a href="{{ route('trips.index') }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border:1px solid #dbe2ea;border-radius:12px;background:#fff;color:#0f172a;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;">Reset</a>
                 </div>
             </form>
 
