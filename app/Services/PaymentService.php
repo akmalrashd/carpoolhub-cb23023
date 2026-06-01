@@ -118,21 +118,31 @@ class PaymentService
         ];
     }
 
-    public function summarizeForUser(User $user, ?array $tripIds = null): array
+    public function summarizeForUser(User $user, ?array $tripIds = null, ?string $dateFrom = null, ?string $dateTo = null): array
     {
+        $applyDateScope = function ($tripQuery) use ($dateFrom, $dateTo): void {
+            $this->applyPayableTripScope($tripQuery);
+            if ($dateFrom) {
+                $tripQuery->where('trip_datetime', '>=', Carbon::parse($dateFrom)->startOfDay());
+            }
+            if ($dateTo) {
+                $tripQuery->where('trip_datetime', '<=', Carbon::parse($dateTo)->endOfDay());
+            }
+        };
+
         $myBaseQuery = TripPayment::query()
             ->where('user_id', $user->id)
-            ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
+            ->whereHas('trip', $applyDateScope)
             ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
 
         $driverBaseQuery = TripPayment::query()
             ->when(
                 $user->role === 'admin',
-                fn ($query) => $query->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery)),
+                fn ($query) => $query->whereHas('trip', $applyDateScope),
                 fn ($query) => $query->whereHas('trip', fn ($tripQuery) => $tripQuery->where('driver_id', $user->id))
                     ->where('user_id', '!=', $user->id)
             )
-            ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
+            ->whereHas('trip', $applyDateScope)
             ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
 
         return [

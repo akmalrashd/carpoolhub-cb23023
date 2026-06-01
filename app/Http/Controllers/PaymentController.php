@@ -8,6 +8,7 @@ use App\Http\Requests\Payment\RejectPaidRequest;
 use App\Http\Requests\Payment\SendReminderRequest;
 use App\Models\TripPayment;
 use App\Services\PaymentService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,9 +31,28 @@ class PaymentController extends Controller
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'visibility' => ['nullable', 'in:public,private'],
             'payment_search' => ['nullable', 'string', 'max:120'],
+            'month' => ['nullable', 'regex:/^\d{4}-\d{2}$/'],
         ]);
         $filters['payment_filter'] = $filters['payment_filter'] ?? 'all';
         $filters['direction'] = $filters['direction'] ?? 'all';
+
+        $monthKey = $filters['month'] ?? now()->format('Y-m');
+        try {
+            $selectedMonth = Carbon::parse($monthKey . '-01');
+        } catch (\Exception) {
+            $selectedMonth = now()->startOfMonth();
+            $monthKey = $selectedMonth->format('Y-m');
+        }
+
+        // Auto-inject month bounds only if user hasn't set a custom date range
+        if (empty($filters['date_from']) && empty($filters['date_to'])) {
+            $filters['date_from'] = $selectedMonth->copy()->startOfMonth()->toDateString();
+            $filters['date_to'] = $selectedMonth->copy()->endOfMonth()->toDateString();
+        }
+
+        $prevMonth = $selectedMonth->copy()->subMonth()->format('Y-m');
+        $nextMonth = $selectedMonth->copy()->addMonth()->format('Y-m');
+        $isCurrentMonth = $selectedMonth->isSameMonth(now());
 
         $role = (string) $request->user()->role;
         if ($role === 'admin') {
@@ -58,7 +78,12 @@ class PaymentController extends Controller
         $reminderState = $canReviewQueue && $driverPayments
             ? $this->paymentService->reminderStateForPayments($driverPayments->getCollection())
             : [];
-        $summary = $this->paymentService->summarizeForUser($request->user(), $tripIds);
+        $summary = $this->paymentService->summarizeForUser(
+            $request->user(),
+            $tripIds,
+            $filters['date_from'] ?? null,
+            $filters['date_to'] ?? null,
+        );
         $paymentCounts = $this->paymentService->indexCountsForUser($request->user(), $filters, $canReviewQueue, $tripIds);
         $passengerDebtSummary = $canReviewQueue
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
@@ -75,7 +100,12 @@ class PaymentController extends Controller
                 'reminderState',
                 'showMyPayments',
                 'canReviewQueue',
-                'filters'
+                'filters',
+                'monthKey',
+                'selectedMonth',
+                'prevMonth',
+                'nextMonth',
+                'isCurrentMonth'
             )
         );
     }
