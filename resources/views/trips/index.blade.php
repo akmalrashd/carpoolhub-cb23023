@@ -2114,7 +2114,7 @@
             </div>
         </div>
         <div class="trips-header-actions">
-            <button type="button" class="btn btn-ghost btn-sm" onclick="tripsToggleFilter()">
+            <button type="button" class="btn btn-ghost btn-sm" id="tripsFilterBtn" onclick="(function(){var p=document.getElementById('tripsFilterPanel');p.style.display=p.offsetParent===null?'grid':'none';})()">
                 <i class="fa-solid fa-sliders"></i>
                 Filter
             </button>
@@ -4725,12 +4725,5 @@
                 if (event.target === modal) closeModal();
             });
         })();
-    </script>
-    <script>
-    function tripsToggleFilter() {
-        var panel = document.getElementById('tripsFilterPanel');
-        if (!panel) return;
-        panel.style.display = window.getComputedStyle(panel).display === 'none' ? 'grid' : 'none';
-    }
     </script>
 @endsection
