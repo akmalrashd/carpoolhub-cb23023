@@ -154,9 +154,9 @@
         .trips-filter-form {
             display: grid;
             gap: 12px;
-            background: #fff;
-            border: 1px solid #dbe2ea;
-            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg, 14px);
             padding: 14px 16px;
             margin: 0 28px 12px;
         }
@@ -188,10 +188,10 @@
         .trips-filter-input {
             width: 100%;
             min-height: 46px;
-            border: 1px solid #dbe2ea;
+            border: 1px solid var(--hairline-strong, #dbe2ea);
             border-radius: 12px;
-            background: #fff;
-            color: #0f172a;
+            background: var(--surface-2, #f8fafc);
+            color: var(--ink);
             padding: 10px 12px;
             font-size: 14px;
             outline: none;
@@ -2164,7 +2164,7 @@
                 value="{{ $filters['trip_search'] ?? request('trip_search') }}">
         </div>
         <div class="trips-filter-actions">
-            <a href="{{ route('trips.index') }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border:1px solid #dbe2ea;border-radius:12px;background:#fff;color:#0f172a;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;">Reset</a>
+            <a href="{{ route('trips.index') }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border:1px solid var(--hairline-strong,#dbe2ea);border-radius:12px;background:var(--surface-2,#f8fafc);color:var(--ink,#0f172a);font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;">Reset</a>
         </div>
     </form>
 
