@@ -31,28 +31,19 @@ class PaymentController extends Controller
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'visibility' => ['nullable', 'in:public,private'],
             'payment_search' => ['nullable', 'string', 'max:120'],
-            'month' => ['nullable', 'regex:/^\d{4}-\d{2}$/'],
         ]);
         $filters['payment_filter'] = $filters['payment_filter'] ?? 'all';
         $filters['direction'] = $filters['direction'] ?? 'all';
 
-        $monthKey = $filters['month'] ?? now()->format('Y-m');
-        try {
-            $selectedMonth = Carbon::parse($monthKey . '-01');
-        } catch (\Exception) {
-            $selectedMonth = now()->startOfMonth();
-            $monthKey = $selectedMonth->format('Y-m');
-        }
+        $dateFrom = ! empty($filters['date_from']) ? Carbon::parse($filters['date_from']) : null;
+        $dateTo   = ! empty($filters['date_to'])   ? Carbon::parse($filters['date_to'])   : null;
 
-        // Auto-inject month bounds only if user hasn't set a custom date range
-        if (empty($filters['date_from']) && empty($filters['date_to'])) {
-            $filters['date_from'] = $selectedMonth->copy()->startOfMonth()->toDateString();
-            $filters['date_to'] = $selectedMonth->copy()->endOfMonth()->toDateString();
-        }
-
-        $prevMonth = $selectedMonth->copy()->subMonth()->format('Y-m');
-        $nextMonth = $selectedMonth->copy()->addMonth()->format('Y-m');
-        $isCurrentMonth = $selectedMonth->isSameMonth(now());
+        $summaryLabel = match (true) {
+            $dateFrom !== null && $dateTo !== null => $dateFrom->format('d M') . ' – ' . $dateTo->format('d M Y'),
+            $dateFrom !== null => 'From ' . $dateFrom->format('d M Y'),
+            $dateTo   !== null => 'Until ' . $dateTo->format('d M Y'),
+            default => strtoupper(now()->format('F Y')),
+        };
 
         $role = (string) $request->user()->role;
         if ($role === 'admin') {
@@ -84,6 +75,7 @@ class PaymentController extends Controller
             $filters['date_from'] ?? null,
             $filters['date_to'] ?? null,
         );
+
         $paymentCounts = $this->paymentService->indexCountsForUser($request->user(), $filters, $canReviewQueue, $tripIds);
         $passengerDebtSummary = $canReviewQueue
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
@@ -101,11 +93,7 @@ class PaymentController extends Controller
                 'showMyPayments',
                 'canReviewQueue',
                 'filters',
-                'monthKey',
-                'selectedMonth',
-                'prevMonth',
-                'nextMonth',
-                'isCurrentMonth'
+                'summaryLabel'
             )
         );
     }

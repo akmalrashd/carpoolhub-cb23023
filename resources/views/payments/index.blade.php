@@ -143,43 +143,6 @@
             white-space: nowrap;
             box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
         }
-        .payments-month-nav {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0 4px;
-        }
-        .payments-month-nav-label {
-            font-size: 13px;
-            font-weight: 800;
-            color: var(--ink);
-            flex: 1;
-            text-align: center;
-            letter-spacing: .03em;
-        }
-        .payments-month-nav-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid var(--hairline-strong, #dbe2ea);
-            background: var(--surface, #fff);
-            color: var(--ink);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 12px;
-            transition: background .15s, border-color .15s;
-        }
-        .payments-month-nav-btn:hover:not(.is-disabled) {
-            background: var(--ch-yellow-tint, #fffbeb);
-            border-color: var(--ch-yellow-line, #fde68a);
-        }
-        .payments-month-nav-btn.is-disabled {
-            opacity: .35;
-            pointer-events: none;
-            cursor: default;
-        }
         .payments-alert {
             border: 1px solid #fecaca;
             background: #fef2f2;
@@ -3142,7 +3105,7 @@
         $paidAmt = (float) ($summary['my']['paid']['amount'] ?? 0);
         $myTotalAmt = (float) (($summary['my']['unpaid']['amount'] ?? 0) + ($summary['my']['pending_confirmation']['amount'] ?? 0) + ($summary['my']['paid']['amount'] ?? 0));
         $paidOutAmt = (float) (($summary['my']['unpaid']['amount'] ?? 0) + ($summary['my']['pending_confirmation']['amount'] ?? 0));
-        $monthLabel = $selectedMonth->format('F Y');
+        $monthLabel = $summaryLabel;
         $allLivePayments = collect($myPayments?->items() ?? [])
             ->merge(collect(($driverPayments ?? null)?->items() ?? []))
             ->unique(fn ($payment) => $payment->id . ':' . $payment->trip_id)
@@ -3295,18 +3258,6 @@
         </section>
 
         <section class="payments-mobile-total">
-            {{-- Month navigation --}}
-            <div class="payments-month-nav">
-                <a href="{{ request()->fullUrlWithQuery(['month' => $prevMonth]) }}" class="payments-month-nav-btn" title="Previous month">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </a>
-                <span class="payments-month-nav-label">{{ $selectedMonth->format('F Y') }}</span>
-                <a href="{{ $isCurrentMonth ? '#' : request()->fullUrlWithQuery(['month' => $nextMonth]) }}"
-                   class="payments-month-nav-btn {{ $isCurrentMonth ? 'is-disabled' : '' }}"
-                   title="{{ $isCurrentMonth ? 'Current month' : 'Next month' }}">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </a>
-            </div>
             @if($hasSplitPaymentDirections)
                 <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryDriver" checked>
                 <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryPassenger">
@@ -4048,18 +3999,6 @@
             </section>
             <aside class="payments-side-panel">
                 <section class="payments-total-card">
-                    {{-- Desktop month navigation --}}
-                    <div class="payments-month-nav" style="padding:12px 16px 0;">
-                        <a href="{{ request()->fullUrlWithQuery(['month' => $prevMonth]) }}" class="payments-month-nav-btn" title="Previous month">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </a>
-                        <span class="payments-month-nav-label">{{ $selectedMonth->format('F Y') }}</span>
-                        <a href="{{ $isCurrentMonth ? '#' : request()->fullUrlWithQuery(['month' => $nextMonth]) }}"
-                           class="payments-month-nav-btn {{ $isCurrentMonth ? 'is-disabled' : '' }}"
-                           title="{{ $isCurrentMonth ? 'Current month' : 'Next month' }}">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    </div>
                     @if($hasSplitPaymentDirections)
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryDriver" checked>
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryPassenger">
