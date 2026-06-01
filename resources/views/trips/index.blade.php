@@ -154,8 +154,8 @@
         .trips-filter-form {
             display: grid;
             gap: 12px;
-            background: var(--surface);
-            border: 1px solid var(--hairline);
+            background: var(--ch-yellow-tint, #fffbeb);
+            border: 1px solid var(--ch-yellow-line, #fde68a);
             border-radius: var(--r-lg, 14px);
             padding: 14px 16px;
             margin: 0 28px 12px;
