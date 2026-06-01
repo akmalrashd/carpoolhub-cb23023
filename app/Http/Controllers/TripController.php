@@ -28,7 +28,7 @@ class TripController extends Controller
             'status_filter' => ['nullable', 'in:all,upcoming,completed,draft,cancelled'],
         ]);
 
-        $filters['status_filter'] = $filters['status_filter'] ?? 'upcoming';
+        $filters['status_filter'] = $filters['status_filter'] ?? 'all';
         $tripStatusCounts = $this->tripService->statusCountsForUser($request->user(), $filters);
         $trips = $this->tripService->paginateForUser($request->user(), 10, $filters);
 

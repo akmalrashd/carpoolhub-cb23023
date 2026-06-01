@@ -53,6 +53,25 @@ class PaymentService
 
     public function indexCountsForUser(User $user, array $filters = [], bool $includeDriverQueue = false, ?array $tripIds = null): array
     {
+        if ($user->role === 'admin') {
+            $allQuery = TripPayment::query()
+                ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
+                ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
+
+            $countFilters = $filters;
+            unset($countFilters['payment_filter'], $countFilters['direction']);
+            $this->applyIndexFilters($allQuery, $countFilters);
+
+            return [
+                'all' => (int) (clone $allQuery)->count(),
+                'pay' => 0,
+                'collect' => (int) (clone $allQuery)->count(),
+                'unpaid' => (int) (clone $allQuery)->where('payment_status', 'unpaid')->count(),
+                'review' => (int) (clone $allQuery)->where('payment_status', 'pending_confirmation')->count(),
+                'confirmed' => (int) (clone $allQuery)->where('payment_status', 'paid')->count(),
+            ];
+        }
+
         $payQuery = TripPayment::query()
             ->where('user_id', $user->id)
             ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))

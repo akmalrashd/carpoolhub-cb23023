@@ -40,6 +40,10 @@ class PaymentController extends Controller
         $filters['direction'] = $filters['direction'] ?? 'all';
 
         $role = (string) $request->user()->role;
+        if ($role === 'admin') {
+            $filters['direction'] = 'all';
+        }
+
         $showMyPayments = $role !== 'admin';
         $canReviewQueue = in_array($role, ['admin', 'driver'], true);
 
@@ -47,7 +51,7 @@ class PaymentController extends Controller
         // Any trip_id/trip_ids query param is used only for client-side scroll/highlight.
         $tripIds = null;
 
-        $showPayRecords = ($filters['direction'] ?? 'all') !== 'collect';
+        $showPayRecords = $showMyPayments && ($filters['direction'] ?? 'all') !== 'collect';
         $showCollectRecords = $canReviewQueue && ($filters['direction'] ?? 'all') !== 'pay';
 
         $myPayments = $showPayRecords

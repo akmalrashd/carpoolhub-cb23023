@@ -1618,9 +1618,9 @@
             border: 1px solid #facc15;
             border-radius: 18px;
             background: #fff8cf;
-            padding: 18px;
+            padding: 22px;
             display: grid;
-            gap: 10px;
+            gap: 14px;
             position: sticky;
             top: 18px;
         }
@@ -1645,16 +1645,19 @@
         }
         .payments-total-metrics {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 8px;
         }
         .payments-total-metric {
             border: 1px solid rgba(120, 90, 0, .18);
             border-radius: 12px;
             background: rgba(255, 255, 255, .45);
-            padding: 9px 10px;
+            padding: 12px 8px;
             display: grid;
-            gap: 2px;
+            align-content: start;
+            gap: 12px;
+            min-height: 76px;
+            min-width: 0;
         }
         .payments-total-metric span,
         .payments-summary-detail-row span,
@@ -1664,12 +1667,16 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: .04em;
+            line-height: 1.35;
+            max-width: 100%;
         }
         .payments-total-metric b {
             color: var(--ink);
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 900;
             white-space: nowrap;
+            line-height: 1.15;
+            max-width: 100%;
         }
         .payments-summary-detail {
             border-top: 1px solid rgba(120, 90, 0, .18);
@@ -1786,13 +1793,13 @@
         }
         .payments-summary-panel {
             border-top: 1px solid rgba(120, 90, 0, .18);
-            padding-top: 10px;
+            padding-top: 14px;
             display: grid;
-            gap: 8px;
+            gap: 12px;
         }
         .payments-summary-panel-title {
             color: var(--ink);
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 900;
         }
         .payments-tools-card,
@@ -3050,6 +3057,14 @@
             .payments-mobile-total {
                 padding: 18px 16px;
             }
+            .payments-mobile-total .payments-total-metric {
+                min-height: 70px;
+                padding: 10px;
+                gap: 10px;
+            }
+            .payments-mobile-total .payments-total-metric b {
+                font-size: 18px;
+            }
             .payment-mobile-item {
                 border-radius: 16px;
                 padding: 14px 14px 12px;
@@ -3083,7 +3098,9 @@
         $myRecordCount = isset($myPayments) ? $myPayments->total() : 0;
         $queueCount = (isset($driverPayments) && $driverPayments ? $driverPayments->total() : 0)
             + (isset($archivedDriverPayments) && $archivedDriverPayments ? $archivedDriverPayments->total() : 0);
+        $isAdmin = $role === 'admin';
         $isPassenger = $role === 'passenger';
+        $hasSplitPaymentDirections = $canReviewQueue && ! $isAdmin;
         $unpaidAmt = (float) ($summary['my']['unpaid']['amount'] ?? $summary['driver']['unpaid']['amount'] ?? 0);
         $pendingAmt = (float) ($summary['my']['pending_confirmation']['amount'] ?? $summary['driver']['pending_confirmation']['amount'] ?? 0);
         $paidAmt = (float) ($summary['my']['paid']['amount'] ?? 0);
@@ -3095,8 +3112,11 @@
             ->unique(fn ($payment) => $payment->id . ':' . $payment->trip_id)
             ->sortByDesc(fn ($payment) => $payment->trip?->trip_datetime?->timestamp ?? $payment->id)
             ->values();
-        $paymentPerspective = fn ($payment): string => (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
-            && (int) $payment->user_id !== (int) auth()->id()
+        $paymentPerspective = fn ($payment): string => (
+            ((int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
+                && (int) $payment->user_id !== (int) auth()->id())
+            || $isAdmin
+        )
                 ? 'collect'
                 : 'pay';
         $activePaymentFilter = $filters['payment_filter'] ?? request('payment_filter', 'all');
@@ -3146,14 +3166,15 @@
         $myUnpaidAmount = (float) ($summary['my']['unpaid']['amount'] ?? 0);
         $myPendingAmount = (float) ($summary['my']['pending_confirmation']['amount'] ?? 0);
         $myPaidAmount = (float) ($summary['my']['paid']['amount'] ?? 0);
-        $summaryMainLabel = $canReviewQueue ? 'To collect' : 'To pay';
-        $summaryMainAmount = $canReviewQueue
+        $summaryMainLabel = $isAdmin ? 'All payments' : ($canReviewQueue ? 'To collect' : 'To pay');
+        $summaryMainAmount = ($canReviewQueue || $isAdmin)
             ? ($driverUnpaidAmount + $driverPendingAmount + $driverPaidAmount)
             : ($myUnpaidAmount + $myPendingAmount);
-        $summaryPrimaryAmount = $canReviewQueue ? $driverUnpaidAmount : $myUnpaidAmount;
-        $summaryPrimaryLabel = $canReviewQueue ? 'Unpaid by passengers' : 'Unpaid to drivers';
-        $summarySecondaryAmount = $canReviewQueue ? $driverPendingAmount : $myPendingAmount;
+        $summaryPrimaryAmount = ($canReviewQueue || $isAdmin) ? $driverUnpaidAmount : $myUnpaidAmount;
+        $summaryPrimaryLabel = ($canReviewQueue || $isAdmin) ? 'Unpaid by passengers' : 'Unpaid to drivers';
+        $summarySecondaryAmount = ($canReviewQueue || $isAdmin) ? $driverPendingAmount : $myPendingAmount;
         $summarySecondaryLabel = $canReviewQueue ? 'Pending confirmation' : 'Pending confirmation';
+        $summaryPaidAmount = ($canReviewQueue || $isAdmin) ? $driverPaidAmount : $myPaidAmount;
         $driverCollectionRows = $allLivePayments
             ->filter(fn ($payment) => $paymentPerspective($payment) === 'collect' && in_array((string) $payment->payment_status, ['unpaid', 'pending_confirmation', 'paid'], true))
             ->groupBy(fn ($payment) => $payment->user?->name ?: 'Passenger')
@@ -3192,6 +3213,10 @@
                 ];
             })
             ->values();
+        $summaryDetailRows = $isAdmin ? $driverCollectionRows : $passengerPayRows;
+        $summaryDetailTitle = $isAdmin ? 'All user payments' : 'Where you still need to pay';
+        $summaryRecordCount = $isAdmin ? $allLiveCount : ($canReviewQueue ? $collectCount : $payCount);
+        $mainPaymentsPaginator = $isAdmin ? $driverPayments : $myPayments;
     @endphp
 
     <div class="payments-page">
@@ -3200,11 +3225,11 @@
                 <p class="payments-eyebrow">Payments</p>
                 <h1 class="payments-h1">{{ $isPassenger ? 'Your payments' : 'Payment ledger' }}</h1>
                 <p class="payments-sub">
-                    {{ $canReviewQueue ? 'Payments you need to pay are separated from fares you collect as a driver.' : 'Track fares you need to pay and payments already confirmed.' }}
+                    {{ $isAdmin ? 'Review every user payment in one admin ledger.' : ($canReviewQueue ? 'Payments you need to pay are separated from fares you collect as a driver.' : 'Track fares you need to pay and payments already confirmed.') }}
                 </p>
                 <div class="payments-tab-strip">
                     <a class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'all', 'direction' => 'all']) }}">All &middot; {{ $allLiveCount }}</a>
-                    @if($canReviewQueue)
+                    @if($hasSplitPaymentDirections)
                         <a class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'pay']) }}">To pay &middot; {{ $payCount }}</a>
                         <a class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'collect']) }}">To collect &middot; {{ $collectCount }}</a>
                     @else
@@ -3215,7 +3240,7 @@
                 </div>
                 <div class="payments-tab-strip">
                     <button class="payments-tab active" type="button" onclick="pmtTab(this,'all')">All · {{ $allLiveCount }}</button>
-                    @if($canReviewQueue)
+                    @if($hasSplitPaymentDirections)
                         <button class="payments-tab" type="button" onclick="pmtTab(this,'pay')">To pay · {{ $payCount }}</button>
                         <button class="payments-tab" type="button" onclick="pmtTab(this,'collect')">To collect · {{ $collectCount }}</button>
                     @else
@@ -3234,7 +3259,7 @@
         </section>
 
         <section class="payments-mobile-total">
-            @if($canReviewQueue)
+            @if($hasSplitPaymentDirections)
                 <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryDriver" checked>
                 <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryPassenger">
                 <div class="payments-summary-top">
@@ -3324,27 +3349,27 @@
                     <div class="payments-summary-title-block">
                         <span>{{ strtoupper($monthLabel) }}</span>
                         <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
-                        <small>{{ $summaryMainLabel }} · {{ $payCount }} records</small>
+                        <small>{{ $summaryMainLabel }} · {{ $summaryRecordCount }} records</small>
                     </div>
                 </div>
                 <div class="payments-total-metrics">
                     <div class="payments-total-metric">
                         <span>Unpaid</span>
-                        <b>RM {{ number_format($myUnpaidAmount, 2) }}</b>
+                        <b>RM {{ number_format($summaryPrimaryAmount, 2) }}</b>
                     </div>
                     <div class="payments-total-metric">
                         <span>Pending</span>
-                        <b>RM {{ number_format($myPendingAmount, 2) }}</b>
+                        <b>RM {{ number_format($summarySecondaryAmount, 2) }}</b>
                     </div>
                     <div class="payments-total-metric">
                         <span>Paid</span>
-                        <b>RM {{ number_format($myPaidAmount, 2) }}</b>
+                        <b>RM {{ number_format($summaryPaidAmount, 2) }}</b>
                     </div>
                 </div>
                 <details class="payments-summary-detail">
-                    <summary>Where you still need to pay</summary>
+                    <summary>{{ $summaryDetailTitle }}</summary>
                     <div class="payments-summary-detail-list">
-                        @forelse($passengerPayRows as $payRow)
+                        @forelse($summaryDetailRows as $payRow)
                             <div class="payments-summary-detail-row">
                                 <span>{{ $payRow['records'] }} records</span>
                                 <strong>{{ $payRow['name'] }}</strong>
@@ -3414,6 +3439,7 @@
                     </div>
                 </div>
             </section>
+        @endif
 
             <div class="payments-main-grid">
             <section class="payments-card payments-ledger-card" id="my-payments-list">
@@ -3501,16 +3527,20 @@
                             $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                             $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
                             $fareBreakdown = $paymentFareBreakdown($payment);
-                            $isDriverQueueRecord = (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
-                                && (int) $payment->user_id !== (int) auth()->id();
+                            $isDriverQueueRecord = $isAdmin || (
+                                (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
+                                && (int) $payment->user_id !== (int) auth()->id()
+                            );
                             $counterparty = $isDriverQueueRecord
                                 ? ($payment->user?->name ?: '-')
                                 : ($payment->trip?->driver?->name ?: '-');
                             $initials = $paymentInitials($counterparty);
                             $amountSign = $isDriverQueueRecord ? '+' : '-';
-                            $shortStatusText = $payment->payment_status === 'pending_confirmation' ? 'Driver Review' : $statusText;
+                            $shortStatusText = $payment->payment_status === 'pending_confirmation'
+                                ? ($isAdmin ? 'Admin Review' : 'Driver Review')
+                                : $statusText;
                             $perspective = $isDriverQueueRecord ? 'collect' : 'pay';
-                            $perspectiveLabel = $isDriverQueueRecord ? 'You collect' : 'You pay';
+                            $perspectiveLabel = $isAdmin ? 'Admin review' : ($isDriverQueueRecord ? 'You collect' : 'You pay');
                             $paymentActionLabel = $isDriverQueueRecord
                                 ? ($payment->payment_status === 'pending_confirmation' ? 'Review' : ($payment->payment_status === 'unpaid' ? 'Notify' : 'Receipt'))
                                 : ($payment->payment_status === 'unpaid' ? 'Pay' : ($payment->payment_status === 'pending_confirmation' ? 'Pending' : 'Receipt'));
@@ -3737,6 +3767,9 @@
                                     'others' => 'Others',
                                     default => '-',
                                 };
+                                $reminderMeta = $reminderState[$payment->id] ?? ['can_send' => true, 'seconds_left' => 0];
+                                $canSendReminder = (bool) $reminderMeta['can_send'];
+                                $secondsLeft = (int) ($reminderMeta['seconds_left'] ?? 0);
                                 $participantsPayload = $payment->trip?->participants?->map(function ($participant) {
                                     $participantUser = $participant->user;
                                     return [
@@ -3757,15 +3790,19 @@
                                 $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                                 $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
                                 $fareBreakdown = $paymentFareBreakdown($payment);
-                                $isDriverQueueRecord = (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
-                                    && (int) $payment->user_id !== (int) auth()->id();
+                                $isDriverQueueRecord = $isAdmin || (
+                                    (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
+                                    && (int) $payment->user_id !== (int) auth()->id()
+                                );
                                 $counterparty = $isDriverQueueRecord
                                     ? ($payment->user?->name ?: '-')
                                     : ($payment->trip?->driver?->name ?: '-');
                             $amountSign = $isDriverQueueRecord ? '+' : '-';
-                            $shortStatusText = $payment->payment_status === 'pending_confirmation' ? 'Driver Review' : $statusText;
+                            $shortStatusText = $payment->payment_status === 'pending_confirmation'
+                                ? ($isAdmin ? 'Admin Review' : 'Driver Review')
+                                : $statusText;
                             $perspective = $isDriverQueueRecord ? 'collect' : 'pay';
-                            $perspectiveLabel = $isDriverQueueRecord ? 'You collect' : 'You pay';
+                            $perspectiveLabel = $isAdmin ? 'Admin review' : ($isDriverQueueRecord ? 'You collect' : 'You pay');
                         @endphp
                             <tr
                                 class="open-trip-card js-payment-filter-item"
@@ -3955,9 +3992,9 @@
                     </table>
                 </div>
                 <div class="payments-filter-empty" data-filter-empty>No payment records match the current filters.</div>
-                @if($myPayments)
+                @if($mainPaymentsPaginator)
                 <div style="margin-top:12px;">
-                    {{ $myPayments->appends(request()->query())->links() }}
+                    {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
                 </div>
                 @endif
                 @php
@@ -3984,7 +4021,7 @@
             </section>
             <aside class="payments-side-panel">
                 <section class="payments-total-card">
-                    @if($canReviewQueue)
+                    @if($hasSplitPaymentDirections)
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryDriver" checked>
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryPassenger">
                         <div class="payments-summary-top">
@@ -4070,25 +4107,25 @@
                     @else
                         <span class="payments-total-label">{{ strtoupper($monthLabel) }}</span>
                         <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
-                        <small>{{ $summaryMainLabel }} · passenger payment view</small>
+                        <small>{{ $summaryMainLabel }} · {{ $isAdmin ? 'admin payment view' : 'passenger payment view' }}</small>
                         <div class="payments-total-metrics">
                             <div class="payments-total-metric">
-                                <span>{{ $summaryPrimaryLabel }}</span>
+                                <span>Unpaid</span>
                                 <b>RM {{ number_format($summaryPrimaryAmount, 2) }}</b>
                             </div>
                             <div class="payments-total-metric">
-                                <span>{{ $summarySecondaryLabel }}</span>
+                                <span>Pending</span>
                                 <b>RM {{ number_format($summarySecondaryAmount, 2) }}</b>
                             </div>
                             <div class="payments-total-metric">
                                 <span>Paid</span>
-                                <b>RM {{ number_format($myPaidAmount, 2) }}</b>
+                                <b>RM {{ number_format($summaryPaidAmount, 2) }}</b>
                             </div>
                         </div>
                         <div class="payments-summary-panel">
-                            <div class="payments-summary-panel-title">Where you still need to pay</div>
+                            <div class="payments-summary-panel-title">{{ $summaryDetailTitle }}</div>
                             <div class="payments-summary-detail-list">
-                                @forelse($passengerPayRows as $payRow)
+                                @forelse($summaryDetailRows as $payRow)
                                     <div class="payments-summary-detail-row">
                                         <span>{{ $payRow['records'] }} records</span>
                                         <strong>{{ $payRow['name'] }}</strong>
@@ -4107,9 +4144,8 @@
                 </section>
             </aside>
             </div>
-        @endif
 
-        @if($canReviewQueue)
+        @if($hasSplitPaymentDirections)
             <section class="payments-card" id="queue-summary">
                 <h2 class="payments-section-title">Queue Summary</h2>
                 <div class="payments-summary-grid">

@@ -9,16 +9,23 @@
         .tabs {
             display: inline-flex;
             gap: 4px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             margin-top: 18px;
             padding: 4px;
             border: 1px solid var(--hairline);
             border-radius: 10px;
             background: var(--surface-2);
+            max-width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
         .tab {
             display: inline-flex;
             align-items: center;
+            flex: 0 0 auto;
             border: 1px solid transparent;
             border-radius: 8px;
             background: transparent;
@@ -2087,17 +2094,19 @@
         $draftCount       = (int) ($tripStatusCounts['draft'] ?? 0);
         $cancelledCount   = (int) ($tripStatusCounts['cancelled'] ?? 0);
         $inProgressCount  = 0;
+        $isAdmin = auth()->user()->role === 'admin';
 
-        $activeChip = $filters['status_filter'] ?? request('status_filter', 'upcoming');
+        $activeChip = $filters['status_filter'] ?? request('status_filter', 'all');
     @endphp
 
     {{-- ── Page header ── --}}
     <div class="trips-page-header">
         <div class="trips-page-header-left">
-            <p class="trips-eyebrow">My trips</p>
-            <h1 class="trips-h1">Your trips</h1>
-            <p class="trips-sub">All trips you've driven or joined.</p>
+            <p class="trips-eyebrow">{{ $isAdmin ? 'Admin trips' : 'My trips' }}</p>
+            <h1 class="trips-h1">{{ $isAdmin ? 'All user trips' : 'Your trips' }}</h1>
+            <p class="trips-sub">{{ $isAdmin ? 'Review and manage every trip created by users.' : "All trips you've driven or joined." }}</p>
             <div class="tabs">
+                <span class="tab {{ $activeChip === 'all' ? 'active' : '' }}" data-tab="all">All &middot; {{ $allCount }}</span>
                 <span class="tab {{ $activeChip === 'upcoming' ? 'active' : '' }}" data-tab="upcoming">Upcoming &middot; {{ $upcomingCount }}</span>
                 <span class="tab {{ $activeChip === 'completed' ? 'active' : '' }}" data-tab="completed">Past &middot; {{ $completedCount }}</span>
                 <span class="tab {{ $activeChip === 'draft' ? 'active' : '' }}" data-tab="draft">Drafts &middot; {{ $draftCount }}</span>
@@ -2573,7 +2582,7 @@
                                             <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn icon-only" title="Edit trip" aria-label="Edit trip">
                                                 <i class="fa-regular fa-pen-to-square"></i>
                                             </a>
-                                            @if(!in_array($trip->status, ['cancelled', 'completed'], true))
+                                            @if($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true))
                                                 <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Cancel this trip? This will delete the trip and all related records.');">
                                                     @csrf
                                                     @method('DELETE')
@@ -2964,7 +2973,7 @@
                                             <a href="{{ route('trips.edit', $trip) }}" class="trip-row-icon-btn" title="Edit trip" aria-label="Edit trip">
                                                 <i class="fa-regular fa-pen-to-square"></i>
                                             </a>
-                                            @if($trip->status !== 'completed')
+                                            @if($isAdmin || $trip->status !== 'completed')
                                                 <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-row-icon-form" onsubmit="return confirm('Delete this trip? This will remove the trip and all related records.');">
                                                     @csrf
                                                     @method('DELETE')
