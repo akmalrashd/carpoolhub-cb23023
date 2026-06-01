@@ -95,9 +95,9 @@
             padding: 0 28px 28px;
         }
         .trips-table-card {
-            background: var(--surface);
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-lg);
+            background: #fff;
+            border: 1px solid #dbe2ea;
+            border-radius: 14px;
             overflow: hidden;
             box-shadow: var(--shadow-1);
         }
@@ -156,7 +156,7 @@
             border-radius: 14px;
             background: #f8fafc;
             padding: 12px;
-            margin: 0 28px 12px;
+            margin: 0 20px 12px;
             display: grid;
             gap: 8px;
         }
@@ -1958,7 +1958,7 @@
                 display: none !important;
             }
             .trips-filter-form {
-                margin: 0 0 12px;
+                margin: 0 12px 12px;
                 grid-template-columns: 1fr;
             }
             .trip-mobile-list {
@@ -2145,41 +2145,6 @@
         </div>
     </div>
 
-    {{-- ── Filter form (standalone, outside table card) ── --}}
-    <form method="GET" action="{{ route('trips.index') }}" class="trips-filter-form" id="tripsFilterPanel" style="{{ (request()->hasAny(['date_from','date_to','visibility','trip_search'])) ? '' : 'display:none' }}">
-        @if($activeChip !== 'all')
-            <input type="hidden" name="status_filter" value="{{ $activeChip }}">
-        @endif
-        <p class="trips-filter-hint">Filters apply automatically on change.</p>
-        <div class="trips-filter-field">
-            <label class="trips-filter-label" for="trip_date_from">From Date</label>
-            <input id="trip_date_from" name="date_from" type="date" class="trips-filter-input"
-                value="{{ $filters['date_from'] ?? request('date_from') }}" onchange="this.form.submit()">
-        </div>
-        <div class="trips-filter-field">
-            <label class="trips-filter-label" for="trip_date_to">To Date</label>
-            <input id="trip_date_to" name="date_to" type="date" class="trips-filter-input"
-                value="{{ $filters['date_to'] ?? request('date_to') }}" onchange="this.form.submit()">
-        </div>
-        <div class="trips-filter-field">
-            <label class="trips-filter-label" for="trip_visibility">Visibility</label>
-            <select id="trip_visibility" name="visibility" class="trips-filter-input" onchange="this.form.submit()">
-                <option value="">All</option>
-                <option value="public"  {{ ($filters['visibility'] ?? request('visibility')) === 'public'  ? 'selected' : '' }}>Public</option>
-                <option value="private" {{ ($filters['visibility'] ?? request('visibility')) === 'private' ? 'selected' : '' }}>Private</option>
-            </select>
-        </div>
-        <div class="trips-filter-field">
-            <label class="trips-filter-label" for="trip_search">Search</label>
-            <input id="trip_search" name="trip_search" type="text" class="trips-filter-input"
-                placeholder="Route, driver, or passenger"
-                value="{{ $filters['trip_search'] ?? request('trip_search') }}">
-        </div>
-        <div class="trips-filter-actions">
-            <a href="{{ route('trips.index') }}" class="trips-filter-reset">Reset</a>
-        </div>
-    </form>
-
     {{-- ── Table card ── --}}
     <div class="trips-table-section">
         <div class="trips-table-card">
@@ -2207,6 +2172,41 @@
                     </a>
                 @endforeach
             </div>
+
+            {{-- Filter form ── inside card, same as payments --}}
+            <form method="GET" action="{{ route('trips.index') }}" class="trips-filter-form" id="tripsFilterPanel" style="{{ (request()->hasAny(['date_from','date_to','visibility','trip_search'])) ? '' : 'display:none' }}">
+                @if($activeChip !== 'all')
+                    <input type="hidden" name="status_filter" value="{{ $activeChip }}">
+                @endif
+                <p class="trips-filter-hint">Filters apply automatically on change.</p>
+                <div class="trips-filter-field">
+                    <label class="trips-filter-label" for="trip_date_from">From Date</label>
+                    <input id="trip_date_from" name="date_from" type="date" class="trips-filter-input"
+                        value="{{ $filters['date_from'] ?? request('date_from') }}" onchange="this.form.submit()">
+                </div>
+                <div class="trips-filter-field">
+                    <label class="trips-filter-label" for="trip_date_to">To Date</label>
+                    <input id="trip_date_to" name="date_to" type="date" class="trips-filter-input"
+                        value="{{ $filters['date_to'] ?? request('date_to') }}" onchange="this.form.submit()">
+                </div>
+                <div class="trips-filter-field">
+                    <label class="trips-filter-label" for="trip_visibility">Visibility</label>
+                    <select id="trip_visibility" name="visibility" class="trips-filter-input" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        <option value="public"  {{ ($filters['visibility'] ?? request('visibility')) === 'public'  ? 'selected' : '' }}>Public</option>
+                        <option value="private" {{ ($filters['visibility'] ?? request('visibility')) === 'private' ? 'selected' : '' }}>Private</option>
+                    </select>
+                </div>
+                <div class="trips-filter-field">
+                    <label class="trips-filter-label" for="trip_search">Search</label>
+                    <input id="trip_search" name="trip_search" type="text" class="trips-filter-input"
+                        placeholder="Route, driver, or passenger"
+                        value="{{ $filters['trip_search'] ?? request('trip_search') }}">
+                </div>
+                <div class="trips-filter-actions">
+                    <a href="{{ route('trips.index') }}" class="trips-filter-reset">Reset</a>
+                </div>
+            </form>
 
             {{-- Empty state --}}
             @if($trips->isEmpty())
