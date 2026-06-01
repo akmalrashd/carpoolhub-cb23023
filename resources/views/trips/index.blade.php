@@ -154,11 +154,11 @@
         .trips-filter-form {
             display: grid;
             gap: 10px;
-            background: var(--surface-2);
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
+            background: var(--surface-2, #f8fafc);
+            border: 1px solid var(--hairline, #dbe2ea);
+            border-radius: var(--r-lg, 14px);
             padding: 14px;
-            margin: 14px 20px 0;
+            margin: 12px 20px 0;
         }
         @media (min-width: 640px) {
             .trips-filter-form {
@@ -170,38 +170,42 @@
             margin: 0;
             color: var(--muted);
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             grid-column: 1 / -1;
         }
         .trips-filter-field {
             display: grid;
-            gap: 4px;
+            gap: 5px;
         }
         .trips-filter-label {
+            display: block;
             font-size: 11px;
             color: var(--muted);
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .03em;
+            letter-spacing: .05em;
         }
         .trips-filter-input {
             width: 100%;
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-sm);
-            background: var(--surface);
+            min-height: 44px;
+            border: 1px solid var(--hairline-strong, #dbe2ea);
+            border-radius: var(--r-md, 12px);
+            background: var(--surface, #fff);
             color: var(--ink);
-            padding: 8px 10px;
-            font-size: 13px;
+            padding: 10px 12px;
+            font-size: 14px;
             outline: none;
             font-family: var(--font-ui), sans-serif;
+            transition: border-color .15s;
         }
         .trips-filter-input:focus {
-            border-color: var(--ch-yellow-line);
-            box-shadow: 0 0 0 2px rgba(250,204,21,.18);
+            border-color: var(--ch-yellow, #facc15);
+            box-shadow: 0 0 0 3px rgba(250,204,21,.15);
         }
         .trips-filter-actions {
-            display: inline-flex;
+            display: flex;
             align-items: flex-end;
+            gap: 8px;
         }
 
         /* ── Empty state ── */
@@ -1942,6 +1946,10 @@
             .trips-chip-row {
                 display: none !important;
             }
+            .trips-filter-form {
+                margin: 10px 0 0;
+                grid-template-columns: 1fr;
+            }
             .trip-mobile-list {
                 display: grid;
                 gap: 10px;
@@ -2191,7 +2199,7 @@
                     </select>
                 </div>
                 <div class="trips-filter-actions">
-                    <a href="{{ route('trips.index') }}" class="btn btn-ghost btn-sm">Reset</a>
+                    <a href="{{ route('trips.index') }}" class="btn btn-ghost btn-sm" style="min-height:44px; border-radius:12px; font-size:13px; font-weight:800; padding:0 16px;">Reset</a>
                 </div>
             </form>
 
