@@ -190,7 +190,7 @@
             min-height: 46px;
             border: 1px solid var(--hairline-strong, #dbe2ea);
             border-radius: 12px;
-            background: var(--surface-2, #f8fafc);
+            background: #fff;
             color: var(--ink);
             padding: 10px 12px;
             font-size: 14px;
