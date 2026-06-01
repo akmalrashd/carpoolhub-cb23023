@@ -518,8 +518,7 @@ class PaymentService
     private function applyPayableTripScope($tripQuery): void
     {
         $tripQuery
-            ->activeOperational()
-            ->where('status', '!=', 'draft')
+                        ->where('status', '!=', 'draft')
             ->whereNotNull('trip_datetime');
     }
 

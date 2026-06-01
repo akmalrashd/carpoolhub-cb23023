@@ -96,8 +96,7 @@ class ExploreController extends Controller
         abort_unless(
             Trip::query()
                 ->whereKey($trip->id)
-                ->activeOperational()
-                ->exists(),
+                                ->exists(),
             404
         );
 
