@@ -107,29 +107,9 @@ class User extends Authenticatable
         return $this->hasMany(TripJoinRequest::class, 'user_id');
     }
 
-    public function billingCyclesClosed(): HasMany
-    {
-        return $this->hasMany(BillingCycle::class, 'closed_by');
-    }
-
     public function userNotifications(): HasMany
     {
         return $this->hasMany(UserNotification::class);
-    }
-
-    public function archivedDrivenTrips(): HasMany
-    {
-        return $this->hasMany(ArchivedTrip::class, 'driver_id');
-    }
-
-    public function archivedTripParticipants(): HasMany
-    {
-        return $this->hasMany(ArchivedTripParticipant::class);
-    }
-
-    public function archivedTripPayments(): HasMany
-    {
-        return $this->hasMany(ArchivedTripPayment::class);
     }
 
     public function getWhatsappDigitsAttribute(): ?string

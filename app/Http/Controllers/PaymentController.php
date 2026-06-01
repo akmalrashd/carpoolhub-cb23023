@@ -7,8 +7,6 @@ use App\Http\Requests\Payment\MarkPaidRequest;
 use App\Http\Requests\Payment\RejectPaidRequest;
 use App\Http\Requests\Payment\SendReminderRequest;
 use App\Models\TripPayment;
-use App\Services\ArchiveService;
-use App\Services\ArchivedPaymentService;
 use App\Services\PaymentService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -20,10 +18,7 @@ class PaymentController extends Controller
 {
     public function __construct(
         private readonly PaymentService $paymentService,
-        private readonly ArchiveService $archiveService,
-        private readonly ArchivedPaymentService $archivedPaymentService
-    )
-    {
+    ) {
     }
 
     public function index(Request $request): View
@@ -60,24 +55,11 @@ class PaymentController extends Controller
         $driverPayments = $showCollectRecords
             ? $this->paymentService->paginateForDriver($request->user(), 12, $filters, $tripIds)
             : null;
-        $archivedDriverPayments = $canReviewQueue
-            ? $this->archiveService->paginateArchivedPaymentsForDriver(
-                $request->user(),
-                null,
-                12,
-                'archived_driver_page',
-                ['unpaid', 'pending_confirmation']
-            )
-            : null;
         $reminderState = $canReviewQueue && $driverPayments
             ? $this->paymentService->reminderStateForPayments($driverPayments->getCollection())
             : [];
-        $archivedReminderState = $canReviewQueue && $archivedDriverPayments
-            ? $this->archivedPaymentService->reminderStateForPayments($archivedDriverPayments->getCollection())
-            : [];
         $summary = $this->paymentService->summarizeForUser($request->user(), $tripIds);
         $paymentCounts = $this->paymentService->indexCountsForUser($request->user(), $filters, $canReviewQueue, $tripIds);
-        $archivedSummary = $this->archiveService->summarizeArchivedPayments($request->user(), null);
         $passengerDebtSummary = $canReviewQueue
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
             : null;
@@ -87,13 +69,10 @@ class PaymentController extends Controller
             compact(
                 'myPayments',
                 'driverPayments',
-                'archivedDriverPayments',
                 'summary',
                 'paymentCounts',
-                'archivedSummary',
                 'passengerDebtSummary',
                 'reminderState',
-                'archivedReminderState',
                 'showMyPayments',
                 'canReviewQueue',
                 'filters'

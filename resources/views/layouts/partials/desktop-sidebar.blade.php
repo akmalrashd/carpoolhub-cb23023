@@ -28,12 +28,6 @@
             <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}" title="Payments">
                 <i class="fa-solid fa-wallet"></i><span class="desktop-nav-label">Payments</span>
             </a>
-            <a href="{{ route('billing-cycles.index') }}" class="{{ request()->routeIs('billing-cycles.*') ? 'active' : '' }}" title="Monthly Summary">
-                <i class="fa-solid fa-calendar-check"></i><span class="desktop-nav-label">Monthly Summary</span>
-            </a>
-            <a href="{{ route('archive.index') }}" class="{{ request()->routeIs('archive.*') ? 'active' : '' }}" title="Archive">
-                <i class="fa-solid fa-box-archive"></i><span class="desktop-nav-label">Archive</span>
-            </a>
         </nav>
     </div>
 

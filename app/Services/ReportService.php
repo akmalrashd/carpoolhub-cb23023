@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\BillingCycle;
 use App\Models\Trip;
 use App\Models\TripPayment;
 use App\Models\User;
@@ -45,59 +44,42 @@ class ReportService
         return $result;
     }
 
-    public function cycleReports(int $perPage = 12): LengthAwarePaginator
+    public function monthlyTripSummary(int $months = 12): array
     {
-        $cycles = BillingCycle::query()
-            ->latest('start_date')
-            ->paginate($perPage);
-
-        return $this->attachCycleAggregates($cycles);
-    }
-
-    public function cycleReportsForExport()
-    {
-        $cycles = BillingCycle::query()
-            ->latest('start_date')
+        $rows = DB::table('trips')
+            ->selectRaw("DATE_FORMAT(trip_datetime, '%Y-%m') as month_key, COUNT(*) as trip_count, COALESCE(SUM(fare_total),0) as fare_total")
+            ->whereNotNull('trip_datetime')
+            ->groupByRaw("DATE_FORMAT(trip_datetime, '%Y-%m')")
+            ->orderByDesc('month_key')
+            ->limit($months)
             ->get();
 
-        return $this->attachCycleAggregates($cycles);
-    }
-
-    private function attachCycleAggregates($cycles)
-    {
-        $collection = method_exists($cycles, 'getCollection') ? $cycles->getCollection() : $cycles;
-
-        $cycleIds = $collection->pluck('id');
-        $tripAgg = Trip::query()
-            ->selectRaw('billing_cycle_id, COUNT(*) as trip_count, COALESCE(SUM(fare_total),0) as fare_total')
-            ->whereIn('billing_cycle_id', $cycleIds)
-            ->groupBy('billing_cycle_id')
-            ->get()
-            ->keyBy('billing_cycle_id');
-
-        $paymentAgg = DB::table('trip_payments as tp')
+        $paymentRows = DB::table('trip_payments as tp')
             ->join('trips as t', 't.id', '=', 'tp.trip_id')
             ->selectRaw("
-                t.billing_cycle_id as billing_cycle_id,
+                DATE_FORMAT(t.trip_datetime, '%Y-%m') as month_key,
                 COALESCE(SUM(CASE WHEN tp.payment_status = 'paid' THEN tp.amount_due ELSE 0 END),0) as paid_total,
                 COALESCE(SUM(CASE WHEN tp.payment_status IN ('unpaid','pending_confirmation') THEN tp.amount_due ELSE 0 END),0) as pending_unpaid_total
             ")
-            ->whereIn('t.billing_cycle_id', $cycleIds)
-            ->groupBy('t.billing_cycle_id')
+            ->whereNotNull('t.trip_datetime')
+            ->groupByRaw("DATE_FORMAT(t.trip_datetime, '%Y-%m')")
             ->get()
-            ->keyBy('billing_cycle_id');
+            ->keyBy('month_key');
 
-        $collection->transform(function ($cycle) use ($tripAgg, $paymentAgg) {
-            $tripRow = $tripAgg->get($cycle->id);
-            $paymentRow = $paymentAgg->get($cycle->id);
-            $cycle->report_trip_count = (int) ($tripRow->trip_count ?? 0);
-            $cycle->report_fare_total = (float) ($tripRow->fare_total ?? 0);
-            $cycle->report_paid_total = (float) ($paymentRow->paid_total ?? 0);
-            $cycle->report_pending_unpaid_total = (float) ($paymentRow->pending_unpaid_total ?? 0);
+        return $rows->map(function ($row) use ($paymentRows) {
+            $pay = $paymentRows->get($row->month_key);
+            return [
+                'month_key' => $row->month_key,
+                'trip_count' => (int) $row->trip_count,
+                'fare_total' => (float) $row->fare_total,
+                'paid_total' => (float) ($pay->paid_total ?? 0),
+                'pending_unpaid_total' => (float) ($pay->pending_unpaid_total ?? 0),
+            ];
+        })->values()->all();
+    }
 
-            return $cycle;
-        });
-
-        return $cycles;
+    public function monthlyTripSummaryForExport(): array
+    {
+        return $this->monthlyTripSummary(24);
     }
 }

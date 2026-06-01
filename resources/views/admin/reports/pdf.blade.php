@@ -62,31 +62,29 @@
     </tbody>
 </table>
 
-<h2>Billing Cycle Financial Summary</h2>
+<h2>Monthly Trip Summary</h2>
 <table>
     <thead>
     <tr>
         <th>Month</th>
-        <th>Status</th>
-        <th class="right">Trip</th>
+        <th class="right">Trips</th>
         <th class="right">Total Fare</th>
         <th class="right">Paid</th>
         <th class="right">Pending/Unpaid</th>
     </tr>
     </thead>
     <tbody>
-    @forelse($cycleReports as $cycle)
+    @forelse($monthlyReports as $row)
         <tr>
-            <td>{{ $cycle->month_key }}</td>
-            <td>{{ ucfirst($cycle->status) }}</td>
-            <td class="right">{{ $cycle->report_trip_count }}</td>
-            <td class="right">RM {{ number_format((float) $cycle->report_fare_total, 2) }}</td>
-            <td class="right">RM {{ number_format((float) $cycle->report_paid_total, 2) }}</td>
-            <td class="right">RM {{ number_format((float) $cycle->report_pending_unpaid_total, 2) }}</td>
+            <td>{{ $row['month_key'] }}</td>
+            <td class="right">{{ $row['trip_count'] }}</td>
+            <td class="right">RM {{ number_format((float) $row['fare_total'], 2) }}</td>
+            <td class="right">RM {{ number_format((float) $row['paid_total'], 2) }}</td>
+            <td class="right">RM {{ number_format((float) $row['pending_unpaid_total'], 2) }}</td>
         </tr>
     @empty
         <tr>
-            <td colspan="6">No cycle data.</td>
+            <td colspan="5">No data available.</td>
         </tr>
     @endforelse
     </tbody>

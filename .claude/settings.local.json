@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\muhda\\\\.claude\\\\projects\\\\c--xampp-htdocs-CarpoolHub\\\\42341b34-4b92-4c02-879e-58335ab93cd7\\\\tool-results\\\\extracted\" | ForEach-Object { $_.FullName + \" \\(\" + $_.Length + \"\\)\" })",
+      "Bash(test -d \"C:\\\\\\\\xampp\\\\\\\\htdocs\\\\\\\\CarpoolHub\\\\\\\\resources\\\\\\\\views\\\\\\\\components\")",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\xampp\\\\htdocs\\\\CarpoolHub\\\\resources\\\\views\" -Recurse | ForEach-Object { if \\($_.PSIsContainer\\) { Write-Output \\(\"DIR:  \" + $_.FullName\\) } else { Write-Output \\(\"FILE: \" + $_.FullName\\) } } | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\xampp\\\\htdocs\\\\CarpoolHub\\\\resources\\\\css\" -Recurse | ForEach-Object { if \\($_.PSIsContainer\\) { Write-Output \\(\"DIR:  \" + $_.FullName\\) } else { Write-Output \\(\"FILE: \" + $_.FullName\\) } } | Sort-Object)"
+    ]
+  }
+}

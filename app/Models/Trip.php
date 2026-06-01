@@ -23,7 +23,6 @@ class Trip extends Model
         'destination_latitude',
         'destination_longitude',
         'parent_trip_id',
-        'billing_cycle_id',
         'trip_datetime',
         'trip_mode',
         'visibility',
@@ -65,11 +64,6 @@ class Trip extends Model
         return $this->belongsTo(SavedRoute::class);
     }
 
-    public function billingCycle(): BelongsTo
-    {
-        return $this->belongsTo(BillingCycle::class);
-    }
-
     public function parentTrip(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_trip_id');
@@ -100,12 +94,4 @@ class Trip extends Model
         return $this->hasMany(TripPassengerRoutePoint::class);
     }
 
-    public function scopeActiveOperational(Builder $query): Builder
-    {
-        return $query->where(function (Builder $tripScope): void {
-            $tripScope
-                ->whereNull('billing_cycle_id')
-                ->orWhereHas('billingCycle', fn (Builder $cycleScope) => $cycleScope->where('status', 'open'));
-        });
-    }
 }

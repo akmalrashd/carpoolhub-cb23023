@@ -59,7 +59,6 @@ class UserNotification extends Model
             'trip_payment' => route('payments.index') . '#queue-summary',
             'connection' => route('connections.index'),
             'route' => route('saved-routes.index'),
-            'billing_cycle' => route('billing-cycles.index'),
             'trip_join_request' => $this->resolveJoinRequestUrl($relatedId),
             default => route('notifications.index'),
         };

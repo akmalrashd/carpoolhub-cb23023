@@ -18,16 +18,16 @@ class AdminReportController extends Controller
     {
         $overview = $this->reportService->overview();
         $paymentBreakdown = $this->reportService->paymentStatusBreakdown();
-        $cycleReports = $this->reportService->cycleReports();
+        $monthlyReports = $this->reportService->monthlyTripSummary();
 
-        return view('admin.reports.index', compact('overview', 'paymentBreakdown', 'cycleReports'));
+        return view('admin.reports.index', compact('overview', 'paymentBreakdown', 'monthlyReports'));
     }
 
     public function exportCsv(): Response
     {
         $overview = $this->reportService->overview();
         $paymentBreakdown = $this->reportService->paymentStatusBreakdown();
-        $cycleReports = $this->reportService->cycleReportsForExport();
+        $monthlyReports = $this->reportService->monthlyTripSummaryForExport();
         $filename = 'carpoolhub-admin-report-' . now()->format('Ymd-His') . '.csv';
 
         $headers = [
@@ -35,7 +35,7 @@ class AdminReportController extends Controller
             'Content-Disposition' => "attachment; filename={$filename}",
         ];
 
-        $callback = function () use ($overview, $paymentBreakdown, $cycleReports): void {
+        $callback = function () use ($overview, $paymentBreakdown, $monthlyReports): void {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['CarpoolHub Admin Report']);
@@ -55,16 +55,15 @@ class AdminReportController extends Controller
             }
             fputcsv($handle, []);
 
-            fputcsv($handle, ['Billing Cycle Financial Summary']);
-            fputcsv($handle, ['Month', 'Status', 'Trips', 'Fare Total', 'Paid Total', 'Pending/Unpaid Total']);
-            foreach ($cycleReports as $cycle) {
+            fputcsv($handle, ['Monthly Trip Summary']);
+            fputcsv($handle, ['Month', 'Trips', 'Fare Total', 'Paid Total', 'Pending/Unpaid Total']);
+            foreach ($monthlyReports as $row) {
                 fputcsv($handle, [
-                    $cycle->month_key,
-                    $cycle->status,
-                    (string) $cycle->report_trip_count,
-                    number_format((float) $cycle->report_fare_total, 2, '.', ''),
-                    number_format((float) $cycle->report_paid_total, 2, '.', ''),
-                    number_format((float) $cycle->report_pending_unpaid_total, 2, '.', ''),
+                    $row['month_key'],
+                    (string) $row['trip_count'],
+                    number_format((float) $row['fare_total'], 2, '.', ''),
+                    number_format((float) $row['paid_total'], 2, '.', ''),
+                    number_format((float) $row['pending_unpaid_total'], 2, '.', ''),
                 ]);
             }
 
@@ -78,8 +77,8 @@ class AdminReportController extends Controller
     {
         $overview = $this->reportService->overview();
         $paymentBreakdown = $this->reportService->paymentStatusBreakdown();
-        $cycleReports = $this->reportService->cycleReportsForExport();
+        $monthlyReports = $this->reportService->monthlyTripSummaryForExport();
 
-        return view('admin.reports.pdf', compact('overview', 'paymentBreakdown', 'cycleReports'));
+        return view('admin.reports.pdf', compact('overview', 'paymentBreakdown', 'monthlyReports'));
     }
 }

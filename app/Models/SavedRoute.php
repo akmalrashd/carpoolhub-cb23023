@@ -82,11 +82,6 @@ class SavedRoute extends Model
         return $this->hasMany(SavedRoutePassengerStop::class);
     }
 
-    public function archivedTrips(): HasMany
-    {
-        return $this->hasMany(ArchivedTrip::class);
-    }
-
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

@@ -566,19 +566,18 @@
         </div>
     </div>
 
-    {{-- Billing Cycle Financial Summary table ── --}}
+    {{-- Monthly Trip Summary table ── --}}
     <div class="rp-cycle-section">
         <div class="rp-section-card">
             <div class="rp-section-head">
                 <i class="fa-solid fa-calendar-days" style="color:var(--muted-2);font-size:14px;"></i>
-                <h2 class="rp-section-title">Billing cycle financial summary</h2>
+                <h2 class="rp-section-title">Monthly trip summary</h2>
             </div>
             <div class="rp-table-wrap">
                 <table class="rp-table">
                     <thead>
                         <tr>
                             <th>Month</th>
-                            <th>Status</th>
                             <th class="num">Trips</th>
                             <th class="num">Total fare</th>
                             <th class="num">Paid</th>
@@ -586,27 +585,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                    @forelse($cycleReports as $cycle)
+                    @forelse($monthlyReports as $row)
                         <tr>
-                            <td style="font-weight:700;color:var(--ink);">{{ $cycle->month_key }}</td>
-                            <td>
-                                <span class="rp-status {{ $cycle->status }}">{{ ucfirst($cycle->status) }}</span>
-                            </td>
-                            <td class="num">{{ $cycle->report_trip_count }}</td>
-                            <td class="num">RM {{ number_format((float) $cycle->report_fare_total, 2) }}</td>
-                            <td class="num rp-td-paid">RM {{ number_format((float) $cycle->report_paid_total, 2) }}</td>
-                            <td class="num rp-td-pending">RM {{ number_format((float) $cycle->report_pending_unpaid_total, 2) }}</td>
+                            <td style="font-weight:700;color:var(--ink);">{{ $row['month_key'] }}</td>
+                            <td class="num">{{ $row['trip_count'] }}</td>
+                            <td class="num">RM {{ number_format((float) $row['fare_total'], 2) }}</td>
+                            <td class="num rp-td-paid">RM {{ number_format((float) $row['paid_total'], 2) }}</td>
+                            <td class="num rp-td-pending">RM {{ number_format((float) $row['pending_unpaid_total'], 2) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="rp-td-empty">No billing cycles available.</td>
+                            <td colspan="5" class="rp-td-empty">No trip data available.</td>
                         </tr>
                     @endforelse
                     </tbody>
                 </table>
-            </div>
-            <div style="padding:14px 20px;">
-                {{ $cycleReports->links() }}
             </div>
         </div>
     </div>

@@ -3,9 +3,6 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\ArchiveController;
-use App\Http\Controllers\ArchivedPaymentController;
-use App\Http\Controllers\BillingCycleController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExploreController;
@@ -52,16 +49,6 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::patch('/payments/{payment}/confirm-paid', [PaymentController::class, 'confirmPaid'])->name('payments.confirm-paid');
     Route::patch('/payments/{payment}/reject-paid', [PaymentController::class, 'rejectPaid'])->name('payments.reject-paid');
     Route::post('/payments/{payment}/send-reminder', [PaymentController::class, 'sendReminder'])->name('payments.send-reminder');
-    Route::get('/billing-cycles', [BillingCycleController::class, 'index'])->name('billing-cycles.index');
-    Route::patch('/billing-cycles/{billingCycle}/close', [BillingCycleController::class, 'close'])->name('billing-cycles.close');
-    Route::patch('/billing-cycles/fallback/undo-last-close', [BillingCycleController::class, 'undoLastClose'])->name('billing-cycles.undo-last-close');
-    Route::get('/archive', [ArchiveController::class, 'index'])->name('archive.index');
-    Route::get('/archive/trips', [ArchiveController::class, 'trips'])->name('archive.trips.index');
-    Route::get('/archive/payments', [ArchiveController::class, 'payments'])->name('archive.payments.index');
-    Route::patch('/archive/payments/{payment}/mark-paid', [ArchivedPaymentController::class, 'markPaid'])->name('archive.payments.mark-paid');
-    Route::patch('/archive/payments/{payment}/confirm-paid', [ArchivedPaymentController::class, 'confirmPaid'])->name('archive.payments.confirm-paid');
-    Route::patch('/archive/payments/{payment}/reject-paid', [ArchivedPaymentController::class, 'rejectPaid'])->name('archive.payments.reject-paid');
-    Route::post('/archive/payments/{payment}/send-reminder', [ArchivedPaymentController::class, 'sendReminder'])->name('archive.payments.send-reminder');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');

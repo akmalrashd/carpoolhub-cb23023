@@ -71,7 +71,6 @@ class TripService
     private function baseUserTripsQuery(User $user)
     {
         $query = Trip::query()
-            ->activeOperational()
             ->whereNull('parent_trip_id');
 
         if ($user->role !== 'admin') {
@@ -107,7 +106,6 @@ class TripService
 
         $query = Trip::query()
             ->with(['savedRoute', 'driver', 'participants', 'joinRequests' => fn ($joinQuery) => $joinQuery->where('user_id', $user->id)])
-            ->activeOperational()
             ->whereNull('parent_trip_id')
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)
