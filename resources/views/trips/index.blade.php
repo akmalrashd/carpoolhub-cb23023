@@ -1939,8 +1939,7 @@
                 box-shadow: none;
                 overflow: visible;
             }
-            .trips-chip-row,
-            .trips-filter-form {
+            .trips-chip-row {
                 display: none !important;
             }
             .trip-mobile-list {
