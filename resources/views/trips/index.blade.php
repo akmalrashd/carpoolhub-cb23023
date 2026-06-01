@@ -155,7 +155,7 @@
             display: grid;
             gap: 12px;
             background: var(--canvas, #F4EFE2);
-            border: none;
+            border: 1px solid var(--hairline, #ECE7DA);
             border-radius: var(--r-lg, 14px);
             padding: 14px 16px;
             margin: 0 28px 12px;
