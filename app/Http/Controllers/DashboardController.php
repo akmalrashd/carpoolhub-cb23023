@@ -65,13 +65,16 @@ class DashboardController extends Controller
         ];
 
         $stats['total_earnings'] = 'RM ' . number_format((float) TripPayment::query()
-            ->where('payment_status', 'confirmed')
+            ->where('payment_status', 'paid')
             ->whereHas('trip', fn ($query) => $query
-                                ->where('driver_id', $user->id)
+                ->where('driver_id', $user->id)
                 ->whereBetween('trip_datetime', [now()->startOfMonth(), now()->endOfMonth()]))
             ->sum('amount_due'), 2);
 
-        $stats['driver_rating'] = '4.86 ★';
+        $stats['pending_requests'] = (int) TripJoinRequest::query()
+            ->where('status', 'pending')
+            ->whereHas('trip', fn ($query) => $query->where('driver_id', $user->id))
+            ->count();
 
         $upcomingCreatedTrips = Trip::query()
             ->with(['savedRoute', 'participants'])
@@ -101,19 +104,19 @@ class DashboardController extends Controller
 
         $pendingJoinRequests = TripJoinRequest::query()
             ->where('status', 'pending')
-            ->whereHas('trip', fn ($query) => $query->activeOperational()->where('driver_id', $user->id))
+            ->whereHas('trip', fn ($query) => $query->where('driver_id', $user->id))
             ->count();
 
         $joinedTripsCount = TripParticipant::query()
             ->where('user_id', $user->id)
             ->where('is_driver', false)
-            ->whereHas('trip', fn ($query) => $query->activeOperational())
+            ->whereHas('trip', fn ($query) => $query)
             ->count();
 
         $driverReviewQueue = TripPayment::query()
             ->with(['user', 'trip.savedRoute'])
             ->where('payment_status', 'pending_confirmation')
-            ->whereHas('trip', fn ($query) => $query->activeOperational()->where('driver_id', $user->id))
+            ->whereHas('trip', fn ($query) => $query->where('driver_id', $user->id))
             ->latest('updated_at')
             ->limit(5)
             ->get();

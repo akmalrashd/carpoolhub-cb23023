@@ -85,12 +85,14 @@
             ? route($heroSecondary['route'])
             : route('explore.index');
         $mobileHeroSecondaryLabel = $nextTrip ? $heroSecondary['label'] : 'Browse Trips';
-        $tripsThisWeek    = (int) ($stats['trips_this_week'] ?? $stats['trips_this_month'] ?? $stats['driver_trips'] ?? 0);
+        $tripsThisWeek    = (int) ($stats['trips_this_week'] ?? 0);
+        $tripsThisMonth   = (int) ($stats['trips_this_month'] ?? 0);
         $totalEarnings    = $stats['total_earnings'] ?? 'RM 0.00';
         $pendingReviews   = (int) $reviewQueue->count();
-        $pendingRequests  = (int) ($pendingJoinRequests ?? 0);
-        $driverRating     = $stats['driver_rating'] ?? '-';
+        $pendingRequests  = (int) ($pendingJoinRequests ?? $stats['pending_requests'] ?? 0);
         $unpaidCount      = (int) ($stats['unpaid_count'] ?? 0);
+        $unpaidAmount     = $stats['unpaid_amount'] ?? 0;
+        $savedRoutes      = (int) ($stats['saved_routes'] ?? 0);
 
         // Stat subtitle
         $totalTripsAll    = (int) ($stats['total_trips'] ?? 0);
@@ -856,37 +858,91 @@
         {{-- 2. Stats strip -------------------------------------------------- --}}
         <div class="hp-stats-strip">
 
-            {{-- Card 1: Trips this month --}}
+            {{-- Card 1: Trips this week --}}
             <div class="hp-stat-card">
                 <div class="hp-stat-icon"><i class="fa-solid fa-car"></i></div>
                 <span class="hp-stat-label">Trips this week</span>
                 <span class="hp-stat-value">{{ $tripsThisWeek }}</span>
-                <span class="hp-stat-delta">Current schedule</span>
+                <span class="hp-stat-delta">{{ $tripsThisMonth }} this month</span>
             </div>
 
-            {{-- Card 2: Earnings · highlighted --}}
-            <div class="hp-stat-card highlighted">
-                <div class="hp-stat-icon"><i class="fa-solid fa-receipt"></i></div>
-                <span class="hp-stat-label">Earnings &middot; Month</span>
-                <span class="hp-stat-value" style="font-size:20px;">{{ $totalEarnings }}</span>
-                <span class="hp-stat-delta">Current cycle total</span>
-            </div>
+            @if($role === 'passenger')
+                {{-- Passenger Card 2: Outstanding payments --}}
+                <div class="hp-stat-card {{ $unpaidCount > 0 ? 'warning-tone' : '' }}">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-wallet"></i></div>
+                    <span class="hp-stat-label">Outstanding</span>
+                    <span class="hp-stat-value" style="font-size:20px;{{ $unpaidCount > 0 ? 'color:var(--warning-ink)' : '' }}">
+                        RM {{ number_format((float) $unpaidAmount, 2) }}
+                    </span>
+                    <span class="hp-stat-delta">{{ $unpaidCount > 0 ? $unpaidCount . ' unpaid fare' . ($unpaidCount !== 1 ? 's' : '') : 'All fares settled' }}</span>
+                </div>
 
-            {{-- Card 3: Payment review --}}
-            <div class="hp-stat-card {{ $pendingReviews > 0 ? 'warning-tone' : '' }}">
-                <div class="hp-stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <span class="hp-stat-label">Payment review</span>
-                <span class="hp-stat-value" style="{{ $pendingReviews > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingReviews }}</span>
-                <span class="hp-stat-delta">{{ $pendingReviews > 0 ? 'Awaiting your approval' : 'No pending reviews' }}</span>
-            </div>
+                {{-- Passenger Card 3: Connections --}}
+                <div class="hp-stat-card">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-user-group"></i></div>
+                    <span class="hp-stat-label">Connections</span>
+                    <span class="hp-stat-value">{{ $stats['total_trips'] ?? 0 }}</span>
+                    <span class="hp-stat-delta">Trips joined total</span>
+                </div>
 
-            {{-- Card 4: Driver rating --}}
-            <div class="hp-stat-card">
-                <div class="hp-stat-icon"><i class="fa-solid fa-star"></i></div>
-                <span class="hp-stat-label">Driver rating</span>
-                <span class="hp-stat-value">{{ $driverRating }}</span>
-                <span class="hp-stat-delta">Overall score</span>
-            </div>
+                {{-- Passenger Card 4: Pending requests --}}
+                <div class="hp-stat-card">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                    <span class="hp-stat-label">Join requests</span>
+                    <span class="hp-stat-value">{{ $pendingRequests }}</span>
+                    <span class="hp-stat-delta">{{ $pendingRequests > 0 ? 'Awaiting driver response' : 'None pending' }}</span>
+                </div>
+
+            @elseif($role === 'admin')
+                {{-- Admin Card 2: Total trips --}}
+                <div class="hp-stat-card highlighted">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-route"></i></div>
+                    <span class="hp-stat-label">Total trips</span>
+                    <span class="hp-stat-value">{{ $stats['total_trips'] ?? 0 }}</span>
+                    <span class="hp-stat-delta">All time</span>
+                </div>
+
+                {{-- Admin Card 3: Payment reviews --}}
+                <div class="hp-stat-card {{ $pendingReviews > 0 ? 'warning-tone' : '' }}">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <span class="hp-stat-label">Payment review</span>
+                    <span class="hp-stat-value" style="{{ $pendingReviews > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingReviews }}</span>
+                    <span class="hp-stat-delta">{{ $pendingReviews > 0 ? 'Awaiting confirmation' : 'Queue clear' }}</span>
+                </div>
+
+                {{-- Admin Card 4: Pending requests --}}
+                <div class="hp-stat-card">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-inbox"></i></div>
+                    <span class="hp-stat-label">Join requests</span>
+                    <span class="hp-stat-value">{{ $pendingRequests }}</span>
+                    <span class="hp-stat-delta">Platform-wide pending</span>
+                </div>
+
+            @else
+                {{-- Driver Card 2: Earnings this month --}}
+                <div class="hp-stat-card highlighted">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-receipt"></i></div>
+                    <span class="hp-stat-label">Earnings &middot; Month</span>
+                    <span class="hp-stat-value" style="font-size:20px;">{{ $totalEarnings }}</span>
+                    <span class="hp-stat-delta">Paid fares this month</span>
+                </div>
+
+                {{-- Driver Card 3: Payment review queue --}}
+                <div class="hp-stat-card {{ $pendingReviews > 0 ? 'warning-tone' : '' }}">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <span class="hp-stat-label">Payment review</span>
+                    <span class="hp-stat-value" style="{{ $pendingReviews > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingReviews }}</span>
+                    <span class="hp-stat-delta">{{ $pendingReviews > 0 ? 'Awaiting your approval' : 'Queue clear' }}</span>
+                </div>
+
+                {{-- Driver Card 4: Pending join requests --}}
+                <div class="hp-stat-card {{ $pendingRequests > 0 ? 'warning-tone' : '' }}">
+                    <div class="hp-stat-icon"><i class="fa-solid fa-inbox"></i></div>
+                    <span class="hp-stat-label">Join requests</span>
+                    <span class="hp-stat-value" style="{{ $pendingRequests > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingRequests }}</span>
+                    <span class="hp-stat-delta">{{ $pendingRequests > 0 ? 'Awaiting your response' : 'None pending' }}</span>
+                </div>
+            @endif
 
         </div>
 
@@ -1178,16 +1234,40 @@
 
             {{-- 2-col mini stats --}}
             <div class="hp-mobile-stats">
-                <div class="hp-mobile-stat">
-                    <span class="hp-mobile-stat-label">Earnings &middot; May</span>
-                    <span class="hp-mobile-stat-value">{{ str_replace('.00', '', $totalEarnings) }}</span>
-                    <span class="hp-mobile-stat-delta">+12%</span>
-                </div>
-                <div class="hp-mobile-stat {{ $pendingReviews > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $pendingReviews > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
-                    <span class="hp-mobile-stat-label">Reviews</span>
-                    <span class="hp-mobile-stat-value">{{ $pendingReviews }}</span>
-                    <span class="hp-mobile-stat-delta warning">Action needed</span>
-                </div>
+                @if($role === 'passenger')
+                    <div class="hp-mobile-stat {{ $unpaidCount > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $unpaidCount > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
+                        <span class="hp-mobile-stat-label">Outstanding</span>
+                        <span class="hp-mobile-stat-value" style="font-size:18px;">RM {{ number_format((float) $unpaidAmount, 2) }}</span>
+                        <span class="hp-mobile-stat-delta {{ $unpaidCount > 0 ? 'warning' : '' }}">{{ $unpaidCount > 0 ? $unpaidCount . ' unpaid' : 'All settled' }}</span>
+                    </div>
+                    <div class="hp-mobile-stat">
+                        <span class="hp-mobile-stat-label">Trips this week</span>
+                        <span class="hp-mobile-stat-value">{{ $tripsThisWeek }}</span>
+                        <span class="hp-mobile-stat-delta">{{ $tripsThisMonth }} this month</span>
+                    </div>
+                @elseif($role === 'admin')
+                    <div class="hp-mobile-stat">
+                        <span class="hp-mobile-stat-label">Total trips</span>
+                        <span class="hp-mobile-stat-value">{{ $stats['total_trips'] ?? 0 }}</span>
+                        <span class="hp-mobile-stat-delta">All time</span>
+                    </div>
+                    <div class="hp-mobile-stat {{ $pendingReviews > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $pendingReviews > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
+                        <span class="hp-mobile-stat-label">Reviews</span>
+                        <span class="hp-mobile-stat-value">{{ $pendingReviews }}</span>
+                        <span class="hp-mobile-stat-delta {{ $pendingReviews > 0 ? 'warning' : '' }}">{{ $pendingReviews > 0 ? 'Action needed' : 'Queue clear' }}</span>
+                    </div>
+                @else
+                    <div class="hp-mobile-stat">
+                        <span class="hp-mobile-stat-label">Earnings &middot; Month</span>
+                        <span class="hp-mobile-stat-value" style="font-size:18px;">{{ str_replace('RM ', '', $totalEarnings) }}</span>
+                        <span class="hp-mobile-stat-delta">Paid fares</span>
+                    </div>
+                    <div class="hp-mobile-stat {{ $pendingReviews > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $pendingReviews > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
+                        <span class="hp-mobile-stat-label">Reviews</span>
+                        <span class="hp-mobile-stat-value">{{ $pendingReviews }}</span>
+                        <span class="hp-mobile-stat-delta {{ $pendingReviews > 0 ? 'warning' : '' }}">{{ $pendingReviews > 0 ? 'Action needed' : 'Queue clear' }}</span>
+                    </div>
+                @endif
             </div>
 
             {{-- Quick actions: 4-col icon grid --}}
