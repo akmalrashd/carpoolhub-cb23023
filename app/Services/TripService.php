@@ -98,6 +98,17 @@ class TripService
         if (! empty($filters['visibility'])) {
             $query->where('visibility', (string) $filters['visibility']);
         }
+
+        if (! empty($filters['trip_search'])) {
+            $search = trim((string) $filters['trip_search']);
+            $query->where(function ($q) use ($search): void {
+                $q->where('pickup_name', 'like', "%{$search}%")
+                    ->orWhere('destination_name', 'like', "%{$search}%")
+                    ->orWhereHas('savedRoute', fn ($r) => $r->where('route_name', 'like', "%{$search}%"))
+                    ->orWhereHas('driver', fn ($d) => $d->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('participants.user', fn ($u) => $u->where('name', 'like', "%{$search}%"));
+            });
+        }
     }
 
     public function paginateExplore(User $user, int $perPage = 12, array $filters = []): LengthAwarePaginator

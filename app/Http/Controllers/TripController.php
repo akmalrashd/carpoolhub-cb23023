@@ -26,6 +26,7 @@ class TripController extends Controller
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'visibility' => ['nullable', 'in:public,private'],
             'status_filter' => ['nullable', 'in:all,upcoming,completed,draft,cancelled'],
+            'trip_search' => ['nullable', 'string', 'max:100'],
         ]);
 
         $filters['status_filter'] = $filters['status_filter'] ?? 'all';
