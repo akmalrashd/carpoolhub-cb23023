@@ -36,16 +36,12 @@
                 ['route' => 'connections.index', 'title' => 'Connections', 'meta' => 'User network records', 'art' => 'quick-users-3d.svg', 'tone' => 'emerald'],
                 ['route' => 'saved-routes.index', 'title' => 'Routes', 'meta' => 'Route preset administration', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
                 ['route' => 'payments.index', 'title' => 'Payments', 'meta' => 'Review and track fare status', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
-                ['route' => 'billing-cycles.index', 'title' => 'Monthly Summary', 'meta' => 'Operational summary', 'art' => 'quick-summary-3d.svg', 'tone' => 'amber'],
-                ['route' => 'archive.index', 'title' => 'Archive', 'meta' => 'Past cycle records', 'art' => 'quick-archive-3d.svg', 'tone' => 'slate'],
                 ['route' => 'notifications.index', 'title' => 'Notifications', 'meta' => 'System alerts and updates', 'art' => 'quick-notification-3d.svg', 'tone' => 'emerald'],
                 ['route' => 'settings.index', 'title' => 'Settings', 'meta' => 'Profile and account options', 'art' => 'quick-settings-3d.svg', 'tone' => 'slate'],
             ],
             'driver' => [
                 ['route' => 'saved-routes.index', 'title' => 'Routes', 'meta' => 'Route preset management', 'art' => 'quick-route-3d.svg', 'tone' => 'sky'],
                 ['route' => 'payments.index', 'url' => route('payments.index') . '#queue-summary', 'title' => 'Payments', 'meta' => 'Track fare status', 'art' => 'quick-payment-3d.svg', 'tone' => 'amber'],
-                ['route' => 'billing-cycles.index', 'title' => 'Monthly Summary', 'meta' => 'Cycle summary and closure', 'art' => 'quick-summary-3d.svg', 'tone' => 'slate'],
-                ['route' => 'archive.index', 'title' => 'Archive', 'meta' => 'Past cycle records', 'art' => 'quick-archive-3d.svg', 'tone' => 'emerald'],
             ],
             default => [],
         };
@@ -1050,8 +1046,6 @@
                                     ['icon' => 'fa-solid fa-route',          'label' => 'Saved Routes', 'route' => 'saved-routes.index',   'yellow' => false],
                                     ['icon' => 'fa-solid fa-credit-card',    'label' => 'Payments',     'route' => 'payments.index',       'yellow' => false, 'badge' => $pendingReviews],
                                     ['icon' => 'fa-solid fa-users',          'label' => 'Connections',  'route' => 'connections.index',    'yellow' => false],
-                                    ['icon' => 'fa-solid fa-chart-bar',      'label' => 'Billing',      'route' => 'billing-cycles.index', 'yellow' => false],
-                                    ['icon' => 'fa-solid fa-box-archive',    'label' => 'Archive',      'route' => 'archive.index',        'yellow' => false],
                                 ];
                                 $qaPassenger = [
                                     ['icon' => 'fa-solid fa-magnifying-glass-location', 'label' => 'Explore',     'route' => 'explore.index',  'yellow' => true],
@@ -1231,8 +1225,6 @@
                     default => [
                         ['icon' => 'fa-solid fa-plus', 'label' => 'New Trip', 'route' => 'trips.create'],
                         ['icon' => 'fa-solid fa-car-side', 'label' => 'My Trips', 'route' => 'trips.index'],
-                        ['icon' => 'fa-solid fa-calendar-check', 'label' => 'Billing', 'route' => 'billing-cycles.index'],
-                        ['icon' => 'fa-solid fa-box-archive', 'label' => 'Archive', 'route' => 'archive.index'],
                         ['icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'route' => 'notifications.index'],
                         ['icon' => 'fa-solid fa-user-gear', 'label' => 'Settings', 'route' => 'settings.index'],
                     ],

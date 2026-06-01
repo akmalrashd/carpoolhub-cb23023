@@ -1202,8 +1202,6 @@
             <a href="{{ route('saved-routes.index') }}" class="{{ request()->routeIs('saved-routes.*') ? 'active' : '' }}"><i class="fa-solid fa-route"></i><span>Routes</span></a>
             <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}"><i class="fa-solid fa-receipt"></i><span>Payments</span></a>
             <a href="{{ route('connections.index') }}" class="{{ request()->routeIs('connections.*') ? 'active' : '' }}"><i class="fa-solid fa-user-group"></i><span>Connections</span></a>
-            <a href="{{ route('billing-cycles.index') }}" class="{{ request()->routeIs('billing-cycles.*') ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i><span>Monthly Summary</span></a>
-            <a href="{{ route('archive.index') }}" class="{{ request()->routeIs('archive.*') ? 'active' : '' }}"><i class="fa-solid fa-box-archive"></i><span>Archive</span></a>
             <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') || request()->routeIs('settings.*') ? 'active' : '' }}"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
             <form action="{{ route('logout') }}" method="POST" style="padding: 0 8px;">
                 @csrf
