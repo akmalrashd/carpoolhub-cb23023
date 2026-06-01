@@ -2114,7 +2114,7 @@
             </div>
         </div>
         <div class="trips-header-actions">
-            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('tripsFilterPanel').style.display=document.getElementById('tripsFilterPanel').style.display==='none'?'grid':'none'">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="tripsToggleFilter()">
                 <i class="fa-solid fa-sliders"></i>
                 Filter
             </button>
@@ -2169,6 +2169,7 @@
                         type="date"
                         class="trips-filter-input"
                         value="{{ $filters['date_from'] ?? request('date_from') }}"
+                        onchange="this.form.submit()"
                     >
                 </div>
                 <div class="trips-filter-field">
@@ -2179,11 +2180,12 @@
                         type="date"
                         class="trips-filter-input"
                         value="{{ $filters['date_to'] ?? request('date_to') }}"
+                        onchange="this.form.submit()"
                     >
                 </div>
                 <div class="trips-filter-field">
                     <label class="trips-filter-label" for="trip_visibility">Visibility</label>
-                    <select id="trip_visibility" name="visibility" class="trips-filter-input">
+                    <select id="trip_visibility" name="visibility" class="trips-filter-input" onchange="this.form.submit()">
                         <option value="">All</option>
                         <option value="public"  {{ ($filters['visibility'] ?? request('visibility')) === 'public'  ? 'selected' : '' }}>Public</option>
                         <option value="private" {{ ($filters['visibility'] ?? request('visibility')) === 'private' ? 'selected' : '' }}>Private</option>
@@ -4723,5 +4725,12 @@
                 if (event.target === modal) closeModal();
             });
         })();
+    </script>
+    <script>
+    function tripsToggleFilter() {
+        var panel = document.getElementById('tripsFilterPanel');
+        if (!panel) return;
+        panel.style.display = window.getComputedStyle(panel).display === 'none' ? 'grid' : 'none';
+    }
     </script>
 @endsection
