@@ -103,6 +103,56 @@
     .rp-kpi-delta.up   { color: var(--success); }
     .rp-kpi-delta.mute { color: var(--muted); }
 
+    .rp-module-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        padding: 0 28px 14px;
+    }
+    @media (max-width: 1000px) {
+        .rp-module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+        .rp-module-grid { grid-template-columns: 1fr; padding: 0 14px 12px; }
+    }
+    .rp-module-card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        padding: 15px;
+        box-shadow: var(--shadow-1);
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+    }
+    .rp-module-title {
+        margin: 0;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.25;
+    }
+    .rp-module-meta {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    .rp-module-value {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        color: var(--ink);
+        font-family: var(--font-display), sans-serif;
+        font-size: 22px;
+        font-weight: 900;
+    }
+    .rp-module-unit {
+        color: var(--muted);
+        font-family: var(--font-ui), sans-serif;
+        font-size: 11px;
+        font-weight: 750;
+    }
+
     /* ── Bar chart card ── */
     .rp-chart-card {
         margin: 0 28px 14px;
@@ -323,6 +373,44 @@
         box-shadow: var(--shadow-1);
         overflow: hidden;
     }
+    .rp-insight-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        padding: 16px 20px 20px;
+    }
+    @media (max-width: 1000px) {
+        .rp-insight-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+        .rp-insight-grid { grid-template-columns: 1fr; }
+    }
+    .rp-insight-card {
+        border: 1px solid var(--hairline);
+        background: var(--surface-2);
+        border-radius: var(--r-md);
+        padding: 13px;
+        display: grid;
+        gap: 5px;
+    }
+    .rp-insight-label {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+    .rp-insight-value {
+        color: var(--ink);
+        font-family: var(--font-display), sans-serif;
+        font-size: 20px;
+        font-weight: 900;
+    }
+    .rp-insight-note {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+    }
     .rp-section-head {
         display: flex;
         align-items: center;
@@ -357,7 +445,7 @@
         <div>
             <p class="rp-eyebrow">Admin</p>
             <h1 class="rp-title">Reports &amp; exports</h1>
-            <p class="rp-subtitle">Operational health of CarpoolHub.</p>
+            <p class="rp-subtitle">Operational evidence for CarpoolHub thesis modules: AI assistance, custom route preference, reliability checks, and payment tracking.</p>
         </div>
         <div class="rp-header-actions">
             <button type="button" class="btn btn-ghost btn-sm">
@@ -406,10 +494,23 @@
         </div>
     </div>
 
+    <div class="rp-module-grid">
+        @foreach($thesisAlignment as $module)
+            <article class="rp-module-card">
+                <h2 class="rp-module-title">{{ $module['objective'] }}</h2>
+                <div class="rp-module-value">
+                    {{ number_format((float) $module['evidence']) }}
+                    <span class="rp-module-unit">{{ $module['unit'] }}</span>
+                </div>
+                <div class="rp-module-meta">Mapped to thesis scope and Chapter 4 result evidence.</div>
+            </article>
+        @endforeach
+    </div>
+
     {{-- Bar chart: Trips by day ── --}}
     <div class="rp-chart-card">
         <div class="rp-chart-head">
-            <h2 class="rp-chart-title">Trips by day &middot; {{ now()->format('M Y') }}</h2>
+            <h2 class="rp-chart-title">Trips by day</h2>
             <div class="rp-chart-tabs">
                 <button class="rp-chart-tab active" data-range="7d">7d</button>
                 <button class="rp-chart-tab" data-range="30d">30d</button>
@@ -418,35 +519,25 @@
         </div>
         <div class="rp-chart-bars" id="rpChartBars">
             @php
-                // Build daily trip counts for the current month from cycleReports or a fallback
-                // If $dailyTrips is provided by controller use it, else generate placeholder data
-                $chartData = $dailyTrips ?? [];
+                $chartData = $dailyTripRanges['7d'] ?? [];
                 $maxVal = max(array_values($chartData) ?: [1]);
-                $recentDay = now()->day;
                 $totalBars = count($chartData);
                 $i = 0;
             @endphp
             @if(count($chartData) > 0)
-                @foreach($chartData as $day => $count)
+                @foreach($chartData as $date => $count)
                     @php
-                        $pct = $maxVal > 0 ? max(2, round(($count / $maxVal) * 100)) : 2;
+                        $pct = $maxVal > 0 && $count > 0 ? max(4, round(($count / $maxVal) * 100)) : 2;
                         $isRecent = $i >= $totalBars - 3;
                         $i++;
                     @endphp
-                    <div class="rp-bar-col" title="{{ $day }}: {{ $count }} trips">
+                    <div class="rp-bar-col" title="{{ $date }}: {{ $count }} trips">
                         <div class="rp-bar {{ $isRecent ? 'recent' : '' }}" style="height:{{ $pct }}%"></div>
-                        <span class="rp-bar-label">{{ is_numeric($day) ? $day : substr($day, -2) }}</span>
+                        <span class="rp-bar-label">{{ \Illuminate\Support\Carbon::parse($date)->format('d M') }}</span>
                     </div>
                 @endforeach
             @else
-                {{-- Placeholder bars when no daily data provided --}}
-                @foreach(range(1, 30) as $d)
-                    @php $h = rand(10, 90); @endphp
-                    <div class="rp-bar-col" title="Day {{ $d }}">
-                        <div class="rp-bar {{ $d >= 28 ? 'recent' : '' }}" style="height:{{ $h }}%"></div>
-                        <span class="rp-bar-label">{{ $d }}</span>
-                    </div>
-                @endforeach
+                <div class="rp-td-empty" style="width:100%;">No trip activity in this range.</div>
             @endif
         </div>
     </div>
@@ -474,15 +565,11 @@
                         @forelse($topRoutes as $route)
                             <tr>
                                 <td class="route-name">
-                                    {{ $route->origin ?? ($route->from ?? ($route->route ?? 'Route')) }}
-                                    @if(isset($route->destination) || isset($route->to))
-                                        <span style="color:var(--muted-2);font-weight:400;"> &rarr; </span>
-                                        {{ $route->destination ?? $route->to }}
-                                    @endif
+                                    {{ $route['route_name'] ?? 'Route' }}
                                 </td>
-                                <td class="num">{{ $route->trip_count ?? ($route->trips ?? 0) }}</td>
-                                <td class="num">RM {{ number_format((float) ($route->avg_fare ?? 0), 2) }}</td>
-                                <td class="num">{{ $route->driver_count ?? ($route->drivers ?? '—') }}</td>
+                                <td class="num">{{ $route['trip_count'] ?? 0 }}</td>
+                                <td class="num">RM {{ number_format((float) ($route['avg_fare'] ?? 0), 2) }}</td>
+                                <td class="num">{{ $route['driver_count'] ?? 0 }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="4" class="rp-td-empty">No route data available.</td></tr>
@@ -566,6 +653,37 @@
         </div>
     </div>
 
+    <div class="rp-cycle-section">
+        <div class="rp-section-card">
+            <div class="rp-section-head">
+                <i class="fa-solid fa-brain" style="color:var(--muted-2);font-size:14px;"></i>
+                <h2 class="rp-section-title">Thesis module performance</h2>
+            </div>
+            <div class="rp-insight-grid">
+                <article class="rp-insight-card">
+                    <span class="rp-insight-label">Custom route requests</span>
+                    <strong class="rp-insight-value">{{ $customRouteSummary['custom_requests'] ?? 0 }}</strong>
+                    <span class="rp-insight-note">{{ $customRouteSummary['custom_share'] ?? 0 }}% of route records use custom pickup/drop-off. Avg extra fee RM {{ number_format((float) ($customRouteSummary['avg_extra_fee'] ?? 0), 2) }}.</span>
+                </article>
+                <article class="rp-insight-card">
+                    <span class="rp-insight-label">Passenger approval</span>
+                    <strong class="rp-insight-value">{{ $requestSummary['approval_rate'] ?? 0 }}%</strong>
+                    <span class="rp-insight-note">{{ $requestSummary['approved'] ?? 0 }} approved, {{ $requestSummary['pending'] ?? 0 }} pending, {{ $requestSummary['rejected'] ?? 0 }} rejected.</span>
+                </article>
+                <article class="rp-insight-card">
+                    <span class="rp-insight-label">AI support usage</span>
+                    <strong class="rp-insight-value">{{ $aiSupportSummary['recommendation_logs'] ?? 0 }}</strong>
+                    <span class="rp-insight-note">Explore recommendation logs. Avg match score {{ $aiSupportSummary['avg_match_score'] ?? 0 }}. Strategy suggestions: {{ $aiSupportSummary['strategy_suggestions'] ?? 0 }}.</span>
+                </article>
+                <article class="rp-insight-card">
+                    <span class="rp-insight-label">Passenger reliability</span>
+                    <strong class="rp-insight-value">{{ $reliabilitySummary['avg_risk_score'] ?? 0 }}</strong>
+                    <span class="rp-insight-note">Average risk score from {{ $reliabilitySummary['profiles_total'] ?? 0 }} profiles. High-risk users: {{ $reliabilitySummary['high_risk_total'] ?? 0 }}.</span>
+                </article>
+            </div>
+        </div>
+    </div>
+
     {{-- Monthly Trip Summary table ── --}}
     <div class="rp-cycle-section">
         <div class="rp-section-card">
@@ -608,13 +726,52 @@
 
 <script>
 (function () {
-    // Tab switching for chart range
+    const chartRanges = @json($dailyTripRanges ?? []);
+    const chartBars = document.getElementById('rpChartBars');
     const tabs = document.querySelectorAll('.rp-chart-tab');
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatLabel(dateKey) {
+        const date = new Date(`${dateKey}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return dateKey;
+        return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short' });
+    }
+
+    function renderChart(range) {
+        if (!chartBars) return;
+        const rows = Object.entries(chartRanges[range] || {});
+        if (!rows.length) {
+            chartBars.innerHTML = '<div class="rp-td-empty" style="width:100%;">No trip activity in this range.</div>';
+            return;
+        }
+        const max = Math.max(1, ...rows.map(([, count]) => Number(count) || 0));
+        const recentStart = Math.max(0, rows.length - 3);
+        chartBars.innerHTML = rows.map(([date, count], index) => {
+            const numericCount = Number(count) || 0;
+            const pct = numericCount > 0 ? Math.max(4, Math.round((numericCount / max) * 100)) : 2;
+            const recentClass = index >= recentStart ? ' recent' : '';
+            return `
+                <div class="rp-bar-col" title="${escapeHtml(date)}: ${numericCount} trips">
+                    <div class="rp-bar${recentClass}" style="height:${pct}%"></div>
+                    <span class="rp-bar-label">${escapeHtml(formatLabel(date))}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
     tabs.forEach(function (tab) {
         tab.addEventListener('click', function () {
             tabs.forEach(function (t) { t.classList.remove('active'); });
             tab.classList.add('active');
-            // Future: reload chart data via fetch based on data-range attribute
+            renderChart(tab.dataset.range || '7d');
         });
     });
 })();

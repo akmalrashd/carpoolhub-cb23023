@@ -1,23 +1,33 @@
+@php
+    $role = auth()->user()?->role;
+
+    $mainNavItems = match ($role) {
+        'passenger' => [
+            ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+            ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+            ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'My Trips'],
+            ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
+        ],
+        default => [
+            ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+            ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => $role === 'admin' ? 'All Trips' : 'My Trips'],
+            ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+            ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
+            ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
+        ],
+    };
+@endphp
+
 <aside class="desktop-sidebar">
     {{-- MAIN group --}}
     <div class="desktop-nav-group">
         <div class="desktop-nav-group-label">Main</div>
         <nav class="desktop-nav">
-            <a href="{{ route('home') }}" class="{{ request()->routeIs('home') || request()->routeIs('dashboard') ? 'active' : '' }}" title="Home">
-                <i class="fa-solid fa-house"></i><span class="desktop-nav-label">Home</span>
-            </a>
-            <a href="{{ route('trips.index') }}" class="{{ request()->routeIs('trips.*') ? 'active' : '' }}" title="My Trips">
-                <i class="fa-solid fa-car-side"></i><span class="desktop-nav-label">My Trips</span>
-            </a>
-            <a href="{{ route('explore.index') }}" class="{{ request()->routeIs('explore.*') ? 'active' : '' }}" title="Explore">
-                <i class="fa-solid fa-compass"></i><span class="desktop-nav-label">Explore</span>
-            </a>
-            <a href="{{ route('saved-routes.index') }}" class="{{ request()->routeIs('saved-routes.*') ? 'active' : '' }}" title="Routes">
-                <i class="fa-solid fa-route"></i><span class="desktop-nav-label">Routes</span>
-            </a>
-            <a href="{{ route('connections.index') }}" class="{{ request()->routeIs('connections.*') ? 'active' : '' }}" title="Connections">
-                <i class="fa-solid fa-user-group"></i><span class="desktop-nav-label">Connections</span>
-            </a>
+            @foreach($mainNavItems as $item)
+                <a href="{{ route($item['route']) }}" class="{{ request()->routeIs(...$item['active']) ? 'active' : '' }}" title="{{ $item['label'] }}">
+                    <i class="{{ $item['icon'] }}"></i><span class="desktop-nav-label">{{ $item['label'] }}</span>
+                </a>
+            @endforeach
         </nav>
     </div>
 

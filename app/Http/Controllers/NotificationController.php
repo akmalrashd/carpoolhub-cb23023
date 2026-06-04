@@ -16,10 +16,16 @@ class NotificationController extends Controller
 
     public function index(Request $request): View
     {
-        $notifications = $this->notificationService->paginateForUser($request->user());
-        $unreadCount = $this->notificationService->unreadCount($request->user());
+        $request->validate([
+            'filter' => ['nullable', 'in:all,unread,trip,payment,connection,system'],
+        ]);
 
-        return view('notifications.index', compact('notifications', 'unreadCount'));
+        $filter      = $request->input('filter', 'all');
+        $tabCounts   = $this->notificationService->tabCountsForUser($request->user());
+        $notifications = $this->notificationService->paginateForUser($request->user(), 15, $filter);
+        $unreadCount = $tabCounts['unread'];
+
+        return view('notifications.index', compact('notifications', 'unreadCount', 'filter', 'tabCounts'));
     }
 
     public function markRead(Request $request, UserNotification $notification): RedirectResponse

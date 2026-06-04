@@ -62,6 +62,66 @@
     </tbody>
 </table>
 
+<h2>Thesis Module Evidence</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Module</th>
+        <th class="right">Evidence</th>
+        <th>Unit</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach($thesisAlignment as $row)
+        <tr>
+            <td>{{ $row['objective'] }}</td>
+            <td class="right">{{ $row['evidence'] }}</td>
+            <td>{{ $row['unit'] }}</td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
+
+<h2>Custom Route Preference</h2>
+<div class="grid">
+    <div class="card"><div class="label">Custom Requests</div><div class="value">{{ $customRouteSummary['custom_requests'] }}</div></div>
+    <div class="card"><div class="label">Custom Share</div><div class="value">{{ $customRouteSummary['custom_share'] }}%</div></div>
+    <div class="card"><div class="label">Avg Detour</div><div class="value">{{ $customRouteSummary['avg_detour_km'] }} km</div></div>
+    <div class="card"><div class="label">Avg Extra Fee</div><div class="value">RM {{ number_format((float) $customRouteSummary['avg_extra_fee'], 2) }}</div></div>
+</div>
+
+<h2>Decision Support</h2>
+<div class="grid">
+    <div class="card"><div class="label">Join Requests</div><div class="value">{{ $requestSummary['total'] }}</div></div>
+    <div class="card"><div class="label">Approval Rate</div><div class="value">{{ $requestSummary['approval_rate'] }}%</div></div>
+    <div class="card"><div class="label">AI Recommendations</div><div class="value">{{ $aiSupportSummary['recommendation_logs'] }}</div></div>
+    <div class="card"><div class="label">Avg Risk Score</div><div class="value">{{ $reliabilitySummary['avg_risk_score'] }}</div></div>
+</div>
+
+<h2>Top Routes</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Route</th>
+        <th class="right">Trips</th>
+        <th class="right">Avg Fare</th>
+        <th class="right">Drivers</th>
+    </tr>
+    </thead>
+    <tbody>
+    @forelse($topRoutes as $row)
+        <tr>
+            <td>{{ $row['route_name'] }}</td>
+            <td class="right">{{ $row['trip_count'] }}</td>
+            <td class="right">RM {{ number_format((float) $row['avg_fare'], 2) }}</td>
+            <td class="right">{{ $row['driver_count'] }}</td>
+        </tr>
+    @empty
+        <tr><td colspan="4">No data available.</td></tr>
+    @endforelse
+    </tbody>
+</table>
+
 <h2>Monthly Trip Summary</h2>
 <table>
     <thead>

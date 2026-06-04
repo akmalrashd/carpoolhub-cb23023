@@ -307,25 +307,32 @@
         </div>
     </div>
 
-    {{-- ── Tab strip ── --}}
+    {{-- ── Tab strip (server-side filter) ── --}}
     @php
-        $allCount    = $notifications->total();
-        $tripCount   = $notifications->getCollection()->where('type', 'trip')->count();
-        $payCount    = $notifications->getCollection()->where('type', 'payment')->count();
+        $tabs = [
+            'all'        => ['label' => 'All',        'icon' => 'fa-solid fa-inbox'],
+            'unread'     => ['label' => 'Unread',     'icon' => 'fa-solid fa-circle'],
+            'trip'       => ['label' => 'Trips',      'icon' => 'fa-solid fa-car-side'],
+            'payment'    => ['label' => 'Payments',   'icon' => 'fa-solid fa-coins'],
+            'connection' => ['label' => 'Connections','icon' => 'fa-solid fa-user-group'],
+            'system'     => ['label' => 'System',     'icon' => 'fa-solid fa-gear'],
+        ];
     @endphp
     <div class="notif-tabs" role="tablist" aria-label="Filter notifications">
-        <button type="button" class="notif-tab-btn is-active" data-notif-tab="all">
-            All <span class="notif-tab-count">{{ $allCount }}</span>
-        </button>
-        <button type="button" class="notif-tab-btn" data-notif-tab="unread">
-            Unread <span class="notif-tab-count">{{ $unreadCount }}</span>
-        </button>
-        <button type="button" class="notif-tab-btn" data-notif-tab="trip">
-            Trips
-        </button>
-        <button type="button" class="notif-tab-btn" data-notif-tab="payment">
-            Payments
-        </button>
+        @foreach($tabs as $key => $tab)
+            @php $count = $tabCounts[$key] ?? 0; @endphp
+            @if($count > 0 || $key === 'all')
+                <a
+                    href="{{ route('notifications.index', $key !== 'all' ? ['filter' => $key] : []) }}"
+                    class="notif-tab-btn {{ $filter === $key ? 'is-active' : '' }}"
+                    role="tab"
+                    aria-selected="{{ $filter === $key ? 'true' : 'false' }}"
+                >
+                    {{ $tab['label'] }}
+                    <span class="notif-tab-count">{{ $count }}</span>
+                </a>
+            @endif
+        @endforeach
     </div>
 
     {{-- ── Notifications card ── --}}
@@ -409,51 +416,10 @@
         {{-- Pagination --}}
         @if($notifications->hasPages())
             <div class="notif-pagination">
-                {{ $notifications->links() }}
+                {{ $notifications->appends(['filter' => $filter])->links() }}
             </div>
         @endif
 
     </div>
 
-    <script>
-        (function () {
-            var tabBtns = document.querySelectorAll('[data-notif-tab]');
-            var rows    = document.querySelectorAll('.notif-row[data-notif-type]');
-
-            tabBtns.forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var tab = btn.getAttribute('data-notif-tab');
-
-                    /* Update active tab */
-                    tabBtns.forEach(function (b) { b.classList.remove('is-active'); });
-                    btn.classList.add('is-active');
-
-                    /* Filter rows */
-                    rows.forEach(function (row) {
-                        var type    = row.getAttribute('data-notif-type');
-                        var unread  = row.classList.contains('is-unread');
-                        var visible = false;
-
-                        if (tab === 'all')    visible = true;
-                        else if (tab === 'unread')  visible = unread;
-                        else if (tab === 'trip')    visible = type === 'trip';
-                        else if (tab === 'payment') visible = type === 'payment';
-
-                        row.style.display = visible ? '' : 'none';
-                    });
-
-                    /* Hide group labels if no visible rows follow them */
-                    document.querySelectorAll('.notif-group-label').forEach(function (label) {
-                        var next = label.nextElementSibling;
-                        var hasVisible = false;
-                        while (next && !next.classList.contains('notif-group-label') && !next.classList.contains('notif-pagination')) {
-                            if (next.style.display !== 'none') { hasVisible = true; break; }
-                            next = next.nextElementSibling;
-                        }
-                        label.style.display = hasVisible ? '' : 'none';
-                    });
-                });
-            });
-        })();
-    </script>
 @endsection

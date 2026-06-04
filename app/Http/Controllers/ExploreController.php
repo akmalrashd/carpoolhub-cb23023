@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Explore\StoreTripJoinRequest;
-use App\Models\Connection;
 use App\Models\Trip;
 use App\Models\TripJoinRequest;
 use App\Services\Ai\AiDecisionSupportService;
@@ -87,72 +86,9 @@ class ExploreController extends Controller
         return view('explore.search', compact('prefill', 'recentSearches', 'suggestedDestinations'));
     }
 
-    public function show(Request $request, Trip $trip): View
+    public function show(Trip $trip): RedirectResponse
     {
-        $this->tripService->syncLifecycleStatuses();
-
-        abort_if($trip->is_return_trip, 404);
-        abort_unless($trip->visibility === 'public', 404);
-        abort_unless(
-            Trip::query()
-                ->whereKey($trip->id)
-                                ->exists(),
-            404
-        );
-
-        $trip->load([
-            'savedRoute',
-            'driver',
-            'participants.user',
-            'joinRequests' => fn ($joinQuery) => $joinQuery->with(['user', 'routePoint'])->latest('id'),
-            'returnTrip',
-        ]);
-
-        $myRequest = $trip->joinRequests->firstWhere('user_id', $request->user()->id);
-        $isJoined = $trip->participants->contains(fn ($participant) => (int) $participant->user_id === (int) $request->user()->id);
-        $hasApprovedJoinAccess = $isJoined || ((string) ($myRequest?->status ?? '') === 'approved');
-        $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
-        $availableSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;
-        $viewerId = (int) $request->user()->id;
-        $driverId = (int) $trip->driver_id;
-        $isFriendOrSelf = $viewerId === $driverId || Connection::query()
-            ->where('status', 'accepted')
-            ->where(function ($query) use ($viewerId, $driverId): void {
-                $query->where(function ($pair) use ($viewerId, $driverId): void {
-                    $pair->where('requester_id', $viewerId)
-                        ->where('receiver_id', $driverId);
-                })->orWhere(function ($pair) use ($viewerId, $driverId): void {
-                    $pair->where('requester_id', $driverId)
-                        ->where('receiver_id', $viewerId);
-                });
-            })
-            ->exists();
-
-        $phoneVisibility = (string) ($trip->driver?->phone_visible ?: 'visible_friend');
-        $emailVisibility = (string) ($trip->driver?->email_visible ?: 'visible_friend');
-
-        $canViewDriverWhatsapp = $hasApprovedJoinAccess || match ($phoneVisibility) {
-            'visible_public' => true,
-            'visible_friend' => $isFriendOrSelf,
-            default => false,
-        };
-        $canViewDriverEmail = $hasApprovedJoinAccess || match ($emailVisibility) {
-            'visible_public' => true,
-            'visible_friend' => $isFriendOrSelf,
-            default => false,
-        };
-        $aiRecommendation = $this->aiDecisionSupportService->recommendTrips($request->user(), collect([$trip]))->first()['score'] ?? null;
-
-        return view('explore.show', compact(
-            'trip',
-            'myRequest',
-            'isJoined',
-            'takenSeats',
-            'availableSeats',
-            'canViewDriverWhatsapp',
-            'canViewDriverEmail',
-            'aiRecommendation'
-        ));
+        return redirect()->route('explore.index', ['focus_trip' => $trip->id]);
     }
 
     public function requestJoin(StoreTripJoinRequest $request, Trip $trip): RedirectResponse|JsonResponse

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\SavedRoute;
 use App\Models\Trip;
 use App\Models\TripJoinRequest;
-use App\Models\TripParticipant;
 use App\Models\TripPayment;
 use App\Models\UserNotification;
 use Illuminate\Contracts\View\View;
@@ -102,16 +101,7 @@ class DashboardController extends Controller
         $upcomingCreatedTrip = $upcomingCreatedTrips->first();
         $upcomingJoinedTrip = $upcomingJoinedTrips->first();
 
-        $pendingJoinRequests = TripJoinRequest::query()
-            ->where('status', 'pending')
-            ->whereHas('trip', fn ($query) => $query->where('driver_id', $user->id))
-            ->count();
-
-        $joinedTripsCount = TripParticipant::query()
-            ->where('user_id', $user->id)
-            ->where('is_driver', false)
-            ->whereHas('trip', fn ($query) => $query)
-            ->count();
+        $pendingJoinRequests = $stats['pending_requests'];
 
         $driverReviewQueue = TripPayment::query()
             ->with(['user', 'trip.savedRoute'])
@@ -144,7 +134,6 @@ class DashboardController extends Controller
             'upcomingCreatedTrip',
             'upcomingJoinedTrip',
             'pendingJoinRequests',
-            'joinedTripsCount',
             'driverReviewQueue',
             'publicExploreTrips'
         ));

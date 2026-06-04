@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminUserController;
@@ -57,6 +58,12 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/profile', [SettingsController::class, 'index'])->name('profile.index');
     Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
     Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
+
+    Route::prefix('/ai')->group(function (): void {
+        Route::post('/chat', [AiChatController::class, 'chat'])->name('ai.chat');
+        Route::delete('/chat/history', [AiChatController::class, 'clearHistory'])->name('ai.chat.clear');
+        Route::post('/fare-reason', [AiChatController::class, 'fareReason'])->name('ai.fare-reason');
+    });
 
     Route::prefix('/refresh')->group(function (): void {
         Route::get('/notifications/latest', [RefreshController::class, 'notificationsLatest'])->name('refresh.notifications.latest');

@@ -152,13 +152,13 @@
 
         /* ── Filter form — exact copy of payments-filter-panel ── */
         .trips-filter-form {
-            border: 1px solid #dbe2ea;
-            border-radius: 14px;
-            background: #f8fafc;
-            padding: 12px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--surface-2);
+            padding: 14px;
             margin: 0 28px 12px;
             display: grid;
-            gap: 8px;
+            gap: 10px;
         }
         @media (min-width: 640px) {
             .trips-filter-form {
@@ -168,48 +168,47 @@
         }
         .trips-filter-hint {
             margin: 0;
-            color: #64748b;
+            color: var(--muted);
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 600;
             grid-column: 1 / -1;
         }
         .trips-filter-field {
             display: grid;
-            gap: 6px;
+            gap: 4px;
         }
         .trips-filter-label {
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 800;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .04em;
+            letter-spacing: .03em;
         }
         .trips-filter-input {
             width: 100%;
-            min-height: 46px;
-            border-radius: 12px;
-            border: 1px solid #dbe2ea;
-            background: #fff;
-            color: #0f172a;
-            padding: 10px 12px;
-            font-size: 14px;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 8px 10px;
+            font-size: 13px;
             outline: none;
+            font-family: var(--font-ui), sans-serif;
         }
         .trips-filter-input:focus {
-            border-color: #94a3b8;
-            box-shadow: 0 0 0 3px rgba(148,163,184,.2);
+            border-color: var(--ch-yellow-line);
+            box-shadow: 0 0 0 2px rgba(250, 204, 21, .18);
         }
         .trips-filter-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: inline-flex;
+            align-items: flex-end;
         }
         .trips-filter-reset {
             min-height: 44px;
-            border-radius: 12px;
-            border: 1px solid #dbe2ea;
-            background: #fff;
-            color: #0f172a;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
             padding: 0 14px;
             font-size: 13px;
             font-weight: 800;
@@ -2243,6 +2242,7 @@
                             $showTotalFare       = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
                             $fareLabel           = 'Fare';
                             $displayFare         = $showTotalFare ? $combinedFare : $myFare;
+                            $tripRef             = $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT);
                             $pairedTripId        = $trip->returnTrip?->id;
                             $paymentFocusIds     = array_values(array_filter([
                                 (int) $trip->id,
@@ -2324,7 +2324,7 @@
                                         'id' => $payment->id,
                                         'passenger' => $payment->user?->name ?: 'Passenger',
                                         'initials' => collect(explode(' ', $payment->user?->name ?: 'P'))->filter()->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode(''),
-                                        'trip' => ($payment->review_leg_label ?? 'Trip') . ' #' . $payment->trip_id,
+                                        'trip' => ($payment->review_leg_label ?? 'Trip') . ' · ' . ($trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT)),
                                         'amount' => number_format($amountDue, 2),
                                         'base_amount' => number_format(max(0, $amountDue - $extraFee), 2),
                                         'extra_fee' => number_format($extraFee, 2),
@@ -2410,7 +2410,7 @@
                                         'fit' => $routePoint?->route_fit_score !== null ? ((int) $routePoint->route_fit_score . '%') : null,
                                         'fit_label' => $routePoint?->route_fit_label ?: 'Driver review',
                                         'respond_url' => route('trips.join-requests.respond', $joinRequest),
-                                        'trip' => '#' . $trip->id,
+                                        'trip' => $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT),
                                     ];
                                 })
                                 ->values();
@@ -2477,11 +2477,16 @@
                                             <i class="{{ $visibilityIcon }}"></i>
                                             <span>{{ $visibilityText }}</span>
                                         </span>
+                                        <span class="trip-meta-inline-item" style="font-family:var(--font-mono,monospace);color:var(--muted-2);">
+                                            <i class="fa-solid fa-hashtag"></i>
+                                            <span>{{ $tripRef }}</span>
+                                        </span>
                                     </div>
                                     <button
                                         type="button"
                                         class="trip-inline-details-btn open-trip-modal-btn"
                                         data-trip-id="{{ $trip->id }}"
+                                        data-trip-ref="{{ $tripRef }}"
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-route-name="{{ $routeName }}"
                                         data-driver-name="{{ $trip->driver?->name ?: '-' }}"
@@ -2643,6 +2648,7 @@
                                                      + (float) ($trip->returnTrip?->payments?->where('user_id', auth()->id())->first()?->amount_due ?? 0);
                                 $showTotalFare       = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
                                 $displayFare         = $showTotalFare ? $combinedFare : $myFare;
+                                $tripRef             = $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT);
                                 $pairedTripId        = $trip->returnTrip?->id;
                                 $paymentFocusIds     = array_values(array_filter([
                                     (int) $trip->id,
@@ -2733,7 +2739,7 @@
                                             'id' => $payment->id,
                                             'passenger' => $payment->user?->name ?: 'Passenger',
                                             'initials' => collect(explode(' ', $payment->user?->name ?: 'P'))->filter()->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode(''),
-                                            'trip' => ($payment->review_leg_label ?? 'Trip') . ' #' . $payment->trip_id,
+                                            'trip' => ($payment->review_leg_label ?? 'Trip') . ' · ' . ($trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT)),
                                             'amount' => number_format($amountDue, 2),
                                             'base_amount' => number_format(max(0, $amountDue - $extraFee), 2),
                                             'extra_fee' => number_format($extraFee, 2),
@@ -2819,7 +2825,7 @@
                                             'fit' => $routePoint?->route_fit_score !== null ? ((int) $routePoint->route_fit_score . '%') : null,
                                             'fit_label' => $routePoint?->route_fit_label ?: 'Driver review',
                                             'respond_url' => route('trips.join-requests.respond', $joinRequest),
-                                            'trip' => '#' . $trip->id,
+                                            'trip' => $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT),
                                         ];
                                     })
                                     ->values();
@@ -2874,7 +2880,7 @@
                                 <td>
                                     <div class="trip-route-main trip-route-replacement">{{ $pickupShort }} &rarr; {{ $destinationShort }}</div>
                                     <div class="trip-route-subline trip-route-replacement">
-                                        <span><i class="fa-solid fa-hashtag"></i> Trip {{ $trip->id }}</span>
+                                        <span><i class="fa-solid fa-hashtag"></i> {{ $tripRef }}</span>
                                         <span><i class="{{ $hasReturn ? 'fa-solid fa-repeat' : 'fa-solid fa-route' }}"></i> {{ $hasReturn ? 'Round trip' : $modeText }}</span>
                                         <span><i class="fa-solid fa-location-dot"></i> {{ $trip->savedRoute?->distance_km ? number_format((float) $trip->savedRoute->distance_km, 0) . ' km' : '24 km' }}</span>
                                     </div>
@@ -2884,6 +2890,7 @@
                                         type="button"
                                         class="trip-inline-details-btn open-trip-modal-btn"
                                         data-trip-id="{{ $trip->id }}"
+                                        data-trip-ref="{{ $tripRef }}"
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-route-name="{{ $routeName }}"
                                         data-driver-name="{{ $trip->driver?->name ?: '-' }}"
@@ -3088,7 +3095,7 @@
                 <div class="trip-modal-grid">
                     <div class="trip-details-pairs">
                         <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip ID</span>
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
                             <span class="trip-modal-value" id="tripModalTripIds">-</span>
                         </div>
                         <div class="trip-modal-line">
@@ -4612,6 +4619,7 @@
             detailButtons.forEach((btn) => {
                 btn.addEventListener('click', () => {
                     const tripId            = String(btn.dataset.tripId || '-');
+                    const tripRef           = String(btn.dataset.tripRef || '').trim() || (tripId !== '-' ? `TRP-${tripId.padStart(5, '0')}` : '-');
                     const pairedTripId      = String(btn.dataset.pairedTripId || '').trim();
                     const isTwoWay          = String(btn.dataset.mode || '').toLowerCase().includes('two-way');
                     const driverId          = Number.parseInt(String(btn.dataset.driverId || ''), 10);
@@ -4638,11 +4646,11 @@
                         ? driverWhatsappUrl
                         : (waDigits ? `https://wa.me/${waDigits}` : '');
 
-                    if (tripIdsEl)      tripIdsEl.textContent      = pairedTripId ? `#${tripId} & #${pairedTripId}` : `#${tripId}`;
+                    if (tripIdsEl)      tripIdsEl.textContent      = tripRef;
                     if (modeEl)         modeEl.textContent          = btn.dataset.mode || '-';
                     if (pairHintEl) {
                         if (isTwoWay && pairedTripId) {
-                            pairHintEl.textContent = `Paired trip: Trip #${pairedTripId}`;
+                            pairHintEl.textContent = `Paired return leg: ${tripRef}`;
                             pairHintEl.style.display = 'block';
                         } else {
                             pairHintEl.textContent   = '';

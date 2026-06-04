@@ -1510,11 +1510,41 @@
             if (Number.isFinite(fare)) { defaultFareInput.value = fare.toFixed(2); }
         }
 
+        var fareReasonUrl = '{{ route('ai.fare-reason') }}';
+        var fareReasonCsrf = '{{ csrf_token() }}';
+
         function suggestionReason(route) {
+            // Fallback — shown instantly while AI loads
             var distanceKm = ((route.distance || 0) / 1000);
             var minutes = Math.round((route.duration || 0) / 60);
-            var timeBuffer = (route.duration || 0) >= 1800 ? 1.2 : ((route.duration || 0) >= 900 ? 0.6 : 0.3);
-            return 'AI reason: base fare + distance (' + distanceKm.toFixed(1) + ' km) + buffer time for ~' + minutes + ' min travel. Time affects the fare, but distance remains the main factor.';
+            return 'Fare based on ' + distanceKm.toFixed(1) + ' km distance and ~' + minutes + ' min travel time.';
+        }
+
+        function fetchAiReason(routeIndex, distanceKm, durationMin, fare, roads) {
+            var el = document.querySelector('[data-ai-reason="' + routeIndex + '"]');
+            if (!el) return;
+
+            fetch(fareReasonUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': fareReasonCsrf,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    distance_km: distanceKm,
+                    duration_min: durationMin,
+                    fare: fare,
+                    roads: roads,
+                }),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.reason && el) {
+                    el.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--warning);font-size:10px;margin-right:4px"></i>' + data.reason;
+                }
+            })
+            .catch(function () {}); // silent fail — fallback text stays
         }
 
         function summarizeRoads(route) {
@@ -1549,16 +1579,26 @@
             routeOptionsEl.innerHTML = fetchedRoutes.map(function (route, index) {
                 var activeClass = index === selectedRouteIndex ? ' active' : '';
                 var roadSummary = summarizeRoads(route);
+                var fare = suggestedFare(route.distance, route.duration);
                 return '<button type="button" class="rf-route-option-btn' + activeClass + '" data-route-index="' + index + '">'
                     + '<div class="rf-route-option-top">'
                     + '<span class="rf-route-option-name">Option ' + (index + 1) + '</span>'
                     + '<span class="rf-route-option-meta">' + formatDistance(route.distance) + ' • ' + formatDuration(route.duration) + '</span>'
                     + '</div>'
                     + '<div class="rf-route-option-road">' + roadSummary + '</div>'
-                    + '<div class="rf-route-option-fare">Suggested Fare RM ' + suggestedFare(route.distance, route.duration).toFixed(2) + '</div>'
-                    + '<div class="rf-route-option-reason">' + suggestionReason(route) + '</div>'
+                    + '<div class="rf-route-option-fare">Suggested Fare RM ' + fare.toFixed(2) + '</div>'
+                    + '<div class="rf-route-option-reason" data-ai-reason="' + index + '">' + suggestionReason(route) + '</div>'
                     + '</button>';
             }).join('');
+
+            // Async: fetch AI-generated reasons after DOM renders
+            fetchedRoutes.forEach(function (route, index) {
+                var distKm  = (route.distance || 0) / 1000;
+                var durMin  = Math.round((route.duration || 0) / 60);
+                var fare    = suggestedFare(route.distance, route.duration);
+                var roads   = summarizeRoads(route);
+                fetchAiReason(index, distKm, durMin, fare, roads);
+            });
             Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.rf-route-option-btn'), function (btn) {
                 btn.addEventListener('click', function () {
                     selectedRouteIndex = parseInt(btn.getAttribute('data-route-index'), 10) || 0;
@@ -2051,5 +2091,10 @@
         if (existingPickupLat === null && existingPickupLng === null && existingDestLat === null && existingDestLng === null) {
             setTimeout(goToCurrentLocation, 350);
         }
+
+        // AI pre-fill bridge — used by sessionStorage draft on create page
+        window.__chRouteSetPoint = function (target, lat, lng, name) {
+            setMarker(target, parseFloat(lat), parseFloat(lng), name || '');
+        };
     })();
 </script>

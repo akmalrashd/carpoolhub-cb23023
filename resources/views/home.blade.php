@@ -297,7 +297,7 @@
         .hp-trip-list { display: grid; gap: 8px; }
         .hp-trip-row {
             display: grid;
-            grid-template-columns: 110px 1fr auto auto auto;
+            grid-template-columns: 110px minmax(0, 1fr) auto auto auto;
             align-items: center;
             gap: 12px;
             padding: 12px 14px;
@@ -307,6 +307,9 @@
             text-decoration: none;
             color: inherit;
             transition: border-color .15s, box-shadow .15s;
+        }
+        .hp-trip-row > div {
+            min-width: 0;
         }
         .hp-trip-row:hover {
             border-color: var(--hairline-strong);
@@ -336,6 +339,59 @@
             font-size: 11px;
             color: var(--muted);
             margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .hp-trip-route-points {
+            display: grid;
+            gap: 7px;
+            min-width: 0;
+        }
+        .hp-trip-point {
+            position: relative;
+            display: grid;
+            grid-template-columns: 14px minmax(0, 1fr);
+            gap: 8px;
+            align-items: start;
+            min-width: 0;
+        }
+        .hp-trip-point:first-child::after {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 14px;
+            bottom: -8px;
+            border-left: 1px dashed var(--hairline-strong);
+        }
+        .hp-trip-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            margin-top: 2px;
+            border: 2px solid var(--surface);
+            box-shadow: 0 0 0 1px var(--hairline-strong);
+            position: relative;
+            z-index: 1;
+        }
+        .hp-trip-dot.pickup { background: #22c55e; }
+        .hp-trip-dot.destination { background: #334155; }
+        .hp-trip-point-label {
+            display: block;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .hp-trip-point-text {
+            display: block;
+            margin-top: 2px;
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.25;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -485,16 +541,53 @@
             color: #7c8ba1;
         }
         .hp-pub-mobile-route {
-            display: flex;
-            align-items: center;
+            display: grid;
+            gap: 7px;
+            min-width: 0;
+        }
+        .hp-pub-point {
+            position: relative;
+            display: grid;
+            grid-template-columns: 14px minmax(0, 1fr);
             gap: 8px;
             min-width: 0;
-            font-family: var(--font-display);
-            font-size: 15px;
-            font-weight: 800;
-            color: var(--ink);
         }
-        .hp-pub-mobile-route span {
+        .hp-pub-point:first-child::after {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 14px;
+            bottom: -8px;
+            border-left: 1px dashed var(--hairline-strong);
+        }
+        .hp-pub-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            margin-top: 2px;
+            border: 2px solid var(--surface);
+            box-shadow: 0 0 0 1px var(--hairline-strong);
+            position: relative;
+            z-index: 1;
+        }
+        .hp-pub-dot.pickup { background: #22c55e; }
+        .hp-pub-dot.destination { background: #334155; }
+        .hp-pub-point-label {
+            display: block;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .hp-pub-point-text {
+            display: block;
+            margin-top: 2px;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.25;
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -970,8 +1063,8 @@
                                 <div class="hp-trip-list">
                                     @foreach($upcomingCreatedTrips as $trip)
                                     @php
-                                        $routeLabel = $trip->savedRoute?->route_name ?? ('Trip #' . $trip->id);
-                                        $stops = trim(($trip->pickup_name ?? '') . ' → ' . ($trip->destination_name ?? ''));
+                                        $pickupLabel = $trip->pickup_name ?: 'Pickup';
+                                        $destinationLabel = $trip->destination_name ?: 'Destination';
                                         $seats = $trip->participants->where('is_driver', false)->count();
                                         $seatLimit = $trip->seat_limit ?? '?';
                                         $statusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
@@ -981,9 +1074,21 @@
                                             <div class="hp-trip-time-date">{{ $trip->trip_datetime?->format('d M Y') ?? '—' }}</div>
                                             <div class="hp-trip-time-clock">{{ $trip->trip_datetime?->format('H:i') ?? '' }}</div>
                                         </div>
-                                        <div>
-                                            <div class="hp-trip-route">{{ $routeLabel }}</div>
-                                            <div class="hp-trip-stops">{{ $stops }}</div>
+                                        <div class="hp-trip-route-points">
+                                            <div class="hp-trip-point">
+                                                <span class="hp-trip-dot pickup"></span>
+                                                <span>
+                                                    <span class="hp-trip-point-label">Pickup</span>
+                                                    <span class="hp-trip-point-text">{{ $pickupLabel }}</span>
+                                                </span>
+                                            </div>
+                                            <div class="hp-trip-point">
+                                                <span class="hp-trip-dot destination"></span>
+                                                <span>
+                                                    <span class="hp-trip-point-label">Destination</span>
+                                                    <span class="hp-trip-point-text">{{ $destinationLabel }}</span>
+                                                </span>
+                                            </div>
                                         </div>
                                         <span class="badge {{ $statusClass }}">{{ ucfirst($trip->status ?? 'pending') }}</span>
                                         <span class="hp-trip-seats"><i class="fa-solid fa-users" style="font-size:11px;color:var(--muted-2);"></i> {{ $seats }}/{{ $seatLimit }}</span>
@@ -1004,8 +1109,8 @@
                                 <div class="hp-trip-list">
                                     @foreach($upcomingJoinedTrips as $trip)
                                     @php
-                                        $routeLabel = $trip->savedRoute?->route_name ?? ('Trip #' . $trip->id);
-                                        $stops = trim(($trip->pickup_name ?? '') . ' → ' . ($trip->destination_name ?? ''));
+                                        $pickupLabel = $trip->pickup_name ?: 'Pickup';
+                                        $destinationLabel = $trip->destination_name ?: 'Destination';
                                         $seats = $trip->participants->where('is_driver', false)->count();
                                         $seatLimit = $trip->seat_limit ?? '?';
                                         $statusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
@@ -1015,9 +1120,21 @@
                                             <div class="hp-trip-time-date">{{ $trip->trip_datetime?->format('d M Y') ?? '—' }}</div>
                                             <div class="hp-trip-time-clock">{{ $trip->trip_datetime?->format('H:i') ?? '' }}</div>
                                         </div>
-                                        <div>
-                                            <div class="hp-trip-route">{{ $routeLabel }}</div>
-                                            <div class="hp-trip-stops">{{ $stops }}</div>
+                                        <div class="hp-trip-route-points">
+                                            <div class="hp-trip-point">
+                                                <span class="hp-trip-dot pickup"></span>
+                                                <span>
+                                                    <span class="hp-trip-point-label">Pickup</span>
+                                                    <span class="hp-trip-point-text">{{ $pickupLabel }}</span>
+                                                </span>
+                                            </div>
+                                            <div class="hp-trip-point">
+                                                <span class="hp-trip-dot destination"></span>
+                                                <span>
+                                                    <span class="hp-trip-point-label">Destination</span>
+                                                    <span class="hp-trip-point-text">{{ $destinationLabel }}</span>
+                                                </span>
+                                            </div>
                                         </div>
                                         <span class="badge {{ $statusClass }}">{{ ucfirst($trip->status ?? 'pending') }}</span>
                                         <span class="hp-trip-seats"><i class="fa-solid fa-users" style="font-size:11px;color:var(--muted-2);"></i> {{ $seats }}/{{ $seatLimit }}</span>
@@ -1047,10 +1164,8 @@
                             <div class="hp-pub-grid">
                                 @foreach($exploreSlice as $trip)
                                     @php
-                                        $routeName = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' → ' . ($trip->destination_name ?? 'Destination'));
-                                        $parts = preg_split('/\s*(?:->|→|-)\s*/u', $routeName);
-                                        $origin = $parts[0] ?? 'Pickup';
-                                        $dest = $parts[1] ?? 'Destination';
+                                        $origin = $trip->pickup_name ?: 'Pickup';
+                                        $dest = $trip->destination_name ?: 'Destination';
                                         $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
                                         $availSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : 0;
                                     @endphp
@@ -1060,9 +1175,20 @@
                                             <span class="hp-pub-mobile-time">{{ $trip->trip_datetime?->format('H:i') ?? '-' }}</span>
                                         </div>
                                         <div class="hp-pub-mobile-route">
-                                            <span>{{ $origin }}</span>
-                                            <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--muted);flex-shrink:0;"></i>
-                                            <span>{{ $dest }}</span>
+                                            <div class="hp-pub-point">
+                                                <span class="hp-pub-dot pickup"></span>
+                                                <span>
+                                                    <span class="hp-pub-point-label">Pickup</span>
+                                                    <span class="hp-pub-point-text">{{ $origin }}</span>
+                                                </span>
+                                            </div>
+                                            <div class="hp-pub-point">
+                                                <span class="hp-pub-dot destination"></span>
+                                                <span>
+                                                    <span class="hp-pub-point-label">Destination</span>
+                                                    <span class="hp-pub-point-text">{{ $dest }}</span>
+                                                </span>
+                                            </div>
                                         </div>
                                         <div class="hp-pub-mini-footer">
                                         <span class="hp-pub-mobile-driver">
@@ -1352,10 +1478,8 @@
                         <div style="display:grid;gap:10px;">
                             @foreach($mobileExplore as $trip)
                                 @php
-                                    $rn = $trip->savedRoute?->route_name ?: (($trip->pickup_name ?? 'Pickup') . ' → ' . ($trip->destination_name ?? 'Destination'));
-                                    $parts = preg_split('/\s*(?:->|→|-)\s*/u', $rn);
-                                    $origin = $parts[0] ?? 'Pickup';
-                                    $dest = $parts[1] ?? 'Destination';
+                                    $origin = $trip->pickup_name ?: 'Pickup';
+                                    $dest = $trip->destination_name ?: 'Destination';
                                     $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
                                     $seatCount = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : 0;
                                 @endphp
@@ -1365,9 +1489,20 @@
                                         <span class="hp-pub-mobile-time">{{ $trip->trip_datetime?->format('H:i') ?? '-' }}</span>
                                     </div>
                                     <div class="hp-pub-mobile-route">
-                                        <span>{{ $origin }}</span>
-                                        <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--muted);"></i>
-                                        <span>{{ $dest }}</span>
+                                        <div class="hp-pub-point">
+                                            <span class="hp-pub-dot pickup"></span>
+                                            <span>
+                                                <span class="hp-pub-point-label">Pickup</span>
+                                                <span class="hp-pub-point-text">{{ $origin }}</span>
+                                            </span>
+                                        </div>
+                                        <div class="hp-pub-point">
+                                            <span class="hp-pub-dot destination"></span>
+                                            <span>
+                                                <span class="hp-pub-point-label">Destination</span>
+                                                <span class="hp-pub-point-text">{{ $dest }}</span>
+                                            </span>
+                                        </div>
                                     </div>
                                     <div class="hp-pub-mini-footer">
                                         <span class="hp-pub-mobile-driver">

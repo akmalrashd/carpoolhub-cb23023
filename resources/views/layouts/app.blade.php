@@ -594,8 +594,8 @@
 
         .main-content {
             padding: 14px 14px 94px;
-            will-change: transform, opacity;
         }
+        .main-content[class*="page-"] { will-change: transform, opacity; }
         .main-content.page-enter-from-right { animation: pageEnterFromRight .34s cubic-bezier(0.22, 1, 0.36, 1); }
         .main-content.page-enter-from-left { animation: pageEnterFromLeft .34s cubic-bezier(0.22, 1, 0.36, 1); }
         .main-content.page-exit-to-left { animation: pageExitToLeft .24s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -1194,15 +1194,45 @@
             <input type="text" class="mobile-drawer-search" placeholder="Search menu..." aria-label="Search menu">
         </div>
 
+        @php
+            $drawerRole = auth()->user()?->role;
+            $drawerNavItems = match ($drawerRole) {
+                'passenger' => [
+                    ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+                    ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+                    ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-clock-rotate-left', 'label' => 'My Trips'],
+                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-receipt', 'label' => 'Payments'],
+                    ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
+                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-gear', 'label' => 'Settings'],
+                ],
+                'admin' => [
+                    ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+                    ['route' => 'admin.users.index', 'active' => ['admin.users.*'], 'icon' => 'fa-solid fa-users-gear', 'label' => 'Users Admin'],
+                    ['route' => 'admin.reports.index', 'active' => ['admin.reports.*'], 'icon' => 'fa-solid fa-chart-line', 'label' => 'Reports'],
+                    ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-clock-rotate-left', 'label' => 'All Trips'],
+                    ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+                    ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
+                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-receipt', 'label' => 'Payments'],
+                    ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
+                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-gear', 'label' => 'Settings'],
+                ],
+                default => [
+                    ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+                    ['route' => 'trips.create', 'active' => ['trips.create'], 'icon' => 'fa-solid fa-plus', 'label' => 'New Trip'],
+                    ['route' => 'trips.index', 'active' => ['trips.index', 'trips.show', 'trips.edit', 'trips.requests.*'], 'icon' => 'fa-solid fa-clock-rotate-left', 'label' => 'My Trips'],
+                    ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+                    ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
+                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-receipt', 'label' => 'Payments'],
+                    ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
+                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-gear', 'label' => 'Settings'],
+                ],
+            };
+        @endphp
+
         <nav class="mobile-drawer-nav">
-            <a href="{{ route('home') }}" class="{{ request()->routeIs('home') || request()->routeIs('dashboard') ? 'active' : '' }}"><i class="fa-solid fa-house"></i><span>Home</span></a>
-            <a href="{{ route('trips.create') }}"><i class="fa-solid fa-plus"></i><span>New Trip</span></a>
-            <a href="{{ route('trips.index') }}" class="{{ request()->routeIs('trips.*') ? 'active' : '' }}"><i class="fa-solid fa-clock-rotate-left"></i><span>My Trips</span></a>
-            <a href="{{ route('explore.index') }}" class="{{ request()->routeIs('explore.*') ? 'active' : '' }}"><i class="fa-solid fa-compass"></i><span>Explore</span></a>
-            <a href="{{ route('saved-routes.index') }}" class="{{ request()->routeIs('saved-routes.*') ? 'active' : '' }}"><i class="fa-solid fa-route"></i><span>Routes</span></a>
-            <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}"><i class="fa-solid fa-receipt"></i><span>Payments</span></a>
-            <a href="{{ route('connections.index') }}" class="{{ request()->routeIs('connections.*') ? 'active' : '' }}"><i class="fa-solid fa-user-group"></i><span>Connections</span></a>
-            <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') || request()->routeIs('settings.*') ? 'active' : '' }}"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+            @foreach($drawerNavItems as $item)
+                <a href="{{ route($item['route']) }}" class="{{ request()->routeIs(...$item['active']) ? 'active' : '' }}"><i class="{{ $item['icon'] }}"></i><span>{{ $item['label'] }}</span></a>
+            @endforeach
             <form action="{{ route('logout') }}" method="POST" style="padding: 0 8px;">
                 @csrf
                 <button type="submit" class="profile-menu-btn" style="width:100%;">
@@ -1210,10 +1240,6 @@
                     <span>Logout</span>
                 </button>
             </form>
-            @if(auth()->check() && auth()->user()->role === 'admin')
-                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"><i class="fa-solid fa-users-gear"></i><span>Users Admin</span></a>
-                <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"><i class="fa-solid fa-chart-line"></i><span>Reports</span></a>
-            @endif
         </nav>
     </aside>
 @endauth
@@ -1236,6 +1262,7 @@
 
 @auth
     @include('layouts.partials.mobile-bottom-nav')
+    <x-ai-chat />
 @endauth
 
 <script>

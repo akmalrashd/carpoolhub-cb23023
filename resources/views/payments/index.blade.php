@@ -2674,11 +2674,11 @@
             }
             .payments-table th:nth-child(1),
             .payments-table td:nth-child(1) {
-                width: 16%;
+                width: 15%;
             }
             .payments-table th:nth-child(2),
             .payments-table td:nth-child(2) {
-                width: 34%;
+                width: 32%;
             }
             .payments-table th:nth-child(3),
             .payments-table td:nth-child(3) {
@@ -2695,8 +2695,9 @@
             }
             .payments-table th:nth-child(6),
             .payments-table td:nth-child(6) {
-                width: 14%;
+                width: 17%;
                 text-align: center !important;
+                white-space: nowrap;
             }
             .payments-table tbody tr:last-child td {
                 border-bottom: 0;
@@ -2813,6 +2814,7 @@
                 flex-wrap: nowrap;
                 margin: 0;
                 width: 100%;
+                white-space: nowrap;
             }
             .payments-table .payments-btn {
                 display: inline-flex;
@@ -2883,11 +2885,13 @@
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
-                min-width: 96px !important;
-                width: 96px !important;
+                flex: 0 0 120px;
+                min-width: 120px !important;
+                width: 120px !important;
                 min-height: 38px !important;
                 padding: 9px 12px;
                 font-weight: 900;
+                white-space: nowrap;
             }
             .payments-table .payment-table-action:hover {
                 border-color: var(--ch-yellow-deep);
@@ -3489,6 +3493,7 @@
                             $pairedTripId = $isReturnTrip
                                 ? ($payment->trip?->parentTrip?->id)
                                 : ($payment->trip?->returnTrip?->id);
+                            $tripRef = $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT);
                             $routeLabel = $payment->trip?->savedRoute?->route_name ?: ($pickupName . ' -> ' . $destinationName);
                             $statusClass = $payment->payment_status === 'paid'
                                 ? 'status-paid'
@@ -3555,6 +3560,7 @@
                             data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                             data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
                             data-trip-id="{{ $payment->trip_id }}"
+                            data-trip-ref="{{ $tripRef }}"
                             data-route="{{ $routeLabel }}"
                             data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                             data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
@@ -3621,7 +3627,7 @@
                                         type="button"
                                         class="payments-btn payments-btn-highlight open-request-btn"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
-                                        data-trip="#{{ $payment->trip_id }}"
+                                        data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                         data-method="{{ $methodLabel }}"
                                         data-remarks="{{ $payment->remarks ?: '-' }}"
                                         data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -3654,7 +3660,7 @@
                                             data-action="{{ route('payments.mark-paid', $payment) }}"
                                             data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
                                             data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"
-                                            data-trip="Trip #{{ $payment->trip_id }}"
+                                            data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                             data-route="{{ $routeLabel }}"
                                             data-amount="{{ number_format((float) $payment->amount_due, 2) }}"
                                             data-base-amount="{{ number_format((float) $fareBreakdown['base'], 2) }}"
@@ -3675,6 +3681,7 @@
                                         type="button"
                                         class="payments-btn payments-btn-soft open-trip-modal-btn"
                                         data-trip-id="{{ $payment->trip_id }}"
+                                        data-trip-ref="{{ $tripRef }}"
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
@@ -3752,6 +3759,7 @@
                                 $pairedTripId = $isReturnTrip
                                     ? ($payment->trip?->parentTrip?->id)
                                     : ($payment->trip?->returnTrip?->id);
+                                $tripRef = $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT);
                                 $routeLabel = $payment->trip?->savedRoute?->route_name ?: ($pickupName . ' -> ' . $destinationName);
                                 $statusClass = $payment->payment_status === 'paid'
                                     ? 'status-paid'
@@ -3811,6 +3819,7 @@
                                 data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                                 data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
                                 data-trip-id="{{ $payment->trip_id }}"
+                                data-trip-ref="{{ $tripRef }}"
                                 data-route="{{ $routeLabel }}"
                                 data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                 data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
@@ -3850,13 +3859,14 @@
                                 <td>
                                     <div class="payment-route-title">{{ $routeLabel }}</div>
                                     <div class="payment-trip-meta">
-                                        <span><i class="fa-solid fa-hashtag"></i> Trip {{ $payment->trip_id }}</span>
+                                        <span><i class="fa-solid fa-hashtag"></i> {{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}</span>
                                         <span><i class="{{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'fa-solid fa-repeat' : 'fa-solid fa-route' }}"></i> {{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'Two-way' : 'One-way' }}</span>
                                     </div>
                                     <button
                                         type="button"
                                         class="payments-link open-trip-modal-btn"
                                         data-trip-id="{{ $payment->trip_id }}"
+                                        data-trip-ref="{{ $tripRef }}"
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
@@ -3910,7 +3920,7 @@
                                                 type="button"
                                                 class="payments-btn payment-table-action open-request-btn"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
-                                                data-trip="#{{ $payment->trip_id }}"
+                                                data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-method="{{ $methodLabel }}"
                                                 data-remarks="{{ $payment->remarks ?: '-' }}"
                                                 data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -3947,7 +3957,7 @@
                                                 data-action="{{ route('payments.mark-paid', $payment) }}"
                                                 data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
                                                 data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"
-                                                data-trip="Trip #{{ $payment->trip_id }}"
+                                                data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-route="{{ $routeLabel }}"
                                                 data-amount="{{ number_format((float) $payment->amount_due, 2) }}"
                                                 data-base-amount="{{ number_format((float) $fareBreakdown['base'], 2) }}"
@@ -4228,6 +4238,7 @@
                             $pairedTripId = $isReturnTrip
                                 ? ($payment->trip?->parentTrip?->id)
                                 : ($payment->trip?->returnTrip?->id);
+                            $tripRef = $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT);
                             $routeLabel = $payment->trip?->savedRoute?->route_name ?: ($pickupName . ' -> ' . $destinationName);
                             $statusClass = $payment->payment_status === 'paid'
                                 ? 'status-paid'
@@ -4266,12 +4277,13 @@
                         >
                             <div class="payment-mobile-top">
                                 <div>
-                                    <div class="payment-mobile-trip">Trip #{{ $payment->trip_id }}</div>
+                                    <div class="payment-mobile-trip">{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}</div>
                                     <div class="payment-mobile-sub">{{ $routeLabel }}</div>
                                     <button
                                         type="button"
                                         class="payments-link open-trip-modal-btn"
                                         data-trip-id="{{ $payment->trip_id }}"
+                                        data-trip-ref="{{ $tripRef }}"
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
@@ -4329,7 +4341,7 @@
                                         type="button"
                                         class="payments-btn payments-btn-highlight open-request-btn"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
-                                        data-trip="#{{ $payment->trip_id }}"
+                                        data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                         data-method="{{ $methodLabel }}"
                                         data-remarks="{{ $payment->remarks ?: '-' }}"
                                         data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -4368,7 +4380,7 @@
                                         class="payments-btn payments-btn-danger open-reject-btn"
                                         data-action="{{ route('payments.reject-paid', $payment) }}"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
-                                        data-trip="#{{ $payment->trip_id }}"
+                                        data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                     >
                                         Reject
                                     </button>
@@ -4411,6 +4423,7 @@
                             $pairedTripId = $isReturnTrip
                                 ? ($payment->trip?->parentTrip?->id)
                                 : ($payment->trip?->returnTrip?->id);
+                            $tripRef = $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT);
                             $routeLabel = $payment->trip?->savedRoute?->route_name ?: ($pickupName . ' -> ' . $destinationName);
                             $statusClass = $payment->payment_status === 'paid'
                                 ? 'status-paid'
@@ -4445,12 +4458,13 @@
                                 data-filter-person="{{ $payment->user?->name ?: '' }}"
                             >
                                 <td>
-                                    <div>#{{ $payment->trip_id }}</div>
+                                    <div>{{ $tripRef }}</div>
                                     <div style="font-size:12px; color:#64748b;">{{ $routeLabel }}</div>
                                     <button
                                         type="button"
                                         class="payments-link open-trip-modal-btn"
                                         data-trip-id="{{ $payment->trip_id }}"
+                                        data-trip-ref="{{ $tripRef }}"
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
@@ -4497,7 +4511,7 @@
                                                 type="button"
                                                 class="payments-btn payments-btn-highlight open-request-btn"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
-                                                data-trip="#{{ $payment->trip_id }}"
+                                                data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-method="{{ $methodLabel }}"
                                                 data-remarks="{{ $payment->remarks ?: '-' }}"
                                                 data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -4534,7 +4548,7 @@
                                                 class="payments-btn payments-btn-danger open-reject-btn"
                                                 data-action="{{ route('payments.reject-paid', $payment) }}"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
-                                                data-trip="#{{ $payment->trip_id }}"
+                                                data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                             >
                                                 Reject
                                             </button>
@@ -4674,7 +4688,7 @@
             <div class="request-modal-grid">
                 <div class="trip-details-pairs">
                     <div class="request-modal-line">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip</span>
+                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
                         <span class="request-modal-value" id="tripDetailsId">-</span>
                     </div>
                     <div class="request-modal-line">
@@ -5469,7 +5483,9 @@
                             participantsPayload = [];
                         }
 
-                        if (tripDetailsId) tripDetailsId.textContent = `#${source.dataset.tripId || '-'}`;
+                        const tripId = String(source.dataset.tripId || '').trim();
+                        const tripRef = String(source.dataset.tripRef || '').trim() || (tripId ? `TRP-${tripId.padStart(5, '0')}` : '-');
+                        if (tripDetailsId) tripDetailsId.textContent = tripRef;
                         if (tripDetailsRoute) tripDetailsRoute.textContent = source.dataset.route || '-';
                         if (tripDetailsPickupPoint) tripDetailsPickupPoint.textContent = pickupName;
                         if (tripDetailsDestinationPoint) tripDetailsDestinationPoint.textContent = destinationName;
@@ -5482,7 +5498,7 @@
                             const pairedTripId = String(source.dataset.pairedTripId || '').trim();
                             const isTwoWay = String(source.dataset.mode || '').toLowerCase().includes('two way');
                             if (isTwoWay && pairedTripId) {
-                                tripDetailsPairHint.textContent = `Paired trip: Trip #${pairedTripId}`;
+                                tripDetailsPairHint.textContent = `Paired return leg: ${tripRef}`;
                                 tripDetailsPairHint.style.display = 'block';
                             } else {
                                 tripDetailsPairHint.textContent = '';

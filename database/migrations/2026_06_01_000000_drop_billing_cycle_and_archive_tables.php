@@ -8,12 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('trips', function (Blueprint $table): void {
-            if (Schema::hasColumn('trips', 'billing_cycle_id')) {
-                $table->dropForeign(['billing_cycle_id']);
+        if (Schema::hasColumn('trips', 'billing_cycle_id')) {
+            try {
+                Schema::table('trips', function (Blueprint $table): void {
+                    $table->dropForeign(['billing_cycle_id']);
+                });
+            } catch (\Throwable) {}
+            Schema::table('trips', function (Blueprint $table): void {
                 $table->dropColumn('billing_cycle_id');
-            }
-        });
+            });
+        }
 
         Schema::dropIfExists('archived_trip_payments');
         Schema::dropIfExists('archived_trip_participants');

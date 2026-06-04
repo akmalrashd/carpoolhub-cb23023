@@ -102,7 +102,8 @@ class TripService
         if (! empty($filters['trip_search'])) {
             $search = trim((string) $filters['trip_search']);
             $query->where(function ($q) use ($search): void {
-                $q->where('pickup_name', 'like', "%{$search}%")
+                $q->where('trip_ref', 'like', "%{$search}%")
+                    ->orWhere('pickup_name', 'like', "%{$search}%")
                     ->orWhere('destination_name', 'like', "%{$search}%")
                     ->orWhereHas('savedRoute', fn ($r) => $r->where('route_name', 'like', "%{$search}%"))
                     ->orWhereHas('driver', fn ($d) => $d->where('name', 'like', "%{$search}%"))
@@ -328,6 +329,9 @@ class TripService
                 'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
             ]);
 
+            $tripRef = sprintf('TRP-%05d', $trip->id);
+            $trip->update(['trip_ref' => $tripRef]);
+
             $this->syncParticipantsAndPayments($trip, $driver->id, $participantIds, $amounts, $savedRoute);
             $this->notifyParticipants($trip, $driver->name, 'Trip Created', 'trip');
 
@@ -340,6 +344,7 @@ class TripService
                     'saved_route_id' => $savedRoute->id,
                     ...$returnDirection,
                     'parent_trip_id' => $trip->id,
+                    'trip_ref' => $tripRef,
                     'trip_datetime' => $data['trip_datetime'],
                     'trip_mode' => 'two_way',
                     'visibility' => $visibility,

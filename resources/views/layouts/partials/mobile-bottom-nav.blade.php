@@ -1,22 +1,40 @@
+@php
+    $role = auth()->user()?->role;
+
+    $navItems = match ($role) {
+        'admin' => [
+            ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+            ['route' => 'admin.users.index', 'active' => ['admin.users.*'], 'icon' => 'fa-solid fa-users-gear', 'label' => 'Users'],
+            ['route' => 'admin.reports.index', 'active' => ['admin.reports.*'], 'icon' => 'fa-solid fa-chart-line', 'label' => 'Reports', 'fab' => true],
+            ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'Trips'],
+            ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user', 'label' => 'Profile'],
+        ],
+        'passenger' => [
+            ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+            ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'Trips'],
+            ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore', 'fab' => true],
+            ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-wallet', 'label' => 'Payments'],
+            ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user', 'label' => 'Profile'],
+        ],
+        default => [
+            ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+            ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+            ['route' => 'trips.create', 'active' => ['trips.create'], 'icon' => 'fa-solid fa-plus', 'label' => 'New Trip', 'fab' => true, 'aria' => 'Create trip'],
+            ['route' => 'trips.index', 'active' => ['trips.index', 'trips.show', 'trips.edit', 'trips.requests.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'Trips'],
+            ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user', 'label' => 'Profile'],
+        ],
+    };
+@endphp
+
 <nav class="mobile-bottom-nav">
-    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') || request()->routeIs('dashboard') ? 'active' : '' }}">
-        <span class="icon"><i class="fa-solid fa-house"></i></span>
-        <span>Home</span>
-    </a>
-    <a href="{{ route('explore.index') }}" class="{{ request()->routeIs('explore.*') ? 'active' : '' }}">
-        <span class="icon"><i class="fa-solid fa-compass"></i></span>
-        <span>Explore</span>
-    </a>
-    <a href="{{ route('trips.create') }}" class="nav-fab {{ request()->routeIs('trips.create') ? 'active' : '' }}" aria-label="Create trip">
-        <span class="icon"><i class="fa-solid fa-plus"></i></span>
-        <span>New Trip</span>
-    </a>
-    <a href="{{ route('trips.index') }}" class="{{ request()->routeIs('trips.*') && !request()->routeIs('trips.create') ? 'active' : '' }}">
-        <span class="icon"><i class="fa-solid fa-car-side"></i></span>
-        <span>Trips</span>
-    </a>
-    <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') || request()->routeIs('settings.*') ? 'active' : '' }}">
-        <span class="icon"><i class="fa-solid fa-user"></i></span>
-        <span>Profile</span>
-    </a>
+    @foreach($navItems as $item)
+        @php
+            $isActive = request()->routeIs(...$item['active']);
+            $classes = trim(($item['fab'] ?? false ? 'nav-fab ' : '') . ($isActive ? 'active' : ''));
+        @endphp
+        <a href="{{ route($item['route']) }}" class="{{ $classes }}" @isset($item['aria']) aria-label="{{ $item['aria'] }}" @endisset>
+            <span class="icon"><i class="{{ $item['icon'] }}"></i></span>
+            <span>{{ $item['label'] }}</span>
+        </a>
+    @endforeach
 </nav>

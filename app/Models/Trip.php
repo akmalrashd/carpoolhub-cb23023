@@ -16,6 +16,7 @@ class Trip extends Model
     protected $fillable = [
         'driver_id',
         'saved_route_id',
+        'trip_ref',
         'pickup_name',
         'pickup_latitude',
         'pickup_longitude',

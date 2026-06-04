@@ -9,12 +9,33 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class NotificationService
 {
-    public function paginateForUser(User $user, int $perPage = 15): LengthAwarePaginator
+    public function paginateForUser(User $user, int $perPage = 15, string $filter = 'all'): LengthAwarePaginator
     {
-        return UserNotification::query()
+        $query = UserNotification::query()
             ->where('user_id', $user->id)
-            ->latest()
-            ->paginate($perPage);
+            ->latest();
+
+        if ($filter === 'unread') {
+            $query->where('is_read', false);
+        } elseif (in_array($filter, ['trip', 'payment', 'connection', 'system', 'route'], true)) {
+            $query->where('type', $filter);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    public function tabCountsForUser(User $user): array
+    {
+        $base = UserNotification::query()->where('user_id', $user->id);
+
+        return [
+            'all'        => (clone $base)->count(),
+            'unread'     => (clone $base)->where('is_read', false)->count(),
+            'trip'       => (clone $base)->where('type', 'trip')->count(),
+            'payment'    => (clone $base)->where('type', 'payment')->count(),
+            'connection' => (clone $base)->where('type', 'connection')->count(),
+            'system'     => (clone $base)->where('type', 'system')->count(),
+        ];
     }
 
     public function unreadCount(User $user): int
@@ -59,4 +80,3 @@ class NotificationService
             ]);
     }
 }
-

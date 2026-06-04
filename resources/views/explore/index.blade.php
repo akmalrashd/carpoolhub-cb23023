@@ -437,11 +437,133 @@
         #explore-map {
             width: 100%;
             height: 350px;
-            background:
-                radial-gradient(ellipse at 58% 28%, rgba(34,197,94,.22) 0 13%, transparent 14%),
-                linear-gradient(90deg, transparent 0 28%, rgba(255,255,255,.9) 28% 31%, transparent 31% 100%),
-                linear-gradient(0deg, transparent 0 47%, rgba(255,255,255,.95) 47% 51%, transparent 51% 100%),
-                #ede6d2;
+            background: #e5e7eb;
+        }
+        #explore-map .leaflet-control-attribution {
+            display: none;
+        }
+        .xp-map-pin {
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 3px solid #fff;
+            display: block;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .24);
+        }
+        .xp-map-pin.pickup {
+            background: #16a34a;
+        }
+        .xp-map-pin.destination {
+            background: #1e293b;
+        }
+        .xp-map-popup {
+            display: grid;
+            gap: 7px;
+            min-width: 180px;
+            max-width: 220px;
+            color: var(--ink);
+            font-family: var(--font-ui), sans-serif;
+        }
+        .xp-map-popup-title {
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1.25;
+        }
+        .xp-map-popup-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .xp-map-popup-pill {
+            border: 1px solid var(--hairline);
+            border-radius: 999px;
+            background: var(--surface-2);
+            padding: 2px 6px;
+            font-size: 10.5px;
+            font-weight: 800;
+            color: var(--ink-2);
+            line-height: 1.35;
+        }
+        .xp-map-popup-route {
+            color: var(--muted);
+            font-size: 10.5px;
+            font-weight: 700;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .xp-map-popup-list {
+            display: grid;
+            gap: 6px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .xp-map-popup-list li {
+            border-top: 1px solid var(--hairline);
+            padding-top: 6px;
+            display: grid;
+            gap: 5px;
+        }
+        .xp-map-popup-trip-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .xp-map-popup-driver {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 900;
+        }
+        .xp-map-popup-action {
+            min-height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--ch-yellow-line);
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            font: inherit;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(250, 204, 21, .18);
+        }
+        .xp-map-popup-action:hover {
+            border-color: var(--ch-yellow-deep);
+            background: var(--ch-yellow-deep);
+        }
+        .xp-map-popup-link {
+            min-height: 30px;
+            border-radius: 8px;
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 9px;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 900;
+        }
+        .xp-map-empty {
+            min-height: 350px;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
         }
         .xp-map-legend {
             display: flex;
@@ -476,18 +598,24 @@
         .xp-modal {
             position: fixed;
             inset: 0;
-            z-index: 3000;
+            z-index: 10000;
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            background: rgba(15, 23, 42, .48);
-            backdrop-filter: blur(4px);
+            padding: 18px;
+            background: rgba(11, 18, 32, .58);
+            overflow: hidden;
         }
         .xp-modal.is-open { display: flex; }
+        body.explore-modal-open .mobile-header,
+        body.explore-modal-open .mobile-bottom-nav,
+        body.explore-modal-open .desktop-topbar,
+        body.explore-modal-open .desktop-sidebar {
+            pointer-events: none;
+        }
         .xp-modal-card {
-            width: min(100%, 620px);
-            max-height: min(86vh, 720px);
+            width: min(700px, 100%);
+            max-height: min(calc(100dvh - 36px), 760px);
             border-radius: 20px;
             background: var(--surface);
             border: 1px solid var(--hairline);
@@ -495,6 +623,18 @@
             overflow: hidden;
             display: grid;
             grid-template-rows: auto minmax(0, 1fr) auto;
+            position: relative;
+            z-index: 1;
+        }
+        @media (min-width: 640px) {
+            .xp-modal-card {
+                transform: none;
+            }
+        }
+        @media (min-width: 1024px) {
+            .xp-modal {
+                padding-left: 18px;
+            }
         }
         .xp-modal-head {
             padding: 14px 18px 12px;
@@ -532,10 +672,12 @@
             flex: 0 0 auto;
         }
         .xp-modal-body {
+            min-height: 0;
             overflow: auto;
-            padding: 16px 18px;
+            padding: 16px 18px 24px;
             display: grid;
             gap: 12px;
+            overscroll-behavior: contain;
         }
         .xp-modal-driver {
             display: flex;
@@ -948,6 +1090,8 @@
             padding: 12px 18px;
             display: grid;
             gap: 8px;
+            position: relative;
+            z-index: 1;
         }
         .xp-modal-join-btn {
             width: 100%;
@@ -979,30 +1123,50 @@
 
         @media (max-width: 639px) {
             .xp-modal {
-                align-items: center;
-                padding: 92px 8px calc(96px + env(safe-area-inset-bottom, 0px));
+                inset: 0 !important;
+                display: none;
+                align-items: flex-start !important;
+                justify-content: center !important;
+                padding: 84px 12px 104px !important;
+                background: rgba(11, 18, 32, .58);
+            }
+            .xp-modal.is-open {
+                display: flex !important;
             }
             .xp-modal-card {
-                width: 100%;
-                max-height: min(74dvh, 680px);
+                width: 100% !important;
+                height: calc(100svh - 96px - 118px) !important;
+                max-height: calc(100svh - 96px - 118px) !important;
                 border-radius: 18px;
+                border: 1px solid var(--hairline);
+                overflow: hidden;
+                box-shadow: 0 22px 58px rgba(15, 23, 42, .32);
             }
             .xp-modal-head {
-                padding: 13px 16px 10px;
+                padding: 10px 14px 9px;
+                align-items: center;
+                position: relative;
+                z-index: 2;
+                background: var(--surface);
             }
             .xp-modal-title {
-                font-size: 17px;
+                font-size: 15px;
+                line-height: 1.2;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
             .xp-modal-sub {
                 font-size: 11px;
             }
             .xp-modal-close {
-                width: 36px;
-                height: 36px;
+                width: 34px;
+                height: 34px;
                 border-radius: 11px;
             }
             .xp-modal-body {
-                padding: 14px 16px 12px;
+                padding: 12px 14px 18px;
                 gap: 10px;
             }
             .xp-modal-driver {
@@ -1024,7 +1188,7 @@
                 font-size: 12px;
             }
             .xp-modal-route {
-                padding: 12px;
+                padding: 11px;
                 gap: 12px;
             }
             .xp-modal-point {
@@ -1040,12 +1204,24 @@
             }
             .xp-modal-pref-grid {
                 grid-template-columns: 1fr;
+                gap: 9px;
             }
             .xp-modal-foot {
-                padding: 10px 16px 14px;
+                padding: 10px 14px 12px;
+                box-shadow: 0 -10px 24px rgba(15, 23, 42, .08);
+                position: relative;
+                z-index: 3;
             }
             .xp-modal-join-btn {
-                min-height: 44px;
+                min-height: 42px;
+            }
+        }
+
+        @media (min-width: 640px) and (max-width: 1023px) {
+            .xp-modal {
+                inset: 0;
+                padding-top: 90px;
+                padding-bottom: 24px;
             }
         }
 
@@ -1871,10 +2047,10 @@
                                     <div class="xp-card-footer">
                                     <span class="xp-footer-time">
                                         <span class="xp-desktop-label">
-                                            <i class="fa-regular fa-clock"></i>{{ $trip->trip_datetime?->isTomorrow() ? 'Tomorrow' : ($trip->trip_datetime?->format('D') ?: '—') }}<br>
+                                            <i class="fa-regular fa-clock"></i>{{ $trip->trip_datetime?->format('d M Y') ?: '—' }}<br>
                                             <span style="padding-left:15px;">{{ $trip->trip_datetime?->format('H:i') ?: '—' }}</span>
                                         </span>
-                                        <span class="xp-mobile-label">{{ $trip->trip_datetime?->format('H:i') ?: '—' }}</span>
+                                        <span class="xp-mobile-label">{{ $trip->trip_datetime?->format('d M Y, H:i') ?: '—' }}</span>
                                     </span>
                                     <span class="xp-footer-dot">&middot;</span>
                                     @if($isFull)
@@ -2147,6 +2323,205 @@
                 const y = target.getBoundingClientRect().top + window.scrollY - 104;
                 window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' });
             }, 220);
+        })();
+
+        (async () => {
+            const mapEl = document.getElementById('explore-map');
+            const cards = Array.from(document.querySelectorAll('.open-explore-card[data-pickup-lat][data-destination-lat]'));
+            if (!mapEl) return;
+
+            const toNumber = (value) => {
+                const number = Number.parseFloat(String(value ?? ''));
+                return Number.isFinite(number) ? number : null;
+            };
+            const escapeHtml = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            const routeRows = cards.map((card, index) => {
+                const pickupLat = toNumber(card.dataset.pickupLat);
+                const pickupLng = toNumber(card.dataset.pickupLng);
+                const destinationLat = toNumber(card.dataset.destinationLat);
+                const destinationLng = toNumber(card.dataset.destinationLng);
+                if ([pickupLat, pickupLng, destinationLat, destinationLng].some((value) => value === null)) return null;
+
+                return {
+                    card,
+                    index,
+                    routeName: card.dataset.routeName || `Route ${index + 1}`,
+                    driver: card.dataset.driver || 'Driver',
+                    time: card.dataset.time || '-',
+                    seats: card.dataset.seats || '-',
+                    fare: card.dataset.fare || '-',
+                    pickup: card.dataset.pickup || 'Pickup',
+                    destination: card.dataset.destination || 'Destination',
+                    tripUrl: card.dataset.tripUrl || '#',
+                    pickupPoint: [pickupLat, pickupLng],
+                    destinationPoint: [destinationLat, destinationLng],
+                    isFocused: card.dataset.exploreFocusCard === '1',
+                };
+            }).filter(Boolean);
+            const routeGroups = Array.from(routeRows.reduce((groups, route) => {
+                const key = [
+                    route.pickupPoint[0].toFixed(5),
+                    route.pickupPoint[1].toFixed(5),
+                    route.destinationPoint[0].toFixed(5),
+                    route.destinationPoint[1].toFixed(5),
+                ].join('|');
+                if (!groups.has(key)) {
+                    groups.set(key, {
+                        key,
+                        pickup: route.pickup,
+                        destination: route.destination,
+                        pickupPoint: route.pickupPoint,
+                        destinationPoint: route.destinationPoint,
+                        routes: [],
+                    });
+                }
+                groups.get(key).routes.push(route);
+                route.groupKey = key;
+                return groups;
+            }, new Map()).values());
+
+            if (typeof window.L === 'undefined') {
+                mapEl.innerHTML = '<div class="xp-map-empty">Map is unavailable right now.</div>';
+                return;
+            }
+
+            if (!routeRows.length) {
+                mapEl.innerHTML = '<div class="xp-map-empty">No mapped route coordinates for the current trips.</div>';
+                return;
+            }
+
+            const map = window.L.map(mapEl, {
+                zoomControl: true,
+                attributionControl: false,
+                scrollWheelZoom: false,
+            });
+
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(map);
+
+            const bounds = window.L.latLngBounds([]);
+            const routeLayers = new Map();
+            const pickupIcon = window.L.divIcon({
+                className: '',
+                html: '<span class="xp-map-pin pickup"></span>',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9],
+            });
+            const destinationIcon = window.L.divIcon({
+                className: '',
+                html: '<span class="xp-map-pin destination"></span>',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9],
+            });
+            const fetchShortestPath = async (group) => {
+                const coordinates = [
+                    `${encodeURIComponent(group.pickupPoint[1])},${encodeURIComponent(group.pickupPoint[0])}`,
+                    `${encodeURIComponent(group.destinationPoint[1])},${encodeURIComponent(group.destinationPoint[0])}`,
+                ].join(';');
+                const fallback = [group.pickupPoint, group.destinationPoint];
+                try {
+                    const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson&alternatives=false&steps=false`);
+                    if (!response.ok) return fallback;
+                    const payload = await response.json();
+                    const points = (payload?.routes?.[0]?.geometry?.coordinates ?? [])
+                        .map((coord) => [Number(coord[1]), Number(coord[0])])
+                        .filter((point) => Number.isFinite(point[0]) && Number.isFinite(point[1]));
+                    return points.length > 1 ? points : fallback;
+                } catch (_error) {
+                    return fallback;
+                }
+            };
+
+            const setRouteActive = (route, active) => {
+                const layers = routeLayers.get(route.groupKey);
+                if (!layers) return;
+                layers.shadow.setStyle({
+                    weight: active ? 18 : 12,
+                    opacity: active ? 0.22 : 0.12,
+                });
+                layers.line.setStyle({
+                    weight: active ? 6 : 4,
+                    opacity: active ? 0.95 : 0.68,
+                    color: active ? '#facc15' : '#0f172a',
+                });
+                if (active) {
+                    layers.shadow.bringToFront();
+                    layers.line.bringToFront();
+                    layers.pickup.bringToFront();
+                    layers.destination.bringToFront();
+                }
+            };
+
+            for (const group of routeGroups) {
+                const latLngs = await fetchShortestPath(group);
+                latLngs.forEach((point) => bounds.extend(point));
+                const isFocused = group.routes.some((route) => route.isFocused);
+                const title = group.routes.length === 1
+                    ? escapeHtml(group.routes[0].driver)
+                    : `${group.routes.length} trips on this route`;
+                const tripItems = group.routes.map((route) => `
+                    <li>
+                        <div class="xp-map-popup-trip-head">
+                            <strong class="xp-map-popup-driver">${escapeHtml(route.driver)}</strong>
+                            <button type="button" class="xp-map-popup-action" data-map-card-id="${escapeHtml(route.card.id)}">Details</button>
+                        </div>
+                        <div class="xp-map-popup-meta">
+                            <span class="xp-map-popup-pill">${escapeHtml(route.time)}</span>
+                            <span class="xp-map-popup-pill">${escapeHtml(route.fare)}</span>
+                            <span class="xp-map-popup-pill">${escapeHtml(route.seats)}</span>
+                        </div>
+                    </li>
+                `).join('');
+
+                const popupHtml = `
+                    <div class="xp-map-popup">
+                        <div class="xp-map-popup-title">${title}</div>
+                        <div class="xp-map-popup-route">
+                            ${escapeHtml(group.pickup)}<br>
+                            ${escapeHtml(group.destination)}
+                        </div>
+                        <ul class="xp-map-popup-list">${tripItems}</ul>
+                    </div>
+                `;
+                const shadow = window.L.polyline(latLngs, {
+                    color: '#0f172a',
+                    weight: isFocused ? 18 : 12,
+                    opacity: isFocused ? 0.22 : 0.12,
+                    lineCap: 'round',
+                    interactive: false,
+                }).addTo(map);
+                const line = window.L.polyline(latLngs, {
+                    color: isFocused ? '#facc15' : '#0f172a',
+                    weight: isFocused ? 6 : 4,
+                    opacity: isFocused ? 0.95 : 0.68,
+                    lineCap: 'round',
+                }).addTo(map).bindPopup(popupHtml);
+                const pickup = window.L.marker(group.pickupPoint, { icon: pickupIcon }).addTo(map).bindTooltip(escapeHtml(group.pickup)).bindPopup(popupHtml);
+                const destination = window.L.marker(group.destinationPoint, { icon: destinationIcon }).addTo(map).bindTooltip(escapeHtml(group.destination)).bindPopup(popupHtml);
+
+                routeLayers.set(group.key, { shadow, line, pickup, destination, latLngs });
+            }
+
+            routeRows.forEach((route) => {
+                route.card.addEventListener('mouseenter', () => setRouteActive(route, true));
+                route.card.addEventListener('mouseleave', () => setRouteActive(route, route.isFocused));
+                route.card.addEventListener('focus', () => setRouteActive(route, true));
+                route.card.addEventListener('blur', () => setRouteActive(route, route.isFocused));
+                route.card.addEventListener('click', () => {
+                    setRouteActive(route, true);
+                    const layers = routeLayers.get(route.groupKey);
+                    if (layers) map.fitBounds(window.L.latLngBounds(layers.latLngs), { padding: [42, 42], maxZoom: 15 });
+                });
+            });
+
+            map.fitBounds(bounds, { padding: [26, 26], maxZoom: 14 });
+            window.setTimeout(() => map.invalidateSize(), 120);
         })();
 
         (() => {
@@ -2603,12 +2978,14 @@
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
+                document.body.classList.add('explore-modal-open');
                 syncCustomFields();
             };
             const closeModal = () => {
                 modal.classList.remove('is-open');
                 modal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
+                document.body.classList.remove('explore-modal-open');
             };
 
             cards.forEach((card) => {
@@ -2624,6 +3001,23 @@
                     e.preventDefault();
                     openModal(card);
                 });
+            });
+            document.querySelectorAll('.open-explore-modal').forEach((link) => {
+                link.addEventListener('click', (event) => {
+                    const card = event.currentTarget.closest('.open-explore-card');
+                    if (!card) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openModal(card);
+                });
+            });
+            document.addEventListener('click', (event) => {
+                const button = event.target.closest('.xp-map-popup-action[data-map-card-id]');
+                if (!button) return;
+                event.preventDefault();
+                event.stopPropagation();
+                const card = document.getElementById(button.dataset.mapCardId || '');
+                if (card) openModal(card);
             });
             closeBtn.addEventListener('click', closeModal);
             modal.addEventListener('click', (event) => {
