@@ -35,6 +35,7 @@ class NotificationService
             'payment'    => (clone $base)->where('type', 'payment')->count(),
             'connection' => (clone $base)->where('type', 'connection')->count(),
             'system'     => (clone $base)->where('type', 'system')->count(),
+            'route'      => (clone $base)->where('type', 'route')->count(),
         ];
     }
 
@@ -78,5 +79,13 @@ class NotificationService
                 'is_read' => true,
                 'read_at' => now(),
             ]);
+    }
+
+    public function clearReadNotifications(User $user): void
+    {
+        UserNotification::query()
+            ->where('user_id', $user->id)
+            ->where('is_read', true)
+            ->delete();
     }
 }

@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PushController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RefreshController;
 use App\Http\Controllers\SavedRouteController;
@@ -21,6 +23,8 @@ Route::redirect('/', '/home');
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+    Route::get('/register', [RegisterController::class, 'show'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 });
 
 Route::middleware(['auth', 'active'])->group(function (): void {
@@ -52,8 +56,14 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/payments/{payment}/send-reminder', [PaymentController::class, 'sendReminder'])->name('payments.send-reminder');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
-    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::delete('/notifications/clear-read', [NotificationController::class, 'clearRead'])->name('notifications.clear-read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    Route::get('/push/vapid-key', [PushController::class, 'vapidPublicKey'])->name('push.vapid-key');
+    Route::post('/push/subscribe', [PushController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushController::class, 'unsubscribe'])->name('push.unsubscribe');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/profile', [SettingsController::class, 'index'])->name('profile.index');
     Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
@@ -63,6 +73,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
         Route::post('/chat', [AiChatController::class, 'chat'])->name('ai.chat');
         Route::delete('/chat/history', [AiChatController::class, 'clearHistory'])->name('ai.chat.clear');
         Route::post('/fare-reason', [AiChatController::class, 'fareReason'])->name('ai.fare-reason');
+        Route::post('/fare-advice', [AiChatController::class, 'fareAdvice'])->name('ai.fare-advice');
     });
 
     Route::prefix('/refresh')->group(function (): void {

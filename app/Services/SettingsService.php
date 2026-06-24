@@ -27,7 +27,7 @@ class SettingsService
         }
 
         $name = array_key_exists('name', $data) ? (string) $data['name'] : $user->name;
-        $email = $user->email;
+        $email = array_key_exists('email', $data) && $data['email'] ? (string) $data['email'] : $user->email;
         $emailVisible = array_key_exists('email_visible', $data)
             ? (string) $data['email_visible']
             : (string) ($user->email_visible ?: 'visible_friend');

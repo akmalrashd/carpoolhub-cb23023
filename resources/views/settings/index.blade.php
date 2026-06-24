@@ -795,8 +795,7 @@
                                     value="{{ old('email', $user->email) }}"
                                     required
                                     class="settings-input"
-                                    data-locked="1"
-                                    disabled>
+                                    data-locked="1">
                                 <div class="settings-group-divider"></div>
                                 <select id="email_visible" name="email_visible"
                                     class="settings-vis-select"

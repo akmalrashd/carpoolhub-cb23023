@@ -35,6 +35,7 @@ class User extends Authenticatable
         'payment_bank_name',
         'payment_qr_duitnow',
         'payment_qr_tng',
+        'driving_license_photo',
         'is_active',
     ];
 
@@ -105,6 +106,11 @@ class User extends Authenticatable
     public function tripJoinRequests(): HasMany
     {
         return $this->hasMany(TripJoinRequest::class, 'user_id');
+    }
+
+    public function riskProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(PassengerRiskProfile::class);
     }
 
     public function userNotifications(): HasMany
@@ -178,7 +184,7 @@ class User extends Authenticatable
             return null;
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->payment_qr_duitnow);
+        return asset('storage/' . $this->payment_qr_duitnow);
     }
 
     public function getPaymentQrTngUrlAttribute(): ?string
@@ -187,6 +193,7 @@ class User extends Authenticatable
             return null;
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->payment_qr_tng);
+        return asset('storage/' . $this->payment_qr_tng);
     }
+
 }

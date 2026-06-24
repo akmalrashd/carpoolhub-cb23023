@@ -152,7 +152,7 @@ class TripController extends Controller
 
     private function ensureCanManage(Request $request): void
     {
-        abort_unless(in_array($request->user()->role, ['admin', 'driver'], true), 403);
+        abort_unless($request->user()->role === 'driver', 403);
     }
 
     private function buildGroupPaymentRollups(Trip $trip): array

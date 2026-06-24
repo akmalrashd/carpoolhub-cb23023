@@ -69,14 +69,15 @@ class TripJoinRequestService
 
             $this->upsertRoutePointForRequest($request, $passenger, $baseTrip, $routePointData);
 
+            $label = $this->tripLabel($baseTrip);
             UserNotification::query()->create([
-                'user_id' => $baseTrip->driver_id,
-                'type' => 'trip',
-                'title' => 'New Join Request',
-                'message' => "{$passenger->name} requested to join trip #{$baseTrip->id}.",
+                'user_id'      => $baseTrip->driver_id,
+                'type'         => 'trip',
+                'title'        => 'New Join Request',
+                'message'      => "{$passenger->name} wants to join the {$label}. Review and respond to their request.",
                 'related_type' => 'trip_join_request',
-                'related_id' => $request->id,
-                'is_read' => false,
+                'related_id'   => $request->id,
+                'is_read'      => false,
             ]);
 
             return $request;
@@ -95,12 +96,26 @@ class TripJoinRequestService
             ]);
         }
 
+        $joinRequest->loadMissing('trip');
         $joinRequest->update([
             'status' => 'cancelled',
             'responded_by' => $passenger->id,
             'responded_at' => now(),
         ]);
         $joinRequest->routePoint?->update(['status' => 'cancelled']);
+
+        if ($joinRequest->trip) {
+            $label = $this->tripLabel($joinRequest->trip);
+            UserNotification::query()->create([
+                'user_id'      => $joinRequest->trip->driver_id,
+                'type'         => 'trip',
+                'title'        => 'Join Request Cancelled',
+                'message'      => "{$passenger->name} cancelled their join request for the {$label}.",
+                'related_type' => 'trip_join_request',
+                'related_id'   => $joinRequest->id,
+                'is_read'      => false,
+            ]);
+        }
 
         return $joinRequest->refresh();
     }
@@ -141,16 +156,17 @@ class TripJoinRequestService
                 'responded_at' => now(),
             ]);
 
+            $label = $this->tripLabel($trip);
             UserNotification::query()->create([
-                'user_id' => $joinRequest->user_id,
-                'type' => 'trip',
-                'title' => $action === 'approve' ? 'Join Request Approved' : 'Join Request Rejected',
-                'message' => $action === 'approve'
-                    ? "Your request for trip #{$trip->id} was approved."
-                    : "Your request for trip #{$trip->id} was rejected.",
+                'user_id'      => $joinRequest->user_id,
+                'type'         => 'trip',
+                'title'        => $action === 'approve' ? 'Join Request Approved' : 'Join Request Rejected',
+                'message'      => $action === 'approve'
+                    ? "Great news! Your request to join the {$label} has been approved. Check your trip details."
+                    : "Your request to join the {$label} was not approved this time.",
                 'related_type' => 'trip_join_request',
-                'related_id' => $joinRequest->id,
-                'is_read' => false,
+                'related_id'   => $joinRequest->id,
+                'is_read'      => false,
             ]);
 
             return $joinRequest->refresh();
@@ -529,5 +545,24 @@ class TripJoinRequestService
         }
 
         abort(403);
+    }
+
+    private function shortenAddress(string $address): string
+    {
+        $first = trim(explode(',', $address)[0]);
+        $source = mb_strlen($first) >= 4 ? $first : $address;
+        return mb_strimwidth($source, 0, 28, '…');
+    }
+
+    private function tripLabel(Trip $trip): string
+    {
+        if ($trip->pickup_name && $trip->destination_name) {
+            $pickup      = $this->shortenAddress($trip->pickup_name);
+            $destination = $this->shortenAddress($trip->destination_name);
+            $date        = $trip->trip_datetime?->format('d M Y') ?? '';
+            return $date ? "{$pickup} → {$destination} on {$date}" : "{$pickup} → {$destination}";
+        }
+
+        return 'Trip #' . ($trip->trip_ref ?? $trip->id);
     }
 }

@@ -227,29 +227,30 @@ class PaymentService
             ]);
 
             $payment->loadMissing('trip');
+            $label = $this->tripLabel($payment);
 
             if ($isSelfDrivenPayment) {
                 UserNotification::query()->create([
-                    'user_id' => $payment->user_id,
-                    'type' => 'payment',
-                    'title' => 'Payment Marked as Paid',
-                    'message' => "Your self-driven payment for trip #{$payment->trip_id} has been marked as paid.",
+                    'user_id'      => $payment->user_id,
+                    'type'         => 'payment',
+                    'title'        => 'Payment Recorded',
+                    'message'      => "Your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} has been recorded.",
                     'related_type' => 'trip_payment',
-                    'related_id' => $payment->id,
-                    'is_read' => false,
+                    'related_id'   => $payment->id,
+                    'is_read'      => false,
                 ]);
 
                 return $payment->refresh();
             }
 
             UserNotification::query()->create([
-                'user_id' => $payment->trip->driver_id,
-                'type' => 'payment',
-                'title' => 'Payment Marked by Passenger',
-                'message' => "{$actor->name} marked payment as paid for trip #{$payment->trip_id}.",
+                'user_id'      => $payment->trip->driver_id,
+                'type'         => 'payment',
+                'title'        => 'Payment Submitted by Passenger',
+                'message'      => "{$actor->name} submitted a payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label}. Please verify and confirm.",
                 'related_type' => 'trip_payment',
-                'related_id' => $payment->id,
-                'is_read' => false,
+                'related_id'   => $payment->id,
+                'is_read'      => false,
             ]);
 
             return $payment->refresh();
@@ -290,16 +291,17 @@ class PaymentService
                 'marked_paid_at' => $payment->marked_paid_at ?? now(),
             ]);
 
+            $label = $this->tripLabel($payment);
             UserNotification::query()->create([
-                'user_id' => $payment->user_id,
-                'type' => 'payment',
-                'title' => $isDirectMark ? 'Payment Marked by Driver' : 'Payment Confirmed',
-                'message' => $isDirectMark
-                    ? "Driver marked your payment as paid for trip #{$payment->trip_id}."
-                    : "Your payment for trip #{$payment->trip_id} has been confirmed.",
+                'user_id'      => $payment->user_id,
+                'type'         => 'payment',
+                'title'        => $isDirectMark ? 'Payment Marked by Driver' : 'Payment Confirmed',
+                'message'      => $isDirectMark
+                    ? "The driver has marked your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} as paid."
+                    : "Your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} has been confirmed. You're all set!",
                 'related_type' => 'trip_payment',
-                'related_id' => $payment->id,
-                'is_read' => false,
+                'related_id'   => $payment->id,
+                'is_read'      => false,
             ]);
 
             return $payment->refresh();
@@ -340,14 +342,15 @@ class PaymentService
                 'remarks' => null,
             ]);
 
+            $label = $this->tripLabel($payment);
             UserNotification::query()->create([
-                'user_id' => $payment->user_id,
-                'type' => 'payment',
-                'title' => 'Payment Request Rejected',
-                'message' => "Your payment for trip #{$payment->trip_id} was rejected. Reason: {$reason}. Please submit again with updated details.",
+                'user_id'      => $payment->user_id,
+                'type'         => 'payment',
+                'title'        => 'Payment Submission Rejected',
+                'message'      => "Your payment submission for the {$label} was rejected. Reason: {$reason}. Please resubmit with the correct details.",
                 'related_type' => 'trip_payment',
-                'related_id' => $payment->id,
-                'is_read' => false,
+                'related_id'   => $payment->id,
+                'is_read'      => false,
             ]);
 
             return $payment->refresh();
@@ -385,14 +388,15 @@ class PaymentService
             ]);
         }
 
+        $label = $this->tripLabel($payment);
         UserNotification::query()->create([
-            'user_id' => $payment->user_id,
-            'type' => 'payment',
-            'title' => 'Payment Reminder',
-            'message' => "Reminder for trip #{$payment->trip_id}: please submit or update your payment details.",
+            'user_id'      => $payment->user_id,
+            'type'         => 'payment',
+            'title'        => 'Payment Reminder',
+            'message'      => "Reminder: You have an outstanding payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label}. Please settle it as soon as possible.",
             'related_type' => 'trip_payment',
-            'related_id' => $payment->id,
-            'is_read' => false,
+            'related_id'   => $payment->id,
+            'is_read'      => false,
         ]);
     }
 
@@ -543,5 +547,25 @@ class PaymentService
                 'payment' => 'Payment can only be processed after the trip time.',
             ]);
         }
+    }
+
+    private function shortenAddress(string $address): string
+    {
+        $first = trim(explode(',', $address)[0]);
+        $source = mb_strlen($first) >= 4 ? $first : $address;
+        return mb_strimwidth($source, 0, 28, '…');
+    }
+
+    private function tripLabel(TripPayment $payment): string
+    {
+        $trip = $payment->trip;
+        if ($trip && $trip->pickup_name && $trip->destination_name) {
+            $pickup      = $this->shortenAddress($trip->pickup_name);
+            $destination = $this->shortenAddress($trip->destination_name);
+            $date        = $trip->trip_datetime?->format('d M Y') ?? '';
+            return $date ? "{$pickup} → {$destination} on {$date}" : "{$pickup} → {$destination}";
+        }
+
+        return 'Trip #' . ($trip?->trip_ref ?? $payment->trip_id);
     }
 }

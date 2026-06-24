@@ -213,6 +213,32 @@
             border-color: var(--ch-yellow);
             box-shadow: 0 0 0 3px rgba(250,204,21,.22), var(--shadow-3);
         }
+        .xp-card.is-recommended {
+            border-color: var(--ch-yellow-line);
+            box-shadow: 0 0 0 2px rgba(250,204,21,.18), var(--shadow-1);
+        }
+        .xp-rec-strip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 6px 14px;
+            background: var(--ch-yellow-tint);
+            border-bottom: 1px solid var(--ch-yellow-line);
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--warning-ink);
+        }
+        .xp-rec-strip i { font-size: 10px; }
+        .xp-rec-pill {
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--warning-ink);
+            padding: 2px 7px;
+            font-size: 10px;
+            font-weight: 700;
+        }
         .xp-card-body {
             padding: 13px 14px;
             display: grid;
@@ -1955,7 +1981,7 @@
 
                         <article
                             id="exploreTripCard{{ $trip->id }}"
-                            class="xp-card {{ $focusTripId === (int) $trip->id ? 'is-focus' : '' }} open-explore-card"
+                            class="xp-card {{ $focusTripId === (int) $trip->id ? 'is-focus' : '' }} {{ $isRecommended ? 'is-recommended' : '' }} open-explore-card"
                             data-trip-url="{{ route('explore.show', $trip) }}"
                             data-join-url="{{ route('explore.request-join', $trip) }}"
                             data-join-state="{{ $joinState }}"
@@ -1980,6 +2006,17 @@
                             role="button"
                             @if($focusTripId === (int) $trip->id) data-explore-focus-card="1" @endif
                         >
+                            @if($isRecommended)
+                            <div class="xp-rec-strip">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                AI Recommended
+                                @if(!empty($aiRecommendation['explanations']))
+                                    @foreach(array_slice($aiRecommendation['explanations'], 0, 2) as $reason)
+                                        <span class="xp-rec-pill">{{ $reason }}</span>
+                                    @endforeach
+                                @endif
+                            </div>
+                            @endif
                             <div class="xp-card-body">
                                 <div class="xp-card-main">
 

@@ -34,13 +34,14 @@ class RefreshController extends Controller
         return response()->json([
             'unread_count' => $unreadCount,
             'notifications' => $notifications->map(fn ($item) => [
-                'id' => (int) $item->id,
-                'title' => (string) $item->title,
-                'message' => (string) $item->message,
-                'is_read' => (bool) $item->is_read,
-                'time_ago' => (string) ($item->created_at?->diffForHumans() ?? ''),
+                'id'         => (int) $item->id,
+                'type'       => (string) ($item->type ?? 'system'),
+                'title'      => (string) $item->title,
+                'message'    => (string) $item->message,
+                'is_read'    => (bool) $item->is_read,
+                'time_ago'   => (string) ($item->created_at?->diffForHumans() ?? ''),
                 'target_url' => (string) $item->target_url,
-                'open_url' => route('notifications.open', $item),
+                'open_url'   => route('notifications.open', $item),
             ])->values()->all(),
         ]);
     }

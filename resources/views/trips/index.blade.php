@@ -1101,6 +1101,57 @@
             font-weight: 700;
             line-height: 1.35;
         }
+        .trip-request-risk-card {
+            border: 1px solid var(--hairline);
+            border-radius: 10px;
+            background: var(--surface-2);
+            padding: 9px 10px;
+            display: grid;
+            gap: 5px;
+        }
+        .trip-request-risk-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .trip-request-risk-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--ink-3);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .trip-request-risk-badge {
+            border-radius: 999px;
+            border: 1px solid var(--hairline);
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .trip-request-risk-badge.risk-low { color: var(--success-ink); background: var(--success-soft); border-color: #86efac; }
+        .trip-request-risk-badge.risk-moderate { color: var(--warning-ink); background: var(--ch-yellow-tint); border-color: var(--ch-yellow-line); }
+        .trip-request-risk-badge.risk-high { color: var(--danger); background: var(--danger-soft); border-color: #fecaca; }
+        .trip-request-risk-score {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1;
+        }
+        .trip-request-risk-score span { font-size: 13px; font-weight: 600; color: var(--muted); }
+        .trip-request-risk-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px 10px;
+            font-size: 11px;
+            color: var(--ink-3);
+            font-weight: 600;
+        }
+        .trip-request-risk-meta i { color: var(--muted); margin-right: 3px; font-size: 10px; }
         .trip-request-actions {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2411,6 +2462,12 @@
                                         'fit_label' => $routePoint?->route_fit_label ?: 'Driver review',
                                         'respond_url' => route('trips.join-requests.respond', $joinRequest),
                                         'trip' => $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT),
+                                        'risk_score' => $joinRequest->user?->riskProfile?->risk_score ?? 70,
+                                        'risk_level' => $joinRequest->user?->riskProfile?->risk_level ?? 'Moderate Risk',
+                                        'risk_reliability' => $joinRequest->user?->riskProfile?->payment_reliability_score ?? 5.0,
+                                        'risk_cancelled' => $joinRequest->user?->riskProfile?->cancelled_request_count ?? 0,
+                                        'risk_absent' => $joinRequest->user?->riskProfile?->attendance_absent_count ?? 0,
+                                        'risk_unpaid' => $joinRequest->user?->riskProfile?->overdue_case_count ?? 0,
                                     ];
                                 })
                                 ->values();
@@ -2826,6 +2883,12 @@
                                             'fit_label' => $routePoint?->route_fit_label ?: 'Driver review',
                                             'respond_url' => route('trips.join-requests.respond', $joinRequest),
                                             'trip' => $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT),
+                                            'risk_score' => $joinRequest->user?->riskProfile?->risk_score ?? 70,
+                                            'risk_level' => $joinRequest->user?->riskProfile?->risk_level ?? 'Moderate Risk',
+                                            'risk_reliability' => $joinRequest->user?->riskProfile?->payment_reliability_score ?? 5.0,
+                                            'risk_cancelled' => $joinRequest->user?->riskProfile?->cancelled_request_count ?? 0,
+                                            'risk_absent' => $joinRequest->user?->riskProfile?->attendance_absent_count ?? 0,
+                                            'risk_unpaid' => $joinRequest->user?->riskProfile?->overdue_case_count ?? 0,
                                         ];
                                     })
                                     ->values();
@@ -4314,6 +4377,19 @@
                                 <span>Route fit</span>
                                 <strong>${escapeHtml(request.fit || 'Review')}</strong>
                                 <small>${escapeHtml(request.fit_label || 'Driver review')}</small>
+                            </div>
+                        </div>
+                        <div class="trip-request-risk-card">
+                            <div class="trip-request-risk-top">
+                                <span class="trip-request-risk-title"><i class="fa-solid fa-shield-halved"></i> AI Passenger Risk</span>
+                                <span class="trip-request-risk-badge ${Number(request.risk_score) >= 80 ? 'risk-low' : Number(request.risk_score) >= 60 ? 'risk-moderate' : 'risk-high'}">${escapeHtml(request.risk_level || 'Moderate Risk')}</span>
+                            </div>
+                            <div class="trip-request-risk-score">${Number(request.risk_score) || 70}<span>/100</span></div>
+                            <div class="trip-request-risk-meta">
+                                <span><i class="fa-solid fa-shield-heart"></i> Reliability: ${Number(request.risk_reliability || 5.0).toFixed(1)}/5.0</span>
+                                <span><i class="fa-solid fa-file-invoice-dollar"></i> Overdue: ${Number(request.risk_unpaid) || 0}</span>
+                                <span><i class="fa-solid fa-clock"></i> Cancelled: ${Number(request.risk_cancelled) || 0}</span>
+                                <span><i class="fa-solid fa-user-clock"></i> Absences: ${Number(request.risk_absent) || 0}</span>
                             </div>
                         </div>
                         ${request.note ? `<div class="trip-request-note">Passenger note: ${escapeHtml(request.note)}</div>` : ''}

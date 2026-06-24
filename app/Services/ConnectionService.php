@@ -129,13 +129,13 @@ class ConnectionService
             $connection->save();
 
             UserNotification::query()->create([
-                'user_id' => $receiverId,
-                'type' => 'connection',
-                'title' => 'New Connection Request',
-                'message' => "{$requester->name} sent you a connection request.",
+                'user_id'      => $receiverId,
+                'type'         => 'connection',
+                'title'        => 'New Connection Request',
+                'message'      => "{$requester->name} sent you a connection request. Accept to stay connected for future trips.",
                 'related_type' => 'connection',
-                'related_id' => $connection->id,
-                'is_read' => false,
+                'related_id'   => $connection->id,
+                'is_read'      => false,
             ]);
 
             return $connection;
@@ -158,13 +158,15 @@ class ConnectionService
             $connection->save();
 
             UserNotification::query()->create([
-                'user_id' => $connection->requester_id,
-                'type' => 'connection',
-                'title' => $nextStatus === 'accepted' ? 'Connection Accepted' : 'Connection Rejected',
-                'message' => "{$receiver->name} {$nextStatus} your connection request.",
+                'user_id'      => $connection->requester_id,
+                'type'         => 'connection',
+                'title'        => $nextStatus === 'accepted' ? 'Connection Accepted' : 'Connection Declined',
+                'message'      => $nextStatus === 'accepted'
+                    ? "{$receiver->name} accepted your connection request. You can now see each other in trip recommendations."
+                    : "{$receiver->name} declined your connection request.",
                 'related_type' => 'connection',
-                'related_id' => $connection->id,
-                'is_read' => false,
+                'related_id'   => $connection->id,
+                'is_read'      => false,
             ]);
 
             return $connection;

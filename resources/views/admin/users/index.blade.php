@@ -4,10 +4,11 @@
 
 @php
     use App\Models\User;
-    $totalUsers    = User::count();
-    $adminCount    = User::where('role', 'admin')->count();
-    $driverCount   = User::where('role', 'driver')->count();
-    $passengerCount= User::where('role', 'passenger')->count();
+    $totalUsers     = User::count();
+    $adminCount     = User::where('role', 'admin')->count();
+    $driverCount    = User::where('role', 'driver')->count();
+    $passengerCount = User::where('role', 'passenger')->count();
+    $pendingDrivers = User::where('role', 'driver')->where('is_active', false)->count();
 @endphp
 
 {{-- Page header --}}
@@ -25,6 +26,15 @@
     <div style="margin-bottom: 14px; padding: 12px 14px; border-radius: var(--r-md); border: 1px solid rgba(220,38,38,0.28); background: var(--danger-soft); color: var(--danger-ink); font-size: 14px; font-weight: 500;">
         <i class="fa-solid fa-circle-exclamation" style="margin-right: 6px;"></i>{{ $errors->first() }}
     </div>
+@endif
+
+{{-- Pending approval banner --}}
+@if($pendingDrivers > 0)
+    <a href="{{ route('admin.users.index', ['role' => 'driver', 'active' => '0']) }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-md); background: var(--warning-soft); border: 1px solid rgba(180,83,9,0.25); color: var(--warning-ink); font-size: 14px; font-weight: 600; text-decoration: none; margin-bottom: 14px;">
+        <i class="fa-solid fa-clock" style="font-size: 15px; flex-shrink: 0;"></i>
+        <span>{{ $pendingDrivers }} driver {{ Str::plural('account', $pendingDrivers) }} pending approval — tap to review</span>
+        <i class="fa-solid fa-chevron-right" style="margin-left: auto; font-size: 12px; opacity: 0.6;"></i>
+    </a>
 @endif
 
 {{-- Stats strip --}}
@@ -206,28 +216,50 @@
 
                         {{-- Actions --}}
                         <td style="padding: 12px 16px; text-align: right;">
-                            <form method="POST" action="{{ route('admin.users.update', $user) }}" style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
-                                @csrf
-                                @method('PATCH')
-                                <select
-                                    name="role"
-                                    aria-label="Role for {{ $user->name }}"
-                                    style="border: 1px solid var(--hairline-strong); border-radius: var(--r-sm); padding: 6px 8px; font-size: 12px; color: var(--ink); background: var(--surface); font-family: var(--font-ui); outline: none; width: 110px;"
-                                >
-                                    @foreach(['admin', 'driver', 'passenger'] as $role)
-                                        <option value="{{ $role }}" {{ $user->role === $role ? 'selected' : '' }}>{{ ucfirst($role) }}</option>
-                                    @endforeach
-                                </select>
-                                <select
-                                    name="is_active"
-                                    aria-label="Status for {{ $user->name }}"
-                                    style="border: 1px solid var(--hairline-strong); border-radius: var(--r-sm); padding: 6px 8px; font-size: 12px; color: var(--ink); background: var(--surface); font-family: var(--font-ui); outline: none; width: 100px;"
-                                >
-                                    <option value="1" {{ $user->is_active ? 'selected' : '' }}>Active</option>
-                                    <option value="0" {{ ! $user->is_active ? 'selected' : '' }}>Inactive</option>
-                                </select>
-                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                            </form>
+                            <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+                                {{-- Review License button (driver only) --}}
+                                @if($user->role === 'driver' && $user->driving_license_photo)
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm license-review-btn"
+                                        style="background: var(--info-soft); color: var(--info-ink); border: 1px solid rgba(37,99,235,0.2); white-space: nowrap;"
+                                        data-user-id="{{ $user->id }}"
+                                        data-name="{{ $user->name }}"
+                                        data-vehicle="{{ $user->vehicle_model }} {{ $user->vehicle_plate }}"
+                                        data-active="{{ $user->is_active ? '1' : '0' }}"
+                                        data-img="{{ $user->driving_license_photo }}"
+                                    >
+                                        <i class="fa-solid fa-id-card" style="font-size: 11px;"></i> Review License
+                                    </button>
+                                @elseif($user->role === 'driver' && ! $user->driving_license_photo)
+                                    <span style="font-size: 12px; color: var(--muted-2); white-space: nowrap;">
+                                        <i class="fa-solid fa-ban" style="font-size: 10px;"></i> No license
+                                    </span>
+                                @endif
+
+                                <form method="POST" action="{{ route('admin.users.update', $user) }}" style="display: inline-flex; gap: 6px; align-items: center;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <select
+                                        name="role"
+                                        aria-label="Role for {{ $user->name }}"
+                                        style="border: 1px solid var(--hairline-strong); border-radius: var(--r-sm); padding: 6px 8px; font-size: 12px; color: var(--ink); background: var(--surface); font-family: var(--font-ui); outline: none; width: 110px;"
+                                    >
+                                        @foreach(['admin', 'driver', 'passenger'] as $role)
+                                            <option value="{{ $role }}" {{ $user->role === $role ? 'selected' : '' }}>{{ ucfirst($role) }}</option>
+                                        @endforeach
+                                    </select>
+                                    <select
+                                        name="is_active"
+                                        aria-label="Status for {{ $user->name }}"
+                                        style="border: 1px solid var(--hairline-strong); border-radius: var(--r-sm); padding: 6px 8px; font-size: 12px; color: var(--ink); background: var(--surface); font-family: var(--font-ui); outline: none; width: 100px;"
+                                    >
+                                        <option value="1" {{ $user->is_active ? 'selected' : '' }}>Active</option>
+                                        <option value="0" {{ ! $user->is_active ? 'selected' : '' }}>Inactive</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
 
@@ -316,5 +348,89 @@
         background: transparent;
     }
 </style>
+
+{{-- ── License Review Modal ── --}}
+<div id="license-modal" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(11,18,32,0.55); backdrop-filter:blur(4px); padding:20px; align-items:center; justify-content:center;" onclick="closeLicenseModalOutside(event)">
+    <div style="background:var(--surface); border-radius:var(--r-lg); box-shadow:var(--shadow-3); width:100%; max-width:480px; overflow:hidden; position:relative;">
+
+        {{-- Header --}}
+        <div style="padding:18px 20px 14px; border-bottom:1px solid var(--hairline); display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+            <div>
+                <div style="font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--ink); margin-bottom:3px;" id="modal-name">—</div>
+                <div style="font-size:12px; color:var(--muted);" id="modal-vehicle">—</div>
+            </div>
+            <button onclick="closeLicenseModal()" style="background:none; border:none; cursor:pointer; color:var(--muted); font-size:18px; padding:0; line-height:1; flex-shrink:0;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        {{-- License image --}}
+        <div style="padding:16px 20px; background:var(--surface-2);">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted-2); margin-bottom:10px;">Driving License</div>
+            <img id="modal-license-img" src="" alt="Driving License" style="width:100%; border-radius:var(--r-md); border:1px solid var(--hairline); display:block; max-height:300px; object-fit:contain; background:#f8f8f8;">
+        </div>
+
+        {{-- Footer actions --}}
+        <div style="padding:14px 20px; border-top:1px solid var(--hairline); display:flex; align-items:center; justify-content:flex-end; gap:8px;">
+            <span id="modal-status-badge"></span>
+            <button onclick="closeLicenseModal()" style="background:none; border:1px solid var(--hairline-strong); border-radius:var(--r-sm); padding:7px 16px; font-size:13px; font-weight:600; color:var(--ink-3); cursor:pointer; font-family:var(--font-ui);">
+                Close
+            </button>
+            <form id="modal-approve-form" method="POST" style="display:inline;">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="is_active" value="1">
+                <input type="hidden" name="role" value="driver">
+                <button type="submit" class="btn btn-success btn-sm" id="modal-approve-btn">
+                    <i class="fa-solid fa-circle-check"></i> Approve Driver
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.license-review-btn');
+        if (btn) openLicenseModal(btn.dataset);
+    });
+
+    function openLicenseModal(d) {
+        document.getElementById('modal-name').textContent    = d.name;
+        document.getElementById('modal-vehicle').textContent = d.vehicle;
+        document.getElementById('modal-license-img').src     = d.img;
+        document.getElementById('modal-approve-form').action =
+            '{{ url("/admin/users") }}/' + d.userId;
+
+        const badge      = document.getElementById('modal-status-badge');
+        const approveBtn = document.getElementById('modal-approve-btn');
+        if (d.active === '1') {
+            badge.innerHTML      = '<span class="badge badge-success"><span class="dot"></span>Already Active</span>';
+            approveBtn.style.display = 'none';
+        } else {
+            badge.innerHTML      = '<span class="badge"><span class="dot" style="background:var(--muted-2);"></span>Pending Approval</span>';
+            approveBtn.style.display = '';
+        }
+
+        document.getElementById('license-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLicenseModal() {
+        document.getElementById('license-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function closeLicenseModalOutside(e) {
+        if (e.target === document.getElementById('license-modal')) {
+            closeLicenseModal();
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLicenseModal();
+    });
+</script>
 
 @endsection

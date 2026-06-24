@@ -28,6 +28,19 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
+        $user = Auth::user();
+
+        if (! $user->is_active) {
+            Auth::logout();
+            $request->session()->invalidate();
+
+            $message = $user->role === 'driver'
+                ? 'Your driver account is pending admin approval.'
+                : 'Your account has been deactivated. Please contact support.';
+
+            return back()->withErrors(['email' => $message])->onlyInput('email');
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('home'));

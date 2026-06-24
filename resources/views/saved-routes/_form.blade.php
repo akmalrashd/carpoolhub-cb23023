@@ -290,7 +290,18 @@
         background: var(--ch-yellow-tint); color: var(--warning-ink);
         padding: 3px 9px; font-size: 11px; font-weight: 700; width: fit-content;
     }
-    .rf-route-option-reason { font-size: 11px; color: var(--ink-3); line-height: 1.35; }
+    .rf-route-option-reason { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
+    .rf-ai-loading { display: inline-flex; gap: 3px; align-items: center; padding: 2px 0; }
+    .rf-ai-loading span {
+        width: 5px; height: 5px; border-radius: 999px; background: var(--muted-2);
+        animation: rfDot .8s ease-in-out infinite;
+    }
+    .rf-ai-loading span:nth-child(2) { animation-delay: .15s; }
+    .rf-ai-loading span:nth-child(3) { animation-delay: .3s; }
+    @keyframes rfDot {
+        0%, 80%, 100% { transform: scale(.6); opacity: .4; }
+        40%            { transform: scale(1);  opacity: 1; }
+    }
     .rf-route-empty {
         border: 1px dashed var(--hairline-strong); border-radius: var(--r-sm);
         padding: 10px 12px; color: var(--muted); font-size: 12px;
@@ -513,6 +524,125 @@
         font-family: var(--font-mono, monospace); outline: none;
     }
     .rf-fare-input:focus { border-color: var(--muted); }
+    .rf-fare-advisor {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-sm);
+        background: var(--surface-2);
+        padding: 12px;
+    }
+    .rf-fare-advisor-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .rf-fare-advisor-title {
+        margin: 0;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .rf-fare-advisor-sub {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.35;
+    }
+    .rf-fare-advisor-badge {
+        border: 1px solid var(--ch-yellow-line);
+        border-radius: var(--r-pill);
+        background: var(--ch-yellow-tint);
+        color: var(--warning-ink);
+        padding: 3px 8px;
+        font-size: 10px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+    .rf-fare-advisor-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .rf-fare-advisor-grid .wide { grid-column: 1 / -1; }
+    .rf-fare-advisor-field {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+    }
+    .rf-fare-advisor-field label {
+        color: var(--muted-2);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+    .rf-fare-advisor-field input,
+    .rf-fare-advisor-field select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid var(--hairline-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink);
+        min-height: 36px;
+        padding: 7px 9px;
+        font-size: 13px;
+        font-weight: 800;
+        font-family: var(--font-ui), sans-serif;
+        outline: none;
+    }
+    .rf-fare-advisor-field input[type="number"] { font-family: var(--font-mono, monospace); }
+    .rf-fare-advisor-field input:focus,
+    .rf-fare-advisor-field select:focus { border-color: var(--muted); }
+    .rf-fare-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--hairline-strong);
+        border-radius: var(--r-sm);
+        background: var(--surface);
+        color: var(--ink);
+        min-height: 36px;
+        padding: 0 9px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+    .rf-fare-toggle input { width: 15px; height: 15px; accent-color: var(--ink); }
+    .rf-fare-breakdown {
+        display: grid;
+        gap: 5px;
+        border-top: 1px solid var(--hairline);
+        padding-top: 9px;
+    }
+    .rf-fare-breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--ink-3);
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .rf-fare-breakdown-row strong {
+        color: var(--ink);
+        font-family: var(--font-mono, monospace);
+    }
+    .rf-fare-ai-reason {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.45;
+        min-height: 16px;
+    }
+    @media (max-width: 520px) {
+        .rf-fare-advisor-grid { grid-template-columns: 1fr; }
+        .rf-fare-advisor-head { flex-direction: column; }
+    }
 
     /* Default checkbox */
     .rf-default-label {
@@ -857,6 +987,60 @@
                     <p class="field-hint" style="margin:0">Default fare for this route. You can change it anytime.</p>
                 </div>
             </div>
+            <div class="rf-fare-advisor">
+                <div class="rf-fare-advisor-head">
+                    <div>
+                        <p class="rf-fare-advisor-title"><i class="fa-solid fa-wand-magic-sparkles"></i>AI cost-based fare</p>
+                        <p class="rf-fare-advisor-sub">Fuel efficiency and toll are estimated from vehicle and selected route. You can edit every value.</p>
+                    </div>
+                    <span class="rf-fare-advisor-badge" id="fareAdvisorStatus">Waiting route</span>
+                </div>
+
+                <div class="rf-fare-advisor-grid">
+                    <div class="rf-fare-advisor-field">
+                        <label for="fareFuelType">Fuel type</label>
+                        <select id="fareFuelType">
+                            <option value="RON95">RON95</option>
+                            <option value="RON97">RON97</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="EV">EV</option>
+                        </select>
+                    </div>
+                    <div class="rf-fare-advisor-field">
+                        <label for="fareFuelPrice">Fuel price / L</label>
+                        <input id="fareFuelPrice" type="number" step="0.01" min="0" value="1.99">
+                    </div>
+                    <label class="rf-fare-toggle wide">
+                        <input id="fareUseBudi" type="checkbox" checked>
+                        <span>Use BUDI95 subsidised RON95 price</span>
+                    </label>
+                    <div class="rf-fare-advisor-field">
+                        <label for="fareKmPerLiter">AI km / L</label>
+                        <input id="fareKmPerLiter" type="number" step="0.1" min="0" value="11.5">
+                    </div>
+                    <div class="rf-fare-advisor-field">
+                        <label for="fareTollCost">Toll cost</label>
+                        <input id="fareTollCost" type="number" step="0.01" min="0" value="0.00">
+                    </div>
+                    <div class="rf-fare-advisor-field">
+                        <label for="fareBufferRate">Buffer %</label>
+                        <input id="fareBufferRate" type="number" step="1" min="0" max="60" value="15">
+                    </div>
+                    <div class="rf-fare-advisor-field">
+                        <label for="fareSplitCount">Split count</label>
+                        <input id="fareSplitCount" type="number" step="1" min="1" value="1">
+                    </div>
+                </div>
+
+                <div class="rf-fare-breakdown">
+                    <div class="rf-fare-breakdown-row"><span>Fuel used</span><strong id="fareFuelUsed">-</strong></div>
+                    <div class="rf-fare-breakdown-row"><span>Fuel cost</span><strong id="fareFuelCost">-</strong></div>
+                    <div class="rf-fare-breakdown-row"><span>Toll + buffer</span><strong id="fareTollBuffer">-</strong></div>
+                    <div class="rf-fare-breakdown-row"><span>Suggested total</span><strong id="fareSuggestedTotal">-</strong></div>
+                    <div class="rf-fare-breakdown-row"><span>Per split</span><strong id="fareSuggestedPerPerson">-</strong></div>
+                </div>
+                <div class="rf-fare-ai-reason" id="fareAiReason">Set both points to get AI fuel and toll advice.</div>
+            </div>
             <label class="rf-default-label" style="margin-top:12px">
                 <input
                     type="checkbox"
@@ -925,6 +1109,20 @@
         var statDistance = document.getElementById('mapStatDistance');
         var statTime = document.getElementById('mapStatTime');
         var statFare = document.getElementById('mapStatFare');
+        var fareAdvisorStatus = document.getElementById('fareAdvisorStatus');
+        var fareFuelType = document.getElementById('fareFuelType');
+        var fareUseBudi = document.getElementById('fareUseBudi');
+        var fareFuelPrice = document.getElementById('fareFuelPrice');
+        var fareKmPerLiter = document.getElementById('fareKmPerLiter');
+        var fareTollCost = document.getElementById('fareTollCost');
+        var fareBufferRate = document.getElementById('fareBufferRate');
+        var fareSplitCount = document.getElementById('fareSplitCount');
+        var fareFuelUsed = document.getElementById('fareFuelUsed');
+        var fareFuelCost = document.getElementById('fareFuelCost');
+        var fareTollBuffer = document.getElementById('fareTollBuffer');
+        var fareSuggestedTotal = document.getElementById('fareSuggestedTotal');
+        var fareSuggestedPerPerson = document.getElementById('fareSuggestedPerPerson');
+        var fareAiReason = document.getElementById('fareAiReason');
         var passengerOptionsHtml = @json($selectableParticipants->map(fn ($participant) => [
             'id' => $participant->id,
             'label' => $participant->name.' · '.$participant->email,
@@ -937,9 +1135,11 @@
         var routeLayers = [];
         var selectedRouteIndex = 0;
         var fetchedRoutes = [];
+        var fareAdviceByRoute = {};
         var previewMarker = null;
         var previewPlace = null;
         var fareEditedByUser = defaultFareInput && parseFloat(defaultFareInput.value || '0') > 0;
+        var fareAdvisorEdited = false;
         var presetCapture = null;
         var activePresetRow = null;
         var presetRadiusKm = 3;
@@ -1455,8 +1655,12 @@
         function clearRouteOptions(message) {
             fetchedRoutes = [];
             selectedRouteIndex = 0;
+            fareAdviceByRoute = {};
             clearRoute();
             routeOptionsEl.innerHTML = '<div class="rf-route-empty">' + message + '</div>';
+            if (fareAdvisorStatus) fareAdvisorStatus.textContent = 'Waiting route';
+            if (fareAiReason) fareAiReason.textContent = 'Set both points to get AI fuel and toll advice.';
+            updateFareBreakdown(null, false);
             updateStepIndicator();
             updateToolbarStats(null);
             syncPresetFares(false);
@@ -1472,13 +1676,108 @@
             return hours + 'h ' + mins + 'm';
         }
 
+        var fuelPricePresets = {
+            RON95: { budi: 1.99, market: 2.60 },
+            RON97: { market: 3.47 },
+            Diesel: { market: 2.95 },
+            EV: { market: 0 }
+        };
+
+        function money(value) {
+            return 'RM ' + (Number.isFinite(Number(value)) ? Number(value).toFixed(2) : '0.00');
+        }
+
+        function roundedFare(value) {
+            return Math.max(0, Math.round((Number(value) || 0) * 20) / 20);
+        }
+
+        function advisorNumber(input, fallback) {
+            var value = input ? parseFloat(input.value) : NaN;
+            return Number.isFinite(value) ? value : fallback;
+        }
+
+        function applyFuelPricePreset(force) {
+            if (!fareFuelType || !fareFuelPrice) return;
+            if (!force && fareFuelPrice.dataset.edited === '1') return;
+            var type = fareFuelType.value || 'RON95';
+            var preset = fuelPricePresets[type] || fuelPricePresets.RON95;
+            var price = type === 'RON95' && fareUseBudi && fareUseBudi.checked
+                ? preset.budi
+                : (preset.market ?? preset.budi ?? 0);
+            fareFuelPrice.value = Number(price || 0).toFixed(2);
+        }
+
+        function estimateFromVehicleFallback() {
+            var vehicle = (fareReasonVehicle || '').toLowerCase();
+            if (/diesel|hilux|triton|d-max|dmax|navara|fortuner|transit|van|lorry|truck|pickup/.test(vehicle)) {
+                return { fuel_type: 'Diesel', estimated_km_per_liter: 9.5, estimated_toll_cost: 0, confidence: 'low', reason: 'Fallback estimate based on vehicle keywords.' };
+            }
+            if (/ev|electric|tesla|byd|ora|ioniq|leaf|model 3|model y/.test(vehicle)) {
+                return { fuel_type: 'EV', estimated_km_per_liter: 0, estimated_toll_cost: 0, confidence: 'low', reason: 'EV route detected; petrol fuel cost is not used.' };
+            }
+            if (/myvi|axia|bezza|iriz|saga|persona|city|vios|almera|jazz|yaris/.test(vehicle)) {
+                return { fuel_type: 'RON95', estimated_km_per_liter: 13, estimated_toll_cost: 0, confidence: 'low', reason: 'Fallback estimate based on compact car fuel economy.' };
+            }
+            return { fuel_type: 'RON95', estimated_km_per_liter: 11.5, estimated_toll_cost: 0, confidence: 'low', reason: 'Fallback estimate used until AI advice is available.' };
+        }
+
+        function calculateCostFare(route, adviceOverride) {
+            if (!route) {
+                return { total: 0, perSplit: 0, liters: 0, fuelCost: 0, toll: 0, buffer: 0, split: 1 };
+            }
+            var advice = adviceOverride || {};
+            var fuelType = advice.fuel_type || (fareFuelType ? fareFuelType.value : 'RON95');
+            var kmPerLiter = Number(advice.estimated_km_per_liter ?? advisorNumber(fareKmPerLiter, 11.5));
+            var toll = Number(advice.estimated_toll_cost ?? advisorNumber(fareTollCost, 0));
+            var fuelPrice = advisorNumber(fareFuelPrice, 0);
+            var bufferRate = advisorNumber(fareBufferRate, 15) / 100;
+            var split = Math.max(1, Math.round(advisorNumber(fareSplitCount, 1)));
+            var distanceKm = Math.max(0, (route.distance || 0) / 1000);
+            var liters = fuelType === 'EV' || kmPerLiter <= 0 ? 0 : distanceKm / kmPerLiter;
+            var fuelCost = liters * fuelPrice;
+            var buffer = fuelCost * Math.max(0, bufferRate);
+            var total = roundedFare(fuelCost + Math.max(0, toll) + buffer);
+
+            return {
+                total: total,
+                perSplit: roundedFare(total / split),
+                liters: liters,
+                fuelCost: fuelCost,
+                toll: Math.max(0, toll),
+                buffer: buffer,
+                split: split
+            };
+        }
+
         function suggestedFare(distanceMeters, durationSeconds) {
-            var distanceKm = (distanceMeters || 0) / 1000;
-            var base = 2.5;
-            var perKm = 1.1;
-            var timeBuffer = (durationSeconds || 0) >= 1800 ? 1.2 : ((durationSeconds || 0) >= 900 ? 0.6 : 0.3);
-            var fare = base + (distanceKm * perKm) + timeBuffer;
-            return Math.max(2.5, Math.round(fare * 20) / 20);
+            return calculateCostFare({ distance: distanceMeters || 0, duration: durationSeconds || 0 }).total;
+        }
+
+        function applyFareAdviceToControls(advice) {
+            if (!advice || fareAdvisorEdited) return;
+            if (fareFuelType && advice.fuel_type) fareFuelType.value = advice.fuel_type;
+            if (fareKmPerLiter && Number.isFinite(Number(advice.estimated_km_per_liter))) {
+                fareKmPerLiter.value = Number(advice.estimated_km_per_liter).toFixed(1);
+            }
+            if (fareTollCost && Number.isFinite(Number(advice.estimated_toll_cost))) {
+                fareTollCost.value = Number(advice.estimated_toll_cost).toFixed(2);
+            }
+            if (fareUseBudi && fareFuelType) {
+                fareUseBudi.disabled = fareFuelType.value !== 'RON95';
+            }
+            applyFuelPricePreset(false);
+        }
+
+        function updateFareBreakdown(route, writeDefault) {
+            var calculation = calculateCostFare(route || fetchedRoutes[selectedRouteIndex] || fetchedRoutes[0] || null);
+            if (fareFuelUsed) fareFuelUsed.textContent = calculation.liters > 0 ? calculation.liters.toFixed(2) + ' L' : '-';
+            if (fareFuelCost) fareFuelCost.textContent = money(calculation.fuelCost);
+            if (fareTollBuffer) fareTollBuffer.textContent = money(calculation.toll) + ' + ' + money(calculation.buffer);
+            if (fareSuggestedTotal) fareSuggestedTotal.textContent = money(calculation.total);
+            if (fareSuggestedPerPerson) fareSuggestedPerPerson.textContent = money(calculation.perSplit) + ' / split';
+            if (writeDefault && defaultFareInput && Number.isFinite(calculation.total)) {
+                defaultFareInput.value = calculation.total.toFixed(2);
+            }
         }
 
         function updateToolbarStats(route) {
@@ -1491,6 +1790,7 @@
             statDistance.innerHTML = '<span>Distance</span> ' + formatDistance(route.distance);
             statTime.innerHTML = '<span>ETA</span> ' + formatDuration(route.duration);
             statFare.innerHTML = '<span>Fare</span> RM ' + suggestedFare(route.distance, route.duration).toFixed(2);
+            updateFareBreakdown(route, false);
         }
 
         function autoFillLowestSuggestedFare() {
@@ -1508,10 +1808,30 @@
             if (!defaultFareInput || !route) return;
             var fare = suggestedFare(route.distance, route.duration);
             if (Number.isFinite(fare)) { defaultFareInput.value = fare.toFixed(2); }
+            updateFareBreakdown(route, false);
         }
 
-        var fareReasonUrl = '{{ route('ai.fare-reason') }}';
-        var fareReasonCsrf = '{{ csrf_token() }}';
+        function refreshFareAdvisorFromInputs(markEdited) {
+            if (markEdited) fareAdvisorEdited = true;
+            var selectedRoute = fetchedRoutes[selectedRouteIndex] || fetchedRoutes[0] || null;
+            if (selectedRoute) {
+                fillFareFromRoute(selectedRoute);
+                updateToolbarStats(selectedRoute);
+            } else {
+                updateFareBreakdown(null, false);
+            }
+            fetchedRoutes.forEach(function (route, index) {
+                var fareEl = document.querySelector('[data-ai-fare="' + index + '"]');
+                if (fareEl) {
+                    fareEl.textContent = 'Suggested Fare RM ' + calculateCostFare(route).total.toFixed(2);
+                }
+            });
+            syncPresetFares(false);
+        }
+
+        var fareReasonUrl     = '{{ route('ai.fare-advice') }}';
+        var fareReasonCsrf    = '{{ csrf_token() }}';
+        var fareReasonVehicle = '{{ addslashes(auth()->user()->vehicle_model ?? '') }}';
 
         function suggestionReason(route) {
             // Fallback — shown instantly while AI loads
@@ -1520,9 +1840,10 @@
             return 'Fare based on ' + distanceKm.toFixed(1) + ' km distance and ~' + minutes + ' min travel time.';
         }
 
-        function fetchAiReason(routeIndex, distanceKm, durationMin, fare, roads) {
-            var el = document.querySelector('[data-ai-reason="' + routeIndex + '"]');
-            if (!el) return;
+        function fetchAiReason(routeIndex, distanceKm, durationMin, baseFare, roads) {
+            // Check element exists before firing request
+            if (!document.querySelector('[data-ai-reason="' + routeIndex + '"]')) return;
+            if (fareAdvisorStatus && routeIndex === selectedRouteIndex) fareAdvisorStatus.textContent = 'AI checking';
 
             fetch(fareReasonUrl, {
                 method: 'POST',
@@ -1532,19 +1853,51 @@
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    distance_km: distanceKm,
+                    distance_km:  distanceKm,
                     duration_min: durationMin,
-                    fare: fare,
-                    roads: roads,
+                    roads:        roads,
+                    vehicle:      fareReasonVehicle || null,
                 }),
             })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                if (data.reason && el) {
-                    el.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--warning);font-size:10px;margin-right:4px"></i>' + data.reason;
+                // Re-query at resolution time so we always hit the current DOM element
+                var reasonEl = document.querySelector('[data-ai-reason="' + routeIndex + '"]');
+                var fareEl   = document.querySelector('[data-ai-fare="' + routeIndex + '"]');
+                if (!reasonEl) return;
+
+                fareAdviceByRoute[routeIndex] = data || {};
+                var route = fetchedRoutes[routeIndex] || null;
+                if (route && fareEl) {
+                    var optionFare = calculateCostFare(route, data).total;
+                    fareEl.textContent = 'Suggested Fare RM ' + optionFare.toFixed(2);
+                    fareEl.dataset.adjustedFare = optionFare.toFixed(2);
                 }
+
+                if (routeIndex === selectedRouteIndex) {
+                    applyFareAdviceToControls(data);
+                    updateFareBreakdown(route, !fareEditedByUser);
+                    updateToolbarStats(route);
+                    if (fareAdvisorStatus) fareAdvisorStatus.textContent = (data.confidence || 'medium') + ' confidence';
+                    if (fareAiReason) fareAiReason.textContent = data.reason || 'AI estimated fuel efficiency and toll from vehicle and route context.';
+                }
+
+                var baseReason = reasonEl.dataset.baseReason || '';
+                var tollRoads = Array.isArray(data.toll_roads) && data.toll_roads.length ? ' Toll roads: ' + data.toll_roads.join(', ') + '.' : '';
+                var costLine = data.estimated_km_per_liter !== undefined
+                    ? ' AI: ' + (data.fuel_type || 'fuel') + ', ' + Number(data.estimated_km_per_liter || 0).toFixed(1) + ' km/L, toll ' + money(Number(data.estimated_toll_cost || 0)) + '.'
+                    : '';
+                var aiLine = data.reason
+                    ? '<br><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--warning);font-size:10px;margin-right:4px"></i>' + escapeText(costLine + tollRoads + ' ' + data.reason)
+                    : '';
+                reasonEl.innerHTML = baseReason + aiLine;
             })
-            .catch(function () {}); // silent fail — fallback text stays
+            .catch(function () {
+                var reasonEl = document.querySelector('[data-ai-reason="' + routeIndex + '"]');
+                if (reasonEl && reasonEl.dataset.baseReason) {
+                    reasonEl.innerHTML = reasonEl.dataset.baseReason;
+                }
+            });
         }
 
         function summarizeRoads(route) {
@@ -1586,8 +1939,10 @@
                     + '<span class="rf-route-option-meta">' + formatDistance(route.distance) + ' • ' + formatDuration(route.duration) + '</span>'
                     + '</div>'
                     + '<div class="rf-route-option-road">' + roadSummary + '</div>'
-                    + '<div class="rf-route-option-fare">Suggested Fare RM ' + fare.toFixed(2) + '</div>'
-                    + '<div class="rf-route-option-reason" data-ai-reason="' + index + '">' + suggestionReason(route) + '</div>'
+                    + '<div class="rf-route-option-fare" data-ai-fare="' + index + '">Suggested Fare RM ' + fare.toFixed(2) + '</div>'
+                    + '<div class="rf-route-option-reason" data-ai-reason="' + index + '" data-base-reason="' + suggestionReason(route) + '">'
+                    + '<div class="rf-ai-loading"><span></span><span></span><span></span></div>'
+                    + '</div>'
                     + '</button>';
             }).join('');
 
@@ -1602,10 +1957,20 @@
             Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.rf-route-option-btn'), function (btn) {
                 btn.addEventListener('click', function () {
                     selectedRouteIndex = parseInt(btn.getAttribute('data-route-index'), 10) || 0;
+                    applyFareAdviceToControls(fareAdviceByRoute[selectedRouteIndex]);
                     fillFareFromRoute(fetchedRoutes[selectedRouteIndex]);
                     updateToolbarStats(fetchedRoutes[selectedRouteIndex]);
+                    if (fareAiReason && fareAdviceByRoute[selectedRouteIndex]) {
+                        fareAiReason.textContent = fareAdviceByRoute[selectedRouteIndex].reason || 'AI estimated fuel efficiency and toll from route context.';
+                    }
+                    if (fareAdvisorStatus && fareAdviceByRoute[selectedRouteIndex]) {
+                        fareAdvisorStatus.textContent = (fareAdviceByRoute[selectedRouteIndex].confidence || 'medium') + ' confidence';
+                    }
                     syncPresetFares(false);
-                    renderRouteOptions();
+                    // Toggle active class only — do NOT re-render, preserves AI reasoning text
+                    Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.rf-route-option-btn'), function (b) {
+                        b.classList.toggle('active', b === btn);
+                    });
                     drawSelectedRoute();
                 });
             });
@@ -1709,11 +2074,15 @@
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .then(function (data) {
                     if (!data || !data.routes || !data.routes.length) {
+                        fetchedRoutes = [];
+                        fareAdviceByRoute = {};
                         drawStraightLine();
                         routeOptionsEl.innerHTML = '<div class="rf-route-empty">Routing service is unavailable. Showing a straight line only.</div>';
+                        if (fareAdvisorStatus) fareAdvisorStatus.textContent = 'Route fallback';
                         return;
                     }
                     fetchedRoutes = data.routes.slice(0, 3);
+                    fareAdviceByRoute = {};
                     selectedRouteIndex = 0;
                     renderRouteOptions();
                     drawSelectedRoute();
@@ -1722,8 +2091,11 @@
                     syncPresetFares(false);
                 })
                 .catch(function () {
+                    fetchedRoutes = [];
+                    fareAdviceByRoute = {};
                     drawStraightLine();
                     routeOptionsEl.innerHTML = '<div class="rf-route-empty">Could not fetch route options. Showing a straight line only.</div>';
+                    if (fareAdvisorStatus) fareAdvisorStatus.textContent = 'Route fallback';
                 });
         }
 
@@ -2029,6 +2401,35 @@
         if (defaultFareInput) {
             defaultFareInput.addEventListener('input', function () { fareEditedByUser = true; });
         }
+
+        applyFareAdviceToControls(estimateFromVehicleFallback());
+        applyFuelPricePreset(true);
+        updateFareBreakdown(null, false);
+
+        if (fareFuelType) {
+            fareFuelType.addEventListener('change', function () {
+                fareAdvisorEdited = true;
+                if (fareUseBudi) fareUseBudi.disabled = fareFuelType.value !== 'RON95';
+                applyFuelPricePreset(true);
+                refreshFareAdvisorFromInputs(false);
+            });
+        }
+        if (fareUseBudi) {
+            fareUseBudi.addEventListener('change', function () {
+                applyFuelPricePreset(true);
+                refreshFareAdvisorFromInputs(true);
+            });
+        }
+        if (fareFuelPrice) {
+            fareFuelPrice.addEventListener('input', function () {
+                fareFuelPrice.dataset.edited = '1';
+                refreshFareAdvisorFromInputs(true);
+            });
+        }
+        [fareKmPerLiter, fareTollCost, fareBufferRate, fareSplitCount].forEach(function (input) {
+            if (!input) return;
+            input.addEventListener('input', function () { refreshFareAdvisorFromInputs(true); });
+        });
 
         bindCoordinateInputs('pickup');
         bindCoordinateInputs('destination');

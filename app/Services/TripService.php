@@ -385,8 +385,9 @@ class TripService
         $splitCount = $this->resolveSplitCount($participantIds->count(), $isPublic, $seatLimit, $includeDriverInSplit);
         $amounts = $this->buildActiveParticipantAmounts((float) $savedRoute->default_fare, $participantIds->count(), $splitCount);
         $isOpenForRequest = $this->resolveRequestOpenState($data, $isPublic, (bool) $trip->is_open_for_request);
+        $previousPassengerIds = $trip->participants()->where('is_driver', false)->pluck('user_id');
 
-        return DB::transaction(function () use ($trip, $savedRoute, $data, $participantIds, $amounts, $actor, $visibility, $seatLimit, $splitCount, $isOpenForRequest, $isPublic): Trip {
+        return DB::transaction(function () use ($trip, $savedRoute, $data, $participantIds, $amounts, $actor, $visibility, $seatLimit, $splitCount, $isOpenForRequest, $isPublic, $previousPassengerIds): Trip {
             $status = $this->resolveStatus($data['status'] ?? null, (string) $data['trip_datetime'], $trip->status);
             $outboundDirection = $this->resolveDirection($savedRoute, (string) $data['outbound_pickup_key'], (string) $data['outbound_destination_key']);
 
@@ -431,6 +432,26 @@ class TripService
             }
 
             $this->syncParticipantsAndPayments($trip, $trip->driver_id, $participantIds, $amounts, $savedRoute);
+
+            $removedIds = $previousPassengerIds->diff($participantIds)->values();
+            if ($removedIds->isNotEmpty()) {
+                $label = $this->tripLabel($trip);
+                $now = now();
+                UserNotification::insert(
+                    $removedIds->map(fn ($userId) => [
+                        'user_id'      => $userId,
+                        'type'         => 'trip',
+                        'title'        => 'Removed from Trip',
+                        'message'      => "You have been removed from the {$label}. Please contact the driver if you have any questions.",
+                        'related_type' => 'system',
+                        'related_id'   => null,
+                        'is_read'      => false,
+                        'created_at'   => $now,
+                        'updated_at'   => $now,
+                    ])->all()
+                );
+            }
+
             $this->notifyParticipants($trip, $actor->name, 'Trip Updated', 'trip');
 
             return $trip->refresh()->load(['savedRoute', 'participants.user', 'payments.user']);
@@ -445,7 +466,14 @@ class TripService
             ? $trip->parentTrip
             : $trip;
 
-        DB::transaction(function () use ($baseTrip): void {
+        $baseTrip->loadMissing('participants');
+        $passengerIds = $baseTrip->participants
+            ->where('is_driver', false)
+            ->pluck('user_id')
+            ->values();
+        $label = $this->tripLabel($baseTrip);
+
+        DB::transaction(function () use ($baseTrip, $passengerIds, $label): void {
             $tripIds = Trip::query()
                 ->where('id', $baseTrip->id)
                 ->orWhere('parent_trip_id', $baseTrip->id)
@@ -457,6 +485,23 @@ class TripService
                 ->delete();
 
             Trip::query()->whereIn('id', $tripIds)->delete();
+
+            if ($passengerIds->isNotEmpty()) {
+                $now = now();
+                UserNotification::insert(
+                    $passengerIds->map(fn ($userId) => [
+                        'user_id'      => $userId,
+                        'type'         => 'trip',
+                        'title'        => 'Trip Cancelled',
+                        'message'      => "The {$label} has been cancelled by the driver. Please make alternative transport arrangements.",
+                        'related_type' => 'system',
+                        'related_id'   => null,
+                        'is_read'      => false,
+                        'created_at'   => $now,
+                        'updated_at'   => $now,
+                    ])->all()
+                );
+            }
         });
     }
 
@@ -721,23 +766,47 @@ class TripService
         ];
     }
 
+    private function shortenAddress(string $address): string
+    {
+        $first = trim(explode(',', $address)[0]);
+        $source = mb_strlen($first) >= 4 ? $first : $address;
+        return mb_strimwidth($source, 0, 28, '…');
+    }
+
+    private function tripLabel(Trip $trip): string
+    {
+        if ($trip->pickup_name && $trip->destination_name) {
+            $pickup      = $this->shortenAddress($trip->pickup_name);
+            $destination = $this->shortenAddress($trip->destination_name);
+            $date        = $trip->trip_datetime?->format('d M Y') ?? '';
+            return $date ? "{$pickup} → {$destination} on {$date}" : "{$pickup} → {$destination}";
+        }
+
+        return 'Trip #' . ($trip->trip_ref ?? $trip->id);
+    }
+
     private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type): void
     {
         $trip->loadMissing('participants');
+        $label = $this->tripLabel($trip);
 
         $now = now();
         $rows = $trip->participants
             ->filter(fn ($p) => $p->user_id !== $trip->driver_id)
             ->map(fn ($p) => [
-                'user_id' => $p->user_id,
-                'type' => $type,
-                'title' => $title,
-                'message' => "{$actorName} {$title} for trip #{$trip->id}.",
+                'user_id'      => $p->user_id,
+                'type'         => $type,
+                'title'        => $title,
+                'message'      => match ($title) {
+                    'Trip Created' => "You have been added to the {$label}. Check your trip details and upcoming schedule.",
+                    'Trip Updated' => "The {$label} has been updated by {$actorName}. Please review the latest trip details.",
+                    default        => "{$actorName} updated the {$label}.",
+                },
                 'related_type' => 'trip',
-                'related_id' => $trip->id,
-                'is_read' => false,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'related_id'   => $trip->id,
+                'is_read'      => false,
+                'created_at'   => $now,
+                'updated_at'   => $now,
             ])
             ->values()
             ->all();
