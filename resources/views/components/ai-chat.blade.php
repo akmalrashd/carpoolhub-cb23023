@@ -10,8 +10,9 @@
 @endphp
 
 {{-- ── Floating Action Button ──────────────────────────────────────── --}}
-<button id="ai-fab" onclick="aiChat.toggle()" aria-label="CarpoolHub AI" title="CarpoolHub AI">
+<button id="ai-fab" onclick="aiChat.toggle(event)" aria-label="CarpoolHub AI" title="CarpoolHub AI">
     <i class="fa-solid fa-wand-magic-sparkles"></i>
+    <span class="ai-fab-label">AI</span>
 </button>
 
 {{-- ── Chat Window ──────────────────────────────────────────────────── --}}
@@ -67,14 +68,27 @@
 
     {{-- Input row (hidden until language selected) --}}
     <form id="ai-form" class="ai-input-row" onsubmit="aiChat.send(event)" style="display:none">
-        <textarea
-            id="ai-input"
-            class="ai-input"
-            rows="1"
-            maxlength="500"
-            onkeydown="aiChat.onKey(event)"
-            oninput="aiChat.resize(this)"
-        ></textarea>
+        <div class="ai-input-wrap">
+            <textarea
+                id="ai-input"
+                class="ai-input"
+                rows="1"
+                maxlength="500"
+                onkeydown="aiChat.onKey(event)"
+                oninput="aiChat.resize(this)"
+            ></textarea>
+            <button
+                type="button"
+                id="ai-mic-btn"
+                class="ai-mic-btn"
+                onclick="aiChat.toggleVoice()"
+                title="Voice Input (Speech-to-Text)"
+                aria-label="Voice Input"
+            >
+                <i class="fa-solid fa-microphone"></i>
+                <span class="ai-mic-pulse"></span>
+            </button>
+        </div>
         <button type="submit" id="ai-send-btn" class="ai-send-btn">
             <i class="fa-solid fa-paper-plane"></i>
         </button>
@@ -90,24 +104,40 @@
     bottom: 88px;
     right: 16px;
     z-index: 3000;
-    width: 52px;
-    height: 52px;
-    border-radius: 999px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     background: var(--ch-yellow);
-    border: none;
+    border: 1px solid var(--ch-yellow-line);
     box-shadow: var(--shadow-yellow), 0 4px 14px rgba(0,0,0,.12);
     color: var(--ch-yellow-ink);
-    font-size: 20px;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, background .15s;
+    gap: 1px;
+    padding: 0;
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease, background .15s, border-color .15s;
 }
-#ai-fab:hover { transform: scale(1.1); background: var(--ch-yellow-deep); }
-#ai-fab.is-open { background: var(--ink); color: #fff; box-shadow: var(--shadow-3); }
+#ai-fab i {
+    font-size: 15px;
+    line-height: 1;
+}
+.ai-fab-label {
+    font-family: var(--font-display), sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+#ai-fab:hover { transform: scale(1.08); background: var(--ch-yellow-deep); }
+#ai-fab.is-open { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: var(--shadow-3); }
 @media (min-width: 1024px) {
-    #ai-fab { bottom: 32px; right: 32px; width: 56px; height: 56px; font-size: 22px; }
+    #ai-fab { bottom: 32px; right: 32px; width: 52px; height: 52px; border-radius: 16px; }
+    #ai-fab i { font-size: 17px; }
+    .ai-fab-label { font-size: 11px; }
 }
 
 /* ── Window ── */
@@ -262,18 +292,32 @@
     background: var(--ink); color: #fff; border-bottom-right-radius: 5px;
 }
 
-/* ── Typing ── */
-.ai-typing .ai-bubble-text { background: var(--surface-2); border: 1px solid var(--hairline); padding: 10px 14px; }
-.ai-typing-dots { display: inline-flex; gap: 4px; align-items: center; }
-.ai-typing-dots span {
-    width: 7px; height: 7px; border-radius: 999px; background: var(--muted-2);
-    animation: aiDot .9s infinite ease-in-out;
+/* ── Typing bubble ──────────────────────────────── */
+.ai-typing .ai-bubble-text {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-left: 3px solid var(--ch-yellow-line);
+    padding: 11px 16px;
+    min-width: 60px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
 }
-.ai-typing-dots span:nth-child(2) { animation-delay: .15s; }
-.ai-typing-dots span:nth-child(3) { animation-delay: .3s; }
-@keyframes aiDot {
-    0%,80%,100% { transform: scale(.7); opacity: .5; }
-    40%          { transform: scale(1); opacity: 1; }
+.ai-typing-dots { display: inline-flex; gap: 5px; align-items: center; }
+.ai-typing-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--muted-2);
+    animation: aiDotBounce 1.2s ease-in-out infinite;
+    display: block;
+}
+.ai-typing-dots span:nth-child(1) { animation-delay: 0s; }
+.ai-typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+.ai-typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes aiDotBounce {
+    0%, 60%, 100% { transform: translateY(0);    opacity: 0.35; background: var(--muted-2); }
+    30%           { transform: translateY(-6px); opacity: 1;    background: var(--warning); }
 }
 
 /* ── Trip draft card ── */
@@ -406,17 +450,68 @@
     padding: 10px 14px 12px; border-top: 1px solid var(--hairline);
     background: var(--surface); flex-shrink: 0;
 }
+.ai-input-wrap {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+}
 .ai-input {
     flex: 1; min-height: 38px; max-height: 96px;
     border-radius: 12px; border: 1px solid var(--hairline-strong);
     background: var(--surface-2); color: var(--ink);
-    padding: 9px 12px; font-size: 13px; font-family: var(--font-ui);
+    padding: 9px 38px 9px 12px; font-size: 13px; font-family: var(--font-ui);
     font-weight: 500; resize: none; outline: none;
     overflow-y: auto; line-height: 1.4;
     transition: border-color .15s, box-shadow .15s;
 }
 .ai-input:focus { border-color: var(--ch-yellow-line); box-shadow: 0 0 0 3px rgba(250,204,21,.18); }
 .ai-input::placeholder { color: var(--muted-2); }
+
+.ai-mic-btn {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color .15s, background .15s, transform .15s;
+    z-index: 2;
+}
+.ai-mic-btn:hover {
+    color: var(--ink);
+    background: var(--hairline);
+}
+.ai-mic-btn.is-listening {
+    color: #ef4444 !important;
+    background: #fee2e2 !important;
+    animation: micListeningPulse 1.2s ease-in-out infinite;
+}
+.ai-mic-btn.is-listening .ai-mic-pulse {
+    position: absolute;
+    inset: -3px;
+    border-radius: 10px;
+    border: 2px solid #ef4444;
+    opacity: 0.8;
+    animation: micRipple 1.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+@keyframes micListeningPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+@keyframes micRipple {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+
 .ai-send-btn {
     width: 38px; height: 38px; border-radius: 12px; border: none;
     background: var(--ch-yellow); color: var(--ch-yellow-ink);
@@ -505,7 +600,7 @@ const aiChat = (() => {
     // ── DOM helpers ──────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
 
-    function toggle()   { isOpen ? close() : open(); }
+    function toggle(e)   { if (e) e.stopPropagation(); isOpen ? close() : open(); }
     function close()    { isOpen = false; $('ai-fab').classList.remove('is-open'); $('ai-chat-window').classList.remove('is-open'); $('ai-chat-window').setAttribute('aria-hidden','true'); }
 
     function open() {
@@ -1012,16 +1107,120 @@ const aiChat = (() => {
     // ── Click outside to close ───────────────────────────────────────
     document.addEventListener('click', function (e) {
         if (!isOpen) return;
-        const win = $('ai-chat-window');
-        const fab = $('ai-fab');
-        if (win && !win.contains(e.target) && fab && !fab.contains(e.target)) {
-            close();
-        }
+        if (e.target.closest('#ai-fab') || e.target.closest('#ai-chat-window')) return;
+        close();
     });
+
+    // ── Voice Input (Speech-to-Text) ──────────────────────────────────
+    let recognition = null;
+    let isListening = false;
+    let initialText = '';
+    let silenceTimer = null;
+
+    function resetSilenceTimer() {
+        if (silenceTimer) clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => {
+            if (isListening) {
+                stopVoice();
+            }
+        }, 5000); // Auto-stop listening after 5 seconds of continuous silence
+    }
+
+    function toggleVoice() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert(lang === 'ms' 
+                ? 'Pengesahan suara tidak disokong oleh pelayar anda. Sila guna Chrome, Edge, atau Safari.' 
+                : 'Speech recognition is not supported by your browser. Please use Chrome, Edge, or Safari.');
+            return;
+        }
+
+        if (isListening) {
+            stopVoice();
+        } else {
+            startVoice(SpeechRecognition);
+        }
+    }
+
+    function startVoice(SpeechRecognition) {
+        try {
+            const inp = $('ai-input');
+            initialText = inp ? (inp.value ? inp.value.trim() + ' ' : '') : '';
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = lang === 'ms' ? 'ms-MY' : 'en-US';
+
+            const micBtn = $('ai-mic-btn');
+
+            recognition.onstart = () => {
+                isListening = true;
+                if (micBtn) {
+                    micBtn.classList.add('is-listening');
+                    micBtn.title = lang === 'ms' ? 'Mendengar... (Klik untuk hentikan)' : 'Listening... (Click to stop)';
+                }
+                resetSilenceTimer();
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                if (inp) {
+                    inp.value = initialText + transcript;
+                    resize(inp);
+                }
+                resetSilenceTimer();
+            };
+
+            recognition.onerror = (event) => {
+                console.warn('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') return; // Keep listening on silent pauses
+                stopVoice();
+            };
+
+            recognition.onend = () => {
+                // If user hasn't manually clicked to stop, keep listening continuously
+                if (isListening) {
+                    try {
+                        const currentInp = $('ai-input');
+                        initialText = currentInp ? (currentInp.value ? currentInp.value.trim() + ' ' : '') : '';
+                        recognition.start();
+                        return;
+                    } catch {}
+                }
+                stopVoice();
+            };
+
+            recognition.start();
+        } catch (err) {
+            console.error(err);
+            stopVoice();
+        }
+    }
+
+    function stopVoice() {
+        isListening = false;
+        if (silenceTimer) {
+            clearTimeout(silenceTimer);
+            silenceTimer = null;
+        }
+        if (recognition) {
+            try { recognition.stop(); } catch {}
+            recognition = null;
+        }
+        const micBtn = $('ai-mic-btn');
+        if (micBtn) {
+            micBtn.classList.remove('is-listening');
+            micBtn.title = lang === 'ms' ? 'Input Suara (Speech-to-Text)' : 'Voice Input (Speech-to-Text)';
+        }
+    }
 
     // ── Init ─────────────────────────────────────────────────────────
     if (lang) activateLang();
 
-    return { toggle, open, close, send, sendQuick, onKey, resize, clear, setLang, openTripForm, openRouteForm };
+    return { toggle, open, close, send, sendQuick, onKey, resize, clear, setLang, openTripForm, openRouteForm, toggleVoice };
 })();
 </script>

@@ -68,1432 +68,901 @@
             'Setel Wallet',
         ];
         $selectedPaymentBank = (string) old('payment_bank_name', $user->payment_bank_name ?? '');
+        $isDriverOrAdmin = in_array($user->role, ['driver', 'admin'], true);
     @endphp
 
     <style>
-        /* ── Page header ── */
+        /* ── Centered Container ── */
+        .profile-page-container {
+            max-width: 780px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-sizing: border-box;
+        }
+
+        /* ── Page Header ── */
+        .settings-header {
+            margin-bottom: 2px;
+        }
         .pg-eyebrow {
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: .08em;
             color: var(--muted);
             font-family: var(--font-ui), sans-serif;
             margin: 0 0 4px;
         }
-
         .pg-title {
-            margin: 0 0 2px;
+            margin: 0 0 4px;
             font-family: var(--font-display), sans-serif;
             font-size: clamp(1.4rem, 2.2vw, 1.75rem);
-            font-weight: 700;
+            font-weight: 800;
             color: var(--ink);
             line-height: 1.1;
         }
-
         .pg-sub {
-            margin: 4px 0 0;
+            margin: 0;
             color: var(--muted);
             font-size: 13px;
         }
 
-        /* ── Layout ── */
-        .settings-page {
-            display: grid;
-            gap: 0;
-            align-items: start;
-        }
-
-        @media (min-width: 860px) {
-            .settings-page {
-                grid-template-columns: 220px minmax(0, 1fr);
-                gap: 18px;
-                padding: 20px 0 28px;
-                align-items: start;
-            }
-        }
-
-        /* ── Left rail nav ── */
-        .settings-rail {
-            position: sticky;
-            top: 88px;
-            display: none;
-            flex-direction: column;
-            gap: 2px;
+        /* ── Hero Profile Header Card ── */
+        .settings-hero-card {
             background: var(--surface);
             border: 1px solid var(--hairline);
-            border-radius: var(--r-lg);
-            padding: 10px;
-            box-shadow: var(--shadow-1);
-        }
-
-        @media (min-width: 860px) {
-            .settings-rail { display: flex; }
-        }
-
-        .settings-rail-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: var(--r-sm);
-            border: 1px solid transparent;
-            color: var(--ink-3);
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background .15s, color .15s, border-color .15s;
-            cursor: pointer;
-            background: transparent;
-            font-family: var(--font-ui), sans-serif;
-        }
-
-        .settings-rail-link:hover {
-            background: var(--canvas);
-            color: var(--ink);
-        }
-
-        .settings-rail-link.is-active {
-            background: var(--ch-yellow-tint);
-            border-color: var(--ch-yellow-line);
-            color: var(--warning-ink);
-            font-weight: 700;
-        }
-
-        .settings-rail-link i {
-            width: 16px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        /* ── Mobile tab strip ── */
-        .settings-tabs {
-            display: flex;
-            gap: 4px;
-            overflow-x: auto;
-            padding: 0 2px 12px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .settings-tabs::-webkit-scrollbar { display: none; }
-
-        @media (min-width: 860px) {
-            .settings-tabs { display: none; }
-        }
-
-        .settings-tab-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 8px 14px;
-            border-radius: var(--r-pill);
-            border: 1px solid var(--hairline);
-            background: var(--surface);
-            color: var(--ink-3);
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: background .15s, color .15s, border-color .15s;
-            font-family: var(--font-ui), sans-serif;
-        }
-
-        .settings-tab-btn:hover {
-            background: var(--canvas);
-            color: var(--ink);
-        }
-
-        .settings-tab-btn.is-active {
-            background: var(--ch-yellow-tint);
-            border-color: var(--ch-yellow-line);
-            color: var(--warning-ink);
-            font-weight: 700;
-        }
-
-        /* ── Right column: stacked sections ── */
-        .settings-body {
-            display: grid;
-            gap: 16px;
-        }
-
-        /* ── Section cards ── */
-        .settings-card {
-            background: var(--surface);
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-lg);
+            border-radius: var(--r-xl);
             padding: 20px;
             box-shadow: var(--shadow-1);
-            scroll-margin-top: 88px;
-        }
-
-        .settings-section-head {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
+            gap: 18px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
         }
-
-        .settings-section-title {
-            margin: 0;
-            font-family: var(--font-display), sans-serif;
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--ink);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .settings-hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--ch-yellow), #f59e0b);
         }
-
-        .settings-section-title i {
-            color: var(--muted);
-            font-size: 15px;
+        .settings-hero-avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
         }
-
-        /* ── Avatar ── */
-        .settings-avatar-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 18px;
-        }
-
-        .settings-avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: var(--r-pill);
-            border: 2px solid var(--hairline);
+        .settings-hero-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 999px;
+            border: 3px solid var(--surface);
+            box-shadow: 0 0 0 2px var(--hairline-strong);
             background: var(--canvas);
-            color: var(--ink-2);
+            color: var(--ink);
             display: grid;
             place-items: center;
             font-weight: 800;
-            font-size: 22px;
+            font-size: 26px;
             overflow: hidden;
-            flex-shrink: 0;
-            position: relative;
-            cursor: pointer;
-            transition: border-color .16s, box-shadow .16s, transform .16s;
             font-family: var(--font-display), sans-serif;
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease;
         }
-
-        .settings-avatar:hover {
-            border-color: var(--ch-yellow);
-            box-shadow: 0 0 0 4px var(--ch-yellow-tint);
-            transform: translateY(-1px);
+        .settings-hero-avatar:hover {
+            transform: scale(1.04);
+            box-shadow: 0 0 0 3px var(--ch-yellow);
         }
-
-        .settings-avatar img {
+        .settings-hero-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
         }
-
-        .settings-avatar-cam {
+        .avatar-cam-badge {
             position: absolute;
-            right: -4px;
-            bottom: -4px;
-            width: 22px;
-            height: 22px;
-            border-radius: var(--r-pill);
-            background: var(--surface);
-            border: 1px solid var(--hairline);
-            color: var(--muted);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
+            bottom: -2px;
+            right: -2px;
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            background: var(--ch-yellow);
+            border: 2px solid var(--surface);
+            color: var(--ch-yellow-ink);
+            display: grid;
+            place-items: center;
+            font-size: 11px;
+            cursor: pointer;
             box-shadow: var(--shadow-1);
+            transition: transform .15s ease;
         }
-
-        .settings-avatar-meta strong {
-            display: block;
-            font-size: 15px;
+        .avatar-cam-badge:hover {
+            transform: scale(1.15);
+        }
+        .settings-hero-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .settings-hero-name {
+            font-family: var(--font-display), sans-serif;
+            font-size: 18px;
+            font-weight: 800;
             color: var(--ink);
-            font-weight: 700;
+            margin: 0 0 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-
-        .settings-avatar-meta span {
-            display: block;
-            font-size: 12px;
+        .settings-hero-email {
+            font-size: 13px;
             color: var(--muted);
-            margin-top: 2px;
-        }
-
-        /* ── Form fields ── */
-        .settings-form {
-            display: grid;
-            gap: 14px;
-        }
-
-        .settings-field {
-            display: grid;
+            margin: 0 0 8px;
+            display: flex;
+            align-items: center;
             gap: 6px;
         }
-
-        .settings-label {
-            font-size: 11px;
-            color: var(--muted);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            margin: 0;
-            font-family: var(--font-ui), sans-serif;
-        }
-
-        .settings-input-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .settings-input {
-            width: 100%;
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-sm);
-            background: var(--surface-2);
-            color: var(--ink);
-            padding: 10px 12px;
-            font-size: 14px;
-            font-family: var(--font-ui), sans-serif;
-            outline: none;
-            transition: border-color .16s, box-shadow .16s, background .16s;
-        }
-
-        .settings-input:disabled {
-            background: var(--canvas);
-            color: var(--muted);
-            border-color: var(--hairline);
-            cursor: not-allowed;
-        }
-
-        .settings-input:focus {
-            border-color: var(--ch-yellow);
-            box-shadow: 0 0 0 3px var(--ch-yellow-tint);
-            background: var(--surface);
-        }
-
-        /* compound phone + email group */
-        .settings-input-group {
-            display: flex;
-            align-items: stretch;
-            width: 100%;
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-sm);
-            background: var(--surface-2);
-            overflow: hidden;
-            transition: border-color .16s, box-shadow .16s, background .16s;
-        }
-
-        .settings-input-group:focus-within {
-            border-color: var(--ch-yellow);
-            box-shadow: 0 0 0 3px var(--ch-yellow-tint);
-            background: var(--surface);
-        }
-
-        .settings-input-group .settings-input {
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            box-shadow: none;
-        }
-
-        .settings-input-group .settings-input:focus {
-            border: 0;
-            box-shadow: none;
-            background: var(--surface);
-        }
-
-        .settings-input-group .settings-input:disabled {
-            background: transparent;
-        }
-
-        .settings-group-divider {
-            width: 1px;
-            background: var(--hairline);
-            flex-shrink: 0;
-            align-self: stretch;
-        }
-
-        /* country code select inside group */
-        .settings-country-select {
-            width: var(--country-width, 130px);
-            flex: 0 0 auto;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            color: var(--ink);
-            padding: 10px 22px 10px 10px;
-            font-size: 13px;
-            font-family: var(--font-ui), sans-serif;
-            outline: none;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%2364748b' d='M1.17.97a.75.75 0 0 1 1.06 0L5 3.74 7.77.97a.75.75 0 0 1 1.06 1.06L5.53 5.33a.75.75 0 0 1-1.06 0L1.17 2.03a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 6px center;
-            background-size: 10px 7px;
-            transition: color .16s;
-        }
-
-        .settings-country-select:disabled {
-            color: var(--muted);
-            cursor: not-allowed;
-        }
-
-        /* visibility select inside group */
-        .settings-vis-select {
-            width: 144px;
-            flex: 0 0 auto;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            color: var(--ink);
-            padding: 10px 22px 10px 10px;
-            font-size: 11px;
-            font-weight: 700;
-            font-family: var(--font-ui), sans-serif;
-            outline: none;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%2364748b' d='M1.17.97a.75.75 0 0 1 1.06 0L5 3.74 7.77.97a.75.75 0 0 1 1.06 1.06L5.53 5.33a.75.75 0 0 1-1.06 0L1.17 2.03a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 6px center;
-            background-size: 10px 7px;
-            transition: color .16s;
-        }
-
-        .settings-vis-select:disabled {
-            color: var(--muted);
-            cursor: not-allowed;
-        }
-
-        /* edit pencil/close button */
-        .settings-edit-btn {
-            width: 36px;
-            height: 36px;
-            flex-shrink: 0;
-            border-radius: var(--r-sm);
-            border: 1px solid var(--hairline-strong);
-            background: var(--surface);
-            color: var(--muted);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: border-color .16s, color .16s, background .16s, transform .16s;
-        }
-
-        .settings-edit-btn:hover {
-            border-color: var(--ch-yellow);
-            background: var(--ch-yellow-tint);
-            color: var(--warning-ink);
-            transform: translateY(-1px);
-        }
-
-        /* expand/collapse toggle */
-        .settings-toggle-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--r-sm);
-            border: 1px solid var(--hairline-strong);
-            background: var(--surface);
-            color: var(--muted);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: border-color .16s, color .16s, background .16s;
-        }
-
-        .settings-toggle-btn:hover {
-            border-color: var(--ch-yellow);
-            background: var(--ch-yellow-tint);
-            color: var(--warning-ink);
-        }
-
-        /* hint text */
-        .settings-hint {
-            margin: 2px 0 0;
-            color: var(--muted-2);
-            font-size: 11px;
-            font-weight: 600;
-            font-family: var(--font-ui), sans-serif;
-        }
-
-        /* hidden file input */
-        .profile-file-hidden {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        /* collapse panel */
-        .settings-collapse {
-            display: none;
-            gap: 14px;
-        }
-
-        .settings-collapse.is-open {
-            display: grid;
-        }
-
-        /* QR grid */
-        .settings-qr-grid {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-        }
-
-        @media (min-width: 540px) {
-            .settings-qr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-
-        .settings-qr-card {
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
-            background: var(--surface-2);
-            padding: 12px;
-            display: grid;
-            gap: 10px;
-        }
-
-        .settings-qr-label {
-            margin: 0;
-            color: var(--ink-3);
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            font-family: var(--font-ui), sans-serif;
-        }
-
-        .settings-qr-preview {
-            width: 100%;
-            height: 160px;
-            border: 1px dashed var(--hairline-strong);
-            border-radius: var(--r-sm);
-            background: var(--surface);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .settings-qr-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-
-        .settings-qr-empty {
-            color: var(--muted-2);
-            font-size: 12px;
-            font-weight: 600;
-            text-align: center;
-            font-family: var(--font-ui), sans-serif;
-        }
-
-        /* role badge */
-        .settings-role-badge {
+        .role-pill {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 4px 10px;
-            border-radius: var(--r-pill);
+            padding: 3px 10px;
+            border-radius: 999px;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: .02em;
-            font-family: var(--font-ui), sans-serif;
+            text-transform: capitalize;
+        }
+        .role-pill.driver {
             background: var(--ch-yellow-tint);
-            border: 1px solid var(--ch-yellow-line);
             color: var(--warning-ink);
+            border: 1px solid var(--ch-yellow-line);
+        }
+        .role-pill.passenger {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+        .role-pill.admin {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        .hero-meta-strip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+        .hero-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* error banner */
-        .settings-error {
-            border: 1px solid var(--danger);
-            background: var(--danger-soft);
-            color: var(--danger-ink);
-            border-radius: var(--r-md);
-            padding: 12px 14px;
-            font-size: 13px;
-            line-height: 1.5;
-            margin-bottom: 12px;
+        /* ── Navigation Tabs ── */
+        .settings-nav {
+            display: flex;
+            width: 100%;
+            max-width: 100%;
+            gap: 4px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            padding: 4px;
+            box-shadow: none;
+            box-sizing: border-box;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
+        .settings-nav::-webkit-scrollbar { display: none; }
 
-        /* save button (yellow) */
-        .settings-save-btn {
+        .settings-nav-btn {
+            flex: 1 0 auto;
+            min-width: 0;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
-            padding: 10px 20px;
-            border-radius: var(--r-sm);
-            border: 1px solid var(--ch-yellow-deep);
-            background: var(--ch-yellow);
-            color: var(--ch-yellow-ink);
+            gap: 6px;
+            padding: 9px 10px;
+            border-radius: 10px; /* Rounded Rectangle, NOT oval! */
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--muted);
+            font-size: 12px;
             font-weight: 800;
-            font-size: 14px;
             font-family: var(--font-ui), sans-serif;
             cursor: pointer;
-            width: fit-content;
-            transition: background .16s, box-shadow .16s, transform .16s;
+            white-space: nowrap;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+            text-align: center;
         }
-
-        .settings-save-btn:hover {
-            background: var(--ch-yellow-deep);
-            box-shadow: 0 6px 14px rgba(250, 204, 21, 0.35);
-            transform: translateY(-1px);
+        @media (max-width: 480px) {
+            .settings-nav-btn {
+                font-size: 11px;
+                padding: 8px 6px;
+                gap: 4px;
+            }
         }
-
-        .settings-save-btn:disabled {
-            background: var(--hairline);
+        .settings-nav-btn:hover {
+            color: var(--ink);
+        }
+        .settings-nav-btn.is-active {
+            background: var(--surface);
             border-color: var(--hairline);
+            color: var(--ink);
+            box-shadow: var(--shadow-1);
+            font-weight: 800;
+        }
+        .settings-nav-btn i {
+            font-size: 14px;
+            color: inherit;
+        }
+
+        /* ── Content Panels ── */
+        .settings-content {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .settings-panel-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-xl);
+            padding: 22px;
+            box-shadow: var(--shadow-1);
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeInTab .22s ease-out;
+        }
+        .settings-panel-card.is-active {
+            display: block;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-head {
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .panel-title {
+            font-family: var(--font-display), sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--ink);
+            margin: 0 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-desc {
+            font-size: 13px;
             color: var(--muted);
-            box-shadow: none;
-            transform: none;
+            margin: 0;
+        }
+
+        /* ── Form Styling ── */
+        .form-grid {
+            display: grid;
+            gap: 16px;
+        }
+        .form-group {
+            display: grid;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--ink-2);
+            margin: 0;
+            font-family: var(--font-ui), sans-serif;
+        }
+
+        /* Modern Prefix Input Group */
+        .input-wrap {
+            display: flex;
+            align-items: center;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-md);
+            overflow: hidden;
+            transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+        }
+        .input-wrap:focus-within {
+            border-color: var(--ch-yellow);
+            box-shadow: 0 0 0 3px var(--ch-yellow-tint);
+            background: var(--surface);
+        }
+        .input-icon {
+            padding: 0 12px;
+            color: var(--muted);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .input-field {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            background: transparent;
+            color: var(--ink);
+            padding: 11px 12px 11px 0;
+            font-size: 14px;
+            font-family: var(--font-ui), sans-serif;
+            outline: none;
+        }
+        .input-field:disabled, .input-field[readonly] {
+            color: var(--muted);
             cursor: not-allowed;
         }
 
-        /* divider */
-        .settings-divider {
-            height: 1px;
-            background: var(--hairline);
-            margin: 4px 0;
+        .select-field {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%2364748b' d='M1.17.97a.75.75 0 0 1 1.06 0L5 3.74 7.77.97a.75.75 0 0 1 1.06 1.06L5.53 5.33a.75.75 0 0 1-1.06 0L1.17 2.03a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 10px 7px;
+            padding-right: 26px !important;
+            cursor: pointer;
+        }
+
+        .vis-select {
+            width: 140px;
+            border-left: 1px solid var(--hairline);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--ink-2);
+            padding-left: 10px;
+        }
+
+        /* Password toggle button */
+        .pass-toggle-btn {
+            background: transparent;
+            border: 0;
+            padding: 0 12px;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 14px;
+            transition: color .15s ease;
+        }
+        .pass-toggle-btn:hover { color: var(--ink); }
+
+        /* ── Interactive QR Upload Section ── */
+        .qr-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 6px;
+        }
+        .qr-card {
+            border: 2px dashed var(--hairline-strong);
+            border-radius: var(--r-lg);
+            background: var(--surface-2);
+            padding: 16px;
+            text-align: center;
+            position: relative;
+            transition: border-color .18s ease, background .18s ease;
+        }
+        .qr-card:hover {
+            border-color: var(--ch-yellow);
+            background: var(--surface);
+        }
+        .qr-preview-box {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 12px;
+            border-radius: var(--r-md);
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .qr-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .qr-empty-icon {
+            font-size: 32px;
+            color: var(--muted);
+        }
+        .qr-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0 0 2px;
+        }
+        .qr-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin: 0 0 12px;
+        }
+        .qr-btn-wrap {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .qr-file-input {
+            display: none;
+        }
+
+        /* ── Submit Row ── */
+        .form-actions {
+            margin-top: 10px;
+            padding-top: 16px;
+            border-top: 1px solid var(--hairline);
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-submit-yellow {
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: var(--r-md);
+            padding: 11px 22px;
+            font-size: 14px;
+            font-weight: 800;
+            font-family: var(--font-display), sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-yellow);
+            transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
+        }
+        .btn-submit-yellow:hover {
+            background: var(--ch-yellow-deep);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-yellow), 0 4px 12px rgba(234,179,8,.25);
+        }
+
+        /* ── Alert Toast ── */
+        .settings-alert {
+            padding: 12px 16px;
+            border-radius: var(--r-md);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .settings-alert.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+        }
+        .settings-alert.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
         }
     </style>
 
-    {{-- ── Page header ── --}}
-    <div style="margin-bottom:16px;">
-        <p class="pg-eyebrow">Account</p>
-        <h1 class="pg-title">Settings &amp; profile</h1>
-        <p class="pg-sub">Your account, vehicle, payment methods and notification preferences.</p>
-    </div>
-
-    @if($errors->any())
-        <div class="settings-error">
-            <strong>Please fix the following:</strong><br>
-            {{ $errors->first() }}
+    <div class="profile-page-container">
+        {{-- Header --}}
+        <div class="settings-header">
+            <p class="pg-eyebrow">Account</p>
+            <h1 class="pg-title">Settings & Profile</h1>
+            <p class="pg-sub">Manage your personal information, payment methods, and account security.</p>
         </div>
-    @endif
 
-    @if(session('status') || session('success'))
-        <div class="status-banner" id="statusBanner">
-            <i class="fas fa-circle-check"></i>
-            {{ session('status') ?? session('success') }}
-        </div>
-    @endif
+        {{-- Status Notifications --}}
+        @if(session('status'))
+            <div class="settings-alert success">
+                <i class="fa-solid fa-circle-check" style="font-size:16px;"></i>
+                <span>{{ session('status') }}</span>
+            </div>
+        @endif
 
-    {{-- ── Mobile tab strip ── --}}
-    <div class="settings-tabs" role="tablist" aria-label="Settings sections">
-        <button type="button" class="settings-tab-btn is-active" data-section-tab="profile" role="tab">
-            <i class="fas fa-user-circle"></i> Profile
-        </button>
-        <button type="button" class="settings-tab-btn" data-section-tab="payment" role="tab">
-            <i class="fas fa-wallet"></i> Payment
-        </button>
-        <button type="button" class="settings-tab-btn" data-section-tab="password" role="tab">
-            <i class="fas fa-shield-halved"></i> Password
-        </button>
-    </div>
+        @if($errors->any())
+            <div class="settings-alert error">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:16px;"></i>
+                <span>{{ $errors->first() }}</span>
+            </div>
+        @endif
 
-    <div class="settings-page">
-        {{-- ── Left rail navigation ── --}}
-        <nav class="settings-rail" aria-label="Settings navigation">
-            <a href="#section-profile" class="settings-rail-link is-active" data-section-link="profile">
-                <i class="fas fa-user-circle"></i>
-                Profile
-            </a>
-            <a href="#section-payment" class="settings-rail-link" data-section-link="payment">
-                <i class="fas fa-wallet"></i>
-                Payment
-            </a>
-            <a href="#section-password" class="settings-rail-link" data-section-link="password">
-                <i class="fas fa-shield-halved"></i>
-                Password
-            </a>
-        </nav>
-
-        {{-- ── Right body ── --}}
-        <div class="settings-body">
-
-            {{-- ════════════════════════════════
-                 SECTION: Profile
-            ════════════════════════════════ --}}
-            <section class="settings-card" id="section-profile" data-section="profile">
-                <div class="settings-section-head">
-                    <h2 class="settings-section-title">
-                        <i class="fas fa-user-circle"></i>
-                        Account Details
-                    </h2>
-                    @if(isset($user->role))
-                        <span class="settings-role-badge">
-                            <i class="fas fa-circle-check"></i>
-                            {{ ucfirst($user->role) }}
-                        </span>
+        {{-- Hero Profile Card --}}
+        <div class="settings-hero-card">
+            <div class="settings-hero-avatar-wrap">
+                <div class="settings-hero-avatar" onclick="document.getElementById('avatarFileInput').click()" title="Click to upload profile photo">
+                    @if($photoUrl)
+                        <img src="{{ $photoUrl }}" alt="{{ $user->name }}">
+                    @else
+                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
                     @endif
                 </div>
-
-                {{-- Avatar --}}
-                <div class="settings-avatar-row">
-                    <label for="profile_photo" class="settings-avatar" title="Click to update profile photo">
-                        @if($photoUrl)
-                            <img src="{{ $photoUrl }}" alt="Profile Photo">
+                <button type="button" class="avatar-cam-badge" onclick="document.getElementById('avatarFileInput').click()" title="Change photo">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            </div>
+            <div class="settings-hero-info">
+                <h2 class="settings-hero-name">
+                    {{ $user->name }}
+                    <span class="role-pill {{ strtolower($user->role ?? 'passenger') }}">
+                        @if($user->role === 'driver')
+                            <i class="fa-solid fa-car"></i> Driver
+                        @elseif($user->role === 'admin')
+                            <i class="fa-solid fa-user-shield"></i> Admin
                         @else
-                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                            <i class="fa-solid fa-user"></i> Passenger
                         @endif
-                        <span class="settings-avatar-cam"><i class="fas fa-camera"></i></span>
-                    </label>
-                    <div class="settings-avatar-meta">
-                        <strong>{{ $user->name }}</strong>
-                        <span>{{ $user->email }}</span>
-                        @if($user->phone)
-                            <span>{{ $user->phone }}</span>
-                        @endif
-                        <span>Click the avatar to upload a new photo (JPG / PNG, max 2 MB)</span>
-                        <span id="profilePhotoHint" style="color:var(--ch-yellow-deep); font-size:11px; font-weight:700;"></span>
-                    </div>
+                    </span>
+                </h2>
+                <div class="settings-hero-email">
+                    <i class="fa-solid fa-envelope"></i> {{ $user->email }}
+                </div>
+                <div class="hero-meta-strip">
+                    <span class="hero-meta-item"><i class="fa-solid fa-calendar-check" style="color:var(--ch-yellow-ink)"></i> Member since {{ $user->created_at?->format('M Y') ?? '2026' }}</span>
+                    <span class="hero-meta-item"><i class="fa-solid fa-shield-check" style="color:#10b981"></i> Verified Account</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Segmented Tab Switcher --}}
+        <div class="settings-nav" role="tablist">
+            <button type="button" class="settings-nav-btn is-active" id="nav-btn-profile" onclick="switchSettingsTab('profile')">
+                <i class="fa-solid fa-user"></i>
+                <span>Profile Details</span>
+            </button>
+            <button type="button" class="settings-nav-btn" id="nav-btn-payment" onclick="switchSettingsTab('payment')">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Payment Methods</span>
+            </button>
+            <button type="button" class="settings-nav-btn" id="nav-btn-security" onclick="switchSettingsTab('security')">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Security & Password</span>
+            </button>
+        </div>
+
+        {{-- Panels Container --}}
+        <div class="settings-content">
+
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 1: PROFILE DETAILS
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="settings-panel-card is-active" id="panel-profile">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-user-gear"></i> Personal Profile</h3>
+                    <p class="panel-desc">Update your name, contact details, and visibility settings across CarpoolHub.</p>
                 </div>
 
-                <form method="POST" action="{{ route('settings.profile.update') }}" enctype="multipart/form-data" class="settings-form" id="accountProfileForm">
+                <form method="POST" action="{{ route('settings.profile.update') }}" enctype="multipart/form-data">
                     @csrf
                     @method('PATCH')
 
-                    <input id="profile_photo" type="file" name="profile_photo" accept="image/*" class="profile-file-hidden">
+                    {{-- Hidden Avatar Input triggered by Hero Avatar Camera button --}}
+                    <input type="file" name="profile_photo" id="avatarFileInput" accept="image/*" class="sr-only" onchange="previewAvatar(this)">
 
-                    {{-- Name --}}
-                    <div class="settings-field">
-                        <label for="name" class="settings-label">Full Name</label>
-                        <div class="settings-input-row">
-                            <input id="name" type="text" name="name"
-                                value="{{ old('name', $user->name) }}"
-                                required
-                                class="settings-input"
-                                disabled>
-                            <button type="button" class="settings-edit-btn" data-target="name" aria-label="Edit name">
-                                <i class="fas fa-pen"></i>
-                            </button>
+                    <div class="form-grid">
+                        {{-- Full Name --}}
+                        <div class="form-group">
+                            <label class="form-label" for="profileName">Full Name</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" id="profileName" name="name" class="input-field" value="{{ old('name', $user->name) }}" required placeholder="Enter your full name">
+                            </div>
                         </div>
-                    </div>
 
-                    {{-- Email --}}
-                    <div class="settings-field">
-                        <label for="email" class="settings-label">Email Address</label>
-                        <div class="settings-input-row">
-                            <div class="settings-input-group">
-                                <input id="email" type="email" name="email"
-                                    value="{{ old('email', $user->email) }}"
-                                    required
-                                    class="settings-input"
-                                    data-locked="1">
-                                <div class="settings-group-divider"></div>
-                                <select id="email_visible" name="email_visible"
-                                    class="settings-vis-select"
-                                    data-auto-save-visibility="1"
-                                    disabled>
-                                    <option value="visible_public" {{ $selectedEmailVisibility === 'visible_public' ? 'selected' : '' }}>Visible to Public</option>
-                                    <option value="visible_friend" {{ $selectedEmailVisibility === 'visible_friend' ? 'selected' : '' }}>Visible to Connections</option>
-                                    <option value="unvisible"      {{ $selectedEmailVisibility === 'unvisible'      ? 'selected' : '' }}>Hidden</option>
+                        {{-- Email Address (Read-only) + Email Visibility --}}
+                        <div class="form-group">
+                            <label class="form-label" for="profileEmail">Email Address</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
+                                <input type="email" id="profileEmail" class="input-field" value="{{ $user->email }}" disabled readonly>
+                                <span class="input-icon" title="Email is locked"><i class="fa-solid fa-lock" style="font-size:12px;"></i></span>
+                                <select name="email_visible" class="input-field select-field vis-select" title="Who can see your email">
+                                    <option value="visible_public" {{ $selectedEmailVisibility === 'visible_public' ? 'selected' : '' }}>Public</option>
+                                    <option value="visible_friend" {{ $selectedEmailVisibility === 'visible_friend' ? 'selected' : '' }}>Connections Only</option>
+                                    <option value="unvisible" {{ $selectedEmailVisibility === 'unvisible' ? 'selected' : '' }}>Private</option>
                                 </select>
                             </div>
-                            <button type="button" class="settings-edit-btn" data-target="email_visible" aria-label="Edit email visibility">
-                                <i class="fas fa-pen"></i>
-                            </button>
+                            <span style="font-size:11px; color:var(--muted); margin-top:2px;">Email address is fixed to your account credentials.</span>
                         </div>
-                        <p class="settings-hint">Email address is locked and cannot be changed here.</p>
-                    </div>
 
-                    {{-- Phone --}}
-                    <div class="settings-field">
-                        <label for="whatsapp_number" class="settings-label">Phone / WhatsApp</label>
-                        <div class="settings-input-row">
-                            <div class="settings-input-group">
-                                <select id="whatsapp_country_code" name="whatsapp_country_code"
-                                    class="settings-country-select settings-phone-input"
-                                    disabled>
+                        {{-- Phone / WhatsApp Number + Visibility --}}
+                        <div class="form-group">
+                            <label class="form-label" for="profilePhone">Phone / WhatsApp Number</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-brands fa-whatsapp"></i></span>
+                                <select name="whatsapp_country_code" class="input-field select-field" style="width:110px; flex:0 0 auto; border-right:1px solid var(--hairline);" title="Country Code">
                                     @foreach($countryOptions as $code => $label)
                                         <option value="{{ $code }}" {{ $selectedCode === $code ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
-                                <div class="settings-group-divider"></div>
-                                <input id="whatsapp_number"
-                                    type="text"
-                                    name="whatsapp_number"
-                                    value="{{ $selectedNumber }}"
-                                    class="settings-input settings-phone-input"
-                                    inputmode="numeric"
-                                    autocomplete="tel"
-                                    placeholder="012-345 6789"
-                                    disabled>
-                                <div class="settings-group-divider"></div>
-                                <select id="phone_visible" name="phone_visible"
-                                    class="settings-vis-select settings-phone-input"
-                                    data-auto-save-visibility="1"
-                                    disabled>
-                                    <option value="visible_public" {{ $selectedPhoneVisibility === 'visible_public' ? 'selected' : '' }}>Visible to Public</option>
-                                    <option value="visible_friend" {{ $selectedPhoneVisibility === 'visible_friend' ? 'selected' : '' }}>Visible to Connections</option>
-                                    <option value="unvisible"      {{ $selectedPhoneVisibility === 'unvisible'      ? 'selected' : '' }}>Hidden</option>
+                                <input type="tel" id="profilePhone" name="whatsapp_number" class="input-field" value="{{ $selectedNumber }}" placeholder="e.g. 1110000011">
+                                <select name="phone_visible" class="input-field select-field vis-select" title="Who can see your phone number">
+                                    <option value="visible_public" {{ $selectedPhoneVisibility === 'visible_public' ? 'selected' : '' }}>Public</option>
+                                    <option value="visible_friend" {{ $selectedPhoneVisibility === 'visible_friend' ? 'selected' : '' }}>Connections Only</option>
+                                    <option value="unvisible" {{ $selectedPhoneVisibility === 'unvisible' ? 'selected' : '' }}>Private</option>
                                 </select>
                             </div>
-                            <button type="button" class="settings-edit-btn" data-target-group=".settings-phone-input" aria-label="Edit phone number">
-                                <i class="fas fa-pen"></i>
-                            </button>
                         </div>
-                        <p class="settings-hint">Used for WhatsApp contact buttons in trips and payments.</p>
-                    </div>
 
-                    {{-- Vehicle --}}
-                    <div class="settings-field">
-                        <label for="vehicle_model" class="settings-label">Vehicle</label>
-                        <div class="settings-input-row">
-                            <div class="settings-input-group">
-                                <input id="vehicle_model"
-                                    type="text"
-                                    name="vehicle_model"
-                                    value="{{ old('vehicle_model', $user->vehicle_model) }}"
-                                    class="settings-input settings-vehicle-input"
-                                    placeholder="Perodua Bezza"
-                                    disabled>
-                                <div class="settings-group-divider"></div>
-                                <input id="vehicle_plate"
-                                    type="text"
-                                    name="vehicle_plate"
-                                    value="{{ old('vehicle_plate', $user->vehicle_plate) }}"
-                                    class="settings-input settings-vehicle-input"
-                                    placeholder="WMK 4821"
-                                    disabled>
+                        {{-- Vehicle Details (Driver & Admin) --}}
+                        @if($isDriverOrAdmin)
+                            <div class="form-group" style="margin-top:6px;">
+                                <label class="form-label">Vehicle Details</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i class="fa-solid fa-car"></i></span>
+                                    <input type="text" name="vehicle_model" class="input-field" value="{{ old('vehicle_model', $user->vehicle_model) }}" placeholder="Model (e.g. Perodua Myvi 1.5)" style="border-right:1px solid var(--hairline);">
+                                    <input type="text" name="vehicle_plate" class="input-field" value="{{ old('vehicle_plate', $user->vehicle_plate) }}" placeholder="Plate (e.g. VAB 1234)" style="width:140px; flex:0 0 auto; padding-left:12px;">
+                                </div>
                             </div>
-                            <button type="button" class="settings-edit-btn" data-target-group=".settings-vehicle-input" aria-label="Edit vehicle">
-                                <i class="fas fa-pen"></i>
+                        @endif
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit-yellow">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                Save Profile Details
                             </button>
                         </div>
-                        <p class="settings-hint">Shown on public trip cards so passengers can identify your car.</p>
-                    </div>
-
-                    <div>
-                        <button type="submit" class="settings-save-btn" id="updateProfileBtn" disabled>
-                            <i class="fas fa-floppy-disk"></i>
-                            Save Profile
-                        </button>
                     </div>
                 </form>
-            </section>
+            </div>
 
-            {{-- ════════════════════════════════
-                 SECTION: Payment Details
-            ════════════════════════════════ --}}
-            <section class="settings-card" id="section-payment" data-section="payment">
-                <div class="settings-section-head">
-                    <h2 class="settings-section-title">
-                        <i class="fas fa-wallet"></i>
-                        Payment Details
-                    </h2>
-                    <button type="button" class="settings-toggle-btn" id="paymentDetailsToggleBtn"
-                        aria-label="Toggle payment details form"
-                        aria-expanded="false"
-                        aria-controls="paymentDetailsCollapse">
-                        <i class="fas fa-pen" id="paymentDetailsToggleIcon"></i>
-                    </button>
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 2: PAYMENT METHODS & QR
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="settings-panel-card" id="panel-payment">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-wallet"></i> Payment Methods & QR</h3>
+                    <p class="panel-desc">Configure your bank account and upload QR codes to collect passenger fares easily.</p>
                 </div>
 
-                <p class="settings-hint" style="margin-bottom:4px;">
-                    Set your bank or e-wallet, account holder name, account number, and QR codes (DuitNow / Touch 'n Go) so passengers can pay you easily.
-                </p>
-
-                <div class="settings-collapse" id="paymentDetailsCollapse">
-                    <div class="settings-divider" style="margin-top:10px;"></div>
-
-                    <form method="POST" action="{{ route('settings.profile.update') }}" enctype="multipart/form-data" class="settings-form" id="paymentDetailsForm">
-                        @csrf
-                        @method('PATCH')
-
-                        {{-- Bank / Wallet --}}
-                        <div class="settings-field">
-                            <label for="payment_bank_name" class="settings-label">Bank / E-Wallet</label>
-                            <div class="settings-input-row">
-                                <select id="payment_bank_name" name="payment_bank_name"
-                                    class="settings-input payment-details-input"
-                                    disabled>
-                                    <option value="">Select bank or e-wallet&hellip;</option>
-                                    @foreach($paymentBankOptions as $bankName)
-                                        <option value="{{ $bankName }}" {{ $selectedPaymentBank === $bankName ? 'selected' : '' }}>{{ $bankName }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="settings-edit-btn payment-edit-btn" data-target="payment_bank_name" aria-label="Edit bank or wallet">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- Account holder name --}}
-                        <div class="settings-field">
-                            <label for="payment_account_name" class="settings-label">Account Holder Name</label>
-                            <div class="settings-input-row">
-                                <input id="payment_account_name" type="text" name="payment_account_name"
-                                    value="{{ old('payment_account_name', $user->payment_account_name) }}"
-                                    class="settings-input payment-details-input"
-                                    placeholder="e.g. Ahmad Hakimi"
-                                    disabled>
-                                <button type="button" class="settings-edit-btn payment-edit-btn" data-target="payment_account_name" aria-label="Edit account holder name">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- Account number --}}
-                        <div class="settings-field">
-                            <label for="payment_account_number" class="settings-label">Account Number</label>
-                            <div class="settings-input-row">
-                                <input id="payment_account_number" type="text" name="payment_account_number"
-                                    value="{{ old('payment_account_number', $user->payment_account_number) }}"
-                                    class="settings-input payment-details-input"
-                                    inputmode="numeric"
-                                    placeholder="e.g. 01112844464"
-                                    disabled>
-                                <button type="button" class="settings-edit-btn payment-edit-btn" data-target="payment_account_number" aria-label="Edit account number">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- QR codes --}}
-                        <div class="settings-qr-grid">
-                            <div class="settings-qr-card">
-                                <h3 class="settings-qr-label">DuitNow QR</h3>
-                                <div class="settings-qr-preview">
-                                    @if($duitnowQrUrl)
-                                        <img src="{{ $duitnowQrUrl }}" alt="DuitNow QR">
-                                    @else
-                                        <span class="settings-qr-empty">No QR uploaded</span>
-                                    @endif
-                                </div>
-                                <div class="settings-input-row">
-                                    <input id="payment_qr_duitnow" type="file" name="payment_qr_duitnow"
-                                        accept="image/*"
-                                        class="settings-input payment-details-input"
-                                        disabled>
-                                    <button type="button" class="settings-edit-btn payment-edit-btn" data-target="payment_qr_duitnow" aria-label="Upload DuitNow QR">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="settings-qr-card">
-                                <h3 class="settings-qr-label">Touch 'n Go QR</h3>
-                                <div class="settings-qr-preview">
-                                    @if($tngQrUrl)
-                                        <img src="{{ $tngQrUrl }}" alt="Touch 'n Go QR">
-                                    @else
-                                        <span class="settings-qr-empty">No QR uploaded</span>
-                                    @endif
-                                </div>
-                                <div class="settings-input-row">
-                                    <input id="payment_qr_tng" type="file" name="payment_qr_tng"
-                                        accept="image/*"
-                                        class="settings-input payment-details-input"
-                                        disabled>
-                                    <button type="button" class="settings-edit-btn payment-edit-btn" data-target="payment_qr_tng" aria-label="Upload Touch n Go QR">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <button type="submit" class="settings-save-btn" id="savePaymentDetailsBtn" disabled>
-                                <i class="fas fa-floppy-disk"></i>
-                                Save Payment Details
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            {{-- ════════════════════════════════
-                 SECTION: Change Password
-            ════════════════════════════════ --}}
-            <section class="settings-card" id="section-password" data-section="password">
-                <div class="settings-section-head">
-                    <h2 class="settings-section-title">
-                        <i class="fas fa-shield-halved"></i>
-                        Change Password
-                    </h2>
-                    <button type="button" class="settings-toggle-btn" id="passwordToggleBtn"
-                        aria-label="Toggle password form"
-                        aria-expanded="false"
-                        aria-controls="passwordCollapse">
-                        <i class="fas fa-pen" id="passwordToggleIcon"></i>
-                    </button>
-                </div>
-
-                <p class="settings-hint" style="margin-bottom:4px;">
-                    Use a strong password of at least 8 characters. You will stay logged in after changing your password.
-                </p>
-
-                <form method="POST" action="{{ route('settings.password.update') }}" class="settings-form" id="passwordForm">
+                <form method="POST" action="{{ route('settings.profile.update') }}" enctype="multipart/form-data">
                     @csrf
                     @method('PATCH')
 
-                    <div class="settings-collapse" id="passwordCollapse">
-                        <div class="settings-divider" style="margin-top:10px;"></div>
-
-                        <div class="settings-field">
-                            <label for="current_password" class="settings-label">Current Password</label>
-                            <input id="current_password" type="password" name="current_password"
-                                required
-                                class="settings-input"
-                                autocomplete="current-password"
-                                disabled>
+                    <div class="form-grid">
+                        {{-- Bank / E-Wallet Name --}}
+                        <div class="form-group">
+                            <label class="form-label" for="paymentBank">Bank / E-Wallet Provider</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-building-columns"></i></span>
+                                <select id="paymentBank" name="payment_bank_name" class="input-field select-field">
+                                    <option value="">Select Bank / E-Wallet...</option>
+                                    @foreach($paymentBankOptions as $bank)
+                                        <option value="{{ $bank }}" {{ $selectedPaymentBank === $bank ? 'selected' : '' }}>{{ $bank }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="settings-field">
-                            <label for="new_password" class="settings-label">New Password</label>
-                            <input id="new_password" type="password" name="new_password"
-                                required
-                                class="settings-input"
-                                autocomplete="new-password"
-                                disabled>
+                        {{-- Account Holder Name --}}
+                        <div class="form-group">
+                            <label class="form-label" for="paymentAccountName">Account Holder Name</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-id-card"></i></span>
+                                <input type="text" id="paymentAccountName" name="payment_account_name" class="input-field" value="{{ old('payment_account_name', $user->payment_account_name) }}" placeholder="Full name as registered in bank account">
+                            </div>
                         </div>
 
-                        <div class="settings-field">
-                            <label for="new_password_confirmation" class="settings-label">Confirm New Password</label>
-                            <input id="new_password_confirmation" type="password" name="new_password_confirmation"
-                                required
-                                class="settings-input"
-                                autocomplete="new-password"
-                                disabled>
+                        {{-- Account / Phone Number --}}
+                        <div class="form-group">
+                            <label class="form-label" for="paymentAccountNumber">Account Number / DuitNow ID</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-credit-card"></i></span>
+                                <input type="text" id="paymentAccountNumber" name="payment_account_number" class="input-field" value="{{ old('payment_account_number', $user->payment_account_number) }}" placeholder="e.g. 156012345678 or 01112844464">
+                            </div>
                         </div>
 
-                        <div>
-                            <button type="submit" class="settings-save-btn" id="savePasswordBtn" disabled>
-                                <i class="fas fa-key"></i>
+                        {{-- Interactive QR Code Upload Section --}}
+                        <div style="margin-top:10px;">
+                            <label class="form-label">Payment QR Codes</label>
+                            <div class="qr-upload-grid">
+                                {{-- DuitNow QR Card --}}
+                                <div class="qr-card">
+                                    <div class="qr-preview-box">
+                                        @if($duitnowQrUrl)
+                                            <img id="duitnowQrPreview" src="{{ $duitnowQrUrl }}" alt="DuitNow QR">
+                                        @else
+                                            <div id="duitnowEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-qrcode"></i></div>
+                                            <img id="duitnowQrPreview" src="" alt="" style="display:none;">
+                                        @endif
+                                    </div>
+                                    <h4 class="qr-title">DuitNow QR</h4>
+                                    <p class="qr-sub">Upload DuitNow QR image (JPG / PNG)</p>
+                                    <div class="qr-btn-wrap">
+                                        <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('duitnowQrInput').click()">
+                                            <i class="fa-solid fa-upload"></i> {{ $duitnowQrUrl ? 'Change' : 'Upload' }}
+                                        </button>
+                                        <input type="file" id="duitnowQrInput" name="payment_qr_duitnow" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'duitnowQrPreview', 'duitnowEmptyIcon')">
+                                    </div>
+                                </div>
+
+                                {{-- Touch 'n Go QR Card --}}
+                                <div class="qr-card">
+                                    <div class="qr-preview-box">
+                                        @if($tngQrUrl)
+                                            <img id="tngQrPreview" src="{{ $tngQrUrl }}" alt="Touch n Go QR">
+                                        @else
+                                            <div id="tngEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-qrcode"></i></div>
+                                            <img id="tngQrPreview" src="" alt="" style="display:none;">
+                                        @endif
+                                    </div>
+                                    <h4 class="qr-title">Touch 'n Go QR</h4>
+                                    <p class="qr-sub">Upload Touch 'n Go QR image (JPG / PNG)</p>
+                                    <div class="qr-btn-wrap">
+                                        <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('tngQrInput').click()">
+                                            <i class="fa-solid fa-upload"></i> {{ $tngQrUrl ? 'Change' : 'Upload' }}
+                                        </button>
+                                        <input type="file" id="tngQrInput" name="payment_qr_tng" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'tngQrPreview', 'tngEmptyIcon')">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit-yellow">
+                                <i class="fa-solid fa-wallet"></i>
+                                Save Payment Details
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 3: SECURITY & PASSWORD
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="settings-panel-card" id="panel-security">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-shield-halved"></i> Security & Password</h3>
+                    <p class="panel-desc">Update your password to keep your account safe.</p>
+                </div>
+
+                <form method="POST" action="{{ route('settings.password.update') }}">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="form-grid">
+                        {{-- Current Password --}}
+                        <div class="form-group">
+                            <label class="form-label" for="currentPassword">Current Password</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                                <input type="password" id="currentPassword" name="current_password" class="input-field" required placeholder="Enter current password">
+                                <button type="button" class="pass-toggle-btn" onclick="togglePassVisibility('currentPassword', this)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- New Password --}}
+                        <div class="form-group">
+                            <label class="form-label" for="newPassword">New Password</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-key"></i></span>
+                                <input type="password" id="newPassword" name="new_password" class="input-field" required minlength="8" placeholder="Minimum 8 characters">
+                                <button type="button" class="pass-toggle-btn" onclick="togglePassVisibility('newPassword', this)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Confirm New Password --}}
+                        <div class="form-group">
+                            <label class="form-label" for="confirmPassword">Confirm New Password</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i class="fa-solid fa-shield-check"></i></span>
+                                <input type="password" id="confirmPassword" name="new_password_confirmation" class="input-field" required placeholder="Re-enter new password">
+                                <button type="button" class="pass-toggle-btn" onclick="togglePassVisibility('confirmPassword', this)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit-yellow">
+                                <i class="fa-solid fa-shield-halved"></i>
                                 Update Password
                             </button>
                         </div>
                     </div>
                 </form>
-            </section>
+            </div>
 
-        </div>{{-- /.settings-body --}}
-    </div>{{-- /.settings-page --}}
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.12.4/build/js/utils.js"></script>
     <script>
-        (function () {
-            /* ── Helpers ── */
-            function setEditButtonState(button, isOpen) {
-                if (!button) return;
-                var icon = button.querySelector('i');
-                if (icon) icon.className = isOpen ? 'fas fa-xmark' : 'fas fa-pen';
-                button.setAttribute('data-open', isOpen ? '1' : '0');
-            }
+        // ── Tab Switcher Logic ───────────────────────────────────────────
+        function switchSettingsTab(tabName) {
+            const tabs = ['profile', 'payment', 'security'];
+            if (!tabs.includes(tabName)) return;
 
-            /* ── Pencil edit buttons (inline unlock) ── */
-            var editButtons = document.querySelectorAll('.settings-edit-btn');
-            editButtons.forEach(function (button) {
-                setEditButtonState(button, false);
-                button.addEventListener('click', function () {
-                    var targetGroup = button.getAttribute('data-target-group');
-                    if (targetGroup) {
-                        var groupedInputs = document.querySelectorAll(targetGroup);
-                        if (!groupedInputs.length) return;
-                        var isOpen = button.getAttribute('data-open') === '1';
-                        groupedInputs.forEach(function (field) { field.disabled = isOpen; });
-                        setEditButtonState(button, !isOpen);
-                        if (!isOpen) groupedInputs[0].focus();
-                        return;
+            tabs.forEach(t => {
+                const btn = document.getElementById(`nav-btn-${t}`);
+                const panel = document.getElementById(`panel-${t}`);
+                if (btn && panel) {
+                    if (t === tabName) {
+                        btn.classList.add('is-active');
+                        panel.classList.add('is-active');
+                    } else {
+                        btn.classList.remove('is-active');
+                        panel.classList.remove('is-active');
                     }
-                    var targetId = button.getAttribute('data-target');
-                    var input = targetId ? document.getElementById(targetId) : null;
-                    if (!input) return;
-                    var isOpen = button.getAttribute('data-open') === '1';
-                    input.disabled = isOpen;
-                    setEditButtonState(button, !isOpen);
-                    if (!isOpen) {
-                        input.focus();
-                        if (typeof input.setSelectionRange === 'function') {
-                            var len = input.value ? input.value.length : 0;
-                            input.setSelectionRange(len, len);
-                        }
-                    }
-                });
+                }
             });
 
-            /* ── Photo upload hint ── */
-            var profilePhotoInput = document.getElementById('profile_photo');
-            var profilePhotoHint  = document.getElementById('profilePhotoHint');
-            if (profilePhotoInput && profilePhotoHint) {
-                profilePhotoInput.addEventListener('change', function () {
-                    if (!profilePhotoInput.files || !profilePhotoInput.files.length) return;
-                    profilePhotoHint.textContent = 'Selected: ' + profilePhotoInput.files[0].name;
-                });
+            if (history.pushState) {
+                history.pushState(null, null, `#${tabName}`);
+            } else {
+                location.hash = `#${tabName}`;
             }
+        }
 
-            /* ── Phone number: numeric only ── */
-            var whatsappNumberInput = document.getElementById('whatsapp_number');
-            if (whatsappNumberInput) {
-                whatsappNumberInput.addEventListener('input', function () {
-                    whatsappNumberInput.value = String(whatsappNumberInput.value || '').replace(/[^\d]/g, '');
-                });
-            }
-            var paymentAccountNumberInput = document.getElementById('payment_account_number');
-            if (paymentAccountNumberInput) {
-                paymentAccountNumberInput.addEventListener('input', function () {
-                    paymentAccountNumberInput.value = String(paymentAccountNumberInput.value || '').replace(/[^\d]/g, '');
-                });
-            }
-
-            /* ── Country select placeholder helpers ── */
-            var phoneCountry = document.getElementById('whatsapp_country_code');
-
-            function fallbackExampleByCode(dialCode) {
-                var map = {
-                    '+60': '0123456789', '+65': '81234567', '+62': '081234567890',
-                    '+66': '0812345678', '+63': '09171234567', '+81': '09012345678',
-                    '+82': '01012345678', '+44': '07123456789', '+1': '2015550123',
-                    '+91': '09876543210', '+86': '13123456789'
-                };
-                return map[dialCode] || '1234567890';
-            }
-
-            function toIso2FromOption(option) {
-                if (!option) return '';
-                var datasetIso = String(option.getAttribute('data-iso') || '').trim();
-                if (datasetIso) return datasetIso.toLowerCase();
-                var label = String(option.textContent || '');
-                var match = label.match(/^([A-Z]{2})\s*\(/);
-                return match ? match[1].toLowerCase() : '';
-            }
-
-            function updateWhatsappPlaceholder() {
-                if (!phoneCountry || !whatsappNumberInput) return;
-                var selectedOpt = phoneCountry.options[phoneCountry.selectedIndex];
-                var dialCode = selectedOpt ? String(selectedOpt.value || '') : '';
-                var iso2 = toIso2FromOption(selectedOpt);
-                var example = '';
-                if (window.intlTelInputUtils && iso2) {
-                    try {
-                        example = window.intlTelInputUtils.getExampleNumber(
-                            iso2, true, window.intlTelInputUtils.numberType.MOBILE
-                        ) || '';
-                    } catch (_error) {}
-                }
-                if (example) {
-                    var dialDigits = String(dialCode || '').replace(/[^\d]/g, '');
-                    var exampleDigits = String(example || '').replace(/[^\d]/g, '');
-                    if (dialDigits && exampleDigits.startsWith(dialDigits)) exampleDigits = exampleDigits.slice(dialDigits.length);
-                    example = exampleDigits;
+        // ── Password Visibility Toggle ───────────────────────────────────
+        function togglePassVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input && icon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
                 } else {
-                    example = fallbackExampleByCode(dialCode);
-                }
-                whatsappNumberInput.placeholder = example || '1234567890';
-            }
-
-            function updateCountrySelectWidth() {
-                if (!phoneCountry) return;
-                var selectedOpt = phoneCountry.options[phoneCountry.selectedIndex];
-                var label = selectedOpt ? String(selectedOpt.textContent || '').trim() : '';
-                var charCount = Math.max(label.length + 2, 12);
-                var widthCh = Math.min(Math.max(charCount, 12), 18);
-                phoneCountry.style.setProperty('--country-width', widthCh + 'ch');
-            }
-
-            function escapeHtml(value) {
-                return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-            }
-
-            function normalizeDialCode(raw) {
-                var digits = String(raw || '').replace(/[^\d]/g, '');
-                return digits ? ('+' + digits) : '';
-            }
-
-            async function populateAllCountries() {
-                if (!phoneCountry) return;
-                var selectedCode = normalizeDialCode(phoneCountry.value) || '+60';
-                try {
-                    var response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,idd');
-                    if (!response.ok) return;
-                    var rows = await response.json();
-                    if (!Array.isArray(rows) || !rows.length) return;
-                    var options = [];
-                    rows.forEach(function (row) {
-                        var iso2 = String(row && row.cca2 ? row.cca2 : '').toUpperCase();
-                        var countryName = String(row && row.name && row.name.common ? row.name.common : '').trim();
-                        var root = row && row.idd ? row.idd.root : null;
-                        var suffixes = row && row.idd && Array.isArray(row.idd.suffixes) ? row.idd.suffixes : [];
-                        if (!iso2 || !countryName || !root || !suffixes.length) return;
-                        var dialCode = normalizeDialCode(String(root) + String(suffixes[0]));
-                        if (!dialCode) return;
-                        options.push({ iso2: iso2, countryName: countryName, dialCode: dialCode, label: countryName + ' (' + dialCode + ')' });
-                    });
-                    var seen = {};
-                    options = options.filter(function (item) {
-                        if (seen[item.iso2]) return false;
-                        seen[item.iso2] = true;
-                        return true;
-                    }).sort(function (a, b) {
-                        if (a.iso2 === 'MY') return -1;
-                        if (b.iso2 === 'MY') return 1;
-                        return a.countryName.localeCompare(b.countryName);
-                    });
-                    if (!options.length) return;
-                    var hasSelectedCode = options.some(function (item) { return item.dialCode === selectedCode; });
-                    if (!hasSelectedCode) selectedCode = '+60';
-                    phoneCountry.innerHTML = options.map(function (item) {
-                        var selected = item.dialCode === selectedCode || (item.iso2 === 'MY' && selectedCode === '+60');
-                        return '<option value="' + escapeHtml(item.dialCode) + '" data-iso="' + escapeHtml(item.iso2.toLowerCase()) + '"' + (selected ? ' selected' : '') + '>' + escapeHtml(item.label) + '</option>';
-                    }).join('');
-                } catch (_error) {
-                    // keep server-side fallback options
-                } finally {
-                    updateCountrySelectWidth();
-                    updateWhatsappPlaceholder();
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
                 }
             }
+        }
 
-            if (phoneCountry) {
-                phoneCountry.addEventListener('change', function () {
-                    updateCountrySelectWidth();
-                    updateWhatsappPlaceholder();
-                });
+        // ── Avatar Preview ───────────────────────────────────────────────
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const heroAvatar = document.querySelector('.settings-hero-avatar');
+                    if (heroAvatar) {
+                        heroAvatar.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
             }
-            populateAllCountries();
+        }
 
-            /* ── Password collapse panel ── */
-            var passwordToggleBtn    = document.getElementById('passwordToggleBtn');
-            var passwordToggleIcon   = document.getElementById('passwordToggleIcon');
-            var passwordCollapse     = document.getElementById('passwordCollapse');
-            var passwordInputs       = passwordCollapse ? passwordCollapse.querySelectorAll('input') : [];
-
-            function setPasswordPanel(open) {
-                if (!passwordCollapse || !passwordToggleBtn || !passwordToggleIcon) return;
-                passwordCollapse.classList.toggle('is-open', open);
-                passwordToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-                passwordToggleBtn.setAttribute('aria-label', open ? 'Close password form' : 'Open password form');
-                passwordToggleIcon.className = open ? 'fas fa-xmark' : 'fas fa-pen';
-                passwordInputs.forEach(function (input) {
-                    input.disabled = !open;
-                    if (!open) input.value = '';
-                });
-                if (!open) {
-                    var savePasswordBtnEl = document.getElementById('savePasswordBtn');
-                    if (savePasswordBtnEl) savePasswordBtnEl.disabled = true;
-                }
-                if (open && passwordInputs.length) passwordInputs[0].focus();
+        // ── QR Code Image Preview ─────────────────────────────────────────
+        function previewQr(input, imgId, emptyIconId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.getElementById(imgId);
+                    const icon = document.getElementById(emptyIconId);
+                    if (img) {
+                        img.src = e.target.result;
+                        img.style.display = 'block';
+                    }
+                    if (icon) {
+                        icon.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
             }
+        }
 
-            if (passwordToggleBtn) {
-                passwordToggleBtn.addEventListener('click', function () {
-                    var isOpen = passwordCollapse && passwordCollapse.classList.contains('is-open');
-                    setPasswordPanel(!isOpen);
-                });
-                setPasswordPanel(false);
+        // ── Check Initial Hash on Page Load ──────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = location.hash.replace('#', '');
+            if (['profile', 'payment', 'security'].includes(hash)) {
+                switchSettingsTab(hash);
             }
-
-            /* ── Payment Details collapse panel ── */
-            var paymentDetailsToggleBtn   = document.getElementById('paymentDetailsToggleBtn');
-            var paymentDetailsToggleIcon  = document.getElementById('paymentDetailsToggleIcon');
-            var paymentDetailsCollapse    = document.getElementById('paymentDetailsCollapse');
-            var paymentInputs             = paymentDetailsCollapse ? paymentDetailsCollapse.querySelectorAll('.payment-details-input') : [];
-            var paymentEditButtons        = paymentDetailsCollapse ? paymentDetailsCollapse.querySelectorAll('.payment-edit-btn') : [];
-
-            function setPaymentDetailsPanel(open) {
-                if (!paymentDetailsCollapse || !paymentDetailsToggleBtn || !paymentDetailsToggleIcon) return;
-                paymentDetailsCollapse.classList.toggle('is-open', open);
-                paymentDetailsToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-                paymentDetailsToggleBtn.setAttribute('aria-label', open ? 'Close payment details form' : 'Open payment details form');
-                paymentDetailsToggleIcon.className = open ? 'fas fa-xmark' : 'fas fa-pen';
-                if (!open) {
-                    paymentInputs.forEach(function (input) { input.disabled = true; });
-                    paymentEditButtons.forEach(function (btn) { setEditButtonState(btn, false); });
-                    var savePaymentBtnEl = document.getElementById('savePaymentDetailsBtn');
-                    if (savePaymentBtnEl) savePaymentBtnEl.disabled = true;
-                }
-            }
-
-            if (paymentDetailsToggleBtn) {
-                paymentDetailsToggleBtn.addEventListener('click', function () {
-                    var isOpen = paymentDetailsCollapse && paymentDetailsCollapse.classList.contains('is-open');
-                    setPaymentDetailsPanel(!isOpen);
-                });
-                setPaymentDetailsPanel(false);
-            }
-
-            /* ── Visibility auto-save selects ── */
-            var visibilitySelects = document.querySelectorAll('select[data-auto-save-visibility="1"]');
-            visibilitySelects.forEach(function (selectEl) {
-                selectEl.addEventListener('change', function () {
-                    if (selectEl.disabled) return;
-                    var payload = new FormData();
-                    payload.append('_token', '{{ csrf_token() }}');
-                    payload.append('_method', 'PATCH');
-                    payload.append(selectEl.name, String(selectEl.value || ''));
-                    fetch('{{ route('settings.profile.update') }}', {
-                        method: 'POST',
-                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                        body: payload
-                    }).catch(function () {
-                        // keep UI responsive even if network fails
-                    }).finally(function () {
-                        if (selectEl.id === 'phone_visible') {
-                            var phoneInputs = document.querySelectorAll('.settings-phone-input');
-                            phoneInputs.forEach(function (field) { field.disabled = true; });
-                            var phoneEditBtn = document.querySelector('.settings-edit-btn[data-target-group=".settings-phone-input"]');
-                            setEditButtonState(phoneEditBtn, false);
-                        } else {
-                            selectEl.disabled = true;
-                            var singleEditBtn = document.querySelector('.settings-edit-btn[data-target="' + selectEl.id + '"]');
-                            setEditButtonState(singleEditBtn, false);
-                        }
-                    });
-                });
-            });
-
-            /* ── Profile form: enable save when something changes ── */
-            var accountProfileForm = document.getElementById('accountProfileForm');
-            var updateProfileBtn   = document.getElementById('updateProfileBtn');
-            if (accountProfileForm && updateProfileBtn) {
-                var trackedTextInputs = accountProfileForm.querySelectorAll('input[type="text"], input[type="email"]');
-                var initialValues = new Map();
-                trackedTextInputs.forEach(function (inputEl) { initialValues.set(inputEl, String(inputEl.value || '')); });
-
-                function updateProfileSubmitState() {
-                    var hasChanges = false;
-                    trackedTextInputs.forEach(function (inputEl) {
-                        if (hasChanges) return;
-                        if (initialValues.get(inputEl) !== String(inputEl.value || '')) hasChanges = true;
-                    });
-                    updateProfileBtn.disabled = !hasChanges;
-                }
-
-                trackedTextInputs.forEach(function (inputEl) {
-                    inputEl.addEventListener('input', updateProfileSubmitState);
-                    inputEl.addEventListener('change', updateProfileSubmitState);
-                });
-                accountProfileForm.addEventListener('submit', function () { updateProfileBtn.disabled = true; });
-                updateProfileSubmitState();
-            }
-
-            /* ── Payment form: enable save when something changes ── */
-            var paymentDetailsForm  = document.getElementById('paymentDetailsForm');
-            var savePaymentDetailsBtn = document.getElementById('savePaymentDetailsBtn');
-            if (paymentDetailsForm && savePaymentDetailsBtn) {
-                var paymentTrackedFields = paymentDetailsForm.querySelectorAll('input, select, textarea');
-                var paymentInitialValues = new Map();
-                paymentTrackedFields.forEach(function (field) {
-                    paymentInitialValues.set(field, field.type === 'file' ? '' : String(field.value || ''));
-                });
-
-                function updatePaymentSubmitState() {
-                    var hasChanges = false;
-                    paymentTrackedFields.forEach(function (field) {
-                        if (hasChanges) return;
-                        if (field.type === 'file') { if (field.files && field.files.length > 0) hasChanges = true; return; }
-                        if (paymentInitialValues.get(field) !== String(field.value || '')) hasChanges = true;
-                    });
-                    savePaymentDetailsBtn.disabled = !hasChanges;
-                }
-
-                paymentTrackedFields.forEach(function (field) {
-                    field.addEventListener('input', updatePaymentSubmitState);
-                    field.addEventListener('change', updatePaymentSubmitState);
-                });
-                paymentDetailsForm.addEventListener('submit', function () { savePaymentDetailsBtn.disabled = true; });
-                updatePaymentSubmitState();
-            }
-
-            /* ── Password form: enable save when something typed ── */
-            var passwordForm    = document.getElementById('passwordForm');
-            var savePasswordBtn = document.getElementById('savePasswordBtn');
-            if (passwordForm && savePasswordBtn) {
-                var passwordFields = passwordForm.querySelectorAll('input[type="password"]');
-
-                function updatePasswordSubmitState() {
-                    var hasValue = false;
-                    passwordFields.forEach(function (field) {
-                        if (hasValue) return;
-                        if (String(field.value || '').trim() !== '') hasValue = true;
-                    });
-                    savePasswordBtn.disabled = !hasValue;
-                }
-
-                passwordFields.forEach(function (field) {
-                    field.addEventListener('input', updatePasswordSubmitState);
-                    field.addEventListener('change', updatePasswordSubmitState);
-                });
-                passwordForm.addEventListener('submit', function () { savePasswordBtn.disabled = true; });
-                updatePasswordSubmitState();
-            }
-
-            /* ── Re-enable disabled (but not locked) fields on form submit ── */
-            var profileForms = document.querySelectorAll('form.settings-form');
-            profileForms.forEach(function (form) {
-                form.addEventListener('submit', function () {
-                    form.querySelectorAll('input:disabled').forEach(function (field) {
-                        if (field.getAttribute('data-locked') === '1') return;
-                        field.disabled = false;
-                    });
-                });
-            });
-
-            /* ── Mobile tab strip + rail link active highlighting ── */
-            var tabButtons   = document.querySelectorAll('[data-section-tab]');
-            var railLinks    = document.querySelectorAll('[data-section-link]');
-            var sectionCards = document.querySelectorAll('[data-section]');
-
-            function activateSection(sectionKey) {
-                tabButtons.forEach(function (btn) {
-                    btn.classList.toggle('is-active', btn.getAttribute('data-section-tab') === sectionKey);
-                });
-                railLinks.forEach(function (link) {
-                    link.classList.toggle('is-active', link.getAttribute('data-section-link') === sectionKey);
-                });
-            }
-
-            tabButtons.forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var key = btn.getAttribute('data-section-tab');
-                    activateSection(key);
-                    var target = document.getElementById('section-' + key);
-                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-            });
-
-            railLinks.forEach(function (link) {
-                link.addEventListener('click', function () {
-                    activateSection(link.getAttribute('data-section-link'));
-                });
-            });
-
-            /* Intersection observer to sync rail + tabs while scrolling */
-            if ('IntersectionObserver' in window) {
-                var observer = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (entry) {
-                        if (entry.isIntersecting) {
-                            var key = entry.target.getAttribute('data-section');
-                            if (key) activateSection(key);
-                        }
-                    });
-                }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
-
-                sectionCards.forEach(function (card) { observer.observe(card); });
-            }
-
-            /* ── Auto-dismiss status banner ── */
-            var statusBanner = document.getElementById('statusBanner');
-            if (statusBanner) {
-                setTimeout(function () { statusBanner.classList.add('hide'); }, 4000);
-            }
-        })();
+        });
     </script>
 @endsection

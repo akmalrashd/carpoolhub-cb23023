@@ -273,6 +273,26 @@
         outline: none; transition: border-color .15s, background .15s;
     }
     .sr-search-wrap input:focus { border-color: var(--muted); background: var(--surface); }
+
+    /* ── Skeleton loading ── */
+    .sr-skel-container {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        background: var(--canvas, #f8fafc);
+        opacity: 1;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+    }
+    .sk {
+        background: linear-gradient(90deg, var(--surface-2) 25%, var(--hairline) 37%, var(--surface-2) 63%);
+        background-size: 400% 100%;
+        animation: srShimmer 1.4s ease infinite;
+    }
+    @keyframes srShimmer {
+        0% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 </style>
 
 {{-- Page header --}}
@@ -313,8 +333,39 @@
             </div>
         @endif
 
-        <div class="sr-grid" id="srGrid">
-            @foreach($savedRoutes as $savedRoute)
+        <div style="position: relative; min-height: 250px;">
+            {{-- Skeleton Loading Container --}}
+            <div class="sr-skel-container" id="sr-skel-container">
+                <div class="sr-grid">
+                    @for($i = 0; $i < min(2, $savedRoutes->count()); $i++)
+                        <div class="card" style="padding:0; overflow:hidden;">
+                            {{-- Map Thumbnail Skeleton --}}
+                            <div class="sr-thumb-skel sk" style="height:150px; position:relative; overflow:hidden;"></div>
+                            <div class="sr-body" style="padding:16px; display:flex; flex-direction:column; gap:12px;">
+                                <div style="display:flex; gap:6px;">
+                                    <span class="sk" style="height:18px; width:64px; border-radius:99px;"></span>
+                                </div>
+                                <div style="height:22px; width:75%; border-radius:6px;" class="sk"></div>
+                                <div class="sr-kv-grid" style="margin-top:4px;">
+                                    @for($j = 0; $j < 4; $j++)
+                                        <div class="sr-kv">
+                                            <div style="height:10px; width:36px; border-radius:3px;" class="sk"></div>
+                                            <div style="height:14px; width:48px; border-radius:4px; margin-top:4px;" class="sk"></div>
+                                        </div>
+                                    @endfor
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-top:12px; border-top:1px solid var(--hairline); padding-top:12px;">
+                                    <div style="height:14px; width:100px; border-radius:4px;" class="sk"></div>
+                                    <div style="height:28px; width:120px; border-radius:6px;" class="sk"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+
+            <div class="sr-grid" id="srGrid" style="opacity:0.35; transition:opacity .35s ease;">
+                @foreach($savedRoutes as $savedRoute)
                 @php
                     $customPreviewPoints = $savedRoute->passengerStops
                         ->where('is_active', true)
@@ -450,6 +501,7 @@
                     </div>{{-- /.sr-body --}}
                 </article>
             @endforeach
+        </div>
         </div>
 
         <div id="srSearchEmpty" class="sr-empty" style="margin-top:12px">
@@ -620,7 +672,7 @@
             var aLng = toNumber(card.dataset.pointALng);
             var bLat = toNumber(card.dataset.pointBLat);
             var bLng = toNumber(card.dataset.pointBLng);
-            if ([aLat, aLng, bLat, bLng].some(function (value) { return value === null; })) return;
+            if ([aLat, aLng, bLat, bLng].some(function (value) { return value === null; })) return Promise.resolve();
 
             var markers = customMarkers(card);
             var routePoints = [[aLat, aLng]]
@@ -632,7 +684,7 @@
                 }).join(';')
                 + '?overview=full&geometries=geojson';
 
-            fetch(url)
+            return fetch(url)
                 .then(function (response) {
                     if (!response.ok) throw new Error('route');
                     return response.json();
@@ -653,7 +705,28 @@
                 });
         }
 
-        cards.forEach(initRouteCard);
+        var skel = document.getElementById('sr-skel-container');
+        var real = document.getElementById('srGrid');
+
+        function hideSkeleton() {
+            if (skel && real) {
+                setTimeout(function () {
+                    skel.style.opacity = '0';
+                    skel.style.pointerEvents = 'none';
+                    real.style.opacity = '1';
+                    setTimeout(function () {
+                        skel.style.display = 'none';
+                    }, 350);
+                }, 280);
+            }
+        }
+
+        if (cards.length > 0) {
+            var promises = cards.map(initRouteCard);
+            Promise.allSettled(promises).then(hideSkeleton);
+        } else {
+            hideSkeleton();
+        }
     })();
 </script>
 @endsection

@@ -92,25 +92,26 @@
             position: sticky;
             top: 0;
             z-index: 2000;
-            height: 72px;
-            padding: 0 10px;
+            height: 52px;
+            padding: 0 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
             background: var(--surface);
             border-bottom: 1px solid var(--hairline);
-            box-shadow: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
         .navbar,
         .desktop-topbar {
             box-shadow: var(--shadow-1);
         }
         .page-load-line {
+            display: none !important;
             position: fixed;
             left: 0;
             right: 0;
-            top: 72px;
+            top: 52px;
             height: 3px;
             z-index: 1900;
             pointer-events: none;
@@ -140,10 +141,35 @@
             100% { transform: scaleX(1); opacity: .55; }
         }
 
+        /* ── Global skeleton shimmer ─────────────────────────── */
+        @keyframes ch-shimmer {
+            0%   { background-position: -800px 0; }
+            100% { background-position:  800px 0; }
+        }
+        .sk {
+            background: linear-gradient(90deg,
+                var(--hairline) 0%,
+                var(--canvas-2, #FAF8F2) 40%,
+                var(--hairline) 80%
+            );
+            background-size: 1200px 100%;
+            animation: ch-shimmer 1.6s ease-in-out infinite;
+            border-radius: var(--r-sm);
+            display: block;
+        }
+        .sk-notif-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 4px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .sk-notif-row:last-child { border-bottom: none; }
+
         .mobile-header-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             min-width: 0;
             position: relative;
             z-index: 2;
@@ -151,9 +177,27 @@
         }
 
         .mobile-back-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 9px;
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+
+        .mobile-back-btn:hover {
+            background: var(--surface-2);
+        }
+
+        .menu-toggle-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
             border: 1px solid var(--hairline-strong);
             background: var(--surface);
             color: var(--ink);
@@ -162,24 +206,6 @@
             cursor: pointer;
             flex-shrink: 0;
             font-size: 14px;
-        }
-
-        .mobile-back-btn:hover {
-            background: var(--surface-2);
-        }
-
-        .menu-toggle-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 9px;
-            border: 1px solid var(--hairline-strong);
-            background: var(--surface);
-            color: var(--ink);
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            font-size: 15px;
         }
 
         .desktop-menu-toggle {
@@ -201,8 +227,8 @@
         }
 
         .mobile-brand-logo {
-            width: 32px;
-            height: 32px;
+            width: 26px;
+            height: 26px;
             object-fit: contain;
             display: block;
             flex-shrink: 0;
@@ -221,7 +247,7 @@
         }
         .mobile-brand-word {
             font-family: var(--font-display);
-            font-size: 22px;
+            font-size: 17px;
             font-weight: 800;
             line-height: 1;
             color: var(--ink);
@@ -231,7 +257,7 @@
         .mobile-brand-word span { color: var(--ch-yellow-deep); }
         .mobile-brand-text {
             font-family: var(--font-display);
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 800;
             line-height: 1;
             color: var(--ink);
@@ -261,14 +287,14 @@
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             min-width: 0;
         }
 
         .mobile-header-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             position: relative;
             z-index: 2;
             flex-shrink: 0;
@@ -281,22 +307,23 @@
         }
 
         @media (max-width: 430px) {
-            .mobile-header { height: 68px; padding: 0 8px; gap: 6px; }
-            .page-load-line { top: 68px; }
-            .mobile-header-left { gap: 6px; }
-            .mobile-back-btn { width: 38px; height: 38px; }
-            .header-logo-link { gap: 6px; }
-            .mobile-brand-logo { width: 28px; height: 28px; }
+            .mobile-header { height: 48px; padding: 0 8px; gap: 4px; }
+            .page-load-line { top: 48px; }
+            .mobile-header-left { gap: 4px; }
+            .mobile-back-btn { width: 30px; height: 30px; font-size: 12px; }
+            .header-logo-link { gap: 5px; }
+            .mobile-brand-logo { width: 22px; height: 22px; }
             .mobile-brand-word,
-            .mobile-brand-text { font-size: 18px; }
-            .mobile-brand-mark { width: 23px; height: 23px; font-size: 11px; }
-            .mobile-home-title { min-width: 92px; padding-left: 10px; }
-            .mobile-home-title strong { font-size: 19px; }
-            .mobile-home-title span { font-size: 12px; }
-            .mobile-header-right { gap: 6px; }
-            .notification-toggle,
-            .profile-toggle { width: 44px; height: 44px; }
-            .avatar-initial { width: 36px; height: 36px; font-size: 13px; }
+            .mobile-brand-text { font-size: 15px; }
+            .mobile-brand-mark { width: 20px; height: 20px; font-size: 10px; }
+            .mobile-home-title { min-width: 80px; padding-left: 8px; }
+            .mobile-home-title strong { font-size: 16px; }
+            .mobile-home-title span { font-size: 11px; }
+            .mobile-header-right { gap: 4px; }
+            .notification-toggle { width: 32px; height: 32px; font-size: 13px; }
+            .profile-toggle { height: 32px; padding: 0 5px 0 2px; display: inline-flex; align-items: center; gap: 3px; }
+            .avatar-initial { width: 26px; height: 26px; font-size: 11px; }
+            .role-badge { height: 22px; font-size: 10px; padding: 0 7px; gap: 3px; }
         }
 
         .mobile-header.has-back-btn .mobile-header-left {
@@ -306,9 +333,9 @@
         .notification-wrap { position: relative; }
 
         .notification-toggle {
-            width: 52px;
-            height: 52px;
-            border-radius: 13px;
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
             border: 1px solid var(--hairline-strong);
             background: var(--surface);
             color: var(--ink);
@@ -317,72 +344,178 @@
             cursor: pointer;
             list-style: none;
             position: relative;
-            font-size: 16px;
+            font-size: 14px;
+        }
+        .notification-toggle.has-unread {
+            background: var(--surface);
+            border-color: var(--hairline-strong);
+            color: var(--ink);
+        }
+        .notification-wrap[open] .notification-toggle {
+            background: var(--ch-yellow-tint);
+            border-color: var(--ch-yellow-line);
+            color: var(--ch-yellow-deep);
         }
 
         .notification-badge {
             position: absolute;
-            top: -6px;
-            right: -6px;
+            top: -4px;
+            right: -4px;
             background: var(--danger);
             color: #fff;
             border-radius: 999px;
-            min-width: 18px;
-            height: 18px;
-            font-size: 11px;
+            min-width: 16px;
+            height: 16px;
+            font-size: 10px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0 4px;
+            padding: 0 3px;
+            font-weight: 700;
+            animation: notifPulse 2s ease-in-out infinite;
+        }
+        @keyframes notifPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
         }
 
         .notification-dropdown {
             position: absolute;
             right: 0;
             margin-top: 8px;
-            width: min(90vw, 340px);
+            width: min(90vw, 320px);
             background: var(--surface);
             border: 1px solid var(--hairline);
             border-radius: var(--r-md);
-            padding: 10px;
+            padding: 0;
             z-index: 2100;
             box-shadow: var(--shadow-3);
-            max-height: min(68vh, 520px);
+            max-height: min(65vh, 480px);
             overflow-y: auto;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
         }
+        .notification-dropdown::-webkit-scrollbar {
+            width: 4px;
+        }
+        .notification-dropdown::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .notification-dropdown::-webkit-scrollbar-thumb {
+            background: var(--hairline-strong);
+            border-radius: 999px;
+        }
 
         .notification-dropdown-head {
             position: sticky;
-            top: -10px;
-            z-index: 1;
-            margin: -10px -10px 8px;
-            padding: 10px;
+            top: 0;
+            z-index: 2;
+            padding: 10px 14px;
             background: var(--surface);
             border-bottom: 1px solid var(--hairline);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .notification-item { border: 1px solid var(--hairline); border-radius: 10px; padding: 8px; margin-bottom: 8px; }
-        .notification-item.unread { background: var(--surface-2); }
-        .notification-item-link { text-decoration: none; color: inherit; display: block; border-radius: 8px; }
-        .notification-item-link:hover .notification-item-title { color: var(--info); }
-        .notification-item-title { font-weight: 600; margin-bottom: 3px; line-height: 1.25; }
-        .notification-item-message { color: var(--muted); font-size: 13px; margin-bottom: 6px; line-height: 1.35; }
-        .notification-item-row { display: flex; justify-content: space-between; align-items: center; }
-        .notification-item-time { color: var(--muted); font-size: 12px; }
-        .notification-empty { color: var(--muted); font-size: 13px; padding: 4px 0; }
+         .notification-dropdown-head strong {
+             font-size: 16px;
+             font-weight: 800;
+             color: var(--ink);
+             font-family: var(--font-display), sans-serif;
+         }
+        .notification-items {
+            display: flex;
+            flex-direction: column;
+        }
+        .notification-item {
+            display: flex;
+            gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--hairline);
+            transition: background 0.15s ease;
+            text-align: left;
+        }
+        .notification-item:hover {
+            background: var(--surface-2);
+        }
+        .notification-item.unread {
+            background: rgba(244, 239, 226, 0.25);
+        }
+        .notification-item-icon-col {
+            flex-shrink: 0;
+        }
+        .notification-icon-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .notification-item-content-col {
+            flex: 1;
+            min-width: 0;
+        }
+        .notification-item-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .notification-item-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 3px;
+        }
+        .notification-item-title {
+            font-weight: 700;
+            font-size: 12px;
+            line-height: 1.2;
+            color: var(--ink);
+        }
+        .unread-dot-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--danger);
+            flex-shrink: 0;
+        }
+        .notification-item-message {
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.35;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .notification-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notification-item-time {
+            color: var(--muted);
+            font-size: 10px;
+        }
+        .notification-empty {
+            color: var(--muted);
+            font-size: 12px;
+            padding: 24px 14px;
+            text-align: center;
+        }
         .notification-footer {
             position: sticky;
-            bottom: -10px;
-            margin: 6px -10px -10px;
-            padding: 8px 10px;
+            bottom: 0;
+            z-index: 2;
+            padding: 8px 14px;
             background: var(--surface);
             border-top: 1px solid var(--hairline);
-            display: flex;
-            justify-content: center;
+            text-align: center;
         }
         .notification-view-all {
             color: var(--ink);
@@ -399,25 +532,66 @@
         .profile-wrap { position: relative; }
 
         .profile-toggle {
-            width: 52px;
-            height: 52px;
-            border-radius: 999px;
+            height: 36px;
+            border-radius: 11px;
             border: 1.5px solid var(--ch-yellow-line);
             background: var(--surface);
             color: var(--ink);
             cursor: pointer;
-            display: grid;
-            place-items: center;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 8px 0 3px;
+            gap: 6px;
             list-style: none;
+            box-sizing: border-box;
+        }
+        .profile-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.15;
+        }
+        .profile-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+        .profile-role {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+        .profile-chevron {
+            font-size: 10px;
+            color: var(--muted);
+            transition: transform 0.2s ease;
+        }
+        .profile-wrap[open] .profile-chevron {
+            transform: rotate(180deg);
+        }
+        @media (max-width: 1023px) {
+            .profile-details {
+                display: none !important;
+            }
+            .profile-toggle {
+                height: 36px !important;
+                padding: 0 6px 0 3px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 4px !important;
+            }
         }
 
         .avatar-initial {
-            width: 42px;
-            height: 42px;
-            border-radius: 999px;
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
             background: var(--ink);
             color: #fff;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -425,11 +599,39 @@
             line-height: 1;
         }
 
+        /* ── Role badge ── */
+        .role-badge {
+            height: 26px;
+            border-radius: 999px;
+            padding: 0 9px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            line-height: 1;
+            letter-spacing: 0.01em;
+        }
+        .role-badge i { font-size: 10px; }
+        .role-badge-driver {
+            background: var(--ink);
+            color: #fff;
+        }
+        .role-badge-passenger {
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+        }
+        .role-badge-admin {
+            background: var(--danger);
+            color: #fff;
+        }
+
         .profile-dropdown {
             position: absolute;
             right: 0;
             margin-top: 8px;
-            width: 180px;
+            width: 190px;
             background: var(--surface);
             border: 1px solid var(--hairline);
             border-radius: var(--r-md);
@@ -438,6 +640,38 @@
             box-shadow: var(--shadow-3);
             display: grid;
             gap: 4px;
+        }
+        .profile-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 8px 8px;
+        }
+        .profile-dropdown-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.25;
+        }
+        .profile-dropdown-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 130px;
+        }
+        .profile-dropdown-role {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: capitalize;
+        }
+        .profile-dropdown-divider {
+            height: 1px;
+            background: var(--hairline);
+            margin: 4px 4px 8px;
         }
 
         .profile-menu-link,
@@ -460,6 +694,14 @@
         .profile-menu-link:hover,
         .profile-menu-btn:hover {
             background: var(--surface-2);
+        }
+
+        .profile-menu-btn.profile-menu-logout {
+            color: var(--danger);
+        }
+        .profile-menu-btn.profile-menu-logout:hover {
+            background: var(--danger-soft);
+            color: var(--danger-ink);
         }
 
         .mobile-drawer-overlay {
@@ -589,11 +831,11 @@
         }
 
         .app-shell {
-            min-height: calc(100vh - 72px);
+            min-height: calc(100vh - 52px);
         }
 
         .main-content {
-            padding: 14px 14px 94px;
+            padding: 14px 14px calc(83px + env(safe-area-inset-bottom, 16px));
         }
         .main-content[class*="page-"] { will-change: transform, opacity; }
         .main-content.page-enter-from-right { animation: pageEnterFromRight .34s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -646,20 +888,73 @@
             }
         }
 
-        .status-banner {
-            background: var(--success-soft);
-            border: 1px solid var(--success-border);
-            color: var(--success-ink);
-            padding: 10px 12px;
-            border-radius: var(--r-md);
-            margin-bottom: 12px;
-            transition: opacity .35s ease, transform .35s ease;
-        }
-
-        .status-banner.hide {
-            opacity: 0;
-            transform: translateY(-4px);
+        /* ── Modern Toast Notification System ── */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: min(90vw, 340px);
             pointer-events: none;
+        }
+        .toast-card {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.08);
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: left;
+        }
+        .toast-card.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .toast-card.hide {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+        }
+        .toast-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .toast-icon-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+        .toast-icon-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        .toast-icon-info {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        .toast-message {
+            flex: 1;
+            line-height: 1.4;
         }
 
         .app-card {
@@ -686,19 +981,19 @@
 
         .mobile-bottom-nav {
             position: fixed;
-            left: 6px;
-            right: 6px;
+            left: 0;
+            right: 0;
             bottom: 0;
             z-index: 1900;
             background: rgba(255, 255, 255, 0.94);
-            border: 1px solid var(--hairline);
-            border-bottom: 0;
-            border-radius: 20px 20px 0 0;
+            border-top: 1px solid var(--hairline);
+            border-radius: 0;
             backdrop-filter: blur(14px);
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            padding: 8px 8px max(10px, env(safe-area-inset-bottom));
-            gap: 6px;
+            height: calc(83px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-sizing: border-box;
             box-shadow: 0 -10px 30px rgba(11,18,32,0.12);
         }
 
@@ -710,96 +1005,48 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            min-height: 58px;
-            border-radius: 14px;
-            border: 1px solid transparent;
-            font-size: 12px;
-            font-weight: 800;
+            gap: 2px;
+            height: 83px;
+            min-height: 83px;
+            padding: 1.6px 0 17.6px;
+            font-size: 10px;
+            font-weight: 700;
             cursor: pointer;
             list-style: none;
             position: relative;
-            overflow: hidden;
-            transition: transform 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            box-sizing: border-box;
+            transition: transform 0.16s ease, color 0.16s ease;
         }
 
         .mobile-bottom-nav .icon {
-            font-size: 17px;
+            font-size: 24px;
             line-height: 1;
-            height: 18px;
+            height: 24px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
         .mobile-bottom-nav .icon i { transition: transform 0.16s ease; }
 
-        .mobile-bottom-nav > a.nav-fab {
-            margin-top: 0;
-            min-height: 58px;
-            color: var(--muted);
-            font-weight: 800;
-            overflow: visible;
-            border-radius: 12px;
-            border-color: var(--hairline-strong);
-            background: var(--surface);
-            box-shadow: none;
-            gap: 2px;
-        }
-        .mobile-bottom-nav > a.nav-fab .icon {
-            width: auto;
-            height: 18px;
-            border-radius: 0;
-            background: transparent;
-            border: 0;
-            box-shadow: none;
-            color: inherit;
-            font-size: 18px;
-        }
-        .mobile-bottom-nav > a.nav-fab:hover {
-            background: var(--ch-yellow-tint);
-            border-color: var(--ch-yellow-line);
-            color: var(--ch-yellow-ink);
-            transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(234,179,8,0.14);
-        }
-        .mobile-bottom-nav > a.nav-fab:hover .icon {
-            background: transparent;
-        }
-
         .mobile-bottom-nav > a.active,
         .mobile-bottom-nav > details > summary.active {
-            color: var(--ch-yellow-ink);
-            border-color: var(--ch-yellow-line);
-            background: var(--ch-yellow-tint);
-            font-weight: 700;
-        }
-        .mobile-bottom-nav > a.nav-fab.active {
-            background: var(--ch-yellow);
-            border-color: var(--ch-yellow);
-            color: var(--ch-yellow-ink);
-            box-shadow: 0 10px 20px rgba(234,179,8,0.24);
-        }
-        .mobile-bottom-nav > a.nav-fab.active .icon {
-            transform: translateY(-1px);
+            color: var(--ink) !important;
+            font-weight: 800;
         }
         .mobile-bottom-nav > a:hover,
         .mobile-bottom-nav > details > summary:hover {
-            color: var(--ink);
-            border-color: var(--hairline-strong);
-            background: var(--surface-2);
-        }
-        .mobile-bottom-nav > a.nav-fab:not(.active):not(:hover) {
-            color: var(--muted);
-            border-color: var(--hairline-strong);
-            background: var(--surface);
+            color: var(--ch-yellow-deep) !important;
         }
         .mobile-bottom-nav > a.active .icon i,
         .mobile-bottom-nav > details > summary.active .icon i {
-            transform: translateY(-1px);
+            transform: scale(1.08);
         }
         .mobile-bottom-nav > a:active,
         .mobile-bottom-nav > details > summary:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
         }
         .mobile-bottom-nav > a.tap-animate,
         .mobile-bottom-nav > details > summary.tap-animate {
@@ -807,7 +1054,7 @@
         }
         @keyframes navTapPop {
             0% { transform: scale(1); }
-            50% { transform: scale(0.93); }
+            50% { transform: scale(0.92); }
             100% { transform: scale(1); }
         }
 
@@ -858,7 +1105,7 @@
             }
 
             .desktop-topbar {
-                height: 72px;
+                height: 52px;
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -876,7 +1123,7 @@
                 max-height: min(62vh, 520px);
             }
             .page-load-line {
-                top: 72px;
+                top: 52px;
             }
 
             .desktop-topbar-left {
@@ -899,8 +1146,8 @@
 
             .desktop-brand-logo {
                 width: auto;
-                max-width: 54px;
-                height: 46px;
+                max-width: 44px;
+                height: 36px;
                 object-fit: contain;
                 display: block;
             }
@@ -921,7 +1168,7 @@
             }
 
             .app-shell {
-                padding-top: 72px;
+                padding-top: 52px;
                 min-height: 100vh;
                 display: grid;
                 grid-template-columns: 70px 1fr;
@@ -935,8 +1182,8 @@
             .desktop-sidebar {
                 display: block;
                 position: sticky;
-                top: 72px;
-                height: calc(100vh - 72px);
+                top: 52px;
+                height: calc(100vh - 52px);
                 background: var(--surface);
                 overflow-y: auto;
                 overflow-x: hidden;
@@ -1079,7 +1326,261 @@
         .badge-info { background: var(--info-soft); color: var(--info-ink); border-color: rgba(37,99,235,0.22); }
         .badge-yellow { background: var(--ch-yellow-tint); color: var(--ch-yellow-ink); border-color: var(--ch-yellow-line); }
         .badge-dark { background: var(--ink); color: #fff; border-color: var(--ink); }
-        .badge-lg { height: 28px; padding: 0 12px; font-size: 12.5px; }
+        /* ── Bento Menu Dropdown ── */
+        .bento-menu-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .bento-menu-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            list-style: none;
+            position: relative;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .bento-menu-toggle::-webkit-details-marker {
+            display: none !important;
+        }
+        .bento-menu-toggle::marker {
+            display: none !important;
+        }
+        .bento-menu-toggle:hover {
+            background: var(--surface-2);
+        }
+        .bento-menu-wrap[open] .bento-menu-toggle {
+            background: var(--ch-yellow-tint);
+            border-color: var(--ch-yellow-line);
+            color: var(--ch-yellow-deep);
+        }
+        
+        .bento-menu-dropdown {
+            position: absolute;
+            right: 0;
+            margin-top: 8px;
+            width: min(90vw, 560px);
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            padding: 16px;
+            z-index: 2100;
+            box-shadow: var(--shadow-3);
+            max-height: min(85vh, 520px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            text-align: left;
+        }
+        .bento-menu-dropdown::-webkit-scrollbar {
+            width: 4px;
+        }
+        .bento-menu-dropdown::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .bento-menu-dropdown::-webkit-scrollbar-thumb {
+            background: var(--hairline-strong);
+            border-radius: 999px;
+        }
+        
+        .bento-menu-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--ink);
+            margin: 0 0 12px;
+            font-family: var(--font-display), sans-serif;
+        }
+        
+        .bento-menu-container {
+            display: flex;
+            gap: 16px;
+        }
+        
+        /* Left Column */
+        .bento-menu-main {
+            flex: 1.3;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Search Box */
+        .bento-menu-search-wrap {
+            position: relative;
+            margin-bottom: 2px;
+        }
+        .bento-menu-search-wrap i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .bento-menu-search-input {
+            width: 100%;
+            height: 34px;
+            padding: 0 10px 0 30px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-sm);
+            color: var(--ink);
+            font-size: 12.5px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .bento-menu-search-input:focus {
+            border-color: var(--ch-yellow-deep);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px var(--ch-yellow-tint);
+        }
+        
+        /* Categories and items */
+        .bento-menu-sections-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .bento-section-title {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin: 0 0 6px 2px;
+        }
+        .bento-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .bento-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 6px;
+            border-radius: var(--r-sm);
+            transition: background 0.15s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        .bento-item:hover {
+            background: var(--surface-2);
+        }
+        .bento-icon-bg {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--r-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .bento-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .bento-name {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .bento-desc {
+            font-size: 10.5px;
+            color: var(--muted);
+            line-height: 1.3;
+        }
+        
+        /* Right Column (Create) */
+        .bento-menu-side {
+            flex: 1;
+            min-width: 0;
+            background: var(--surface-2);
+            border-radius: var(--r-sm);
+            padding: 12px;
+            border: 1px solid var(--hairline-strong);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: fit-content;
+        }
+        .bento-side-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: var(--ink);
+            margin: 0 0 2px;
+        }
+        .bento-side-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .bento-side-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 5px;
+            border-radius: var(--r-sm);
+            transition: background 0.15s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        .bento-side-item:hover {
+            background: var(--surface);
+            box-shadow: var(--shadow-1);
+        }
+        .bento-side-icon-circle {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--hairline-strong);
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+        .bento-side-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .bento-side-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .bento-side-desc {
+            font-size: 10px;
+            color: var(--muted);
+            line-height: 1.3;
+        }
+        
+        @media (max-width: 767px) {
+            .bento-menu-dropdown {
+                width: min(95vw, 340px);
+                max-height: min(80vh, 460px);
+                padding: 12px;
+            }
+            .bento-menu-container {
+                flex-direction: column;
+                gap: 14px;
+            }
+            .bento-menu-side {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1116,8 +1617,176 @@
             </div>
         </div>
         <div class="desktop-topbar-right">
+            <details class="bento-menu-wrap">
+                <summary class="bento-menu-toggle" aria-label="Toggle Menu">
+                    <i class="fa-solid fa-grip" aria-hidden="true"></i>
+                </summary>
+                <div class="bento-menu-dropdown">
+                    <h2 class="bento-menu-title">Menu</h2>
+                    <div class="bento-menu-container">
+                        <!-- Left Panel (Social/Lists) -->
+                        <div class="bento-menu-main">
+                            <div class="bento-menu-search-wrap">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" placeholder="Search menu..." class="bento-menu-search-input" data-bento-search>
+                            </div>
+                            <div class="bento-menu-sections-wrapper">
+                                <!-- Section: Navigation -->
+                                <div class="bento-menu-section" data-bento-section>
+                                    <h3 class="bento-section-title">Navigation</h3>
+                                    <div class="bento-grid">
+                                        <a href="{{ route('home') }}" class="bento-item" data-bento-item>
+                                            <span class="bento-icon-bg" style="background: rgba(37,99,235,0.1); color: #2563eb;">
+                                                <i class="fa-solid fa-house"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">Dashboard</strong>
+                                                <span class="bento-desc">Go to home view, see trip statistics and summaries.</span>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('explore.index') }}" class="bento-item" data-bento-item>
+                                            <span class="bento-icon-bg" style="background: rgba(147,51,234,0.1); color: #9333ea;">
+                                                <i class="fa-solid fa-compass"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">Explore</strong>
+                                                <span class="bento-desc">Browse, search and filter active carpool trips.</span>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('trips.index') }}" class="bento-item" data-bento-item>
+                                            <span class="bento-icon-bg" style="background: rgba(22,163,74,0.1); color: #16a34a;">
+                                                <i class="fa-solid fa-car-side"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">My Trips</strong>
+                                                <span class="bento-desc">View and manage your upcoming, past, and draft journeys.</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- Section: Workspace -->
+                                <div class="bento-menu-section" data-bento-section>
+                                    <h3 class="bento-section-title">Workspace</h3>
+                                    <div class="bento-grid">
+                                        <a href="{{ route('saved-routes.index') }}" class="bento-item" data-bento-item>
+                                            <span class="bento-icon-bg" style="background: rgba(220,38,38,0.1); color: #dc2626;">
+                                                <i class="fa-solid fa-route"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">Saved Routes</strong>
+                                                <span class="bento-desc">Quickly define recurrent starting and destination points.</span>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('connections.index') }}" class="bento-item" data-bento-item>
+                                            <span class="bento-icon-bg" style="background: rgba(2,132,199,0.1); color: #0284c7;">
+                                                <i class="fa-solid fa-users"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">Connections</strong>
+                                                <span class="bento-desc">Network with drivers and riders in your circle.</span>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('payments.index') }}" class="bento-item" data-bento-item>
+                                            <span class="bento-icon-bg" style="background: rgba(234,179,8,0.15); color: #ca8a04;">
+                                                <i class="fa-solid fa-wallet"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">Payments Ledger</strong>
+                                                <span class="bento-desc">Track and review trip fees and driver collection receipts.</span>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('settings.index') }}" class="bento-item" data-bento-item>
+                                            <span class="bento-icon-bg" style="background: rgba(100,116,139,0.1); color: #64748b;">
+                                                <i class="fa-solid fa-gears"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">Account Settings</strong>
+                                                <span class="bento-desc">Manage your profile, vehicle, and payment accounts.</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Right Panel (Create) -->
+                        <div class="bento-menu-side">
+                            <h3 class="bento-side-title">Create</h3>
+                            <div class="bento-side-list">
+                                @if(auth()->user()?->role === 'admin')
+                                    <a href="{{ route('admin.users.index') }}" class="bento-side-item">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-user-plus"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">Manage Users</strong>
+                                            <span class="bento-side-desc">Register or update user accounts.</span>
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('admin.reports.index') }}" class="bento-side-item">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-chart-pie"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">View Reports</strong>
+                                            <span class="bento-side-desc">Analyze system metrics and export CSVs.</span>
+                                        </div>
+                                    </a>
+                                @elseif(auth()->user()?->role === 'passenger')
+                                    <a href="{{ route('explore.index') }}" class="bento-side-item">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-magnifying-glass"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">Request Seat</strong>
+                                            <span class="bento-side-desc">Search active rides and request joins.</span>
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('connections.index') }}" class="bento-side-item">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-user-group"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">Add Connection</strong>
+                                            <span class="bento-side-desc">Find and connect with verified drivers.</span>
+                                        </div>
+                                    </a>
+                                @else
+                                    {{-- Default / Driver --}}
+                                    <a href="{{ route('trips.create') }}" class="bento-side-item">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">Post Trip</strong>
+                                            <span class="bento-side-desc">Offer empty seats to passengers.</span>
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('saved-routes.index') }}" class="bento-side-item">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-map-location-dot"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">New Route</strong>
+                                            <span class="bento-side-desc">Pre-define a route template.</span>
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('settings.index') }}" class="bento-side-item">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-qrcode"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">Setup Wallet</strong>
+                                            <span class="bento-side-desc">Add bank or DuitNow payment details.</span>
+                                        </div>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
             <details class="notification-wrap">
-                <summary class="notification-toggle">
+                <summary class="notification-toggle {{ $headerUnreadCount > 0 ? 'has-unread' : '' }}">
                     <i class="fa-solid fa-bell" aria-hidden="true"></i>
                     @if($headerUnreadCount > 0)
                         <span class="notification-badge">{{ $headerUnreadCount > 99 ? '99+' : $headerUnreadCount }}</span>
@@ -1126,33 +1795,80 @@
                 <div class="notification-dropdown">
                     <div class="notification-dropdown-head">
                         <strong>Notifications</strong>
-                        <form method="POST" action="{{ route('notifications.read-all') }}">
+                        <form method="POST" action="{{ route('notifications.read-all') }}" class="notif-dropdown-mark-all-form">
                             @csrf
                             @method('PATCH')
                             <button type="submit" class="link-action">Mark All</button>
                         </form>
                     </div>
                     <div class="notification-items" data-notification-items>
-                        @forelse($headerNotifications as $notification)
-                            <div class="notification-item {{ $notification->is_read ? '' : 'unread' }}">
-                                <a href="{{ route('notifications.open', $notification) }}" class="notification-item-link">
-                                    <div class="notification-item-title">{{ $notification->title }}</div>
-                                    <div class="notification-item-message">{{ $notification->message }}</div>
-                                </a>
-                                <div class="notification-item-row">
-                                    <span class="notification-item-time">{{ $notification->created_at?->diffForHumans() }}</span>
-                                    @if(! $notification->is_read)
-                                        <form method="POST" action="{{ route('notifications.read', $notification) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="link-action">Read</button>
-                                        </form>
-                                    @endif
+                        {{-- Skeleton shown until first poll resolves --}}
+                        <div id="notif-skeleton-initial" style="padding:4px 0;">
+                            @for($sk = 0; $sk < 4; $sk++)
+                                <div class="sk-notif-row">
+                                    <span class="sk" style="width:34px;height:34px;border-radius:999px;flex-shrink:0;"></span>
+                                    <div style="flex:1;display:grid;gap:7px;padding-top:3px;">
+                                        <span class="sk" style="height:11px;width:{{ [62,75,55,68][$sk] }}%;"></span>
+                                        <span class="sk" style="height:10px;width:{{ [38,28,45,32][$sk] }}%;"></span>
+                                    </div>
                                 </div>
-                            </div>
-                        @empty
-                            <div class="notification-empty">No notifications.</div>
-                        @endforelse
+                            @endfor
+                        </div>
+                        {{-- Real content rendered server-side as fallback --}}
+                        <div id="notif-real-content" style="display:none;">
+                            @forelse($headerNotifications as $notification)
+                                @php
+                                    $titleLower = strtolower($notification->title);
+                                    $notifIcon = 'fa-bell';
+                                    $notifBg = '#f1f5f9';
+                                    $notifColor = '#64748b';
+
+                                    if (str_contains($titleLower, 'join') || str_contains($titleLower, 'request')) {
+                                        $notifIcon = 'fa-user-plus';
+                                        $notifBg = '#e0f2fe';
+                                        $notifColor = '#0284c7';
+                                    } elseif (str_contains($titleLower, 'payment') || str_contains($titleLower, 'fare') || str_contains($titleLower, 'paid')) {
+                                        $notifIcon = 'fa-credit-card';
+                                        $notifBg = '#dcfce7';
+                                        $notifColor = '#16a34a';
+                                    } elseif (str_contains($titleLower, 'trip') || str_contains($titleLower, 'car') || str_contains($titleLower, 'ride')) {
+                                        $notifIcon = 'fa-car-side';
+                                        $notifBg = '#f3e8ff';
+                                        $notifColor = '#9333ea';
+                                    }
+                                @endphp
+                                <div class="notification-item {{ $notification->is_read ? '' : 'unread' }}">
+                                    <div class="notification-item-icon-col">
+                                        <span class="notification-icon-badge" style="background: {{ $notifBg }}; color: {{ $notifColor }};">
+                                            <i class="fa-solid {{ $notifIcon }}"></i>
+                                        </span>
+                                    </div>
+                                    <div class="notification-item-content-col">
+                                        <a href="{{ route('notifications.open', $notification) }}" class="notification-item-link">
+                                            <div class="notification-item-title-row">
+                                                <span class="notification-item-title">{{ $notification->title }}</span>
+                                                @if(! $notification->is_read)
+                                                    <span class="unread-dot-indicator"></span>
+                                                @endif
+                                            </div>
+                                            <div class="notification-item-message">{{ $notification->message }}</div>
+                                        </a>
+                                        <div class="notification-item-row">
+                                            <span class="notification-item-time">{{ $notification->created_at?->diffForHumans() }}</span>
+                                            @if(! $notification->is_read)
+                                                <form method="POST" action="{{ route('notifications.read', $notification) }}" class="notif-dropdown-mark-read-form" style="display:inline;">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="link-action">Mark Read</button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="notification-empty">No notifications.</div>
+                            @endforelse
+                        </div>
                     </div>
                     <div class="notification-footer">
                         <a href="{{ route('notifications.index') }}" class="notification-view-all">View All</a>
@@ -1162,15 +1878,28 @@
             <details class="profile-wrap">
                 <summary class="profile-toggle">
                     <span class="avatar-initial">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                    <div class="profile-details">
+                        <span class="profile-name">{{ explode(' ', auth()->user()->name)[0] }}</span>
+                        <span class="profile-role">{{ ucfirst(auth()->user()->role ?? 'driver') }}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down profile-chevron"></i>
                 </summary>
                 <div class="profile-dropdown">
+                    <div class="profile-dropdown-header">
+                        <span class="avatar-initial">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                        <div class="profile-dropdown-meta">
+                            <span class="profile-dropdown-name">{{ auth()->user()->name }}</span>
+                            <span class="profile-dropdown-role">{{ ucfirst(auth()->user()->role ?? 'driver') }}</span>
+                        </div>
+                    </div>
+                    <div class="profile-dropdown-divider"></div>
                     <a href="{{ route('profile.index') }}" class="profile-menu-link">
                         <i class="fa-solid fa-gear"></i>
                         <span>Profile</span>
                     </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="profile-menu-btn">
+                        <button type="submit" class="profile-menu-btn profile-menu-logout">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>Logout</span>
                         </button>
@@ -1235,7 +1964,7 @@
             @endforeach
             <form action="{{ route('logout') }}" method="POST" style="padding: 0 8px;">
                 @csrf
-                <button type="submit" class="profile-menu-btn" style="width:100%;">
+                <button type="submit" class="profile-menu-btn profile-menu-logout" style="width:100%;">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Logout</span>
                 </button>
@@ -1252,7 +1981,32 @@
     <main>
         <section class="main-content">
             @if(session('status'))
-                <div class="status-banner">{{ session('status') }}</div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        window.showToast("{{ session('status') }}", 'success');
+                    });
+                </script>
+            @endif
+            @if(session('success'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        window.showToast("{{ session('success') }}", 'success');
+                    });
+                </script>
+            @endif
+            @if(session('error'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        window.showToast("{{ session('error') }}", 'error');
+                    });
+                </script>
+            @endif
+            @if($errors->any())
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        window.showToast("{{ $errors->first() }}", 'error');
+                    });
+                </script>
             @endif
 
             @yield('content')
@@ -1266,6 +2020,55 @@
 @endauth
 
 <script>
+    window.showToast = function(message, type) {
+        type = type || 'success';
+        var container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+
+        var card = document.createElement('div');
+        card.className = 'toast-card';
+        
+        var iconHtml = '';
+        if (type === 'success') {
+            iconHtml = '<span class="toast-icon toast-icon-success"><i class="fa-solid fa-check"></i></span>';
+        } else if (type === 'error') {
+            iconHtml = '<span class="toast-icon toast-icon-error"><i class="fa-solid fa-xmark"></i></span>';
+        } else {
+            iconHtml = '<span class="toast-icon toast-icon-info"><i class="fa-solid fa-info"></i></span>';
+        }
+
+        function escHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        card.innerHTML = iconHtml + '<span class="toast-message">' + escHtml(message) + '</span>';
+        container.appendChild(card);
+
+        requestAnimationFrame(function() {
+            card.classList.add('show');
+        });
+
+        setTimeout(function() {
+            card.classList.add('hide');
+            card.classList.remove('show');
+            setTimeout(function() {
+                if (card.parentNode) {
+                    card.parentNode.removeChild(card);
+                }
+            }, 350);
+        }, 3200);
+    };
+
     (function () {
         var pageLoadLine = document.getElementById('pageLoadLine');
         var pageLoading = false;
@@ -1340,7 +2143,7 @@
         var mobileBackBtn = document.getElementById('mobileBackBtn');
         var mobileClose = document.getElementById('mobileDrawerClose');
         var mobileOverlay = document.getElementById('mobileDrawerOverlay');
-        var dropdownDetails = document.querySelectorAll('.notification-wrap, .profile-wrap, .more-menu');
+        var dropdownDetails = document.querySelectorAll('.notification-wrap, .profile-wrap, .more-menu, .bento-menu-wrap');
 
         function closeOpenPopups() {
             dropdownDetails.forEach(function (detail) {
@@ -1413,17 +2216,75 @@
             }
         });
 
-        var statusBanner = document.querySelector('.status-banner');
-        if (statusBanner) {
-            window.setTimeout(function () {
-                statusBanner.classList.add('hide');
-                window.setTimeout(function () {
-                    if (statusBanner && statusBanner.parentNode) {
-                        statusBanner.parentNode.removeChild(statusBanner);
+        document.addEventListener('submit', function (e) {
+            var form = e.target.closest('.notif-dropdown-mark-all-form');
+            if (form) {
+                e.preventDefault();
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: '_method=PATCH',
+                    credentials: 'same-origin'
+                }).then(function (r) {
+                    if (!r.ok) return;
+                    document.querySelectorAll('.notification-badge').forEach(function (badge) {
+                        badge.style.display = 'none';
+                    });
+                    document.querySelectorAll('.notification-item.unread').forEach(function (item) {
+                        item.classList.remove('unread');
+                    });
+                    document.querySelectorAll('.unread-dot-indicator').forEach(function (dot) {
+                        dot.remove();
+                    });
+                    document.querySelectorAll('.notification-item-content-col form').forEach(function (f) {
+                        f.remove();
+                    });
+                    if (window.showToast) {
+                        window.showToast("All notifications marked as read.", "success");
                     }
-                }, 380);
-            }, 3200);
-        }
+                }).catch(function () {});
+            }
+
+            var readForm = e.target.closest('.notif-dropdown-mark-read-form');
+            if (readForm) {
+                e.preventDefault();
+                fetch(readForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: '_method=PATCH',
+                    credentials: 'same-origin'
+                }).then(function (r) {
+                    if (!r.ok) return;
+                    var item = readForm.closest('.notification-item');
+                    if (item) {
+                        item.classList.remove('unread');
+                        var dot = item.querySelector('.unread-dot-indicator');
+                        if (dot) dot.remove();
+                    }
+                    readForm.remove();
+                    document.querySelectorAll('.notification-badge').forEach(function (badge) {
+                        var current = parseInt(badge.textContent.replace(/\D/g, ''), 10) || 0;
+                        var next = current - 1;
+                        if (next <= 0) {
+                            badge.style.display = 'none';
+                        } else {
+                            badge.textContent = next > 99 ? '99+' : next;
+                        }
+                    });
+                    if (window.showToast) {
+                        window.showToast("Notification marked as read.", "success");
+                    }
+                }).catch(function () {});
+            }
+        });
 
         var bottomNavItems = document.querySelectorAll('.mobile-bottom-nav > a, .mobile-bottom-nav > details > summary');
         var bottomNavLinks = Array.prototype.slice.call(document.querySelectorAll('.mobile-bottom-nav > a'));
@@ -1589,21 +2450,56 @@
         function buildNotificationItemHtml(item) {
             var readAction = readRouteTemplate.replace('__ID__', String(item.id));
             var unreadClass = item.is_read ? '' : ' unread';
+            
+            var titleLower = String(item.title || '').toLowerCase();
+            var notifIcon = 'fa-bell';
+            var notifBg = '#f1f5f9';
+            var notifColor = '#64748b';
+
+            if (titleLower.indexOf('join') !== -1 || titleLower.indexOf('request') !== -1) {
+                notifIcon = 'fa-user-plus';
+                notifBg = '#e0f2fe';
+                notifColor = '#0284c7';
+            } else if (titleLower.indexOf('payment') !== -1 || titleLower.indexOf('fare') !== -1 || titleLower.indexOf('paid') !== -1) {
+                notifIcon = 'fa-credit-card';
+                notifBg = '#dcfce7';
+                notifColor = '#16a34a';
+            } else if (titleLower.indexOf('trip') !== -1 || titleLower.indexOf('car') !== -1 || titleLower.indexOf('ride') !== -1) {
+                notifIcon = 'fa-car-side';
+                notifBg = '#f3e8ff';
+                notifColor = '#9333ea';
+            }
+
+            var unreadDot = item.is_read
+                ? ''
+                : '<span class="unread-dot-indicator"></span>';
+
             var readButton = item.is_read
                 ? ''
-                : '<form method=\"POST\" action=\"' + readAction + '\">\
-                        <input type=\"hidden\" name=\"_token\" value=\"' + csrfToken + '\">\
-                        <input type=\"hidden\" name=\"_method\" value=\"PATCH\">\
-                        <button type=\"submit\" class=\"link-action\">Read</button>\
+                : '<form method="POST" action="' + readAction + '" style="display:inline;">\
+                        <input type="hidden" name="_token" value="' + csrfToken + '">\
+                        <input type="hidden" name="_method" value="PATCH">\
+                        <button type="submit" class="link-action">Mark Read</button>\
                    </form>';
-            return '<div class=\"notification-item' + unreadClass + '\">\
-                        <a href=\"' + escHtml(item.open_url || item.target_url || '#') + '\" class=\"notification-item-link\">\
-                            <div class=\"notification-item-title\">' + escHtml(item.title || '') + '</div>\
-                            <div class=\"notification-item-message\">' + escHtml(item.message || '') + '</div>\
-                        </a>\
-                        <div class=\"notification-item-row\">\
-                            <span class=\"notification-item-time\">' + escHtml(item.time_ago || '') + '</span>\
-                            ' + readButton + '\
+
+            return '<div class="notification-item' + unreadClass + '">\
+                        <div class="notification-item-icon-col">\
+                            <span class="notification-icon-badge" style="background: ' + notifBg + '; color: ' + notifColor + ';">\
+                                <i class="fa-solid ' + notifIcon + '"></i>\
+                            </span>\
+                        </div>\
+                        <div class="notification-item-content-col">\
+                            <a href="' + escHtml(item.open_url || item.target_url || '#') + '" class="notification-item-link">\
+                                <div class="notification-item-title-row">\
+                                    <span class="notification-item-title">' + escHtml(item.title || '') + '</span>\
+                                    ' + unreadDot + '\
+                                </div>\
+                                <div class="notification-item-message">' + escHtml(item.message || '') + '</div>\
+                            </a>\
+                            <div class="notification-item-row">\
+                                <span class="notification-item-time">' + escHtml(item.time_ago || '') + '</span>\
+                                ' + readButton + '\
+                            </div>\
                         </div>\
                     </div>';
         }
@@ -1641,6 +2537,22 @@
             return window.location.pathname === @json(route('notifications.index', [], false));
         }
 
+        var notifFirstLoad = true;
+
+        function showNotifSkeleton() {
+            var sk = document.getElementById('notif-skeleton-initial');
+            var real = document.getElementById('notif-real-content');
+            if (sk) sk.style.display = '';
+            if (real) real.style.display = 'none';
+        }
+
+        function hideNotifSkeleton() {
+            var sk = document.getElementById('notif-skeleton-initial');
+            var real = document.getElementById('notif-real-content');
+            if (sk) sk.style.display = 'none';
+            if (real) real.style.display = '';
+        }
+
         function pollNotifications() {
             if (notificationsInFlight || !shouldPollNotifications()) {
                 return;
@@ -1656,16 +2568,61 @@
                     return response.json();
                 })
                 .then(function (payload) {
-                    if (payload) refreshNotificationDropdown(payload);
+                    if (payload) {
+                        refreshNotificationDropdown(payload);
+                        if (notifFirstLoad) {
+                            hideNotifSkeleton();
+                            notifFirstLoad = false;
+                        }
+                    }
                 })
-                .catch(function () {})
+                .catch(function () {
+                    if (notifFirstLoad) { hideNotifSkeleton(); notifFirstLoad = false; }
+                })
                 .finally(function () {
                     notificationsInFlight = false;
                 });
         }
 
+        /* Show skeleton when dropdown is freshly opened */
+        document.addEventListener('toggle', function (e) {
+            if (e.target && e.target.classList && e.target.classList.contains('notification-wrap')) {
+                if (e.target.open && notifFirstLoad) { showNotifSkeleton(); }
+            }
+        }, true);
+
         window.setInterval(pollNotifications, 5000);
     })();
+
+    // Bento Menu search filtering
+    document.querySelectorAll('[data-bento-search]').forEach(function(searchInput) {
+        searchInput.addEventListener('input', function() {
+            var query = searchInput.value.trim().toLowerCase();
+            var dropdown = searchInput.closest('.bento-menu-dropdown');
+            if (!dropdown) return;
+
+            var items = dropdown.querySelectorAll('[data-bento-item]');
+            var sections = dropdown.querySelectorAll('[data-bento-section]');
+
+            items.forEach(function(item) {
+                var text = item.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            sections.forEach(function(section) {
+                var visibleItems = section.querySelectorAll('[data-bento-item]:not([style*="display: none"])');
+                if (visibleItems.length === 0) {
+                    section.style.display = 'none';
+                } else {
+                    section.style.display = 'block';
+                }
+            });
+        });
+    });
 </script>
 </body>
 </html>

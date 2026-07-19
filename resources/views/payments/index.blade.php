@@ -685,6 +685,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #dbe2ea;
         }
         .request-modal-head .request-modal-title {
             padding-right: 0;
@@ -1336,16 +1338,63 @@
                 min-height: 34px;
             }
             .request-modal {
-                align-items: center;
+                display: flex !important;
+                opacity: 0;
+                pointer-events: none;
+                align-items: flex-end;
                 justify-content: center;
-                /* keep modal clear from fixed header and bottom nav */
-                padding: calc(env(safe-area-inset-top, 0px) + 88px) 12px calc(env(safe-area-inset-bottom, 0px) + 98px);
+                padding: 0;
+                transition: opacity 0.28s ease;
+                z-index: 100000;
+            }
+            .request-modal.show {
+                opacity: 1;
+                pointer-events: auto;
             }
             .request-modal-card {
                 width: 100%;
-                max-height: 100%;
-                overflow: auto;
-                border-radius: 16px;
+                max-height: 85vh;
+                border-radius: 24px 24px 0 0;
+                border: 1px solid #dbe2ea;
+                border-bottom: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+            }
+            .request-modal-card::before {
+                content: "";
+                position: absolute;
+                top: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 38px;
+                height: 4px;
+                background: rgba(0, 0, 0, 0.16);
+                border-radius: 99px;
+                z-index: 10;
+            }
+            .request-modal-head {
+                padding: 24px 20px 12px;
+                border-bottom: 1px solid #dbe2ea;
+                flex: 0 0 auto;
+            }
+            .request-modal-scroll {
+                padding: 12px 20px 20px;
+                flex: 1 1 auto;
+                overflow-y: auto;
+            }
+            .trip-contact-bar {
+                margin: 0;
+                padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+                background: #fff;
+                flex: 0 0 auto;
+            }
+            .request-modal.show .request-modal-card {
+                transform: translateY(0);
             }
             .trip-details-card {
                 max-height: 100%;
@@ -2109,8 +2158,9 @@
             cursor: pointer;
         }
         .trip-payment-review-list {
-            display: grid;
-            gap: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             padding: 12px 16px 16px;
             overflow-y: auto;
             min-height: 0;
@@ -2194,10 +2244,13 @@
             border: 1px solid var(--hairline);
             border-radius: 14px;
             background: var(--surface);
-            padding: 12px;
-            display: grid;
-            gap: 10px;
-            min-height: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: min-content;
+            height: auto;
+            position: relative;
         }
         .trip-payment-review-top {
             display: flex;
@@ -3095,8 +3148,99 @@
             #my-payments-list .payment-mobile-item .payments-btn {
                 min-width: 102px !important;
             }
+            .trip-payment-review-modal {
+                display: flex !important;
+                opacity: 0;
+                pointer-events: none;
+                align-items: flex-end;
+                justify-content: center;
+                padding: 0;
+                transition: opacity 0.28s ease;
+                z-index: 100000;
+            }
+            .trip-payment-review-modal.is-open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .trip-payment-review-card {
+                width: 100%;
+                max-height: 85vh;
+                border-radius: 24px 24px 0 0;
+                border: 1px solid var(--hairline);
+                border-bottom: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+                z-index: 5001;
+            }
+            .trip-payment-review-card::before {
+                content: "";
+                position: absolute;
+                top: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 38px;
+                height: 4px;
+                background: rgba(0, 0, 0, 0.16);
+                border-radius: 99px;
+                z-index: 10;
+            }
+            .trip-payment-review-modal.is-open .trip-payment-review-card {
+                transform: translateY(0);
+            }
+            .trip-payment-review-head {
+                padding: 24px 20px 12px;
+                flex: 0 0 auto;
+            }
+            .trip-payment-review-list {
+                max-height: none !important;
+                flex: 1 1 auto;
+                overflow-y: auto;
+                padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
+        /* ── Skeleton loading ── */
+        .payments-skel-container {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            background: transparent;
+            opacity: 1;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+        }
+        .payments-real-container {
+            opacity: 0;
+            transition: opacity 0.35s ease 0.05s;
+        }
+        .payments-real-container.loaded {
+            opacity: 1;
+        }
+        @media (max-width: 767px) {
+            .payments-skel-container {
+                position: relative;
+                inset: auto;
+                background: transparent;
+                margin-top: 4px;
+            }
+            .payments-skel-container .payments-mobile-skel { display: flex !important; flex-direction: column !important; gap: 12px !important; }
+            .payments-skel-container .payments-table-skel { display: none !important; }
+        }
+        @media (min-width: 768px) {
+            .payments-skel-container {
+                background: var(--surface);
+                border-radius: var(--r-xl);
+            }
+            .payments-skel-container .payments-mobile-skel { display: none !important; }
+            .payments-skel-container .payments-table-skel { display: block !important; }
         }
     </style>
+
 
     @php
         $myRecordCount = isset($myPayments) ? $myPayments->total() : 0;
@@ -3260,6 +3404,31 @@
                 </button>
             </div>
         </section>
+
+        <form method="GET" action="{{ route('payments.index') }}" class="payments-filter-panel trips-filter-form" id="paymentsFilterPanel" style="{{ request()->hasAny(['date_from','date_to','payment_search']) ? 'display:grid' : 'display:none' }}">
+            @if($activePaymentFilter !== 'all')
+                <input type="hidden" name="payment_filter" value="{{ $activePaymentFilter }}">
+            @endif
+            @if($activeDirection !== 'all')
+                <input type="hidden" name="direction" value="{{ $activeDirection }}">
+            @endif
+            <p class="trips-filter-hint">Filters apply automatically on change.</p>
+            <div class="trips-filter-field">
+                <label class="trips-filter-label" for="myPaymentsFromDate">From Date</label>
+                <input id="myPaymentsFromDate" name="date_from" class="trips-filter-input" type="date" value="{{ $filters['date_from'] ?? request('date_from') }}">
+            </div>
+            <div class="trips-filter-field">
+                <label class="trips-filter-label" for="myPaymentsToDate">To Date</label>
+                <input id="myPaymentsToDate" name="date_to" class="trips-filter-input" type="date" value="{{ $filters['date_to'] ?? request('date_to') }}">
+            </div>
+            <div class="trips-filter-field">
+                <label class="trips-filter-label" for="myPaymentsPassengerSearch">Search</label>
+                <input id="myPaymentsPassengerSearch" name="payment_search" class="trips-filter-input" type="search" placeholder="Search by trip, driver, or passenger..." value="{{ $filters['payment_search'] ?? request('payment_search') }}">
+            </div>
+            <div class="trips-filter-actions">
+                <a href="{{ route('payments.index', array_filter(['payment_filter' => $activePaymentFilter !== 'all' ? $activePaymentFilter : null, 'direction' => $activeDirection !== 'all' ? $activeDirection : null])) }}" class="btn btn-ghost btn-sm">Reset</a>
+            </div>
+        </form>
 
         <section class="payments-mobile-total">
             @if($hasSplitPaymentDirections)
@@ -3448,38 +3617,87 @@
             <section class="payments-card payments-ledger-card" id="my-payments-list">
                 <h2 class="payments-section-title">Transactions</h2>
                 <p class="payments-section-subtitle">Track fares paid as a passenger and received as a driver.</p>
-                <form method="GET" action="{{ route('payments.index') }}" class="payments-filter-panel trips-filter-form" id="paymentsFilterPanel" style="{{ request()->hasAny(['date_from','date_to','visibility','payment_search']) ? 'display:grid' : 'display:none' }}">
-                    @if($activePaymentFilter !== 'all')
-                        <input type="hidden" name="payment_filter" value="{{ $activePaymentFilter }}">
-                    @endif
-                    @if($activeDirection !== 'all')
-                        <input type="hidden" name="direction" value="{{ $activeDirection }}">
-                    @endif
-                    <p class="trips-filter-hint">Filters apply automatically on change.</p>
-                    <div class="trips-filter-field">
-                        <label class="trips-filter-label" for="myPaymentsFromDate">From Date</label>
-                        <input id="myPaymentsFromDate" name="date_from" class="trips-filter-input" type="date" value="{{ $filters['date_from'] ?? request('date_from') }}">
+
+                <div style="position: relative; min-height: 250px;">
+                    {{-- Skeleton Loading Container --}}
+                    <div class="payments-skel-container" id="payments-skel-container">
+                    {{-- Desktop Table Skeleton --}}
+                    <div class="payments-table-skel" style="display:none; padding:12px 16px;">
+                        <table class="payments-table" style="pointer-events:none; margin:0; border:0; width:100%;">
+                            <thead>
+                                <tr>
+                                    <th>Counterparty</th>
+                                    <th>Trip</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Amount</th>
+                                    <th>Date</th>
+                                    <th style="text-align:right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for($i = 0; $i < 4; $i++)
+                                <tr>
+                                    <td>
+                                        <div style="display:flex; flex-direction:column; gap:6px;">
+                                            <span class="sk" style="height:15px; width:130px; display:block; border-radius:6px;"></span>
+                                            <span class="sk" style="height:11px; width:70px; display:block; border-radius:4px;"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex; flex-direction:column; gap:6px;">
+                                            <span class="sk" style="height:16px; width:180px; display:block; border-radius:6px;"></span>
+                                            <span class="sk" style="height:11px; width:110px; display:block; border-radius:4px;"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="sk" style="height:24px; width:85px; display:block; border-radius:999px;"></span>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <span class="sk" style="height:16px; width:75px; display:inline-block; border-radius:6px;"></span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex; flex-direction:column; gap:6px;">
+                                            <span class="sk" style="height:13px; width:85px; display:block; border-radius:4px;"></span>
+                                            <span class="sk" style="height:11px; width:45px; display:block; border-radius:4px;"></span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <span class="sk" style="height:34px; width:90px; display:inline-block; border-radius:11px;"></span>
+                                    </td>
+                                </tr>
+                                @endfor
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="trips-filter-field">
-                        <label class="trips-filter-label" for="myPaymentsToDate">To Date</label>
-                        <input id="myPaymentsToDate" name="date_to" class="trips-filter-input" type="date" value="{{ $filters['date_to'] ?? request('date_to') }}">
+                    {{-- Mobile List Skeleton --}}
+                    <div class="payments-mobile-skel" style="display:none;">
+                        @for($i = 0; $i < 3; $i++)
+                        <div class="payment-mobile-item" style="pointer-events:none; opacity:0.95; background:var(--surface) !important; border:1px solid var(--hairline-strong) !important; border-radius:16px !important; padding:14px 14px 12px !important; display:flex !important; flex-direction:column !important; gap:10px !important; box-shadow:0 8px 20px rgba(15,23,42,.05) !important;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div style="flex:1; display:flex; flex-direction:column; gap:6px; min-width:0; padding-right:12px;">
+                                    <span class="sk" style="height:18px; width:75%; border-radius:6px; display:block;"></span>
+                                    <div style="display:flex; gap:12px; align-items:center;">
+                                        <span class="sk" style="height:12px; width:90px; border-radius:4px; display:inline-block;"></span>
+                                        <span class="sk" style="height:12px; width:65px; border-radius:4px; display:inline-block;"></span>
+                                    </div>
+                                </div>
+                                <span class="sk" style="height:24px; width:80px; border-radius:999px; flex-shrink:0;"></span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="sk" style="height:12px; width:120px; border-radius:4px;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <span class="sk" style="height:20px; width:75px; border-radius:6px;"></span>
+                                </div>
+                                <span class="sk" style="height:36px; width:102px; border-radius:11px;"></span>
+                            </div>
+                        </div>
+                        @endfor
                     </div>
-                    <div class="trips-filter-field">
-                        <label class="trips-filter-label" for="myPaymentsVisibility">Visibility</label>
-                        <select id="myPaymentsVisibility" name="visibility" class="trips-filter-input">
-                            <option value="">All</option>
-                            <option value="public" {{ ($filters['visibility'] ?? request('visibility')) === 'public' ? 'selected' : '' }}>Public</option>
-                            <option value="private" {{ ($filters['visibility'] ?? request('visibility')) === 'private' ? 'selected' : '' }}>Private</option>
-                        </select>
-                    </div>
-                    <div class="trips-filter-field">
-                        <label class="trips-filter-label" for="myPaymentsPassengerSearch">Search</label>
-                        <input id="myPaymentsPassengerSearch" name="payment_search" class="trips-filter-input" type="search" placeholder="Trip, driver, or passenger" value="{{ $filters['payment_search'] ?? request('payment_search') }}">
-                    </div>
-                    <div class="trips-filter-actions">
-                        <a href="{{ route('payments.index', array_filter(['payment_filter' => $activePaymentFilter !== 'all' ? $activePaymentFilter : null, 'direction' => $activeDirection !== 'all' ? $activeDirection : null])) }}" class="btn btn-ghost btn-sm">Reset</a>
-                    </div>
-                </form>
+                </div>
+
+                <div class="payments-real-container" id="payments-real-container">
                 <div class="payments-mobile-list">
                     @forelse($allLivePayments as $payment)
                         @php
@@ -3535,9 +3753,12 @@
                                 (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
                                 && (int) $payment->user_id !== (int) auth()->id()
                             );
-                            $counterparty = $isDriverQueueRecord
+                            $counterpartyName = $isDriverQueueRecord
                                 ? ($payment->user?->name ?: '-')
                                 : ($payment->trip?->driver?->name ?: '-');
+                            $counterparty = ($counterpartyName === auth()->user()->name && !$isDriverQueueRecord)
+                                ? 'Self (Paying Driver)'
+                                : $counterpartyName;
                             $initials = $paymentInitials($counterparty);
                             $amountSign = $isDriverQueueRecord ? '+' : '-';
                             $shortStatusText = $payment->payment_status === 'pending_confirmation'
@@ -3557,7 +3778,6 @@
                             data-payment-perspective="{{ $perspective }}"
                             data-pmt-status="{{ $payment->payment_status }}"
                             data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
-                            data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                             data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
                             data-trip-id="{{ $payment->trip_id }}"
                             data-trip-ref="{{ $tripRef }}"
@@ -3801,9 +4021,12 @@
                                     (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
                                     && (int) $payment->user_id !== (int) auth()->id()
                                 );
-                                $counterparty = $isDriverQueueRecord
+                                $counterpartyName = $isDriverQueueRecord
                                     ? ($payment->user?->name ?: '-')
                                     : ($payment->trip?->driver?->name ?: '-');
+                                $counterparty = ($counterpartyName === auth()->user()->name && !$isDriverQueueRecord)
+                                    ? 'Self (Paying Driver)'
+                                    : $counterpartyName;
                             $amountSign = $isDriverQueueRecord ? '+' : '-';
                             $shortStatusText = $payment->payment_status === 'pending_confirmation'
                                 ? ($isAdmin ? 'Admin Review' : 'Driver Review')
@@ -3816,7 +4039,6 @@
                                 data-payment-perspective="{{ $perspective }}"
                                 data-pmt-status="{{ $payment->payment_status }}"
                                 data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
-                                data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                                 data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
                                 data-trip-id="{{ $payment->trip_id }}"
                                 data-trip-ref="{{ $tripRef }}"
@@ -4000,12 +4222,13 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="payments-filter-empty" data-filter-empty>No payment records match the current filters.</div>
                 @if($mainPaymentsPaginator)
                 <div style="margin-top:12px;">
                     {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
                 </div>
                 @endif
+                </div>{{-- /payments-real-container --}}
+                </div>{{-- /relative-wrapper --}}
             </section>
             <aside class="payments-side-panel">
                 <section class="payments-total-card">
@@ -4208,16 +4431,8 @@
                                 <input id="driverReviewToDate" class="payments-filter-input" type="date" data-filter-to>
                             </div>
                             <div class="payments-filter-field">
-                                <label for="driverReviewVisibility">Visibility</label>
-                                <select id="driverReviewVisibility" class="payments-filter-input" data-filter-visibility>
-                                    <option value="">All</option>
-                                    <option value="public">Public</option>
-                                    <option value="private">Private</option>
-                                </select>
-                            </div>
-                            <div class="payments-filter-field">
                                 <label for="driverReviewPassengerSearch">Search Passenger</label>
-                                <input id="driverReviewPassengerSearch" class="payments-filter-input" type="search" placeholder="Search passenger name" data-filter-person>
+                                <input id="driverReviewPassengerSearch" class="payments-filter-input" type="search" placeholder="Search passenger name or email..." data-filter-person>
                             </div>
                         </div>
                         <div class="payments-filter-actions">
@@ -4272,7 +4487,6 @@
                         <article
                             class="payment-mobile-item open-trip-card js-payment-filter-item"
                             data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
-                            data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                             data-filter-person="{{ $payment->user?->name ?: '' }}"
                         >
                             <div class="payment-mobile-top">
@@ -4454,7 +4668,6 @@
                             <tr
                                 class="open-trip-card js-payment-filter-item"
                                 data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
-                                data-filter-visibility="{{ $payment->trip?->visibility ?: '' }}"
                                 data-filter-person="{{ $payment->user?->name ?: '' }}"
                             >
                                 <td>
@@ -4895,6 +5108,162 @@
     </div>
 
     <script>
+        const showModalSkeleton = (listEl) => {
+            if (!listEl) return;
+            listEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:10px; width:100%; pointer-events:none; opacity:0.85;">
+                    <div style="border:1px solid var(--hairline); border-radius:14px; padding:12px; display:grid; gap:10px; background:var(--surface);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="sk" style="width:34px; height:34px; border-radius:999px;"></span>
+                                <div>
+                                    <div class="sk" style="height:14px; width:100px; border-radius:4px;"></div>
+                                    <div class="sk" style="height:10px; width:120px; border-radius:3px; margin-top:4px;"></div>
+                                </div>
+                            </div>
+                            <span class="sk" style="width:50px; height:18px; border-radius:99px;"></span>
+                        </div>
+                        <div class="sk" style="height:68px; border-radius:10px;"></div>
+                        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">
+                            <div class="sk" style="height:34px; border-radius:9px;"></div>
+                            <div class="sk" style="height:34px; border-radius:9px;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // ── Skeleton screen & AJAX Page Loader ──
+        (() => {
+            const skel = document.getElementById('payments-skel-container');
+            const real = document.getElementById('payments-real-container');
+
+            const showSkeleton = () => {
+                if (skel && real) {
+                    skel.style.display = 'grid';
+                    skel.style.opacity = '1';
+                    skel.style.pointerEvents = 'auto';
+                    real.classList.remove('loaded');
+                    real.style.opacity = '0';
+                    real.style.display = 'none';
+                }
+            };
+
+            const hideSkeleton = () => {
+                if (skel && real) {
+                    real.style.display = '';
+                    real.classList.add('loaded');
+                    real.style.opacity = '1';
+                    skel.style.opacity = '0';
+                    skel.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        skel.style.display = 'none';
+                    }, 200);
+                }
+            };
+
+            // Run hide on page ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', hideSkeleton);
+            } else {
+                hideSkeleton();
+            }
+
+            // AJAX fetching function
+            const fetchPage = async (url) => {
+                showSkeleton();
+                try {
+                    const res = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!res.ok) throw new Error();
+                    const html = await res.text();
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const newReal = doc.getElementById('payments-real-container');
+                    const currentReal = document.getElementById('payments-real-container');
+                    
+                    // Replace active states for desktop tabs
+                    const newTabsRow = doc.querySelector('.payments-tab-strip');
+                    const currentTabsRow = document.querySelector('.payments-tab-strip');
+                    if (newTabsRow && currentTabsRow) {
+                        currentTabsRow.innerHTML = newTabsRow.innerHTML;
+                    }
+
+                    if (newReal && currentReal) {
+                        currentReal.innerHTML = newReal.innerHTML;
+                        history.pushState(null, '', url);
+                        
+                        // Re-bind pagination clicks
+                        bindPaginationEvents();
+                    }
+                } catch (_e) {
+                    // Fallback to normal navigation
+                    window.location.href = url;
+                } finally {
+                    hideSkeleton();
+                }
+            };
+
+            const bindPaginationEvents = () => {
+                document.querySelectorAll('.pagination-wrap a').forEach((link) => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        fetchPage(link.href);
+                    });
+                });
+            };
+
+            // Bind click events on desktop tabs and pagination links via event delegation/listeners
+            document.addEventListener('click', (e) => {
+                const tab = e.target.closest('a.payments-tab');
+                if (tab) {
+                    e.preventDefault();
+                    fetchPage(tab.href);
+                }
+            });
+
+            // Form Submit Interceptor
+            const filterForm = document.getElementById('paymentsFilterPanel');
+            if (filterForm) {
+                filterForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(filterForm);
+                    const params = new URLSearchParams(formData);
+                    const url = new URL(filterForm.action || window.location.href);
+                    for (const [key, val] of params.entries()) {
+                        if (val) url.searchParams.set(key, val);
+                        else url.searchParams.delete(key);
+                    }
+                    fetchPage(url.toString());
+                });
+
+                let submitTimer = null;
+                filterForm.querySelectorAll('input, select').forEach((field) => {
+                    field.addEventListener('change', () => {
+                        window.clearTimeout(submitTimer);
+                        submitTimer = window.setTimeout(() => {
+                            filterForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                        }, 250);
+                    });
+                });
+            }
+
+            // Bind click triggers for client-side mobile tabs (brief transition)
+            document.addEventListener('click', (e) => {
+                const mobileTab = e.target.closest('button.payments-tab');
+                if (mobileTab) {
+                    showSkeleton();
+                    setTimeout(hideSkeleton, 200);
+                }
+            });
+
+            // Bind first load
+            bindPaginationEvents();
+        })();
+
         (() => {
             const params = new URLSearchParams(window.location.search);
             const multiIds = String(params.get('trip_ids') || '')
@@ -5047,75 +5416,7 @@
                     ? `<img src="${escapeHtml(driverPhoto)}" alt="${escapeHtml(driverName)}">`
                     : escapeHtml((driverName.trim().charAt(0) || 'D').toUpperCase());
                 if (sub) sub.textContent = button.dataset.route || 'Mark your trip payment as paid.';
-                list.innerHTML = `
-                    <article class="trip-payment-review-item">
-                        <div class="trip-payment-review-top">
-                            <div class="trip-payment-review-person">
-                                <span class="trip-payment-review-avatar">${escapeHtml(button.dataset.initials || 'P')}</span>
-                                <span>
-                                    <span class="trip-payment-review-name">${escapeHtml(button.dataset.passenger || 'Passenger')}</span>
-                                    <span class="trip-payment-review-route">${escapeHtml(button.dataset.trip || 'Trip')} &middot; DuitNow</span>
-                                </span>
-                            </div>
-                            <span class="trip-payment-review-status">Unpaid</span>
-                        </div>
-                        <div class="trip-payment-review-amount">
-                            <span>
-                                <span>Amount due</span>
-                                <strong>RM ${escapeHtml(button.dataset.amount || '0.00')}</strong>
-                                ${fareBreakdown}
-                            </span>
-                        </div>
-                        <div class="payment-paynow-driver">
-                            <div class="driver-payment-head">
-                                <span class="driver-payment-avatar">${driverAvatar}</span>
-                                <span class="driver-payment-meta">
-                                    <span class="driver-payment-name">${escapeHtml(driverName)}</span>
-                                    <span class="driver-payment-email">${escapeHtml(driverEmail)}</span>
-                                </span>
-                            </div>
-                            <div class="trip-details-pairs">
-                                <div class="request-modal-line">
-                                    <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
-                                    <span class="request-modal-value">${escapeHtml(button.dataset.driverBank || '-')}</span>
-                                </div>
-                                <div class="request-modal-line">
-                                    <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
-                                    <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountName || '-')}</span>
-                                </div>
-                                <div class="request-modal-line">
-                                    <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
-                                    <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountNumber || '-')}</span>
-                                </div>
-                            </div>
-                            <div class="driver-payment-qr-grid">
-                                <div class="driver-payment-qr-card">
-                                    <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>DuitNow QR</span>
-                                    <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
-                                </div>
-                                <div class="driver-payment-qr-card">
-                                    <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>Touch 'n Go QR</span>
-                                    <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverTngQr, "Touch 'n Go QR")}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <form method="POST" action="${escapeHtml(button.dataset.action || '#')}" class="trip-paynow-form">
-                            <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
-                            <input type="hidden" name="_method" value="PATCH">
-                            <div class="trip-paynow-fields">
-                                <select class="trip-paynow-input" name="payment_method" required>
-                                    <option value="" disabled selected>Select method</option>
-                                    <option value="duitnow_qr">DuitNow QR</option>
-                                    <option value="bank_account">Bank Account</option>
-                                    <option value="digital_wallet">Digital Wallet</option>
-                                    <option value="others">Others</option>
-                                </select>
-                                <input class="trip-paynow-input" type="text" name="remarks" placeholder="Remarks">
-                            </div>
-                            <button type="submit" class="trip-paynow-submit">Mark as paid</button>
-                        </form>
-                    </article>
-                `;
+                showModalSkeleton(list);
                 document.querySelectorAll('.request-modal.show, .trip-payment-review-modal.is-open').forEach((openModal) => {
                     if (openModal !== modal) {
                         openModal.classList.remove('show', 'is-open');
@@ -5126,6 +5427,78 @@
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('modal-open');
                 document.body.style.overflow = 'hidden';
+
+                setTimeout(() => {
+                    list.innerHTML = `
+                        <article class="trip-payment-review-item">
+                            <div class="trip-payment-review-top">
+                                <div class="trip-payment-review-person">
+                                    <span class="trip-payment-review-avatar">${escapeHtml(button.dataset.initials || 'P')}</span>
+                                    <span>
+                                        <span class="trip-payment-review-name">${escapeHtml(button.dataset.passenger || 'Passenger')}</span>
+                                        <span class="trip-payment-review-route">${escapeHtml(button.dataset.trip || 'Trip')} &middot; DuitNow</span>
+                                    </span>
+                                </div>
+                                <span class="trip-payment-review-status">Unpaid</span>
+                            </div>
+                            <div class="trip-payment-review-amount">
+                                <span>
+                                    <span>Amount due</span>
+                                    <strong>RM ${escapeHtml(button.dataset.amount || '0.00')}</strong>
+                                    ${fareBreakdown}
+                                </span>
+                            </div>
+                            <div class="payment-paynow-driver">
+                                <div class="driver-payment-head">
+                                    <span class="driver-payment-avatar">${driverAvatar}</span>
+                                    <span class="driver-payment-meta">
+                                        <span class="driver-payment-name">${escapeHtml(driverName)}</span>
+                                        <span class="driver-payment-email">${escapeHtml(driverEmail)}</span>
+                                    </span>
+                                </div>
+                                <div class="trip-details-pairs">
+                                    <div class="request-modal-line">
+                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
+                                        <span class="request-modal-value">${escapeHtml(button.dataset.driverBank || '-')}</span>
+                                    </div>
+                                    <div class="request-modal-line">
+                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
+                                        <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountName || '-')}</span>
+                                    </div>
+                                    <div class="request-modal-line">
+                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
+                                        <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountNumber || '-')}</span>
+                                    </div>
+                                </div>
+                                <div class="driver-payment-qr-grid">
+                                    <div class="driver-payment-qr-card">
+                                        <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>DuitNow QR</span>
+                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
+                                    </div>
+                                    <div class="driver-payment-qr-card">
+                                        <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>Touch 'n Go QR</span>
+                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverTngQr, "Touch 'n Go QR")}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <form method="POST" action="${escapeHtml(button.dataset.action || '#')}" class="trip-paynow-form">
+                                <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                                <input type="hidden" name="_method" value="PATCH">
+                                <div class="trip-paynow-fields">
+                                    <select class="trip-paynow-input" name="payment_method" required>
+                                        <option value="" disabled selected>Select method</option>
+                                        <option value="duitnow_qr">DuitNow QR</option>
+                                        <option value="bank_account">Bank Account</option>
+                                        <option value="digital_wallet">Digital Wallet</option>
+                                        <option value="others">Others</option>
+                                    </select>
+                                    <input class="trip-paynow-input" type="text" name="remarks" placeholder="Remarks">
+                                </div>
+                                <button type="submit" class="trip-paynow-submit">Mark as paid</button>
+                            </form>
+                        </article>
+                    `;
+                }, 240);
             }, true);
 
             list.addEventListener('submit', (event) => {
@@ -5554,27 +5927,25 @@
                         }, 40);
                 };
 
-                tripDetailButtons.forEach((button) => {
-                    button.addEventListener('click', () => {
+                document.addEventListener('click', (event) => {
+                    const button = event.target.closest('.open-trip-modal-btn');
+                    if (button) {
                         openTripDetails(button);
-                    });
+                    }
                 });
 
                 const interactiveSelector = 'a, button, input, select, textarea, form, label';
-                const openTripCards = document.querySelectorAll('.open-trip-card');
-                openTripCards.forEach((card) => {
-                    card.addEventListener('click', (event) => {
-                        const target = event.target;
-                        if (!(target instanceof Element)) return;
-                        if (target.closest(interactiveSelector)) return;
+                document.addEventListener('click', (event) => {
+                    const card = event.target.closest('.open-trip-card');
+                    if (!card) return;
+                    if (event.target.closest(interactiveSelector)) return;
 
-                        const detailBtn = card.querySelector('.open-trip-modal-btn');
-                        if (detailBtn instanceof HTMLButtonElement) {
-                            detailBtn.click();
-                        } else if (card instanceof HTMLElement && card.dataset.tripId) {
-                            openTripDetails(card);
-                        }
-                    });
+                    const detailBtn = card.querySelector('.open-trip-modal-btn');
+                    if (detailBtn instanceof HTMLElement) {
+                        detailBtn.click();
+                    } else if (card instanceof HTMLElement && card.dataset.tripId) {
+                        openTripDetails(card);
+                    }
                 });
 
                 const closeTripDetailsModal = () => {
@@ -5786,19 +6157,16 @@
                 const applyFilter = () => {
                     const fromDate = panel.querySelector('[data-filter-from]')?.value || '';
                     const toDate = panel.querySelector('[data-filter-to]')?.value || '';
-                    const visibility = panel.querySelector('[data-filter-visibility]')?.value || '';
                     const person = (panel.querySelector('[data-filter-person]')?.value || '').trim().toLowerCase();
                     const items = Array.from(scope.querySelectorAll('.js-payment-filter-item'));
                     let visibleCount = 0;
 
                     items.forEach((item) => {
                         const itemDate = item.dataset.filterDate || '';
-                        const itemVisibility = item.dataset.filterVisibility || '';
                         const itemPerson = (item.dataset.filterPerson || '').toLowerCase();
                         const statusHidden = item.dataset.statusHidden === '1';
                         const isVisible = (!fromDate || itemDate >= fromDate)
                             && (!toDate || itemDate <= toDate)
-                            && (!visibility || itemVisibility === visibility)
                             && (!person || itemPerson.includes(person))
                             && !statusHidden;
 
@@ -5811,7 +6179,7 @@
                         emptyState.classList.toggle('show', items.length > 0 && visibleCount === 0);
                     }
 
-                    const hasActiveFilter = Boolean(fromDate || toDate || visibility || person);
+                    const hasActiveFilter = Boolean(fromDate || toDate || person);
                     panel.classList.toggle('has-active-filter', hasActiveFilter);
                 };
 
@@ -5819,10 +6187,12 @@
                     const isOpen = panel.classList.toggle('is-open');
                     panel.querySelector('[data-filter-toggle]')?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 });
+
                 panel.querySelectorAll('input, select').forEach((field) => {
                     field.addEventListener('input', applyFilter);
                     field.addEventListener('change', applyFilter);
                 });
+
                 panel.querySelector('[data-filter-reset]')?.addEventListener('click', () => {
                     panel.querySelectorAll('input, select').forEach((field) => {
                         field.value = '';

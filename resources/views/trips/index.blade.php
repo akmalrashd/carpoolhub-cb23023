@@ -465,7 +465,7 @@
         .trip-payment-review-modal {
             position: fixed;
             inset: 0;
-            z-index: 70;
+            z-index: 5000;
             display: none;
             align-items: center;
             justify-content: center;
@@ -517,8 +517,9 @@
             cursor: pointer;
         }
         .trip-payment-review-list {
-            display: grid;
-            gap: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             padding: 12px 16px 16px;
             overflow-y: auto;
             min-height: 0;
@@ -529,10 +530,13 @@
             border: 1px solid var(--hairline);
             border-radius: 14px;
             background: var(--surface);
-            padding: 12px;
-            display: grid;
-            gap: 10px;
-            min-height: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: min-content;
+            height: auto;
+            position: relative;
         }
         .trip-payment-review-top {
             display: flex;
@@ -1370,14 +1374,57 @@
         .trip-request-card-hidden { display: none; }
         @media (max-width: 767px) {
             .trip-payment-review-modal {
-                align-items: flex-start;
-                padding: 104px 12px 92px;
+                display: flex !important;
+                opacity: 0;
+                pointer-events: none;
+                align-items: flex-end;
+                justify-content: center;
+                padding: 0;
+                transition: opacity 0.28s ease;
+                z-index: 100000;
+            }
+            .trip-payment-review-modal.is-open {
+                opacity: 1;
+                pointer-events: auto;
             }
             .trip-payment-review-card {
-                max-height: calc(100vh - 196px);
+                width: 100%;
+                max-height: 85vh;
+                border-radius: 24px 24px 0 0;
+                border: 1px solid var(--hairline);
+                border-bottom: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+            }
+            .trip-payment-review-card::before {
+                content: "";
+                position: absolute;
+                top: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 38px;
+                height: 4px;
+                background: var(--hairline-strong, rgba(0, 0, 0, 0.16));
+                border-radius: 99px;
+                z-index: 10;
+            }
+            .trip-payment-review-modal.is-open .trip-payment-review-card {
+                transform: translateY(0);
+            }
+            .trip-payment-review-head {
+                padding: 24px 20px 12px;
+                flex: 0 0 auto;
             }
             .trip-payment-review-list {
-                max-height: calc(100vh - 318px);
+                max-height: none !important;
+                flex: 1 1 auto;
+                overflow-y: auto;
+                padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px));
             }
         }
 
@@ -1702,6 +1749,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--hairline);
         }
         .trip-modal-title {
             margin: 0;
@@ -2008,12 +2057,13 @@
                 display: none !important;
             }
             .trips-filter-form {
-                margin: 0 0 12px;
+                margin: 0 16px 12px;
                 grid-template-columns: 1fr;
             }
             .trip-mobile-list {
                 display: grid;
                 gap: 10px;
+                padding: 0;
             }
             .trip-mobile-item {
                 border-radius: 13px;
@@ -2136,15 +2186,63 @@
                 display: inline-flex;
             }
             .trip-modal {
-                align-items: center;
+                display: flex !important;
+                opacity: 0;
+                pointer-events: none;
+                align-items: flex-end;
                 justify-content: center;
-                padding: calc(env(safe-area-inset-top,0px) + 72px) 12px calc(env(safe-area-inset-bottom,0px) + 72px);
+                padding: 0;
+                transition: opacity 0.28s ease;
+                z-index: 100000;
+            }
+            .trip-modal.show {
+                opacity: 1;
+                pointer-events: auto;
             }
             .trip-modal-card {
                 width: 100%;
-                max-height: 100%;
-                overflow: auto;
-                border-radius: var(--r-lg);
+                max-height: 85vh;
+                border-radius: 24px 24px 0 0;
+                border: 1px solid var(--hairline);
+                border-bottom: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+            }
+            .trip-modal-card::before {
+                content: "";
+                position: absolute;
+                top: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 38px;
+                height: 4px;
+                background: var(--hairline-strong, rgba(0, 0, 0, 0.16));
+                border-radius: 99px;
+                z-index: 10;
+            }
+            .trip-modal-head {
+                padding: 24px 20px 12px;
+                border-bottom: 1px solid var(--hairline);
+                flex: 0 0 auto;
+            }
+            .trip-modal-scroll {
+                padding: 12px 20px 20px;
+                flex: 1 1 auto;
+                overflow-y: auto;
+            }
+            .trip-contact-bar {
+                margin: 0;
+                padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+                background: var(--surface);
+                flex: 0 0 auto;
+            }
+            .trip-modal.show .trip-modal-card {
+                transform: translateY(0);
             }
         }
         @media (min-width: 1024px) {
@@ -2152,7 +2250,44 @@
             .trip-table-wrap  { display: block; }
             .trips-chip-row { display: none; }
         }
+
+        /* ── Skeleton loading ── */
+        .trips-skel-container {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            background: transparent;
+            opacity: 1;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+        }
+        .trips-real-container {
+            opacity: 0;
+            transition: opacity 0.35s ease 0.05s;
+        }
+        .trips-real-container.loaded {
+            opacity: 1;
+        }
+        @media (max-width: 1023px) {
+            .trips-skel-container {
+                position: relative;
+                inset: auto;
+                background: transparent;
+                margin-top: 4px;
+            }
+            .trips-skel-container .trip-mobile-skel { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+            .trips-skel-container .trip-table-skel { display: none !important; }
+        }
+        @media (min-width: 1024px) {
+            .trips-skel-container {
+                background: var(--surface);
+                border-radius: var(--r-xl);
+            }
+            .trips-skel-container .trip-mobile-skel { display: none !important; }
+            .trips-skel-container .trip-table-skel { display: block !important; }
+        }
     </style>
+
 
     @php
         $tripStatusCounts = $tripStatusCounts ?? [];
@@ -2258,6 +2393,84 @@
                 @endforeach
             </div>
 
+
+            <div style="position: relative; min-height: 250px;">
+                {{-- Skeleton Loading Container --}}
+                <div class="trips-skel-container" id="trips-skel-container">
+                {{-- Desktop Table Skeleton --}}
+                <div class="trip-table-skel" style="display:none; padding:12px 16px;">
+                    <table class="trip-table" style="pointer-events:none; margin:0; border:0; width:100%;">
+                        <thead>
+                            <tr>
+                                <th>Trip</th>
+                                <th>When</th>
+                                <th>Visibility</th>
+                                <th>Seats</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Fare</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for($i = 0; $i < 5; $i++)
+                            <tr>
+                                <td>
+                                    <div style="display:flex; flex-direction:column; gap:6px;">
+                                        <span class="sk" style="height:16px; width:180px; display:block; border-radius:6px;"></span>
+                                        <span class="sk" style="height:11px; width:110px; display:block; border-radius:4px;"></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="sk" style="height:13px; width:110px; display:block; border-radius:4px;"></span>
+                                </td>
+                                <td>
+                                    <span class="sk" style="height:22px; width:75px; display:block; border-radius:999px;"></span>
+                                </td>
+                                <td>
+                                    <span class="sk" style="height:13px; width:45px; display:block; border-radius:4px;"></span>
+                                </td>
+                                <td>
+                                    <span class="sk" style="height:24px; width:85px; display:block; border-radius:999px;"></span>
+                                </td>
+                                <td style="text-align:right;">
+                                    <span class="sk" style="height:16px; width:75px; display:inline-block; border-radius:6px;"></span>
+                                </td>
+                                <td style="text-align:right;">
+                                    <span class="sk" style="height:34px; width:100px; display:inline-block; border-radius:11px;"></span>
+                                </td>
+                            </tr>
+                            @endfor
+                        </tbody>
+                    </table>
+                </div>
+                {{-- Mobile List Skeleton --}}
+                <div class="trip-mobile-skel" style="display:none;">
+                    @for($i = 0; $i < 5; $i++)
+                    <div class="trip-mobile-item" style="pointer-events:none; opacity:0.95; background:var(--surface) !important; border:1px solid var(--hairline) !important; border-radius:13px !important; padding:12px !important; display:flex !important; flex-direction:column !important; gap:9px !important; box-shadow:0 5px 12px rgba(15,23,42,.06) !important;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:6px; min-width:0; padding-right:12px;">
+                                <span class="sk" style="height:18px; width:65%; border-radius:6px; display:block;"></span>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <span class="sk" style="height:11px; width:90px; border-radius:4px; display:inline-block;"></span>
+                                    <span class="sk" style="height:11px; width:60px; border-radius:4px; display:inline-block;"></span>
+                                </div>
+                            </div>
+                            <span class="sk" style="height:24px; width:75px; border-radius:999px; flex-shrink:0;"></span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="sk" style="height:12px; width:130px; border-radius:4px;"></span>
+                            <span class="sk" style="height:12px; width:60px; border-radius:4px;"></span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                            <span class="sk" style="height:20px; width:75px; border-radius:6px;"></span>
+                            <span class="sk" style="height:36px; width:120px; border-radius:11px;"></span>
+                        </div>
+                    </div>
+                    @endfor
+                </div>
+            </div>
+
+            <div class="trips-real-container" id="trips-real-container">
             {{-- Empty state --}}
             @if($trips->isEmpty())
                 <div class="trips-empty">
@@ -3081,9 +3294,12 @@
             <div class="pagination-wrap">
                 {{ $trips->appends(request()->query())->links() }}
             </div>
-
+            </div>{{-- /trips-real-container --}}
+            </div>{{-- /relative-wrapper --}}
         </div>
     </div>
+
+
 
     {{-- ── Trip details modal ── --}}
     <div class="trip-payment-review-modal" id="tripPaymentReviewModal" aria-hidden="true">
@@ -3246,18 +3462,169 @@
     </div>
 
     <script>
+        const showModalSkeleton = (listEl) => {
+            if (!listEl) return;
+            listEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:10px; width:100%; pointer-events:none; opacity:0.85;">
+                    <div style="border:1px solid var(--hairline); border-radius:14px; padding:12px; display:grid; gap:10px; background:var(--surface);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="sk" style="width:34px; height:34px; border-radius:999px;"></span>
+                                <div>
+                                    <div class="sk" style="height:14px; width:100px; border-radius:4px;"></div>
+                                    <div class="sk" style="height:10px; width:120px; border-radius:3px; margin-top:4px;"></div>
+                                </div>
+                            </div>
+                            <span class="sk" style="width:50px; height:18px; border-radius:99px;"></span>
+                        </div>
+                        <div class="sk" style="height:68px; border-radius:10px;"></div>
+                        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">
+                            <div class="sk" style="height:34px; border-radius:9px;"></div>
+                            <div class="sk" style="height:34px; border-radius:9px;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // ── Skeleton screen & AJAX Page Loader ──
         (() => {
-            // Tab strip navigation — redirect with status_filter param
-            document.querySelectorAll('.tab[data-tab]').forEach((tab) => {
-                tab.addEventListener('click', () => {
+            const skel = document.getElementById('trips-skel-container');
+            const real = document.getElementById('trips-real-container');
+
+            const showSkeleton = () => {
+                if (skel && real) {
+                    skel.style.display = 'grid';
+                    skel.style.opacity = '1';
+                    skel.style.pointerEvents = 'auto';
+                    real.classList.remove('loaded');
+                    real.style.opacity = '0';
+                    real.style.display = 'none';
+                }
+            };
+
+            const hideSkeleton = () => {
+                if (skel && real) {
+                    real.style.display = '';
+                    real.classList.add('loaded');
+                    real.style.opacity = '1';
+                    skel.style.opacity = '0';
+                    skel.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        skel.style.display = 'none';
+                    }, 200);
+                }
+            };
+
+            // Run hide on page ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', hideSkeleton);
+            } else {
+                hideSkeleton();
+            }
+
+            // AJAX fetching function
+            const fetchPage = async (url) => {
+                showSkeleton();
+                try {
+                    const res = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!res.ok) throw new Error();
+                    const html = await res.text();
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const newReal = doc.getElementById('trips-real-container');
+                    const currentReal = document.getElementById('trips-real-container');
+                    
+                    // Replace active states for chips and tabs (since they are outside the real container)
+                    const newChipsRow = doc.querySelector('.trips-chip-row');
+                    const currentChipsRow = document.querySelector('.trips-chip-row');
+                    if (newChipsRow && currentChipsRow) {
+                        currentChipsRow.innerHTML = newChipsRow.innerHTML;
+                    }
+                    const newTabsRow = doc.querySelector('.tabs');
+                    const currentTabsRow = document.querySelector('.tabs');
+                    if (newTabsRow && currentTabsRow) {
+                        currentTabsRow.innerHTML = newTabsRow.innerHTML;
+                    }
+
+                    if (newReal && currentReal) {
+                        currentReal.innerHTML = newReal.innerHTML;
+                        history.pushState(null, '', url);
+                        
+                        // Re-bind pagination clicks
+                        bindPaginationEvents();
+                    }
+                } catch (_e) {
+                    // Fallback to normal navigation
+                    window.location.href = url;
+                } finally {
+                    hideSkeleton();
+                }
+            };
+
+            const bindPaginationEvents = () => {
+                document.querySelectorAll('.pagination-wrap a').forEach((link) => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        fetchPage(link.href);
+                    });
+                });
+            };
+
+            // Bind click events on chips, tabs, and pagination links via event delegation/listeners
+            document.addEventListener('click', (e) => {
+                const tab = e.target.closest('.tab[data-tab]');
+                if (tab) {
+                    e.preventDefault();
                     const key = tab.dataset.tab;
                     const url = new URL(window.location.href);
                     url.searchParams.set('status_filter', key);
                     url.searchParams.delete('page');
-                    window.location.href = url.toString();
-                });
+                    fetchPage(url.toString());
+                    return;
+                }
+
+                const chip = e.target.closest('.trips-chip');
+                if (chip) {
+                    e.preventDefault();
+                    fetchPage(chip.href);
+                }
             });
+
+            // Form Submit Interceptor
+            const filterForm = document.getElementById('tripsFilterPanel');
+            if (filterForm) {
+                filterForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(filterForm);
+                    const params = new URLSearchParams(formData);
+                    const url = new URL(filterForm.action || window.location.href);
+                    for (const [key, val] of params.entries()) {
+                        if (val) url.searchParams.set(key, val);
+                        else url.searchParams.delete(key);
+                    }
+                    fetchPage(url.toString());
+                });
+
+                let submitTimer = null;
+                filterForm.querySelectorAll('input, select').forEach((field) => {
+                    field.addEventListener('change', () => {
+                        window.clearTimeout(submitTimer);
+                        submitTimer = window.setTimeout(() => {
+                            filterForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                        }, 250);
+                    });
+                });
+            }
+
+            // Bind first load
+            bindPaginationEvents();
         })();
+
 
         (() => {
             const filterForm = document.querySelector('.trips-filter-form');
@@ -3503,10 +3870,13 @@
                 sub.textContent = tripIds
                     ? `${button.dataset.routeName || 'Trip'} · Trip IDs ${tripIds}`
                     : (button.dataset.routeName || 'Confirm passenger payments for this trip.');
-                render(activePayments);
+                showModalSkeleton(list);
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    render(activePayments);
+                }, 240);
             };
             const close = () => {
                 modal.classList.remove('is-open');
@@ -3790,10 +4160,13 @@
                 shouldOpenHistory = false;
                 shouldRefreshOnClose = false;
                 sub.textContent = button.dataset.routeName || 'Mark your trip payment as paid.';
-                render(activePayments);
+                showModalSkeleton(list);
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    render(activePayments);
+                }, 240);
             };
             const close = () => {
                 modal.classList.remove('is-open');
@@ -3916,10 +4289,13 @@
                 });
                 activeRows = Array.isArray(payments) ? payments : [];
                 sub.textContent = routeName || 'View and save your trip payment receipts.';
-                renderList(activeRows);
+                showModalSkeleton(list);
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    renderList(activeRows);
+                }, 240);
             };
             const close = () => {
                 modal.classList.remove('is-open');
@@ -4408,10 +4784,13 @@
                 activeRequestButton = button;
                 const requests = decodePayload(button.dataset.requestsB64 || '');
                 sub.textContent = button.dataset.routeName || 'Review passenger requests and custom route preferences.';
-                render(requests, button);
+                showModalSkeleton(list);
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    render(requests, button);
+                }, 240);
             };
             const close = () => {
                 modal.classList.remove('is-open');
@@ -4692,8 +5071,9 @@
                 }
             };
 
-            detailButtons.forEach((btn) => {
-                btn.addEventListener('click', () => {
+            document.addEventListener('click', (event) => {
+                const btn = event.target.closest('.open-trip-modal-btn');
+                if (!btn) return;
                     const tripId            = String(btn.dataset.tripId || '-');
                     const tripRef           = String(btn.dataset.tripRef || '').trim() || (tripId !== '-' ? `TRP-${tripId.padStart(5, '0')}` : '-');
                     const pairedTripId      = String(btn.dataset.pairedTripId || '').trim();
@@ -4797,18 +5177,15 @@
                             if (miniMap) miniMap.invalidateSize();
                         });
                     }, 40);
-                });
             });
 
             const interactiveSelector = 'a, button, input, select, textarea, form, label';
-            document.querySelectorAll('.open-trip-card').forEach((card) => {
-                card.addEventListener('click', (event) => {
-                    const target = event.target;
-                    if (!(target instanceof Element)) return;
-                    if (target.closest(interactiveSelector)) return;
-                    const btn = card.querySelector('.open-trip-modal-btn');
-                    if (btn instanceof HTMLButtonElement) btn.click();
-                });
+            document.addEventListener('click', (event) => {
+                const card = event.target.closest('.open-trip-card');
+                if (!card) return;
+                if (event.target.closest(interactiveSelector)) return;
+                const btn = card.querySelector('.open-trip-modal-btn');
+                if (btn instanceof HTMLButtonElement) btn.click();
             });
 
             const closeModal = () => {

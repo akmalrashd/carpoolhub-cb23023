@@ -470,6 +470,9 @@
             row.style.background = '';
             btn.remove();
             adjustUnreadBadge(-1);
+            if (window.showToast) {
+                window.showToast("Notification marked as read.", "success");
+            }
         }).catch(function () {});
     });
 
@@ -488,6 +491,9 @@
             var row = btn.closest('.notif-row');
             if (row) fadeRemove(row);
             if (wasUnread) adjustUnreadBadge(-1);
+            if (window.showToast) {
+                window.showToast("Notification deleted.", "success");
+            }
         }).catch(function () {});
     });
 
@@ -502,6 +508,9 @@
             }).then(function (r) {
                 if (!r.ok) return;
                 document.querySelectorAll('.notif-row.is-read').forEach(fadeRemove);
+                if (window.showToast) {
+                    window.showToast("Read notifications cleared.", "success");
+                }
             }).catch(function () {});
         });
     }
@@ -529,6 +538,9 @@
                 });
                 var badge = document.querySelector('.notif-unread-badge');
                 if (badge) badge.style.display = 'none';
+                if (window.showToast) {
+                    window.showToast("All notifications marked as read.", "success");
+                }
             }).catch(function () {});
         });
     }

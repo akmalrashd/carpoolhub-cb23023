@@ -154,6 +154,23 @@
             flex-shrink: 0;
         }
 
+        /* ── Left: trip list ───────────────────────────────────────── */
+        .xp-list { display: grid; gap: 12px; align-content: start; }
+
+        /* Skeleton trip card ────────────────────────────── */
+        .xp-skel-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            padding: 16px;
+            display: grid;
+            gap: 10px;
+            box-shadow: var(--shadow-1);
+        }
+        /* Fade overlay for list during search --*/
+        .xp-list-loading { pointer-events: none; opacity: 0.4; }
+        #xp-skel-list { display: none; }
+
         /* ── Main body grid ────────────────────────────────────────── */
         .xp-body {
             padding-top: 14px;
@@ -1944,14 +1961,40 @@
         <div class="xp-body">
 
             {{-- Left: trip list --}}
-            <div class="xp-list">
+            <div class="xp-list" id="xp-real-list">
+                {{-- Skeleton placeholder (hidden, shown on filter submit) --}}
+                <div id="xp-skel-list" style="display:none;grid-gap:12px;display:none;">
+                    @for($sk = 0; $sk < 5; $sk++)
+                        <div class="xp-skel-card">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span class="sk" style="width:40px;height:40px;border-radius:999px;flex-shrink:0;"></span>
+                                <div style="flex:1;display:grid;gap:6px;">
+                                    <span class="sk" style="height:13px;width:{{ [55,70,48,62,58][$sk] }}%;"></span>
+                                    <span class="sk" style="height:11px;width:{{ [38,28,42,32,36][$sk] }}%;"></span>
+                                </div>
+                                <span class="sk" style="width:62px;height:24px;border-radius:var(--r-pill);"></span>
+                            </div>
+                            <div style="display:grid;gap:7px;padding:4px 0;">
+                                <span class="sk" style="height:12px;width:88%;"></span>
+                                <span class="sk" style="height:12px;width:{{ [72,80,68,75,70][$sk] }}%;"></span>
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                                <span class="sk" style="height:28px;flex:1;border-radius:var(--r-pill);"></span>
+                                <span class="sk" style="height:28px;flex:1;border-radius:var(--r-pill);"></span>
+                                <span class="sk" style="height:28px;flex:1;border-radius:var(--r-pill);"></span>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
                 @if($trips->isEmpty())
-                    <div class="xp-empty">
-                        <i class="fa-solid fa-compass xp-empty-icon"></i>
-                        <p class="xp-empty-title">No trips found</p>
-                        <p class="xp-empty-copy">No public trips match your filters right now. Try changing your search or check back later.</p>
-                        <a href="{{ route('explore.index') }}" class="btn btn-soft" style="margin-top:14px;">Clear Filters</a>
-                    </div>
+                    <x-empty 
+                        icon="fa-solid fa-compass" 
+                        title="No trips found" 
+                        body="No public trips match your filters right now. Try changing your search or check back later." 
+                        style="box-shadow:none; border:none; background:transparent; padding:48px 24px;"
+                    >
+                        <a href="{{ route('explore.index') }}" class="btn btn-soft" style="margin-top:8px;">Clear Filters</a>
+                    </x-empty>
                 @else
                     @foreach($trips as $trip)
                         @php
@@ -3115,6 +3158,39 @@
             mapTargetButtons.forEach((button) => {
                 button.addEventListener('click', () => setMapTarget(button.dataset.mapTarget || 'pickup'));
             });
+        })();
+
+        /* ── Skeleton: show on filter/search form submit ────────── */
+        (function () {
+            var skelList = document.getElementById('xp-skel-list');
+            var realList = document.getElementById('xp-real-list');
+
+            function showSearchSkeleton() {
+                if (!skelList || !realList) return;
+                skelList.style.display = 'grid';
+                realList.classList.add('xp-list-loading');
+            }
+
+            // Intercept search card form submit
+            var searchForms = document.querySelectorAll('.xp-search-card form, form[data-search-form]');
+            searchForms.forEach(function (form) {
+                form.addEventListener('submit', showSearchSkeleton);
+            });
+
+            // Also intercept sort/filter chip clicks (href navigation)
+            document.querySelectorAll('.xp-sort-row .chip[href]').forEach(function (chip) {
+                chip.addEventListener('click', function () {
+                    showSearchSkeleton();
+                });
+            });
+
+            // Search button in top bar
+            var searchBtn = document.querySelector('.xp-search-btn, button[type="submit"]');
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function () {
+                    setTimeout(showSearchSkeleton, 50);
+                });
+            }
         })();
     </script>
 @endsection

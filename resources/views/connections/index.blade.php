@@ -1,690 +1,774 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $searchQuery = (string) ($q ?? $search ?? '');
+    @endphp
+
     <style>
-        /* ── Page header ── */
+        /* ── Centered Container ── */
+        .connections-page-container {
+            max-width: 780px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-sizing: border-box;
+        }
+
+        /* ── Page Header ── */
+        .connections-header {
+            margin-bottom: 2px;
+        }
         .pg-eyebrow {
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: .08em;
             color: var(--muted);
             font-family: var(--font-ui), sans-serif;
             margin: 0 0 4px;
         }
-
         .pg-title {
-            margin: 0 0 2px;
+            margin: 0 0 4px;
             font-family: var(--font-display), sans-serif;
             font-size: clamp(1.4rem, 2.2vw, 1.75rem);
-            font-weight: 700;
+            font-weight: 800;
             color: var(--ink);
             line-height: 1.1;
         }
-
         .pg-sub {
-            margin: 4px 0 0;
+            margin: 0;
             color: var(--muted);
             font-size: 13px;
         }
 
-        .pg-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .pg-header-actions {
-            display: inline-flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        /* ── Page shell ── */
-        .conn-page {
-            display: grid;
-            gap: 14px;
-        }
-
-        /* ── Generic section card ── */
-        .conn-card {
+        /* ── Search Bar Card ── */
+        .conn-search-card {
             background: var(--surface);
             border: 1px solid var(--hairline);
-            border-radius: var(--r-lg);
-            padding: 16px 18px;
+            border-radius: var(--r-xl);
+            padding: 16px;
             box-shadow: var(--shadow-1);
-        }
-
-        .conn-section-title {
-            margin: 0 0 12px;
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--ink);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .conn-section-title i {
-            color: var(--muted);
-            font-size: 15px;
-        }
-
-        /* ── Count chips in header ── */
-        .conn-chips {
-            display: inline-flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .conn-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-pill);
-            padding: 5px 11px;
-            background: var(--surface-2);
-            color: var(--ink-3);
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .conn-chip i { color: var(--muted); }
-
-        /* ── Search row ── */
-        .conn-search-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px;
-            align-items: stretch;
-        }
-
-        .conn-search-input {
             width: 100%;
-            border-radius: var(--r-sm);
+            box-sizing: border-box;
+        }
+        .conn-search-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .conn-search-input-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--surface-2);
             border: 1px solid var(--hairline-strong);
-            background: var(--canvas);
+            border-radius: var(--r-md);
+            overflow: hidden;
+            transition: border-color .16s ease, box-shadow .16s ease;
+        }
+        .conn-search-input-wrap:focus-within {
+            border-color: var(--ch-yellow);
+            box-shadow: 0 0 0 3px var(--ch-yellow-tint);
+            background: var(--surface);
+        }
+        .conn-search-icon {
+            padding: 0 12px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .conn-search-input {
+            flex: 1;
+            border: 0;
+            background: transparent;
             color: var(--ink);
-            padding: 9px 13px;
+            padding: 10px 12px 10px 0;
             font-size: 14px;
             font-family: var(--font-ui), sans-serif;
             outline: none;
-            transition: border-color .18s, background .18s;
         }
-
-        .conn-search-input::placeholder { color: var(--muted-2); }
-
-        .conn-search-input:focus {
-            border-color: var(--ch-yellow-line);
-            background: var(--surface);
-            box-shadow: 0 0 0 3px rgba(250,204,21,.18);
-        }
-
-        /* ── Hint / error ── */
-        .conn-hint {
-            margin: 8px 0 0;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .conn-form-error {
-            margin-top: 8px;
-            color: var(--danger);
-            border: 1px solid rgba(220,38,38,.25);
-            background: var(--danger-soft);
-            border-radius: var(--r-sm);
-            padding: 8px 12px;
-            font-size: 13px;
-        }
-
-        /* ── Search results table ── */
-        .conn-table-wrap {
-            margin-top: 14px;
-            overflow-x: auto;
-        }
-
-        .conn-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .conn-table th,
-        .conn-table td {
-            padding: 11px 10px;
-            border-bottom: 1px solid var(--hairline);
-            text-align: left;
-            vertical-align: middle;
-        }
-
-        .conn-table th {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: var(--muted);
-            white-space: nowrap;
-            background: transparent;
-        }
-
-        .conn-table td:last-child,
-        .conn-table th:last-child { text-align: right; }
-
-        .conn-table tbody tr { transition: background .15s; }
-
-        .conn-table tbody tr:hover td {
-            background: var(--ch-yellow-tint);
-        }
-
-        .conn-table tbody tr:last-child td { border-bottom: 0; }
-
-        .conn-table form {
-            margin: 0;
-            display: inline-flex;
-            justify-content: flex-end;
-        }
-
-        /* ── Person cell ── */
-        .person-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-        }
-
-        .person-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--r-pill);
-            border: 2px solid var(--ch-yellow-line);
-            background: var(--ch-yellow-tint);
+        .btn-search-submit {
+            background: var(--ch-yellow);
             color: var(--ch-yellow-ink);
-            display: grid;
-            place-items: center;
-            font-size: 15px;
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: var(--r-md);
+            padding: 10px 18px;
+            font-size: 13px;
             font-weight: 800;
-            flex: 0 0 auto;
-            text-transform: uppercase;
-        }
-
-        .person-name {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--ink);
-            line-height: 1.25;
-        }
-
-        .person-sub {
-            font-size: 12px;
-            color: var(--muted);
+            font-family: var(--font-display), sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 320px;
+            transition: transform .15s ease, background .15s ease;
+        }
+        .btn-search-submit:hover {
+            background: var(--ch-yellow-deep);
+            transform: translateY(-1px);
+        }
+
+        /* ── Navigation Tabs ── */
+        .conn-nav-tabs {
+            display: flex;
+            width: 100%;
+            max-width: 100%;
+            gap: 4px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            border-radius: 14px;
+            padding: 4px;
+            box-shadow: none;
+            box-sizing: border-box;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .conn-nav-tabs::-webkit-scrollbar { display: none; }
+
+        .conn-tab-btn {
+            flex: 1 0 auto;
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 12px;
+            border-radius: 10px; /* Rounded Rectangle */
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            font-family: var(--font-ui), sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+            text-align: center;
+        }
+        @media (max-width: 520px) {
+            .conn-tab-btn {
+                font-size: 11px;
+                padding: 8px 6px;
+                gap: 4px;
+            }
+        }
+        .conn-tab-btn:hover {
+            color: var(--ink);
+        }
+        .conn-tab-btn.is-active {
+            background: var(--surface);
+            border-color: var(--hairline);
+            color: var(--ink);
+            box-shadow: var(--shadow-1);
+            font-weight: 800;
+        }
+        .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            background: var(--canvas);
+            color: var(--muted);
+        }
+        .conn-tab-btn.is-active .tab-badge {
+            background: var(--ch-yellow-tint);
+            color: var(--warning-ink);
+        }
+        .tab-badge.highlight {
+            background: #ef4444;
+            color: #ffffff !important;
+        }
+
+        /* ── Content Panels ── */
+        .conn-content {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .conn-panel-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-xl);
+            padding: 20px;
+            box-shadow: var(--shadow-1);
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeInTab .22s ease-out;
+        }
+        .conn-panel-card.is-active {
             display: block;
         }
 
-        /* ── Status chips ── */
-        .rel-chip {
-            display: inline-flex;
-            align-items: center;
-            border-radius: var(--r-pill);
-            border: 1px solid var(--hairline-strong);
-            padding: 4px 10px;
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .rel-accepted         { color: var(--success-ink); border-color: #86efac; background: var(--success-soft); }
-        .rel-outgoing_pending { color: var(--warning-ink); border-color: #fde68a; background: var(--warning-soft); }
-        .rel-incoming_pending { color: var(--info-ink);    border-color: #bfdbfe; background: var(--info-soft); }
-        .rel-rejected_by_you,
-        .rel-rejected_you,
-        .rel-blocked          { color: var(--danger-ink);  border-color: #fecaca; background: var(--danger-soft); }
-        .rel-none             { color: var(--ink-3);       border-color: var(--hairline-strong); background: var(--surface-2); }
-
-        /* ── Panel grid (incoming / outgoing) ── */
-        .conn-panel-grid {
-            display: grid;
-            gap: 14px;
-            grid-template-columns: 1fr;
-        }
-
-        @media (min-width: 900px) {
-            .conn-panel-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        /* ── Request list ── */
-        .req-list {
-            display: grid;
-            gap: 9px;
-            margin-top: 4px;
-        }
-
-        .req-item {
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
-            padding: 12px 14px;
-            background: var(--surface-2);
+        .panel-head {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--hairline);
             display: flex;
             align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            justify-content: space-between;
         }
-
-        .req-avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: var(--r-pill);
-            border: 2px solid var(--ch-yellow-line);
-            background: var(--ch-yellow-tint);
-            color: var(--ch-yellow-ink);
-            display: grid;
-            place-items: center;
-            font-size: 14px;
+        .panel-title {
+            font-family: var(--font-display), sans-serif;
+            font-size: 17px;
             font-weight: 800;
-            flex: 0 0 auto;
-            text-transform: uppercase;
-        }
-
-        .req-info { flex: 1 1 0; min-width: 0; }
-
-        .req-name {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 700;
             color: var(--ink);
-            line-height: 1.25;
-        }
-
-        .req-email {
-            margin: 2px 0 0;
-            font-size: 12px;
-            color: var(--muted);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .req-actions {
-            display: inline-flex;
-            gap: 7px;
-            flex-wrap: wrap;
+            margin: 0;
+            display: flex;
             align-items: center;
+            gap: 8px;
         }
 
-        /* ── Accepted connections card grid ── */
-        .accept-grid {
+        /* ── Cards Grid ── */
+        .members-grid {
             display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            margin-top: 4px;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 14px;
         }
-
-        @media (min-width: 640px)  { .accept-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (min-width: 1024px) { .accept-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-
-        .accept-card {
+        .member-card {
+            background: var(--surface-2);
             border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
+            border-radius: var(--r-lg);
             padding: 16px;
-            background: var(--surface);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
             text-align: center;
-            transition: box-shadow .18s, transform .18s;
+            gap: 10px;
+            position: relative;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
         }
-
-        .accept-card:hover {
-            box-shadow: var(--shadow-2);
+        .member-card:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow-2);
+            border-color: var(--ch-yellow-line);
+            background: var(--surface);
         }
-
-        .accept-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: var(--r-pill);
-            border: 2px solid var(--ch-yellow-line);
-            background: var(--ch-yellow-tint);
-            color: var(--ch-yellow-ink);
+        .member-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 999px;
+            background: var(--canvas);
+            border: 2px solid var(--hairline-strong);
+            color: var(--ink);
             display: grid;
             place-items: center;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
-            text-transform: uppercase;
+            font-family: var(--font-display), sans-serif;
+            overflow: hidden;
+            flex-shrink: 0;
         }
-
-        .accept-name {
-            font-size: 14px;
-            font-weight: 700;
+        .member-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .member-info {
+            width: 100%;
+            min-width: 0;
+        }
+        .member-name {
+            font-family: var(--font-display), sans-serif;
+            font-size: 15px;
+            font-weight: 800;
             color: var(--ink);
-            line-height: 1.25;
-        }
-
-        .accept-email {
-            font-size: 12px;
-            color: var(--muted);
+            margin: 0 0 2px;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 100%;
         }
-
+        .member-email {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0 0 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .role-pill {
             display: inline-flex;
             align-items: center;
-            border-radius: var(--r-pill);
-            border: 1px solid var(--hairline-strong);
-            padding: 3px 9px;
-            font-size: 11px;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 10px;
             font-weight: 700;
-            color: var(--ink-3);
-            background: var(--canvas);
+            text-transform: capitalize;
+        }
+        .role-pill.driver {
+            background: var(--ch-yellow-tint);
+            color: var(--warning-ink);
+            border: 1px solid var(--ch-yellow-line);
+        }
+        .role-pill.passenger {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+        .member-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .btn-action-sm {
+            padding: 7px 12px;
+            border-radius: var(--r-md);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid transparent;
+            text-decoration: none;
+            transition: all .15s ease;
+        }
+        .btn-action-wa {
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #86efac;
+        }
+        .btn-action-wa:hover {
+            background: #bbf7d0;
+        }
+        .btn-action-danger {
+            background: #fef2f2;
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+        .btn-action-danger:hover {
+            background: #fee2e2;
         }
 
-        .accept-card form { margin: 0; width: 100%; }
-
-        /* ── Empty state ── */
-        .conn-empty {
-            padding: 28px 0 10px;
+        /* ── Requests List Items ── */
+        .req-list-items {
             display: flex;
             flex-direction: column;
-            align-items: center;
             gap: 10px;
-            text-align: center;
-            color: var(--muted);
         }
-
-        .conn-empty-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: var(--r-pill);
+        .req-item-row {
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background .15s ease;
+        }
+        .req-item-row:hover {
+            background: var(--surface);
+            border-color: var(--hairline-strong);
+        }
+        .req-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
             background: var(--canvas);
+            border: 1px solid var(--hairline-strong);
+            color: var(--ink);
             display: grid;
             place-items: center;
-            font-size: 24px;
-            color: var(--muted-2);
+            font-size: 18px;
+            font-weight: 800;
+            flex-shrink: 0;
         }
-
-        .conn-empty-text {
-            margin: 0;
+        .req-details {
+            flex: 1;
+            min-width: 0;
+        }
+        .req-user-name {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0 0 2px;
+        }
+        .req-user-email {
+            font-size: 12px;
             color: var(--muted);
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* ── Responsive: mobile table ── */
-        @media (max-width: 640px) {
-            .conn-search-row {
-                grid-template-columns: 1fr;
-            }
-
-            .conn-table,
-            .conn-table tbody,
-            .conn-table tr,
-            .conn-table td { display: block; width: 100%; }
-
-            .conn-table thead { display: none; }
-
-            .conn-table tr {
-                border: 1px solid var(--hairline);
-                border-radius: var(--r-md);
-                background: var(--surface);
-                padding: 10px 12px;
-                margin-bottom: 10px;
-            }
-
-            .conn-table td {
-                border: 0 !important;
-                padding: 6px 0;
-                text-align: left !important;
-            }
-
-            .conn-table td::before {
-                content: attr(data-label);
-                display: block;
-                font-size: 10px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: .04em;
-                color: var(--muted);
-                margin-bottom: 2px;
-            }
-
-            .conn-table td:first-child::before { display: none; }
-
-            .conn-table td[data-label="Actions"],
-            .conn-table td[data-label="Actions"] form,
-            .conn-table td[data-label="Actions"] .btn { width: 100%; }
+        /* ── Alert Toast ── */
+        .conn-alert {
+            padding: 12px 16px;
+            border-radius: var(--r-md);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .conn-alert.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+        }
+        .conn-alert.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
         }
     </style>
 
-    {{-- ── Page header ── --}}
-    <div class="pg-header">
-        <div>
-            <p class="pg-eyebrow">Your network</p>
+    <div class="connections-page-container">
+        {{-- Header --}}
+        <div class="connections-header">
+            <p class="pg-eyebrow">Your Network</p>
             <h1 class="pg-title">Connections</h1>
-            <p class="pg-sub">Trusted carpoolers you ride with.</p>
+            <p class="pg-sub">Connect with trusted carpoolers to share trips, split fares, and travel together.</p>
         </div>
-        <div class="pg-header-actions">
-            <div class="conn-chips">
-                <span class="conn-chip"><i class="fa-solid fa-inbox"></i> Incoming <strong>{{ $incomingRequests->count() }}</strong></span>
-                <span class="conn-chip"><i class="fa-regular fa-paper-plane"></i> Outgoing <strong>{{ $outgoingRequests->count() }}</strong></span>
-                <span class="conn-chip"><i class="fa-solid fa-user-check"></i> Accepted <strong>{{ $acceptedConnections->count() }}</strong></span>
+
+        {{-- Status Notifications --}}
+        @if(session('status'))
+            <div class="conn-alert success">
+                <i class="fa-solid fa-circle-check" style="font-size:16px;"></i>
+                <span>{{ session('status') }}</span>
             </div>
-        </div>
-    </div>
+        @endif
 
-    <div class="conn-page">
+        @if($errors->any())
+            <div class="conn-alert error">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:16px;"></i>
+                <span>{{ $errors->first() }}</span>
+            </div>
+        @endif
 
-        {{-- ── Search ── --}}
-        <section class="conn-card">
-            <h2 class="conn-section-title"><i class="fa-solid fa-magnifying-glass"></i> Find Users</h2>
-
-            <form method="GET" action="{{ route('connections.index') }}" class="conn-search-row">
-                <input
-                    class="conn-search-input"
-                    type="text"
-                    name="q"
-                    value="{{ $q }}"
-                    placeholder="Search by name or email…"
-                    autocomplete="off"
-                >
-                <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">
-                    <i class="fa-solid fa-magnifying-glass"></i> Search
+        {{-- Search Bar Card --}}
+        <div class="conn-search-card">
+            <form method="GET" action="{{ route('connections.index') }}" class="conn-search-form">
+                <div class="conn-search-input-wrap">
+                    <span class="conn-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="q" value="{{ $searchQuery }}" class="conn-search-input" placeholder="Search carpoolers by name or email...">
+                </div>
+                <button type="submit" class="btn-search-submit">
+                    <i class="fa-solid fa-user-plus"></i> Find
                 </button>
             </form>
+        </div>
 
-            @if($errors->has('receiver_id'))
-                <div class="conn-form-error">{{ $errors->first('receiver_id') }}</div>
-            @endif
+        {{-- Segmented Navigation Tabs --}}
+        <div class="conn-nav-tabs" role="tablist">
+            <button type="button" class="conn-tab-btn {{ $searchQuery ? '' : 'is-active' }}" id="tab-btn-accepted" onclick="switchConnTab('accepted')">
+                <i class="fa-solid fa-user-group"></i>
+                <span>Connections</span>
+                <span class="tab-badge">{{ $acceptedConnections->count() }}</span>
+            </button>
+            <button type="button" class="conn-tab-btn" id="tab-btn-incoming" onclick="switchConnTab('incoming')">
+                <i class="fa-solid fa-inbox"></i>
+                <span>Incoming</span>
+                <span class="tab-badge {{ $incomingRequests->count() > 0 ? 'highlight' : '' }}">{{ $incomingRequests->count() }}</span>
+            </button>
+            <button type="button" class="conn-tab-btn" id="tab-btn-outgoing" onclick="switchConnTab('outgoing')">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Outgoing</span>
+                <span class="tab-badge">{{ $outgoingRequests->count() }}</span>
+            </button>
+            <button type="button" class="conn-tab-btn {{ $searchQuery ? 'is-active' : '' }}" id="tab-btn-search" onclick="switchConnTab('search')">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Results</span>
+                @if($searchResults->isNotEmpty())
+                    <span class="tab-badge highlight">{{ $searchResults->count() }}</span>
+                @endif
+            </button>
+        </div>
 
-            @if($searchResults->isNotEmpty())
-                <div class="conn-table-wrap">
-                    <table class="conn-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($searchResults as $user)
-                                @php
-                                    $statusMap = [
-                                        'accepted'         => 'Connected',
-                                        'outgoing_pending' => 'Pending (Outgoing)',
-                                        'incoming_pending' => 'Pending (Incoming)',
-                                        'rejected_by_you'  => 'Rejected by You',
-                                        'rejected_you'     => 'Rejected by Them',
-                                        'blocked'          => 'Blocked',
-                                        'none'             => 'Not Connected',
-                                    ];
-                                    $statusLabel = $statusMap[$user->relationship_status] ?? 'Unknown';
-                                @endphp
-                                <tr>
-                                    <td data-label="Name">
-                                        <div class="person-cell">
-                                            <span class="person-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
-                                            <div>
-                                                <span class="person-name">{{ $user->name }}</span>
-                                                <span class="person-sub">{{ ucfirst($user->role) }}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td data-label="Email">
-                                        <span class="person-sub" style="max-width:260px;">{{ $user->email }}</span>
-                                    </td>
-                                    <td data-label="Status">
-                                        <span class="rel-chip rel-{{ $user->relationship_status }}">{{ $statusLabel }}</span>
-                                    </td>
-                                    <td data-label="Actions">
-                                        @if(in_array($user->relationship_status, ['none', 'rejected_by_you', 'rejected_you'], true))
-                                            <form method="POST" action="{{ route('connections.requests.store') }}">
-                                                @csrf
-                                                <input type="hidden" name="receiver_id" value="{{ $user->id }}">
-                                                <button type="submit" class="btn btn-dark btn-sm">
-                                                    <i class="fa-solid fa-user-plus"></i> Send Request
-                                                </button>
-                                            </form>
-                                        @elseif($user->relationship_status === 'incoming_pending')
-                                            <span style="font-size:12px; color:var(--muted); font-weight:600;">Respond below</span>
-                                        @else
-                                            <span style="color:var(--muted-2);">—</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+        {{-- Panels Container --}}
+        <div class="conn-content">
+
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 1: ACCEPTED CONNECTIONS
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="conn-panel-card {{ $searchQuery ? '' : 'is-active' }}" id="panel-accepted">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-user-group"></i> My Connections</h3>
                 </div>
-            @elseif($q !== '')
-                <p class="conn-hint">No users found for "<strong>{{ $q }}</strong>".</p>
-            @endif
-        </section>
 
-        {{-- ── Incoming / Outgoing ── --}}
-        <div class="conn-panel-grid">
-
-            {{-- Incoming --}}
-            <section class="conn-card">
-                <h2 class="conn-section-title"><i class="fa-solid fa-inbox"></i> Incoming Requests</h2>
-
-                @if($incomingRequests->isEmpty())
-                    <div class="conn-empty">
-                        <div class="conn-empty-icon"><i class="fa-solid fa-inbox"></i></div>
-                        <p class="conn-empty-text">No incoming requests.</p>
+                @if($acceptedConnections->isNotEmpty())
+                    <div class="members-grid">
+                        @foreach($acceptedConnections as $connectedUser)
+                            @php
+                                $photo = $connectedUser->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($connectedUser->profile_photo) : null;
+                                $cleanPhone = preg_replace('/\D+/', '', (string) $connectedUser->phone);
+                            @endphp
+                            <div class="member-card">
+                                <div class="member-avatar">
+                                    @if($photo)
+                                        <img src="{{ $photo }}" alt="{{ $connectedUser->name }}">
+                                    @else
+                                        <span>{{ strtoupper(substr($connectedUser->name, 0, 1)) }}</span>
+                                    @endif
+                                </div>
+                                <div class="member-info">
+                                    <h4 class="member-name">{{ $connectedUser->name }}</h4>
+                                    <p class="member-email">{{ $connectedUser->email }}</p>
+                                    <span class="role-pill {{ strtolower($connectedUser->role ?? 'passenger') }}">
+                                        @if($connectedUser->role === 'driver')
+                                            <i class="fa-solid fa-car"></i> Driver
+                                        @else
+                                            <i class="fa-solid fa-user"></i> Passenger
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="member-actions">
+                                    @if($cleanPhone)
+                                        <a href="https://wa.me/{{ $cleanPhone }}" target="_blank" class="btn-action-sm btn-action-wa" title="WhatsApp Chat">
+                                            <i class="fa-brands fa-whatsapp"></i> Chat
+                                        </a>
+                                    @endif
+                                    <form method="POST" action="{{ route('connections.remove', $connectedUser->id) }}" onsubmit="return confirm('Remove {{ $connectedUser->name }} from connections?');" style="margin:0;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-action-sm btn-action-danger">
+                                            <i class="fa-solid fa-user-minus"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @else
-                    <div class="req-list">
-                        @foreach($incomingRequests as $connection)
-                            <article class="req-item">
-                                <span class="req-avatar">{{ strtoupper(substr($connection->requester->name, 0, 1)) }}</span>
-                                <div class="req-info">
-                                    <p class="req-name">{{ $connection->requester->name }}</p>
-                                    <p class="req-email">{{ $connection->requester->email }}</p>
+                    <x-empty
+                        icon="fa-solid fa-user-group"
+                        title="No Connections Yet"
+                        message="Use the search bar above to find carpoolers and add them to your network."
+                    />
+                @endif
+            </div>
+
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 2: INCOMING REQUESTS
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="conn-panel-card" id="panel-incoming">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-inbox"></i> Incoming Requests</h3>
+                </div>
+
+                @if($incomingRequests->isNotEmpty())
+                    <div class="req-list-items">
+                        @foreach($incomingRequests as $req)
+                            @php
+                                $requester = $req->requester;
+                                $reqPhoto = $requester?->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($requester->profile_photo) : null;
+                            @endphp
+                            <div class="req-item-row">
+                                <div class="req-avatar">
+                                    @if($reqPhoto)
+                                        <img src="{{ $reqPhoto }}" alt="{{ $requester?->name }}" style="width:100%; height:100%; border-radius:999px; object-fit:cover;">
+                                    @else
+                                        <span>{{ strtoupper(substr($requester?->name ?? 'U', 0, 1)) }}</span>
+                                    @endif
                                 </div>
-                                <div class="req-actions">
-                                    <form method="POST" action="{{ route('connections.respond', $connection) }}">
+                                <div class="req-details">
+                                    <h4 class="req-user-name">{{ $requester?->name }}</h4>
+                                    <p class="req-user-email">{{ $requester?->email }} • {{ $req->created_at?->diffForHumans() }}</p>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="accept">
-                                        <button type="submit" class="btn btn-soft btn-sm" style="background:var(--success-soft); border-color:#86efac; color:var(--success-ink);">
+                                        <button type="submit" class="btn btn-primary btn-xs" style="background:var(--ch-yellow); color:var(--ch-yellow-ink); border:1px solid var(--ch-yellow-line); font-weight:800;">
                                             <i class="fa-solid fa-check"></i> Accept
                                         </button>
                                     </form>
-                                    <form method="POST" action="{{ route('connections.respond', $connection) }}">
+                                    <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="reject">
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fa-solid fa-xmark"></i> Reject
+                                        <button type="submit" class="btn btn-ghost btn-xs" style="color:var(--danger-ink);">
+                                            <i class="fa-solid fa-xmark"></i> Decline
                                         </button>
                                     </form>
                                 </div>
-                            </article>
+                            </div>
                         @endforeach
-                    </div>
-                @endif
-            </section>
-
-            {{-- Outgoing --}}
-            <section class="conn-card">
-                <h2 class="conn-section-title"><i class="fa-regular fa-paper-plane"></i> Outgoing Requests</h2>
-
-                @if($outgoingRequests->isEmpty())
-                    <div class="conn-empty">
-                        <div class="conn-empty-icon"><i class="fa-regular fa-paper-plane"></i></div>
-                        <p class="conn-empty-text">No outgoing requests.</p>
                     </div>
                 @else
-                    <div class="req-list">
-                        @foreach($outgoingRequests as $connection)
-                            <article class="req-item">
-                                <span class="req-avatar">{{ strtoupper(substr($connection->receiver->name, 0, 1)) }}</span>
-                                <div class="req-info">
-                                    <p class="req-name">{{ $connection->receiver->name }}</p>
-                                    <p class="req-email">{{ $connection->receiver->email }}</p>
+                    <x-empty
+                        icon="fa-solid fa-inbox"
+                        title="No Incoming Requests"
+                        message="You don't have any pending connection requests right now."
+                    />
+                @endif
+            </div>
+
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 3: OUTGOING REQUESTS
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="conn-panel-card" id="panel-outgoing">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-paper-plane"></i> Outgoing Requests</h3>
+                </div>
+
+                @if($outgoingRequests->isNotEmpty())
+                    <div class="req-list-items">
+                        @foreach($outgoingRequests as $req)
+                            @php
+                                $receiver = $req->receiver;
+                                $recPhoto = $receiver?->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($receiver->profile_photo) : null;
+                            @endphp
+                            <div class="req-item-row">
+                                <div class="req-avatar">
+                                    @if($recPhoto)
+                                        <img src="{{ $recPhoto }}" alt="{{ $receiver?->name }}" style="width:100%; height:100%; border-radius:999px; object-fit:cover;">
+                                    @else
+                                        <span>{{ strtoupper(substr($receiver?->name ?? 'U', 0, 1)) }}</span>
+                                    @endif
                                 </div>
-                                <div class="req-actions">
-                                    <span class="rel-chip rel-outgoing_pending">
-                                        <i class="fa-regular fa-clock" style="margin-right:4px;"></i> Pending
-                                    </span>
+                                <div class="req-details">
+                                    <h4 class="req-user-name">{{ $receiver?->name }}</h4>
+                                    <p class="req-user-email">Pending response • Sent {{ $req->created_at?->diffForHumans() }}</p>
                                 </div>
-                            </article>
+                                <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn btn-ghost btn-xs" style="color:var(--muted);">
+                                        <i class="fa-solid fa-ban"></i> Cancel Request
+                                    </button>
+                                </form>
+                            </div>
                         @endforeach
                     </div>
+                @else
+                    <x-empty
+                        icon="fa-solid fa-paper-plane"
+                        title="No Outgoing Requests"
+                        message="You haven't sent any pending connection requests."
+                    />
                 @endif
-            </section>
+            </div>
+
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 4: SEARCH RESULTS
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="conn-panel-card {{ $searchQuery ? 'is-active' : '' }}" id="panel-search">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-magnifying-glass"></i> Search Results</h3>
+                    @if($searchQuery)
+                        <span style="font-size:12px; color:var(--muted);">Query: "<strong>{{ $searchQuery }}</strong>"</span>
+                    @endif
+                </div>
+
+                @if($searchResults->isNotEmpty())
+                    <div class="members-grid">
+                        @foreach($searchResults as $foundUser)
+                            @php
+                                $photo = $foundUser->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($foundUser->profile_photo) : null;
+                                $relStatus = $foundUser->relationship_status ?? 'none';
+                            @endphp
+                            <div class="member-card">
+                                <div class="member-avatar">
+                                    @if($photo)
+                                        <img src="{{ $photo }}" alt="{{ $foundUser->name }}">
+                                    @else
+                                        <span>{{ strtoupper(substr($foundUser->name, 0, 1)) }}</span>
+                                    @endif
+                                </div>
+                                <div class="member-info">
+                                    <h4 class="member-name">{{ $foundUser->name }}</h4>
+                                    <p class="member-email">{{ $foundUser->email }}</p>
+                                    <span class="role-pill {{ strtolower($foundUser->role ?? 'passenger') }}">
+                                        @if($foundUser->role === 'driver')
+                                            <i class="fa-solid fa-car"></i> Driver
+                                        @else
+                                            <i class="fa-solid fa-user"></i> Passenger
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="member-actions">
+                                    @if($relStatus === 'accepted')
+                                        <span class="btn-action-sm" style="background:#f0fdf4; color:#15803d; border-color:#bbf7d0;">
+                                            <i class="fa-solid fa-check-double"></i> Connected
+                                        </span>
+                                    @elseif($relStatus === 'outgoing_pending')
+                                        <span class="btn-action-sm" style="background:#fefce8; color:#a16207; border-color:#fef08a;">
+                                            <i class="fa-solid fa-clock"></i> Request Sent
+                                        </span>
+                                    @else
+                                        <form method="POST" action="{{ route('connections.requests.store') }}" style="margin:0; width:100%;">
+                                            @csrf
+                                            <input type="hidden" name="receiver_id" value="{{ $foundUser->id }}">
+                                            <button type="submit" class="btn-action-sm" style="background:var(--ch-yellow); color:var(--ch-yellow-ink); border-color:var(--ch-yellow-line); width:100%; justify-content:center; font-weight:800;">
+                                                <i class="fa-solid fa-user-plus"></i> Add Connection
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    @if($searchQuery)
+                        <x-empty
+                            icon="fa-solid fa-user-slash"
+                            title="No Users Found"
+                            message="No carpoolers matched '{{ $searchQuery }}'. Check spelling or try a different search term."
+                        />
+                    @else
+                        <x-empty
+                            icon="fa-solid fa-magnifying-glass"
+                            title="Search for Carpoolers"
+                            message="Type a name or email address in the search box above to find members and grow your network."
+                        />
+                    @endif
+                @endif
+            </div>
 
         </div>
-
-        {{-- ── Accepted Connections ── --}}
-        <section class="conn-card">
-            <h2 class="conn-section-title"><i class="fa-solid fa-user-check"></i> Accepted Connections</h2>
-
-            @if($acceptedConnections->isEmpty())
-                <div class="conn-empty">
-                    <div class="conn-empty-icon"><i class="fa-solid fa-users"></i></div>
-                    <p class="conn-empty-text">No accepted connections yet.</p>
-                    <a href="{{ route('trips.index') }}" class="btn btn-primary btn-sm" style="margin-top:4px;">
-                        <i class="fa-solid fa-route"></i> Explore Trips
-                    </a>
-                </div>
-            @else
-                <div class="accept-grid">
-                    @foreach($acceptedConnections as $connectionUser)
-                        <article class="accept-card">
-                            <span class="accept-avatar">{{ strtoupper(substr($connectionUser->name, 0, 1)) }}</span>
-                            <div class="accept-name">{{ $connectionUser->name }}</div>
-                            <div class="accept-email">{{ $connectionUser->email }}</div>
-                            <span class="role-pill">{{ ucfirst($connectionUser->role) }}</span>
-                            <form method="POST" action="{{ route('connections.remove', $connectionUser) }}" onsubmit="return confirm('Remove this connection?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm btn-block" style="margin-top:4px;">
-                                    <i class="fa-solid fa-user-minus"></i> Remove
-                                </button>
-                            </form>
-                        </article>
-                    @endforeach
-                </div>
-            @endif
-        </section>
-
     </div>
+
+    <script>
+        function switchConnTab(tabName) {
+            const tabs = ['accepted', 'incoming', 'outgoing', 'search'];
+            if (!tabs.includes(tabName)) return;
+
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const panel = document.getElementById(`panel-${t}`);
+                if (btn && panel) {
+                    if (t === tabName) {
+                        btn.classList.add('is-active');
+                        panel.classList.add('is-active');
+                    } else {
+                        btn.classList.remove('is-active');
+                        panel.classList.remove('is-active');
+                    }
+                }
+            });
+
+            if (history.pushState) {
+                history.pushState(null, null, `#${tabName}`);
+            } else {
+                location.hash = `#${tabName}`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = location.hash.replace('#', '');
+            if (['accepted', 'incoming', 'outgoing', 'search'].includes(hash)) {
+                switchConnTab(hash);
+            }
+        });
+    </script>
 @endsection

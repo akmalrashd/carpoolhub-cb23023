@@ -167,10 +167,16 @@
             display: grid;
             gap: 6px;
             position: relative;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hp-stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--hairline-strong);
+            box-shadow: var(--shadow-2);
         }
         .hp-stat-card.highlighted {
-            background: #fffdf4;
-            border-color: #f8e7a1;
+            background: var(--ch-yellow-tint);
+            border-color: var(--ch-yellow-line);
         }
         .hp-stat-card.warning-tone {
             background: var(--warning-soft);
@@ -189,11 +195,12 @@
             place-items: center;
             font-size: 14px;
             color: var(--muted);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
         .hp-stat-card.highlighted .hp-stat-icon {
-            background: #fff8cf;
-            border-color: #f4df8a;
-            color: var(--warning);
+            background: var(--ch-yellow-soft);
+            border-color: var(--ch-yellow-line);
+            color: var(--warning-ink);
         }
         .hp-stat-card.warning-tone .hp-stat-icon {
             background: var(--warning-soft);
@@ -306,14 +313,15 @@
             background: var(--surface);
             text-decoration: none;
             color: inherit;
-            transition: border-color .15s, box-shadow .15s;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
         .hp-trip-row > div {
             min-width: 0;
         }
         .hp-trip-row:hover {
-            border-color: var(--hairline-strong);
+            border-color: var(--ch-yellow-line);
             box-shadow: var(--shadow-2);
+            transform: translateY(-1px);
         }
         .hp-trip-time-date {
             font-size: 13px;
@@ -374,8 +382,8 @@
             position: relative;
             z-index: 1;
         }
-        .hp-trip-dot.pickup { background: #22c55e; }
-        .hp-trip-dot.destination { background: #334155; }
+        .hp-trip-dot.pickup { background: var(--success); }
+        .hp-trip-dot.destination { background: var(--ink-3); }
         .hp-trip-point-label {
             display: block;
             color: var(--muted);
@@ -570,8 +578,8 @@
             position: relative;
             z-index: 1;
         }
-        .hp-pub-dot.pickup { background: #22c55e; }
-        .hp-pub-dot.destination { background: #334155; }
+        .hp-pub-dot.pickup { background: var(--success); }
+        .hp-pub-dot.destination { background: var(--ink-3); }
         .hp-pub-point-label {
             display: block;
             color: var(--muted);
@@ -659,15 +667,20 @@
 
         /* ── Mobile hero card ─────────────────────────────────── */
         .hp-mobile-hero {
-            background: linear-gradient(135deg, #fffbea 0%, #ffe26a 100%);
-            border: 1px solid #f3da73;
+            background: linear-gradient(135deg, var(--ch-yellow-tint) 0%, var(--ch-yellow-soft) 100%);
+            border: 1px solid var(--ch-yellow-line);
             border-radius: 18px;
             padding: 17px 16px 14px;
-            box-shadow: 0 8px 20px rgba(180, 133, 10, 0.08);
+            box-shadow: var(--shadow-yellow), 0 4px 14px rgba(0, 0, 0, 0.04);
             display: grid;
             gap: 12px;
             position: relative;
             overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hp-mobile-hero:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-yellow), 0 6px 18px rgba(0, 0, 0, 0.08);
         }
         .hp-mobile-hero::before { display: none; }
         .hp-mobile-hero-eyebrow {
@@ -736,6 +749,12 @@
             display: grid;
             gap: 4px;
             box-shadow: var(--shadow-1);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hp-mobile-stat:hover {
+            transform: translateY(-2px);
+            border-color: var(--hairline-strong);
+            box-shadow: var(--shadow-2);
         }
         .hp-mobile-stat-label {
             font-size: 10px;
@@ -781,6 +800,12 @@
             border-radius: 14px;
             position: relative;
             box-shadow: var(--shadow-1);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hp-mobile-quick-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--ch-yellow-line);
+            box-shadow: var(--shadow-2);
         }
         .hp-mobile-quick-icon {
             width: 34px;
@@ -792,6 +817,11 @@
             place-items: center;
             font-size: 14px;
             color: var(--ch-yellow-ink);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .hp-mobile-quick-item:hover .hp-mobile-quick-icon {
+            background: var(--ch-yellow-soft);
+            transform: scale(1.05);
         }
         .hp-mobile-quick-icon.yellow {
             background: var(--ch-yellow-tint);
@@ -867,7 +897,7 @@
             gap: 14px;
             padding: 14px 14px 92px;
             background: transparent;
-            min-height: calc(100vh - 72px);
+            min-height: calc(100vh - 52px);
         }
         @media (max-width: 1023px) {
             .hp-mobile-only .hp-section {
@@ -924,6 +954,24 @@
                 font-weight: 900;
             }
         }
+
+        /* ── Dashboard skeleton states ───────────────────────── */
+        #hp-stats-skel-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+            border-radius: var(--r-lg);
+            overflow: hidden;
+        }
+        #hp-stats-skel-overlay.loaded {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .hp-stats-skel-wrap {
+            position: relative;
+        }
     </style>
 
     {{-- ════════════════════════════════════════════════════════════════════════
@@ -949,6 +997,21 @@
         </div>
 
         {{-- 2. Stats strip -------------------------------------------------- --}}
+        <div class="hp-stats-skel-wrap">
+            {{-- Skeleton overlay: absolutely positioned over real stats --}}
+            <div id="hp-stats-skel-overlay">
+                <div class="hp-stats-strip" style="position:relative;z-index:1;">
+                    @for($sk = 0; $sk < 4; $sk++)
+                        <div class="hp-stat-card" style="pointer-events:none;">
+                            <span class="sk" style="width:32px;height:32px;border-radius:var(--r-sm);position:absolute;top:16px;right:16px;"></span>
+                            <span class="sk" style="height:11px;width:52%;margin-top:2px;"></span>
+                            <span class="sk" style="height:28px;width:38%;margin-top:4px;border-radius:var(--r-md);"></span>
+                            <span class="sk" style="height:10px;width:42%;"></span>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+            {{-- Real stats strip (always visible, provides natural height) --}}
         <div class="hp-stats-strip">
 
             {{-- Card 1: Trips this week --}}
@@ -1037,7 +1100,8 @@
                 </div>
             @endif
 
-        </div>
+        </div>{{-- /hp-stats-strip real --}}
+        </div>{{-- /hp-stats-skel-wrap --}}
 
         {{-- 3. Main body: 2fr + 1fr ---------------------------------------- --}}
         <div class="hp-body">
@@ -1057,6 +1121,24 @@
                         </div>
                     </div>
                     <div class="hp-section-body">
+                        {{-- Skeleton: shown briefly then fades --}}
+                        <div id="hp-trips-skel" style="opacity:1;transition:opacity 0.3s ease;">
+                            @for($sk = 0; $sk < 3; $sk++)
+                                <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:{{ $sk < 2 ? '1px solid var(--hairline)' : 'none' }};">
+                                    <div style="display:grid;gap:5px;width:52px;flex-shrink:0;">
+                                        <span class="sk" style="height:11px;width:100%;"></span>
+                                        <span class="sk" style="height:10px;width:70%;"></span>
+                                    </div>
+                                    <div style="flex:1;display:grid;gap:7px;">
+                                        <span class="sk" style="height:12px;width:{{ [72,60,80][$sk] }}%;"></span>
+                                        <span class="sk" style="height:11px;width:{{ [55,68,50][$sk] }}%;"></span>
+                                    </div>
+                                    <span class="sk" style="height:24px;width:58px;border-radius:var(--r-pill);flex-shrink:0;"></span>
+                                </div>
+                            @endfor
+                        </div>
+                        {{-- Real content: hidden then fades in --}}
+                        <div id="hp-trips-real" style="opacity:0;transition:opacity 0.3s ease 0.1s;">
                         {{-- As driver panel --}}
                         <div id="hp-tab-driver">
                             @if($upcomingCreatedTrips->isNotEmpty())
@@ -1148,9 +1230,10 @@
                             @else
                                 <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started." />
                             @endif
-                        </div>
-                    </div>
-                </div>
+                        </div>{{-- /hp-tab-passenger --}}
+                        </div>{{-- /hp-trips-real --}}
+                    </div>{{-- /hp-section-body --}}
+                </div>{{-- /hp-section upcoming --}}
 
                 {{-- Public trips near you --}}
                 <div class="hp-section">
@@ -1202,10 +1285,7 @@
                                 @endforeach
                             </div>
                         @else
-                            <div style="text-align:center;padding:24px 0;font-size:13px;color:var(--muted);font-weight:600;">
-                                <i class="fa-solid fa-car-side" style="font-size:20px;display:block;margin-bottom:8px;color:var(--muted-2);"></i>
-                                No public trips near you right now.
-                            </div>
+                            <x-empty icon="fa-solid fa-car-side" title="No public trips near you" body="No public trips near you right now." style="box-shadow:none; border:none; background:transparent; padding:24px 0;" />
                         @endif
                     </div>
                 </div>
@@ -1516,9 +1596,7 @@
                             @endforeach
                         </div>
                     @else
-                        <div style="text-align:center;padding:20px 0;font-size:13px;color:var(--muted);">
-                            No public trips available right now.
-                        </div>
+                        <x-empty icon="fa-solid fa-car-side" title="No public trips today" body="No public trips available right now." style="box-shadow:none; border:none; background:transparent; padding:20px 0;" />
                     @endif
                 </div>
             </div>
@@ -1546,5 +1624,28 @@
             });
             btn.classList.add('active');
         }
+
+        /* ── Skeleton fade-out on page ready ─────────────────────── */
+        document.addEventListener('DOMContentLoaded', function () {
+            // Stats skeleton overlay → fade out (real content always visible underneath)
+            var statSkel = document.getElementById('hp-stats-skel-overlay');
+            if (statSkel) {
+                setTimeout(function () {
+                    statSkel.classList.add('loaded');
+                }, 280);
+            }
+
+            // Trips skeleton → real content
+            var tripsSkel = document.getElementById('hp-trips-skel');
+            var tripsReal = document.getElementById('hp-trips-real');
+            if (tripsSkel && tripsReal) {
+                setTimeout(function () {
+                    tripsSkel.style.opacity = '0';
+                    tripsSkel.style.pointerEvents = 'none';
+                    tripsReal.style.opacity = '1';
+                    setTimeout(function () { tripsSkel.style.display = 'none'; }, 350);
+                }, 320);
+            }
+        });
     </script>
 @endsection

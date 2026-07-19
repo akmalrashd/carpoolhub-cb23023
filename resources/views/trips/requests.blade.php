@@ -230,6 +230,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--hairline);
         }
         .trip-modal-title {
             margin: 0;
