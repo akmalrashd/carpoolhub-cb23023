@@ -36,6 +36,7 @@ class User extends Authenticatable
         'payment_qr_duitnow',
         'payment_qr_tng',
         'driving_license_photo',
+        'selfie_photo',
         'is_active',
     ];
 

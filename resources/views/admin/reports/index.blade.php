@@ -403,7 +403,7 @@
         <div class="rp-header-info">
             <p class="rp-eyebrow">Administrator</p>
             <h1 class="rp-title">Reports &amp; Analytics</h1>
-            <p class="rp-subtitle">Operational evidence for CarpoolHub thesis modules: AI assistance, custom route preference, reliability checks, and payment tracking.</p>
+            <p class="rp-subtitle">Operational analytics for CarpoolHub features: AI assistance, custom route preferences, passenger reliability, and payment tracking.</p>
         </div>
         <div class="rp-header-actions">
             <button type="button" class="btn btn-ghost btn-sm" style="font-weight:700; color:var(--muted);">
@@ -599,11 +599,11 @@
         </div>
     </div>
 
-    {{-- Thesis Module Performance Grid --}}
+    {{-- Feature Performance Overview Grid --}}
     <div class="rp-section-card">
         <div class="rp-card-head">
             <h2 class="rp-card-title">
-                <i class="fa-solid fa-brain" style="color:var(--muted);"></i> Thesis Module Performance
+                <i class="fa-solid fa-sliders" style="color:var(--muted);"></i> Feature Performance Overview
             </h2>
         </div>
         <div style="padding:16px;">
@@ -611,7 +611,7 @@
                 <article class="rp-module-card">
                     <span class="rp-module-title">Custom Route Requests</span>
                     <strong class="rp-module-value">{{ $customRouteSummary['custom_requests'] ?? 0 }}</strong>
-                    <span class="rp-module-note">{{ $customRouteSummary['custom_share'] ?? 0 }}% of route records use custom pickup/drop-off. Avg extra fee RM {{ number_format((float) ($customRouteSummary['avg_extra_fee'] ?? 0), 2) }}.</span>
+                    <span class="rp-module-note">{{ $customRouteSummary['custom_share'] ?? 0 }}% of trips use custom pickup/drop-off. Avg extra fee RM {{ number_format((float) ($customRouteSummary['avg_extra_fee'] ?? 0), 2) }}.</span>
                 </article>
                 <article class="rp-module-card">
                     <span class="rp-module-title">Passenger Approval</span>
@@ -621,12 +621,12 @@
                 <article class="rp-module-card">
                     <span class="rp-module-title">AI Support Usage</span>
                     <strong class="rp-module-value">{{ $aiSupportSummary['recommendation_logs'] ?? 0 }}</strong>
-                    <span class="rp-module-note">Explore recommendation logs. Avg match score {{ $aiSupportSummary['avg_match_score'] ?? 0 }}. Strategy suggestions: {{ $aiSupportSummary['strategy_suggestions'] ?? 0 }}.</span>
+                    <span class="rp-module-note">AI-assisted trips (fare calculation + join decisions). Avg match score {{ $aiSupportSummary['avg_match_score'] ?? 0 }}%. Decision support: {{ $aiSupportSummary['strategy_suggestions'] ?? 0 }} cases.</span>
                 </article>
                 <article class="rp-module-card">
                     <span class="rp-module-title">Passenger Reliability</span>
-                    <strong class="rp-module-value">{{ $reliabilitySummary['avg_risk_score'] ?? 0 }}</strong>
-                    <span class="rp-module-note">Average risk score from {{ $reliabilitySummary['profiles_total'] ?? 0 }} profiles. High-risk users: {{ $reliabilitySummary['high_risk_total'] ?? 0 }}.</span>
+                    <strong class="rp-module-value">{{ $reliabilitySummary['avg_payment_reliability'] ?? 0 }}%</strong>
+                    <span class="rp-module-note">Payment rate: {{ $reliabilitySummary['paid_payments'] ?? 0 }} paid / {{ $reliabilitySummary['total_payments'] ?? $reliabilitySummary['profiles_total'] ?? 0 }} total. High-risk: {{ $reliabilitySummary['high_risk_total'] ?? 0 }} passengers. Outstanding: RM {{ number_format((float)($reliabilitySummary['outstanding_amount'] ?? 0), 2) }}.</span>
                 </article>
             </div>
         </div>

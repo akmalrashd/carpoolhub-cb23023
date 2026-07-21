@@ -35,7 +35,8 @@ class UpdateProfileRequest extends FormRequest
             'payment_account_number' => ['nullable', 'string', 'max:50'],
             'payment_bank_name' => ['nullable', 'string', 'max:255'],
             'payment_qr_duitnow' => ['nullable', 'image', 'max:2048'],
-            'payment_qr_tng' => ['nullable', 'image', 'max:2048'],
+            'payment_qr_tng'      => ['nullable', 'image', 'max:2048'],
+            'selfie_photo'        => ['nullable', 'image', 'max:5120'],
         ];
     }
 

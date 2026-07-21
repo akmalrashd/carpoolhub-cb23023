@@ -902,6 +902,33 @@
                                     @enderror
                                 </div>
 
+                                {{-- Selfie photo holding license --}}
+                                <div class="field-row" style="margin-top:12px;">
+                                    <label class="field-label" for="selfie_photo">Selfie with license (Verification)</label>
+                                    <div class="file-upload-wrap">
+                                        <label
+                                            class="file-upload-label {{ $errors->has('selfie_photo') ? 'is-invalid' : '' }}"
+                                            id="selfie-upload-label"
+                                        >
+                                            <span class="file-upload-icon"><i class="fa-solid fa-user-shield" id="selfie-icon"></i></span>
+                                            <span id="selfie-filename">Upload selfie holding your license</span>
+                                            <input
+                                                type="file"
+                                                id="selfie_photo"
+                                                name="selfie_photo"
+                                                accept="image/*"
+                                                onchange="handleSelfieUpload(this)"
+                                            >
+                                        </label>
+                                    </div>
+                                    @error('selfie_photo')
+                                        <span class="field-error">
+                                            <i class="fa-solid fa-triangle-exclamation"></i>
+                                            {{ $message }}
+                                        </span>
+                                    @enderror
+                                </div>
+
                         </div>
                     </div>
 
@@ -1018,6 +1045,21 @@
             label.classList.remove('has-file');
             filename.textContent = 'Upload front of your driving license';
             icon.className = 'fa-solid fa-id-card';
+        }
+    }
+
+    function handleSelfieUpload(input) {
+        const label    = document.getElementById('selfie-upload-label');
+        const filename = document.getElementById('selfie-filename');
+        const icon     = document.getElementById('selfie-icon');
+        if (input.files && input.files[0]) {
+            label.classList.add('has-file');
+            filename.textContent = input.files[0].name;
+            icon.className = 'fa-solid fa-circle-check';
+        } else {
+            label.classList.remove('has-file');
+            filename.textContent = 'Upload selfie holding your license';
+            icon.className = 'fa-solid fa-user-shield';
         }
     }
 

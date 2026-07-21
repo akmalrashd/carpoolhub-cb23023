@@ -16,6 +16,9 @@ class SettingsService
         $duitnowQrPath = $user->payment_qr_duitnow;
         $tngQrPath = $user->payment_qr_tng;
 
+        $selfiePath = $user->selfie_photo;
+        $licensePath = $user->driving_license_photo;
+
         if (isset($data['profile_photo']) && $data['profile_photo'] instanceof UploadedFile) {
             $photoPath = $this->storeProfilePhoto($user, $data['profile_photo']);
         }
@@ -24,6 +27,14 @@ class SettingsService
         }
         if (isset($data['payment_qr_tng']) && $data['payment_qr_tng'] instanceof UploadedFile) {
             $tngQrPath = $this->storePaymentQr($user->payment_qr_tng, $data['payment_qr_tng']);
+        }
+        if (isset($data['selfie_photo']) && $data['selfie_photo'] instanceof UploadedFile) {
+            $sfile = $data['selfie_photo'];
+            $selfiePath = 'data:' . $sfile->getMimeType() . ';base64,' . base64_encode(file_get_contents($sfile->getRealPath()));
+        }
+        if (isset($data['driving_license_photo']) && $data['driving_license_photo'] instanceof UploadedFile) {
+            $lfile = $data['driving_license_photo'];
+            $licensePath = 'data:' . $lfile->getMimeType() . ';base64,' . base64_encode(file_get_contents($lfile->getRealPath()));
         }
 
         $name = array_key_exists('name', $data) ? (string) $data['name'] : $user->name;
@@ -65,6 +76,8 @@ class SettingsService
             'payment_bank_name' => $paymentBankName,
             'payment_qr_duitnow' => $duitnowQrPath,
             'payment_qr_tng' => $tngQrPath,
+            'selfie_photo' => $selfiePath,
+            'driving_license_photo' => $licensePath,
         ]);
 
         return $user->refresh();

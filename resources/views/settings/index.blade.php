@@ -693,7 +693,7 @@
                             </div>
                         </div>
 
-                        {{-- Vehicle Details (Driver & Admin) --}}
+                        {{-- Vehicle Details & Verification Documents (Driver & Admin) --}}
                         @if($isDriverOrAdmin)
                             <div class="form-group" style="margin-top:6px;">
                                 <label class="form-label">Vehicle Details</label>
@@ -701,6 +701,52 @@
                                     <span class="input-icon"><i class="fa-solid fa-car"></i></span>
                                     <input type="text" name="vehicle_model" class="input-field" value="{{ old('vehicle_model', $user->vehicle_model) }}" placeholder="Model (e.g. Perodua Myvi 1.5)" style="border-right:1px solid var(--hairline);">
                                     <input type="text" name="vehicle_plate" class="input-field" value="{{ old('vehicle_plate', $user->vehicle_plate) }}" placeholder="Plate (e.g. VAB 1234)" style="width:140px; flex:0 0 auto; padding-left:12px;">
+                                </div>
+                            </div>
+
+                            {{-- Driver Verification Documents --}}
+                            <div style="margin-top:16px;">
+                                <label class="form-label">Driver Verification Documents</label>
+                                <div class="qr-upload-grid">
+                                    {{-- License Photo --}}
+                                    <div class="qr-card">
+                                        <div class="qr-preview-box">
+                                            @if($user->driving_license_photo)
+                                                <img id="licensePreview" src="{{ $user->driving_license_photo }}" alt="Driving License">
+                                            @else
+                                                <div id="licenseEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-id-card"></i></div>
+                                                <img id="licensePreview" src="" alt="" style="display:none;">
+                                            @endif
+                                        </div>
+                                        <h4 class="qr-title">Driving License</h4>
+                                        <p class="qr-sub">Upload front of valid license</p>
+                                        <div class="qr-btn-wrap">
+                                            <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('licenseInput').click()">
+                                                <i class="fa-solid fa-upload"></i> {{ $user->driving_license_photo ? 'Change' : 'Upload' }}
+                                            </button>
+                                            <input type="file" id="licenseInput" name="driving_license_photo" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'licensePreview', 'licenseEmptyIcon')">
+                                        </div>
+                                    </div>
+
+                                    {{-- Selfie Photo --}}
+                                    <div class="qr-card">
+                                        <div class="qr-preview-box">
+                                            @if($user->selfie_photo)
+                                                <img id="selfiePreview" src="{{ $user->selfie_photo }}" alt="Selfie with License">
+                                            @else
+                                                <div id="selfieEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-user-shield"></i></div>
+                                                <img id="selfiePreview" src="" alt="" style="display:none;">
+                                            @endif
+                                        </div>
+                                        <h4 class="qr-title">Selfie Verification</h4>
+                                        <p class="qr-sub">Selfie holding your license</p>
+                                        <div class="qr-btn-wrap">
+                                            <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('selfieInput').click()">
+                                                <i class="fa-solid fa-upload"></i> {{ $user->selfie_photo ? 'Change' : 'Upload' }}
+                                            </button>
+                                            <input type="file" id="selfieInput" name="selfie_photo" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'selfiePreview', 'selfieEmptyIcon')">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         @endif

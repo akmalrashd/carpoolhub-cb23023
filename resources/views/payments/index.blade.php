@@ -3810,27 +3810,31 @@
                             data-passenger-count="{{ count($participantsPayload) }}"
                         >
                             <div class="payment-mobile-top">
-                                <div style="min-width:0;">
+                                <div style="min-width:0;flex:1;">
                                     <h2 class="payment-route-title">{{ $routeLabel }}</h2>
-                                    <div class="payment-meta-inline">
+                                    <div class="payment-meta-inline" style="margin-top:5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                                         <span class="payment-meta-inline-item">
-                                            <i class="fa-solid fa-user"></i>
-                                            <span>{{ $counterparty }}</span>
+                                            <i class="fa-solid fa-user" style="color:#b45309;font-size:11px;"></i>
+                                            <span style="color:var(--muted);font-size:12px;font-weight:600;">{{ $counterparty }}</span>
                                         </span>
                                         <span class="payment-meta-inline-item">
-                                            <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}"></i>
-                                            <span>{{ $perspectiveLabel }}</span>
+                                            <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}" style="color:#b45309;font-size:11px;"></i>
+                                            <span style="color:var(--muted);font-size:12px;font-weight:600;">{{ $perspectiveLabel }}</span>
                                         </span>
+                                    </div>
+                                    <div class="payment-trip-ref-row" style="margin-top:4px;font-size:13.5px;font-weight:700;color:#475569;display:flex;align-items:center;gap:4px;font-family:var(--font-ui), sans-serif;">
+                                        <span style="color:#c2410c;font-weight:900;font-size:14.5px;">#</span>
+                                        <span style="letter-spacing:.01em;">{{ $tripRef }}</span>
                                     </div>
                                 </div>
                                 <span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span>
                             </div>
-                            <div class="payment-detail-grid">
-                                <div class="payment-detail-line">
+                            <div class="payment-detail-grid" style="margin-top:8px;">
+                                <div class="payment-detail-line" style="display:flex;align-items:center;justify-content:space-between;">
                                     @if($payment->trip?->trip_datetime)
-                                        <span class="payment-detail-date">{{ $payment->trip->trip_datetime->format('d M Y') }} &middot; {{ $payment->trip->trip_datetime->format('H:i') }}</span>
+                                        <span class="payment-detail-date" style="color:#475569;font-weight:600;font-size:13px;font-family:var(--font-ui), sans-serif;">{{ $payment->trip->trip_datetime->format('d M Y, H:i') }}</span>
                                     @else
-                                        <span class="payment-detail-date">-</span>
+                                        <span class="payment-detail-date" style="color:#475569;font-weight:600;font-size:13px;font-family:var(--font-ui), sans-serif;">-</span>
                                     @endif
                                 </div>
                             </div>
