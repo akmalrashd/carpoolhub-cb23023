@@ -2045,8 +2045,8 @@
 
         /* ── Responsive ── */
         @media (max-width: 767px) {
-            .trips-page-header { padding: 0 16px 14px; }
-            .trips-table-section { padding: 0 16px 28px; }
+            .trips-page-header { padding: 0 var(--page-gutter, 16px) 14px; }
+            .trips-table-section { padding: 0 var(--page-gutter, 16px) 28px; }
             .trips-table-card {
                 background: transparent;
                 border: 0;

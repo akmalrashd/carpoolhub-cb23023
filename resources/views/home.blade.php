@@ -895,7 +895,7 @@
         .hp-mobile-wrap {
             display: grid;
             gap: 14px;
-            padding: 14px 14px 92px;
+            padding: 14px var(--page-gutter, 14px) 92px;
             background: transparent;
             min-height: calc(100vh - 52px);
         }

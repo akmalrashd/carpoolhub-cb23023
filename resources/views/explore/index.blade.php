@@ -1277,7 +1277,7 @@
         /* ── Mobile overrides ──────────────────────────────────────── */
         @media (max-width: 1023px) {
             .xp-wrap {
-                padding: 12px 10px 104px;
+                padding: 12px var(--page-gutter, 10px) 104px;
                 max-width: 430px;
                 background: var(--canvas);
             }
