@@ -22,6 +22,16 @@
            the strip its own scroller, keeps the page exactly viewport-wide. */
         .payments-page > * { min-width: 0; }
 
+        /* Measured on iOS 18.7 the ledger card itself came out 437px wide in a
+           375px viewport, reported separately from the tab strip - so it has
+           its own cause, not just the strip dragging it. Every card is clamped
+           to the column regardless of what Safari makes of its contents. */
+        .payments-page section,
+        .payments-card,
+        .payments-ledger-card {
+            max-width: 100%;
+        }
+
         .payments-tab-strip {
             min-width: 0;
             overflow-x: auto;
