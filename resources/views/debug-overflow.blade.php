@@ -15,7 +15,9 @@
 <body>
     <h1>Diagnostik lebar &mdash; screenshot skrin ini</h1>
     <pre id="out">Mengukur&hellip;</pre>
-    <iframe id="frame" src="{{ $target }}"></iframe>
+    {{-- Cache-busted: a stale copy of the page inside this frame made an
+         already-shipped fix look like it had never been deployed. --}}
+    <iframe id="frame" src="{{ $target }}?_cb={{ now()->timestamp }}"></iframe>
 
     <script>
         // Runs on the real device, in the real browser. Everything measured so
@@ -31,6 +33,10 @@
                     var w = frame.contentWindow;
                     var vw = d.documentElement.clientWidth;
 
+                    // Tells us straight away whether the frame is looking at the
+                    // deployed CSS or a cached copy from before the fix.
+                    var html = d.documentElement.outerHTML;
+                    lines.push('CSS_BARU=' + (html.indexOf('clamped to the column') !== -1 ? 'YA' : 'TIDAK (versi lama)'));
                     lines.push('UA=' + navigator.userAgent.slice(0, 60));
                     lines.push('VIEWPORT=' + vw + '  screen=' + screen.width);
                     lines.push('DOC_SCROLLWIDTH=' + d.documentElement.scrollWidth);
