@@ -14,6 +14,20 @@
 
     <style>
         .payments-page { display: grid; gap: 12px; }
+
+        /* Grid items default to min-width:auto, so they refuse to shrink below
+           their min-content width. The tab strip is a row of nowrap tabs, so it
+           forced the whole page wider than the phone and every card below it
+           was clipped at the right edge. Letting the tracks shrink, and giving
+           the strip its own scroller, keeps the page exactly viewport-wide. */
+        .payments-page > * { min-width: 0; }
+
+        .payments-tab-strip {
+            min-width: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .payments-tab-strip::-webkit-scrollbar { display: none; }
         .payments-card {
             background: #fff;
             border: 1px solid #dbe2ea;

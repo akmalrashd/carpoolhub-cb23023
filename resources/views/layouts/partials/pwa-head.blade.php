@@ -39,6 +39,15 @@
         -webkit-tap-highlight-color: transparent;
     }
 
+    /* Nothing should ever make the page scroll sideways - a native app does not
+       do that. Applied to the content column rather than body, because
+       overflow on body breaks the sticky header in some browsers. Inner rows
+       that are meant to scroll keep their own overflow-x and still work. */
+    .main-content {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
     /* `manipulation` removes the double-tap-to-zoom delay while still allowing
        pan and pinch. Deliberately NOT `none`: that would be inherited by the
        Leaflet maps and break their gestures. Leaflet sets its own value on
@@ -65,23 +74,12 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Installed on a notched phone the header sits under the status bar, so it
-       gains the inset as extra height. Scoped to standalone; in a browser tab
-       the OS chrome already handles it and env() would be 0 anyway. */
-    @media (display-mode: standalone) {
-        .mobile-header {
-            height: calc(var(--mobile-header-h) + env(safe-area-inset-top, 0px));
-            padding-top: env(safe-area-inset-top, 0px);
-        }
-
-        .page-load-line {
-            top: calc(var(--mobile-header-h) + env(safe-area-inset-top, 0px));
-        }
-
-        .app-shell {
-            min-height: calc(100vh - var(--mobile-header-h) - env(safe-area-inset-top, 0px));
-        }
-    }
+    /* NOTE: deliberately no viewport-fit=cover, and no safe-area padding here.
+       Adding cover switched env(safe-area-inset-bottom) from 0 to 34px on an
+       iPhone, and the bottom nav already sizes itself with
+       calc(83px + env(safe-area-inset-bottom)) - so the bar silently grew by a
+       third. Without cover, iOS lays the viewport out inside the safe area
+       already and the insets stay 0, which is what the design expects. */
 </style>
 
 <script>
