@@ -106,12 +106,12 @@
     <style>
         /* ── Desktop layout wrapper ───────────────────────────── */
         .hp-wrap {
-            padding: 0 28px 28px;
+            padding: 0 var(--page-gutter, 28px) 28px;
         }
 
         /* ── Page header ──────────────────────────────────────── */
         .hp-page-header {
-            padding: 28px 28px 20px;
+            padding: 28px var(--page-gutter, 28px) 20px;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
@@ -234,7 +234,7 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 18px;
-            padding: 0 28px 28px;
+            padding: 0 var(--page-gutter, 28px) 28px;
         }
         @media (min-width: 1024px) {
             .hp-body { grid-template-columns: 2fr 1fr; }

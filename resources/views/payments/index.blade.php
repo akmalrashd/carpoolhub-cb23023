@@ -3431,6 +3431,34 @@
             min-width: 0;
             max-width: 100%;
         }
+
+        /* CH-GRID-TRACK-V4 — MUST stay the last rules in this <style> block.
+           Root cause: three nested grids (.payments-page L3423, .payments-main-grid
+           L1822, .payments-mobile-list L386) all size on an implicit `auto` track.
+           An `auto` track's base size IS the item's min-content contribution, and
+           min-width:0 does NOT lower that contribution - it only removes the item's
+           automatic minimum size. So every previous min-width:0 / max-width:100%
+           attempt was a no-op: the track kept growing to min-content and the card
+           was stretched to the grown track. Replacing the track's MIN sizing
+           function with 0 (minmax(0,1fr)) is the only lever that stops it.
+           The desktop two-column track is restated here on purpose so this block
+           does not depend on the earlier @media (min-width:768px) at line ~2653
+           winning on source order. */
+        .payments-page,
+        .payments-main-grid,
+        .payments-mobile-list {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        @media (min-width: 768px) {
+            .payments-main-grid {
+                grid-template-columns: minmax(0, 1fr) 280px;
+            }
+        }
+        .payments-page > *,
+        .payments-main-grid > *,
+        .payments-mobile-list > * {
+            min-width: 0;
+        }
     </style>
 
 

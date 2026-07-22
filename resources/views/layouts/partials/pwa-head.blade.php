@@ -22,6 +22,25 @@
 <meta name="format-detection" content="telephone=no">
 
 <style>
+    /* Side gutter for page wrappers. Several pages hard-coded 28px, a desktop
+       figure, on every screen: on a 375px phone that left 14 (.main-content)
+       + 28 (wrapper) + 20 (card) = 62px gone per side, so content had 251px of
+       375 - two thirds of the screen. Below the desktop breakpoint the wrapper
+       gutter goes to zero and .main-content's 14px is the only inset.
+
+       It is a variable rather than a rule because each page's <style> block is
+       emitted after this partial and would otherwise win on source order. The
+       wrappers read the variable, so where the rule lives stops mattering. */
+    :root {
+        --page-gutter: 28px;
+    }
+
+    @media (max-width: 767px) {
+        :root {
+            --page-gutter: 0px;
+        }
+    }
+
     /* Rotating the device must not resize text. */
     html {
         -webkit-text-size-adjust: 100%;
