@@ -66,6 +66,29 @@
             margin-top: 0;
             max-height: calc(100vh - var(--mobile-header-h) - 24px);
             overflow-y: auto;
+            overflow-x: hidden;
+            /* Above the AI launcher, which sits at 3000. An open menu must not
+               have a floating button punched through it. */
+            z-index: 3100;
+        }
+
+        /* The head is a flex row and its title had the default min-width:auto,
+           so it refused to shrink: measured at 375px the title ran to 396 and
+           the Mark All button to 436, both past the panel's own right edge. */
+        .notification-dropdown-head {
+            min-width: 0;
+            gap: 10px;
+        }
+
+        .notification-dropdown-head > strong {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .notif-dropdown-mark-all-form {
+            flex-shrink: 0;
         }
     }
 
