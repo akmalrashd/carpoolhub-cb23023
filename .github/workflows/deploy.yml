@@ -1,12 +1,12 @@
 name: Deploy to Hostinger
 
 # Hostinger's built-in GitHub deployment cannot be used: its runner always runs
-# `composer install`, and the server has proc_open in disable_functions. This
-# workflow SSHes in and runs deploy.sh instead, which only does a git pull plus
-# artisan cache rebuilds — no Composer, no Node needed on the server.
+# `composer install`, and the server has proc_open in disable_functions. The
+# server also has no Node, so Vite cannot build there either.
 #
-# vendor/ and public/build are committed to the repo, so they must be rebuilt
-# locally before pushing. See deploy.sh for the exact commands.
+# So the build happens here instead — Composer and Node both exist on the GitHub
+# runner — and only the resulting vendor/ and public/build are shipped to the
+# server as a tarball. Nothing build-related is committed to the repo.
 
 on:
   push:
@@ -19,10 +19,63 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Build and deploy
     runs-on: ubuntu-latest
+
     steps:
-      - name: Run deploy.sh over SSH
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Must match the server's PHP (8.3.30) so the optimized autoloader and
+      # any platform-specific resolution match what production actually runs.
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, ctype, curl, dom, fileinfo, gd, gmp, intl, mbstring, openssl, pdo, tokenizer, xml, zip
+          coverage: none
+
+      # composer's post-autoload-dump runs `artisan package:discover`, which
+      # boots the framework and therefore needs an .env to read.
+      - name: Create .env for build
+        run: cp .env.example .env
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Package build artifacts
+        run: tar czf build.tar.gz vendor public/build
+
+      - name: Upload artifacts to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: build.tar.gz
+          target: /home/${{ secrets.SSH_USER }}/carpoolhub
+
+      - name: Run deploy script
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}

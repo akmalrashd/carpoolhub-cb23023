@@ -13,17 +13,18 @@
 /.zed
 /auth.json
 /node_modules
+/public/build
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
+/vendor
 
-# Deploy note: Hostinger shared hosting has proc_open disabled (Composer cannot
-# run) and no Node. So /vendor and /public/build are committed deliberately —
-# build locally, ship via git, server only does `git pull`.
-# Rebuild before pushing:
-#   composer install --no-dev --prefer-dist --optimize-autoloader
-#   npm run build
+# Build output stays out of git. Hostinger cannot build (proc_open is disabled
+# so Composer will not run, and Node is not installed), so GitHub Actions builds
+# vendor/ and public/build on its own runner and ships them as a tarball.
+# See .github/workflows/deploy.yml and deploy.sh.
+/build.tar.gz
 Homestead.json
 Homestead.yaml
 Thumbs.db
