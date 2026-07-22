@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{-- user-scalable=no stops pinch zoom of the page itself; the Leaflet maps
+         still zoom, they drive it from JS. viewport-fit=cover lets the layout
+         reach under a notch, which the safe-area rules then pad back. --}}
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>CarpoolHub</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1615,6 +1618,7 @@
             }
         }
     </style>
+    @include('layouts.partials.pwa-head')
 </head>
 <body>
 @php
