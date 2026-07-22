@@ -1,0 +1,33 @@
+name: Deploy to Hostinger
+
+# Hostinger's built-in GitHub deployment cannot be used: its runner always runs
+# `composer install`, and the server has proc_open in disable_functions. This
+# workflow SSHes in and runs deploy.sh instead, which only does a git pull plus
+# artisan cache rebuilds — no Composer, no Node needed on the server.
+#
+# vendor/ and public/build are committed to the repo, so they must be rebuilt
+# locally before pushing. See deploy.sh for the exact commands.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run deploy.sh over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script_stop: true
+          script: bash ~/carpoolhub/deploy.sh
