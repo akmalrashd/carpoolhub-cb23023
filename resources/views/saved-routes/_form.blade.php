@@ -23,7 +23,7 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 18px;
-        padding: 20px 28px 28px;
+        padding: 20px var(--page-gutter, 28px) 28px;
     }
     @media (min-width: 1024px) {
         .rf-shell { grid-template-columns: 1fr 360px; }

@@ -51,7 +51,7 @@
 
         /* ── Page header ── */
         .trips-page-header {
-            padding: 10px 28px 20px;
+            padding: 10px var(--page-gutter, 28px) 20px;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;

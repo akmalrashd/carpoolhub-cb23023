@@ -313,7 +313,7 @@
 </div>
 
 {{-- Card grid area --}}
-<div style="padding:20px 28px 28px">
+<div style="padding:20px var(--page-gutter, 28px) 28px">
 
     @if($savedRoutes->isEmpty())
         <div class="sr-empty">
