@@ -378,12 +378,19 @@
             gap: 8px;
         }
         .payment-mobile-item {
-            border: 1px solid #dbe2ea;
-            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
             background: #fff;
-            padding: 10px;
-            display: grid;
-            gap: 8px;
+            padding: 14px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .payment-mobile-item:hover {
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+            border-color: #cbd5e1;
         }
         .open-trip-card {
             cursor: pointer;
@@ -392,29 +399,37 @@
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 8px;
+            gap: 12px;
+            flex-wrap: nowrap;
+        }
+        .payment-mobile-top > div:first-child {
+            min-width: 0;
+            flex: 1;
         }
         .payment-mobile-trip {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: #0f172a;
-            line-height: 1.3;
+            line-height: 1.35;
+            margin: 0;
+            word-break: break-word;
         }
         .payment-mobile-sub {
-            margin-top: 2px;
-            font-size: 12px;
+            margin-top: 4px;
+            font-size: 13px;
             color: #64748b;
-            line-height: 1.35;
+            line-height: 1.4;
+            word-break: break-word;
         }
         .payment-mobile-amount-card {
             border: 1px solid #fcd34d;
             border-radius: 12px;
             background: #fffbeb;
-            padding: 10px;
+            padding: 12px 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
         }
         .payment-mobile-amount-label {
             color: #92400e;
@@ -432,23 +447,24 @@
         }
         .payment-mobile-grid {
             display: grid;
-            gap: 6px;
+            gap: 8px;
         }
         .payment-mobile-line {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 10px;
             border: 1px solid #e2e8f0;
-            border-radius: 9px;
-            background: #f8fafc;
-            padding: 7px 8px;
-            font-size: 12px;
-            color: #334155;
+            border-radius: 10px;
+            background: #fff;
+            padding: 10px 11px;
+            font-size: 13px;
+            color: #475569;
         }
         .payment-mobile-line strong {
             color: #0f172a;
             text-align: right;
+            font-weight: 700;
         }
         .payments-table-wrap {
             display: none;
@@ -481,14 +497,27 @@
             align-items: center;
             border-radius: 999px;
             border: 1px solid #dbe2ea;
-            padding: 4px 9px;
+            padding: 6px 12px;
             font-size: 12px;
             font-weight: 700;
             white-space: nowrap;
+            flex-shrink: 0;
         }
-        .status-unpaid { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
-        .status-pending { color: #854d0e; border-color: #fde68a; background: #fefce8; }
-        .status-paid { color: #166534; border-color: #86efac; background: #f0fdf4; }
+        .status-unpaid { 
+            color: #b91c1c; 
+            border-color: #fecaca; 
+            background: #fef2f2; 
+        }
+        .status-pending { 
+            color: #854d0e; 
+            border-color: #fde68a; 
+            background: #fefce8; 
+        }
+        .status-paid { 
+            color: #166534; 
+            border-color: #86efac; 
+            background: #f0fdf4; 
+        }
         .payments-action-row {
             display: inline-flex;
             align-items: center;
@@ -536,15 +565,15 @@
             cursor: pointer;
         }
         .payments-btn {
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid #dbe2ea;
             background: #fff;
             color: #0f172a;
             font-size: 12px;
             font-weight: 700;
-            height: 34px;
+            height: 38px;
             min-width: 96px;
-            padding: 0 10px;
+            padding: 0 12px;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
@@ -552,45 +581,74 @@
             justify-content: center;
             white-space: nowrap;
             line-height: 1;
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .payments-btn:hover:not(:disabled):not(.is-disabled) {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
         }
         .btn-icon {
-            font-size: 11px;
-            margin-right: 5px;
+            font-size: 12px;
+            margin-right: 6px;
         }
         .reminder-btn {
-            min-width: 92px;
+            min-width: 100px;
         }
         .payments-btn-primary {
             background: #0f172a;
             border-color: #0f172a;
             color: #fff;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+        .payments-btn-primary:hover {
+            background: #1a2332;
+            border-color: #1a2332;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
         }
         .payments-btn-success {
             background: #f0fdf4;
             border-color: #86efac;
             color: #166534;
         }
+        .payments-btn-success:hover {
+            background: #dcfce7;
+            border-color: #86efac;
+        }
         .payments-btn-danger {
             background: #fef2f2;
             border-color: #fecaca;
             color: #b91c1c;
+        }
+        .payments-btn-danger:hover {
+            background: #fee2e2;
+            border-color: #fecaca;
         }
         .payments-btn-soft {
             background: #f8fafc;
             border-color: #e2e8f0;
             color: #475569;
         }
+        .payments-btn-soft:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
         .payments-btn-icon {
-            width: 34px;
-            min-width: 34px;
+            width: 38px;
+            min-width: 38px;
             padding: 0;
-            font-size: 13px;
+            font-size: 14px;
         }
         .payments-btn-highlight {
             background: var(--ch-yellow);
             border-color: var(--ch-yellow-line);
             color: var(--ch-yellow-ink);
-            box-shadow: none;
+            box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
+        }
+        .payments-btn-highlight:hover {
+            box-shadow: 0 6px 16px rgba(250, 204, 21, 0.3);
+            background: #fef3c7;
         }
         .payments-btn:disabled,
         .payments-btn.is-disabled {
@@ -598,6 +656,81 @@
             border-color: #dbe2ea;
             color: #94a3b8;
             cursor: not-allowed;
+        }
+        .payment-detail-grid {
+            display: grid;
+            gap: 8px;
+        }
+        .payment-detail-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 0;
+            font-size: 13px;
+            color: #475569;
+        }
+        .payment-detail-date {
+            color: #475569;
+            font-weight: 600;
+            font-size: 13px;
+            font-family: var(--font-ui), sans-serif;
+        }
+        .payment-bottom-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 6px;
+        }
+        .payment-fare-card {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 0;
+        }
+        .payment-fare-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+        .payment-fare-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .payment-meta-inline {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 13px;
+        }
+        .payment-meta-inline-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #475569;
+            font-weight: 600;
+        }
+        .payment-route-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+        .payment-trip-ref-row {
+            margin-top: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: var(--font-ui), sans-serif;
         }
         .payments-link {
             color: #64748b;
@@ -607,6 +740,10 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            transition: color 0.2s ease;
+        }
+        .payments-link:hover {
+            color: #0f172a;
         }
         button.payments-link {
             border: 0;
@@ -1306,8 +1443,8 @@
                 color: #92400e;
             }
             #my-payments-list .payment-mobile-item {
-                padding: 12px;
-                gap: 10px;
+                padding: 14px;
+                gap: 12px;
             }
             #my-payments-list .payment-mobile-top {
                 align-items: flex-start;
@@ -1336,7 +1473,7 @@
                 display: grid;
                 grid-template-columns: repeat(1, minmax(0, 1fr));
                 justify-items: stretch;
-                gap: 8px;
+                gap: 10px;
             }
             #my-payments-list .payment-mobile-item .payments-input,
             #my-payments-list .payment-mobile-item .payments-btn {
@@ -1346,7 +1483,7 @@
             #my-payments-list .payment-mobile-item .payments-btn-icon {
                 width: 100%;
                 min-width: 0;
-                gap: 7px;
+                gap: 8px;
             }
             #my-payments-list .payment-mobile-item .payments-link {
                 min-height: 34px;
