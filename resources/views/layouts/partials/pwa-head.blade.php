@@ -67,8 +67,18 @@
             max-height: calc(100vh - var(--mobile-header-h) - 24px);
             overflow-y: auto;
             overflow-x: hidden;
-            /* Above the AI launcher, which sits at 3000. An open menu must not
-               have a floating button punched through it. */
+            z-index: 3100;
+        }
+
+        /* .mobile-header is position:sticky with z-index:2000, and that pair
+           creates a stacking context - so no z-index on a panel inside it can
+           beat the AI launcher at 3000, which sits outside the header. Raising
+           the panel alone did nothing. The header itself has to be lifted, and
+           only while a menu is open, so it does not sit over the AI chat panel
+           (2990) the rest of the time. */
+        .mobile-header:has(.bento-menu-wrap[open]),
+        .mobile-header:has(.notification-wrap[open]),
+        .mobile-header:has(.profile-wrap[open]) {
             z-index: 3100;
         }
 
