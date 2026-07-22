@@ -14,6 +14,11 @@
 
     <style>
         :root {
+            /* Mobile header height. Several rules must track this exactly —
+               the load line sits directly under it and the shell subtracts it
+               from the viewport — so it lives here rather than being repeated. */
+            --mobile-header-h: 64px;
+
             /* Design tokens — CarpoolHub warm yellow system */
             --ch-yellow: #FACC15;
             --ch-yellow-deep: #E6B800;
@@ -92,7 +97,7 @@
             position: sticky;
             top: 0;
             z-index: 2000;
-            height: 52px;
+            height: var(--mobile-header-h);
             padding: 0 12px;
             display: flex;
             align-items: center;
@@ -111,7 +116,7 @@
             position: fixed;
             left: 0;
             right: 0;
-            top: 52px;
+            top: var(--mobile-header-h);
             height: 3px;
             z-index: 1900;
             pointer-events: none;
@@ -307,8 +312,10 @@
         }
 
         @media (max-width: 430px) {
-            .mobile-header { height: 48px; padding: 0 8px; gap: 4px; }
-            .page-load-line { top: 48px; }
+            /* Slightly tighter on small phones; the load line and shell follow
+               automatically because they read the same token. */
+            :root { --mobile-header-h: 58px; }
+            .mobile-header { padding: 0 8px; gap: 4px; }
             .mobile-header-left { gap: 4px; }
             .mobile-back-btn { width: 30px; height: 30px; font-size: 12px; }
             .header-logo-link { gap: 5px; }
@@ -831,7 +838,7 @@
         }
 
         .app-shell {
-            min-height: calc(100vh - 52px);
+            min-height: calc(100vh - var(--mobile-header-h));
         }
 
         .main-content {
