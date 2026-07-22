@@ -23,3 +23,15 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# The service worker and manifest must never be served from cache. Hostinger
+# was sending sw.js with max-age=604800, so an installed phone would keep the
+# previous worker - and therefore the previous cached assets - for days, making
+# deployed fixes look like they had no effect.
+<IfModule mod_headers.c>
+    <FilesMatch "^(sw\.js|manifest\.json)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
