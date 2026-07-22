@@ -5,7 +5,7 @@
     @csrf
 
     {{-- Page header --}}
-    <div style="padding:20px 28px 0">
+    <div style="padding:20px var(--page-gutter, 28px) 0">
         <div style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">New trip</div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-top:6px">
             <div>
