@@ -1,4 +1,7 @@
-var CACHE_NAME = 'carpoolhub-v1';
+/* Bump this on every release that changes cached assets. The activate handler
+   deletes every cache whose name does not match, so raising the number is what
+   forces an installed phone to let go of the previous build. */
+var CACHE_NAME = 'carpoolhub-v2';
 
 var STATIC_ASSETS = [
     '/offline.html',

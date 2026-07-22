@@ -49,6 +49,20 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::delete('/connections/{user}/remove', [ConnectionController::class, 'remove'])->name('connections.remove');
     Route::resource('saved-routes', SavedRouteController::class)->except(['show']);
     Route::patch('/saved-routes/{savedRoute}/status', [SavedRouteController::class, 'toggleStatus'])->name('saved-routes.toggle-status');
+    // TEMPORARY diagnostic. Desktop Chrome emulation does not reproduce the
+    // sideways overflow seen on the owner's iPhone, so this measures it in the
+    // real browser. Delete once the layout bug is closed.
+    Route::get('/debug-overflow', function (\Illuminate\Http\Request $request) {
+        $page = (string) $request->query('page', '/payments');
+
+        // Same-origin paths only - this value goes straight into an iframe src.
+        if (! preg_match('#^/[A-Za-z0-9/_-]*$#', $page)) {
+            $page = '/payments';
+        }
+
+        return view('debug-overflow', ['target' => $page]);
+    })->name('debug.overflow');
+
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::patch('/payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
     Route::patch('/payments/{payment}/confirm-paid', [PaymentController::class, 'confirmPaid'])->name('payments.confirm-paid');
