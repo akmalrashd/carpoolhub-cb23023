@@ -87,7 +87,15 @@ class ImportLegacyData extends Command
      */
     private function loadCoordinates(): bool
     {
-        $path = storage_path('app/legacy/coordinates.json');
+        // Tracked in the repo so the file reaches the server on deploy. It holds
+        // nothing sensitive - place names and coordinates the owner filled in by
+        // hand, because the old app never stored them and most of these are local
+        // nicknames no geocoder resolves. storage/ is the local fallback.
+        $path = database_path('legacy/coordinates.json');
+
+        if (! is_file($path)) {
+            $path = storage_path('app/legacy/coordinates.json');
+        }
 
         if (! is_file($path)) {
             $this->error("Missing {$path}");

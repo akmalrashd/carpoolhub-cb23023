@@ -1,0 +1,71 @@
+{
+  "_nota": [
+    "Koordinat untuk 10 tempat unik daripada jadual `locations` app lama.",
+    "Yang berstatus 'auto' datang daripada Nominatim dan BELUM disahkan.",
+    "Yang berstatus 'perlu_isi' wajib awak isi - tiada peta boleh cari nama tempatan ini.",
+    "",
+    "Cara dapat koordinat: buka Google Maps, klik kanan pada tempat itu,",
+    "koordinat akan muncul di atas menu - klik untuk salin. Contoh: 3.5399, 103.4280",
+    "Masukkan lat dalam 'lat' dan lng dalam 'lng'. Buang baris '_status' bila dah isi."
+  ],
+
+  "UMPSA Pekan": {
+    "lat": 3.5399238,
+    "lng": 103.4280346,
+    "_status": "auto - sila sahkan"
+  },
+
+  "Taman Makmur Beruas Jaya": {
+    "lat": 3.5534357,
+    "lng": 103.4297584,
+    "_status": "auto - sila sahkan"
+  },
+
+  "Fakulti Komputeran, UMPSA Pekan": {
+    "lat": 3.546566677477184,
+    "lng": 103.42717113947263,
+    "_status": "perlu_isi - dalam kampus UMPSA, terlalu spesifik untuk peta awam"
+  },
+
+  "Pusat Bahasa Moden, UMPSA Pekan": {
+    "lat": 3.543811633282763,
+    "lng": 103.43127848836184,
+    "_status": "perlu_isi - dalam kampus UMPSA"
+  },
+
+  "Bandar Pekan, Pahang": {
+    "lat": 3.4911735172093152,
+    "lng": 103.39127182952869,
+    "_status": "perlu_isi - Nominatim bagi 3.6003,102.6766 tapi itu ~85km jauh, jangan guna"
+  },
+
+  "Pasar Malam / Pantai Selamat / Restoran Farouk Maju / Mixue": {
+    "lat": 3.53538793956,
+    "lng": 103.38539508184307,
+    "_status": "perlu_isi - nama gabungan, pilih satu titik wakil"
+  },
+
+  "Nasi Kandar Royale": {
+    "lat": 3.562839163103423,
+    "lng": 103.40456429592888,
+    "_status": "perlu_isi"
+  },
+
+  "RGB / Cowboy / PokDin": {
+    "lat": 3.5323889998392066,
+    "lng": 103.45951505320235,
+    "_status": "perlu_isi - nama tempatan, pilih satu titik wakil"
+  },
+
+  "Tanjong Gosong / Kedai 5 Ringgit": {
+    "lat": 3.6009924128191626,
+    "lng": 103.40068101882186,
+    "_status": "perlu_isi"
+  },
+
+  "Mentiga / Nasi Kukus / Tealive": {
+    "lat": 3.5491048,
+    "lng": 103.3835988,
+    "_status": "auto dari 'Mentiga' sahaja - sila sahkan"
+  }
+}
