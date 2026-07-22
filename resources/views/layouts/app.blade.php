@@ -182,9 +182,9 @@
         }
 
         .mobile-back-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 11px;
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
             border: 1px solid var(--hairline-strong);
             background: var(--surface);
             color: var(--ink);
@@ -232,8 +232,8 @@
         }
 
         .mobile-brand-logo {
-            width: 26px;
-            height: 26px;
+            width: 34px;
+            height: 34px;
             object-fit: contain;
             display: block;
             flex-shrink: 0;
@@ -262,7 +262,7 @@
         .mobile-brand-word span { color: var(--ch-yellow-deep); }
         .mobile-brand-text {
             font-family: var(--font-display);
-            font-size: 17px;
+            font-size: 20px;
             font-weight: 800;
             line-height: 1;
             color: var(--ink);
@@ -292,7 +292,7 @@
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             min-width: 0;
         }
 
@@ -317,19 +317,20 @@
             :root { --mobile-header-h: 58px; }
             .mobile-header { padding: 0 8px; gap: 4px; }
             .mobile-header-left { gap: 4px; }
-            .mobile-back-btn { width: 30px; height: 30px; font-size: 12px; }
-            .header-logo-link { gap: 5px; }
-            .mobile-brand-logo { width: 22px; height: 22px; }
+            .mobile-back-btn { width: 34px; height: 34px; font-size: 13px; }
+            .header-logo-link { gap: 6px; }
+            .mobile-brand-logo { width: 28px; height: 28px; }
             .mobile-brand-word,
-            .mobile-brand-text { font-size: 15px; }
+            .mobile-brand-text { font-size: 17px; }
             .mobile-brand-mark { width: 20px; height: 20px; font-size: 10px; }
             .mobile-home-title { min-width: 80px; padding-left: 8px; }
             .mobile-home-title strong { font-size: 16px; }
             .mobile-home-title span { font-size: 11px; }
             .mobile-header-right { gap: 4px; }
-            .notification-toggle { width: 32px; height: 32px; font-size: 13px; }
-            .profile-toggle { height: 32px; padding: 0 5px 0 2px; display: inline-flex; align-items: center; gap: 3px; }
-            .avatar-initial { width: 26px; height: 26px; font-size: 11px; }
+            .notification-toggle { width: 37px; height: 37px; font-size: 14px; }
+            .bento-menu-toggle { width: 37px; height: 37px; font-size: 14px; }
+            .profile-toggle { height: 37px; padding: 0 6px 0 3px; display: inline-flex; align-items: center; gap: 4px; }
+            .avatar-initial { width: 30px; height: 30px; font-size: 12px; }
             .role-badge { height: 22px; font-size: 10px; padding: 0 7px; gap: 3px; }
         }
 
@@ -340,9 +341,9 @@
         .notification-wrap { position: relative; }
 
         .notification-toggle {
-            width: 36px;
-            height: 36px;
-            border-radius: 11px;
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
             border: 1px solid var(--hairline-strong);
             background: var(--surface);
             color: var(--ink);
@@ -539,8 +540,8 @@
         .profile-wrap { position: relative; }
 
         .profile-toggle {
-            height: 36px;
-            border-radius: 11px;
+            height: 42px;
+            border-radius: 13px;
             border: 1.5px solid var(--ch-yellow-line);
             background: var(--surface);
             color: var(--ink);
@@ -593,12 +594,12 @@
         }
 
         .avatar-initial {
-            width: 30px;
-            height: 30px;
-            border-radius: 9px;
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
             background: var(--ink);
             color: #fff;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -1339,9 +1340,9 @@
             display: inline-block;
         }
         .bento-menu-toggle {
-            width: 36px;
-            height: 36px;
-            border-radius: 11px;
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
             border: 1px solid var(--hairline-strong);
             background: var(--surface);
             color: var(--ink);
