@@ -43,6 +43,22 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        // Read-only source for the one-off 5MCarpool migration. Points at a
+        // local restore of the old InfinityFree dump; nothing writes to it.
+        // See app/Console/Commands/ImportLegacyData.php.
+        'legacy' => [
+            'driver' => 'mysql',
+            'host' => env('LEGACY_DB_HOST', '127.0.0.1'),
+            'port' => env('LEGACY_DB_PORT', '3306'),
+            'database' => env('LEGACY_DB_DATABASE', 'carpool_lama'),
+            'username' => env('LEGACY_DB_USERNAME', 'root'),
+            'password' => env('LEGACY_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
