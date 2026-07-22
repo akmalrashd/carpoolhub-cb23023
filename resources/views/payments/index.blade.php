@@ -2568,6 +2568,12 @@
             border-radius: 10px;
             background: var(--surface-2);
             width: fit-content;
+            /* Safari resolves fit-content on an inline-flex as max-content, so
+               the tabs stayed on one line and stretched this strip to 437px
+               inside a 375px phone - which then dragged the whole ledger card
+               and the page sideways. Chrome wraps and never showed it.
+               The clamp forces the wrap that flex-wrap already asked for. */
+            max-width: 100%;
         }
         .payments-tab {
             display: inline-flex;
