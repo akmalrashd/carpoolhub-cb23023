@@ -613,24 +613,6 @@
                 height: var(--header-btn-h);
                 border-radius: 13px;
             }
-            /* These panels were `position: absolute; right: 0` against their
-               toggle, which sits mid-header. A 340px panel hung off a button
-               ~285pt from the left starts at -55pt, so its left edge fell off
-               screen ("Dashboard" rendered as "shboard"). On mobile they are
-               pinned to the viewport instead, which cannot overflow. */
-            .notification-dropdown,
-            .bento-menu-dropdown {
-                position: fixed;
-                top: calc(var(--mobile-header-h) + 6px);
-                left: 8px;
-                right: 8px;
-                width: auto;
-                max-width: none;
-                margin-top: 0;
-                max-height: calc(100vh - var(--mobile-header-h) - 24px);
-                overflow-y: auto;
-            }
-
             .avatar-initial {
                 width: var(--header-avatar-h);
                 height: var(--header-avatar-h);

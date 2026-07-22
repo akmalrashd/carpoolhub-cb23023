@@ -39,13 +39,34 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* Nothing should ever make the page scroll sideways - a native app does not
-       do that. Applied to the content column rather than body, because
-       overflow on body breaks the sticky header in some browsers. Inner rows
-       that are meant to scroll keep their own overflow-x and still work. */
-    .main-content {
-        overflow-x: hidden;
-        max-width: 100%;
+    /* The header dropdowns are `position: absolute; right: 0` against their own
+       toggle, which sits mid-header, and they are laid out even while closed.
+       Measured on a 489px viewport the bento panel sat at left=336 right=676 -
+       187px past the edge - so it, not the page content, was what made every
+       page scroll sideways and clip its cards.
+
+       These rules live here rather than in the page's own <style> because this
+       partial is included after it closes. The base .bento-menu-dropdown rule
+       appears ~800 lines below the mobile media query, so an override placed up
+       there loses on source order for every property the base rule also sets -
+       which is exactly what happened: only `left` took effect, and the panel
+       flipped from clipping on the left to clipping on the right.
+
+       Pinned to the viewport, a fixed panel also stops contributing to the
+       document's scroll width at all. */
+    @media (max-width: 1023px) {
+        .notification-dropdown,
+        .bento-menu-dropdown {
+            position: fixed;
+            top: calc(var(--mobile-header-h) + 6px);
+            left: 8px;
+            right: 8px;
+            width: auto;
+            max-width: none;
+            margin-top: 0;
+            max-height: calc(100vh - var(--mobile-header-h) - 24px);
+            overflow-y: auto;
+        }
     }
 
     /* `manipulation` removes the double-tap-to-zoom delay while still allowing
