@@ -36,7 +36,10 @@
                     // Tells us straight away whether the frame is looking at the
                     // deployed CSS or a cached copy from before the fix.
                     var html = d.documentElement.outerHTML;
-                    lines.push('CSS_BARU=' + (html.indexOf('clamped to the column') !== -1 ? 'YA' : 'TIDAK (versi lama)'));
+                    // Single-line marker on purpose: the previous check looked
+                    // for a phrase that spans a line break inside a CSS comment,
+                    // so it could never match and wrongly reported "old version".
+                    lines.push('CSS_BARU=' + (html.indexOf('CH-LAYOUT-CLAMP-V3') !== -1 ? 'YA' : 'TIDAK (versi lama)'));
                     lines.push('UA=' + navigator.userAgent.slice(0, 60));
                     lines.push('VIEWPORT=' + vw + '  screen=' + screen.width);
                     lines.push('DOC_SCROLLWIDTH=' + d.documentElement.scrollWidth);

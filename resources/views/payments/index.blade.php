@@ -3408,6 +3408,29 @@
             .payments-skel-container .payments-mobile-skel { display: none !important; }
             .payments-skel-container .payments-table-skel { display: block !important; }
         }
+
+        /* CH-LAYOUT-CLAMP-V3 */
+        /* Kept last on purpose. .payments-page is declared in three separate
+           places in this file (lines ~16, ~1590 and inside a max-width:767px
+           block), so anything written earlier loses on source order - that is
+           how the previous two attempts were silently defeated.
+
+           Root cause: .payments-page is display:grid with no explicit columns,
+           so the implicit track is `auto` and sizes itself to the item's
+           min-content. A grid item keeps min-width:auto by default, so a wide
+           descendant pushes the track - and therefore the card - past the
+           viewport. minmax(0, 1fr) pins the track to the container instead. */
+        .payments-page {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .payments-page > *,
+        .payments-card,
+        .payments-ledger-card,
+        .payments-page section {
+            min-width: 0;
+            max-width: 100%;
+        }
     </style>
 
 
