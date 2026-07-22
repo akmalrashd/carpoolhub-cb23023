@@ -18,6 +18,11 @@
                the load line sits directly under it and the shell subtracts it
                from the viewport — so it lives here rather than being repeated. */
             --mobile-header-h: 64px;
+            /* Size of the round-square controls in the mobile header (bento,
+               bell, profile) and the avatar inside the profile pill. Mobile
+               only — the desktop topbar keeps its own smaller sizes. */
+            --header-btn-h: 42px;
+            --header-avatar-h: 34px;
 
             /* Design tokens — CarpoolHub warm yellow system */
             --ch-yellow: #FACC15;
@@ -312,9 +317,14 @@
         }
 
         @media (max-width: 430px) {
-            /* Slightly tighter on small phones; the load line and shell follow
-               automatically because they read the same token. */
-            :root { --mobile-header-h: 58px; }
+            /* Slightly tighter on small phones. Override the tokens, not the
+               rules — the rules that consume these live in the max-width:1023px
+               block below and would win on source order. */
+            :root {
+                --mobile-header-h: 58px;
+                --header-btn-h: 37px;
+                --header-avatar-h: 30px;
+            }
             .mobile-header { padding: 0 8px; gap: 4px; }
             .mobile-header-left { gap: 4px; }
             .mobile-back-btn { width: 34px; height: 34px; font-size: 13px; }
@@ -327,10 +337,8 @@
             .mobile-home-title strong { font-size: 16px; }
             .mobile-home-title span { font-size: 11px; }
             .mobile-header-right { gap: 4px; }
-            .notification-toggle { width: 37px; height: 37px; font-size: 14px; }
-            .bento-menu-toggle { width: 37px; height: 37px; font-size: 14px; }
-            .profile-toggle { height: 37px; padding: 0 6px 0 3px; display: inline-flex; align-items: center; gap: 4px; }
-            .avatar-initial { width: 30px; height: 30px; font-size: 12px; }
+            .notification-toggle,
+            .bento-menu-toggle { font-size: 14px; }
             .role-badge { height: 22px; font-size: 10px; padding: 0 7px; gap: 3px; }
         }
 
@@ -341,9 +349,9 @@
         .notification-wrap { position: relative; }
 
         .notification-toggle {
-            width: 42px;
-            height: 42px;
-            border-radius: 13px;
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
             border: 1px solid var(--hairline-strong);
             background: var(--surface);
             color: var(--ink);
@@ -540,8 +548,8 @@
         .profile-wrap { position: relative; }
 
         .profile-toggle {
-            height: 42px;
-            border-radius: 13px;
+            height: 36px;
+            border-radius: 11px;
             border: 1.5px solid var(--ch-yellow-line);
             background: var(--surface);
             color: var(--ink);
@@ -584,22 +592,39 @@
             .profile-details {
                 display: none !important;
             }
+            /* All three header controls must resolve to the same height here.
+               This block previously pinned .profile-toggle to 36px !important
+               while the bell used the base 36px, so raising one without the
+               other left them visibly mismatched. They now share a token. */
             .profile-toggle {
-                height: 36px !important;
-                padding: 0 6px 0 3px !important;
+                height: var(--header-btn-h) !important;
+                border-radius: 13px !important;
+                padding: 0 8px 0 4px !important;
                 display: inline-flex !important;
                 align-items: center !important;
-                gap: 4px !important;
+                gap: 5px !important;
+            }
+            .notification-toggle,
+            .bento-menu-toggle {
+                width: var(--header-btn-h);
+                height: var(--header-btn-h);
+                border-radius: 13px;
+            }
+            .avatar-initial {
+                width: var(--header-avatar-h);
+                height: var(--header-avatar-h);
+                border-radius: 11px;
+                font-size: 13px;
             }
         }
 
         .avatar-initial {
-            width: 34px;
-            height: 34px;
-            border-radius: 11px;
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
             background: var(--ink);
             color: #fff;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -1340,9 +1365,9 @@
             display: inline-block;
         }
         .bento-menu-toggle {
-            width: 42px;
-            height: 42px;
-            border-radius: 13px;
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
             border: 1px solid var(--hairline-strong);
             background: var(--surface);
             color: var(--ink);
