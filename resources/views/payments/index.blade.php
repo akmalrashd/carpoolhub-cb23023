@@ -1594,10 +1594,12 @@
         .payments-mobile-total {
             display: grid;
             gap: 8px;
-            margin: 0 -14px;
+            margin: 0 0 12px;
             padding: 18px 14px;
+            border-radius: 16px;
             background: linear-gradient(135deg, #fff7b8 0%, #facc15 100%);
             color: #0f172a;
+            box-shadow: var(--shadow-2);
         }
         .payments-summary-top {
             display: flex;

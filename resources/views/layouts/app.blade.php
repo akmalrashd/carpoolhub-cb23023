@@ -871,7 +871,7 @@
         }
 
         .main-content {
-            padding: 14px 14px calc(83px + env(safe-area-inset-bottom, 16px));
+            padding: 14px 14px calc(140px + env(safe-area-inset-bottom, 16px));
         }
         .main-content[class*="page-"] { will-change: transform, opacity; }
         .main-content.page-enter-from-right { animation: pageEnterFromRight .34s cubic-bezier(0.22, 1, 0.36, 1); }
