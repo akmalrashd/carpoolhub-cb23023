@@ -18,8 +18,11 @@ BRANCH="master"
 
 cd "$APP_DIR"
 
-echo "==> Pulling $BRANCH"
-git pull --ff-only origin "$BRANCH"
+# NOTE: this script deliberately does NOT update the source tree. The workflow
+# does the git fetch/reset BEFORE invoking it. If the pull happened in here it
+# would overwrite this file while bash was still reading it, and bash — which
+# reads scripts incrementally by byte offset — would carry on executing the
+# stale layout. That silently skipped the unpack step once and 500'd the site.
 
 if [ -f build.tar.gz ]; then
   echo "==> Unpacking build artifacts"
@@ -48,3 +51,4 @@ php artisan route:cache
 php artisan view:cache
 
 echo "==> Done: $(git rev-parse --short HEAD)"
+

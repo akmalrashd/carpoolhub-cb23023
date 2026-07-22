@@ -83,4 +83,11 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
-          script: bash ~/carpoolhub/deploy.sh
+          # The source update must happen here, not inside deploy.sh — pulling
+          # from within that script would rewrite it mid-execution and bash
+          # would keep running the stale version. Update first, then invoke it.
+          script: |
+            cd ~/carpoolhub
+            git fetch origin master
+            git reset --hard origin/master
+            bash deploy.sh
