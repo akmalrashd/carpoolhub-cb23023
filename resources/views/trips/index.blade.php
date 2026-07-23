@@ -327,9 +327,7 @@
                                         'route_name' => $routeName,
                                         'driver' => $trip->driver?->name ?: '-',
                                         'driver_email' => $trip->driver?->email ?: '-',
-                                        'driver_photo' => $trip->driver?->profile_photo
-                                            ? \Illuminate\Support\Facades\Storage::disk('public')->url($trip->driver->profile_photo)
-                                            : '',
+                                        'driver_photo' => ($trip->driver?->profile_photo_url ?? ''),
                                         'driver_bank' => $trip->driver?->payment_bank_name ?: '-',
                                         'driver_account_name' => $trip->driver?->payment_account_name ?: '-',
                                         'driver_account_number' => $trip->driver?->payment_account_number ?: '-',
@@ -748,9 +746,7 @@
                                             'route_name' => $routeName,
                                             'driver' => $trip->driver?->name ?: '-',
                                             'driver_email' => $trip->driver?->email ?: '-',
-                                            'driver_photo' => $trip->driver?->profile_photo
-                                                ? \Illuminate\Support\Facades\Storage::disk('public')->url($trip->driver->profile_photo)
-                                                : '',
+                                            'driver_photo' => ($trip->driver?->profile_photo_url ?? ''),
                                             'driver_bank' => $trip->driver?->payment_bank_name ?: '-',
                                             'driver_account_name' => $trip->driver?->payment_account_name ?: '-',
                                             'driver_account_number' => $trip->driver?->payment_account_number ?: '-',

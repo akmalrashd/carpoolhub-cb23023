@@ -5,13 +5,19 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class SettingsService
 {
+    public function __construct(private readonly ImageService $imageService)
+    {
+    }
+
     public function updateProfile(User $user, array $data): User
     {
+        // Every image is compressed on upload and stored as a base64 data URI in
+        // the DB (see ImageService). Sizes chosen per use: avatars small, QR
+        // mid + PNG to stay scannable, licence/selfie larger so they stay legible.
         $photoPath = $user->profile_photo;
         $duitnowQrPath = $user->payment_qr_duitnow;
         $tngQrPath = $user->payment_qr_tng;
@@ -20,21 +26,19 @@ class SettingsService
         $licensePath = $user->driving_license_photo;
 
         if (isset($data['profile_photo']) && $data['profile_photo'] instanceof UploadedFile) {
-            $photoPath = $this->storeProfilePhoto($user, $data['profile_photo']);
+            $photoPath = $this->imageService->toCompressedBase64($data['profile_photo'], 512, 78);
         }
         if (isset($data['payment_qr_duitnow']) && $data['payment_qr_duitnow'] instanceof UploadedFile) {
-            $duitnowQrPath = $this->storePaymentQr($user->payment_qr_duitnow, $data['payment_qr_duitnow']);
+            $duitnowQrPath = $this->imageService->toCompressedBase64($data['payment_qr_duitnow'], 600, 90, true);
         }
         if (isset($data['payment_qr_tng']) && $data['payment_qr_tng'] instanceof UploadedFile) {
-            $tngQrPath = $this->storePaymentQr($user->payment_qr_tng, $data['payment_qr_tng']);
+            $tngQrPath = $this->imageService->toCompressedBase64($data['payment_qr_tng'], 600, 90, true);
         }
         if (isset($data['selfie_photo']) && $data['selfie_photo'] instanceof UploadedFile) {
-            $sfile = $data['selfie_photo'];
-            $selfiePath = 'data:' . $sfile->getMimeType() . ';base64,' . base64_encode(file_get_contents($sfile->getRealPath()));
+            $selfiePath = $this->imageService->toCompressedBase64($data['selfie_photo'], 800, 78);
         }
         if (isset($data['driving_license_photo']) && $data['driving_license_photo'] instanceof UploadedFile) {
-            $lfile = $data['driving_license_photo'];
-            $licensePath = 'data:' . $lfile->getMimeType() . ';base64,' . base64_encode(file_get_contents($lfile->getRealPath()));
+            $licensePath = $this->imageService->toCompressedBase64($data['driving_license_photo'], 1200, 80);
         }
 
         $name = array_key_exists('name', $data) ? (string) $data['name'] : $user->name;
@@ -98,21 +102,4 @@ class SettingsService
         ]);
     }
 
-    private function storeProfilePhoto(User $user, UploadedFile $file): string
-    {
-        if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
-            Storage::disk('public')->delete($user->profile_photo);
-        }
-
-        return $file->store('profile-photos', 'public');
-    }
-
-    private function storePaymentQr(?string $existingPath, UploadedFile $file): string
-    {
-        if ($existingPath && Storage::disk('public')->exists($existingPath)) {
-            Storage::disk('public')->delete($existingPath);
-        }
-
-        return $file->store('payment-qr', 'public');
-    }
 }

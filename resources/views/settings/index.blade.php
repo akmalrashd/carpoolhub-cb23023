@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $photoUrl = $user->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($user->profile_photo) : null;
+        $photoUrl = $user->profile_photo_url;
         $duitnowQrUrl = $user->payment_qr_duitnow_url;
         $tngQrUrl = $user->payment_qr_tng_url;
         $countryOptions = [

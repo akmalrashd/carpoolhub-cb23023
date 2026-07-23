@@ -85,7 +85,7 @@
                     <div class="members-grid">
                         @foreach($acceptedConnections as $connectedUser)
                             @php
-                                $photo = $connectedUser->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($connectedUser->profile_photo) : null;
+                                $photo = $connectedUser->profile_photo_url;
                                 $cleanPhone = preg_replace('/\D+/', '', (string) $connectedUser->phone);
                             @endphp
                             <div class="member-card">
@@ -146,7 +146,7 @@
                         @foreach($incomingRequests as $req)
                             @php
                                 $requester = $req->requester;
-                                $reqPhoto = $requester?->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($requester->profile_photo) : null;
+                                $reqPhoto = $requester?->profile_photo_url;
                             @endphp
                             <div class="req-item-row">
                                 <div class="req-avatar">
@@ -203,7 +203,7 @@
                         @foreach($outgoingRequests as $req)
                             @php
                                 $receiver = $req->receiver;
-                                $recPhoto = $receiver?->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($receiver->profile_photo) : null;
+                                $recPhoto = $receiver?->profile_photo_url;
                             @endphp
                             <div class="req-item-row">
                                 <div class="req-avatar">
@@ -252,7 +252,7 @@
                     <div class="members-grid">
                         @foreach($searchResults as $foundUser)
                             @php
-                                $photo = $foundUser->profile_photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($foundUser->profile_photo) : null;
+                                $photo = $foundUser->profile_photo_url;
                                 $relStatus = $foundUser->relationship_status ?? 'none';
                             @endphp
                             <div class="member-card">

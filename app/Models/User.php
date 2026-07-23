@@ -210,22 +210,36 @@ class User extends Authenticatable
         return $this->whatsapp_digits ? ('https://wa.me/' . $this->whatsapp_digits) : null;
     }
 
-    public function getPaymentQrDuitnowUrlAttribute(): ?string
+    /**
+     * Resolve an image column to a usable <img src>. Images are stored as base64
+     * data URIs (returned as-is), but older rows may still hold a storage path
+     * (resolved to a public URL) — so both keep working during and after the
+     * switch to base64.
+     */
+    private function imageSrc(?string $value): ?string
     {
-        if (! $this->payment_qr_duitnow) {
+        if (! $value) {
             return null;
         }
 
-        return asset('storage/' . $this->payment_qr_duitnow);
+        return str_starts_with($value, 'data:')
+            ? $value
+            : asset('storage/' . $value);
+    }
+
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        return $this->imageSrc($this->profile_photo);
+    }
+
+    public function getPaymentQrDuitnowUrlAttribute(): ?string
+    {
+        return $this->imageSrc($this->payment_qr_duitnow);
     }
 
     public function getPaymentQrTngUrlAttribute(): ?string
     {
-        if (! $this->payment_qr_tng) {
-            return null;
-        }
-
-        return asset('storage/' . $this->payment_qr_tng);
+        return $this->imageSrc($this->payment_qr_tng);
     }
 
 }

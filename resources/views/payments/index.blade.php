@@ -508,15 +508,11 @@
                                 return [
                                     'name' => $participantUser?->name ?: '-',
                                     'email' => $participantUser?->email ?: '',
-                                    'photo_url' => $participantUser?->profile_photo
-                                        ? \Illuminate\Support\Facades\Storage::disk('public')->url($participantUser->profile_photo)
-                                        : null,
+                                    'photo_url' => $participantUser?->profile_photo_url,
                                     'is_driver' => (bool) $participant->is_driver,
                                 ];
                             })->values()->all() ?? [];
-                            $driverPhotoUrl = $payment->trip?->driver?->profile_photo
-                                ? \Illuminate\Support\Facades\Storage::disk('public')->url($payment->trip->driver->profile_photo)
-                                : '';
+                            $driverPhotoUrl = ($payment->trip?->driver?->profile_photo_url ?? '');
                             $driverBank = $payment->trip?->driver?->payment_bank_name ?: '-';
                             $driverAccountName = $payment->trip?->driver?->payment_account_name ?: '-';
                             $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
@@ -780,15 +776,11 @@
                                     return [
                                         'name' => $participantUser?->name ?: '-',
                                         'email' => $participantUser?->email ?: '',
-                                        'photo_url' => $participantUser?->profile_photo
-                                            ? \Illuminate\Support\Facades\Storage::disk('public')->url($participantUser->profile_photo)
-                                            : null,
+                                        'photo_url' => $participantUser?->profile_photo_url,
                                         'is_driver' => (bool) $participant->is_driver,
                                     ];
                                 })->values()->all() ?? [];
-                                $driverPhotoUrl = $payment->trip?->driver?->profile_photo
-                                    ? \Illuminate\Support\Facades\Storage::disk('public')->url($payment->trip->driver->profile_photo)
-                                    : '';
+                                $driverPhotoUrl = ($payment->trip?->driver?->profile_photo_url ?? '');
                                 $driverBank = $payment->trip?->driver?->payment_bank_name ?: '-';
                                 $driverAccountName = $payment->trip?->driver?->payment_account_name ?: '-';
                                 $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
@@ -1254,9 +1246,7 @@
                                 return [
                                     'name' => $participantUser?->name ?: '-',
                                     'email' => $participantUser?->email ?: '',
-                                    'photo_url' => $participantUser?->profile_photo
-                                        ? \Illuminate\Support\Facades\Storage::disk('public')->url($participantUser->profile_photo)
-                                        : null,
+                                    'photo_url' => $participantUser?->profile_photo_url,
                                     'is_driver' => (bool) $participant->is_driver,
                                 ];
                             })->values()->all() ?? [];
@@ -1435,9 +1425,7 @@
                                 return [
                                     'name' => $participantUser?->name ?: '-',
                                     'email' => $participantUser?->email ?: '',
-                                    'photo_url' => $participantUser?->profile_photo
-                                        ? \Illuminate\Support\Facades\Storage::disk('public')->url($participantUser->profile_photo)
-                                        : null,
+                                    'photo_url' => $participantUser?->profile_photo_url,
                                     'is_driver' => (bool) $participant->is_driver,
                                 ];
                             })->values()->all() ?? [];

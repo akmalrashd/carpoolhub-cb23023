@@ -27,9 +27,7 @@
                 'user_id' => $participant->user_id,
                 'name' => $participant->user?->name ?? '-',
                 'email' => $participant->user?->email ?? '',
-                'photo_url' => $participant->user?->profile_photo
-                    ? asset('storage/' . $participant->user->profile_photo)
-                    : null,
+                'photo_url' => $participant->user?->profile_photo_url,
                 'is_driver' => (bool) $participant->is_driver,
             ])
             ->values();

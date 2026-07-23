@@ -41,9 +41,7 @@
                     default => 'risk-moderate',
                 };
                 $requesterName = (string) ($requestRow->user?->name ?? '-');
-                $requesterPhotoUrl = $requestRow->user?->profile_photo
-                    ? \Illuminate\Support\Facades\Storage::disk('public')->url($requestRow->user->profile_photo)
-                    : null;
+                $requesterPhotoUrl = $requestRow->user?->profile_photo_url;
                 $requesterInitial = strtoupper(substr(trim($requesterName) ?: 'U', 0, 1));
                 $routePoint = $requestRow->routePoint;
                 $routeFitDisplay = $routePoint && $routePoint->route_fit_score !== null
