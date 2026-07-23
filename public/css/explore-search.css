@@ -1,0 +1,249 @@
+/* Extracted from resources/views/explore/search.blade.php — cacheable. */
+        /* ── Explore Search Page ────────────────────────────────────────── */
+        .xs-page { display: grid; gap: 16px; }
+
+        /* Section card */
+        .xs-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            padding: 18px 16px;
+            box-shadow: var(--shadow-2);
+        }
+
+        /* Page heading */
+        .xs-title {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.1;
+        }
+        .xs-subtitle {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Primary destination box */
+        .xs-dest-box {
+            margin-top: 14px;
+            border: 1.5px solid var(--ch-yellow-line);
+            border-radius: var(--r-md);
+            background: var(--ch-yellow-tint);
+            padding: 12px;
+            display: grid;
+            gap: 8px;
+        }
+        .xs-dest-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--warning-ink);
+        }
+        .xs-dest-input {
+            width: 100%;
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-sm);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 11px 13px;
+            font-size: 15px;
+            font-family: var(--font-ui);
+            outline: none;
+        }
+        .xs-dest-input:focus { border-color: var(--ch-yellow-deep); }
+
+        /* Secondary field grid */
+        .xs-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            margin-top: 12px;
+        }
+        .xs-field { display: grid; gap: 4px; }
+        .xs-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--muted);
+        }
+        .xs-input {
+            width: 100%;
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-sm);
+            background: var(--surface-2);
+            color: var(--ink);
+            padding: 9px 11px;
+            font-size: 13px;
+            font-family: var(--font-ui);
+            outline: none;
+        }
+        .xs-input:focus { border-color: var(--ch-yellow-deep); background: var(--surface); }
+
+        /* Autocomplete dropdown */
+        .xs-auto-wrap { position: relative; }
+        .xs-suggest-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            z-index: 30;
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-sm);
+            background: var(--surface);
+            box-shadow: var(--shadow-3);
+            max-height: 220px;
+            overflow: auto;
+            display: none;
+        }
+        .xs-suggest-list.show { display: block; }
+        .xs-suggest-btn {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid var(--hairline);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            display: grid;
+            gap: 2px;
+        }
+        .xs-suggest-btn:last-child { border-bottom: 0; }
+        .xs-suggest-btn:hover { background: var(--surface-2); }
+        .xs-suggest-main { font-weight: 700; color: var(--ink); }
+        .xs-suggest-sub  { color: var(--muted); font-size: 11px; line-height: 1.25; }
+
+        /* Map card */
+        .xs-map-card {
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--surface-2);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .xs-map-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .xs-map-title {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .xs-map-hint {
+            margin: 2px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .xs-map-targets { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+        .xs-map-target-btn {
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-pill);
+            background: var(--surface);
+            color: var(--ink-3);
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--font-ui);
+            transition: border-color .15s ease, background .15s ease, color .15s ease;
+        }
+        .xs-map-target-btn.active {
+            border-color: var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--warning-ink);
+        }
+        .xs-map-status {
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-sm);
+            background: var(--surface);
+            color: var(--ink-3);
+            font-size: 12px;
+            padding: 8px 11px;
+            line-height: 1.4;
+        }
+        #exploreSearchMap {
+            width: 100%;
+            height: 260px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        /* Form actions */
+        .xs-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        /* Recent / suggested sections */
+        .xs-section-title {
+            margin: 0 0 10px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .xs-tag-list { display: flex; gap: 7px; flex-wrap: wrap; }
+        .xs-tag {
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-pill);
+            background: var(--surface-2);
+            color: var(--ink-3);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+        .xs-tag:hover {
+            border-color: var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--warning-ink);
+        }
+        .xs-suggested-list { display: grid; gap: 8px; margin: 0; }
+        .xs-suggested-item {
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--surface);
+            color: var(--ink-3);
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.35;
+            padding: 11px 13px;
+            text-decoration: none;
+            box-shadow: var(--shadow-1);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+        .xs-suggested-item:hover {
+            border-color: var(--ch-yellow-line);
+            background: var(--ch-yellow-tint);
+            color: var(--warning-ink);
+        }
+        .xs-empty { color: var(--muted-2); font-size: 13px; margin: 0; }
+
+        @media (min-width: 768px) {
+            .xs-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .xs-suggested-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
