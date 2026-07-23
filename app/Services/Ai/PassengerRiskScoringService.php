@@ -6,6 +6,7 @@ use App\Models\PassengerRiskProfile;
 use App\Models\Trip;
 use App\Models\User;
 use App\Services\PassengerReliabilityService;
+use Illuminate\Support\Collection;
 
 class PassengerRiskScoringService
 {
@@ -22,9 +23,40 @@ class PassengerRiskScoringService
      *   buildForUsers() once per passenger. The value is identical either way — buildForUsers
      *   returns the same row for a given id — so scores are unchanged.
      */
-    public function scoreUserForTrip(User $passenger, Trip $trip, ?User $driver = null, ?array $reliability = null): array
+    /**
+     * Score every passenger for a trip using ONE batched features query and the
+     * caller's already-built reliability map, instead of ~9 queries per
+     * passenger. Scores are identical to scoring each passenger individually —
+     * passengerRiskFeaturesForUsers returns the same per-user row — so only the
+     * query count drops.
+     *
+     * @param  Collection<int, User>  $passengers
+     * @param  array<int, array<string, mixed>>  $reliabilityMap  keyed by user id
+     * @return array<int, array<string, mixed>>  scores keyed by user id
+     */
+    public function scoreUsersForTrip(Collection $passengers, Trip $trip, ?User $driver = null, array $reliabilityMap = []): array
     {
-        $features = $this->featureEngineeringService->passengerRiskFeatures($passenger);
+        $ids = $passengers->pluck('id')->unique()->values()->all();
+        if ($ids === []) {
+            return [];
+        }
+
+        $featuresMap = $this->featureEngineeringService->passengerRiskFeaturesForUsers($ids);
+
+        return $passengers->mapWithKeys(fn (User $passenger) => [
+            $passenger->id => $this->scoreUserForTrip(
+                $passenger,
+                $trip,
+                $driver,
+                $reliabilityMap[$passenger->id] ?? null,
+                $featuresMap[$passenger->id] ?? null,
+            ),
+        ])->all();
+    }
+
+    public function scoreUserForTrip(User $passenger, Trip $trip, ?User $driver = null, ?array $reliability = null, ?array $features = null): array
+    {
+        $features ??= $this->featureEngineeringService->passengerRiskFeatures($passenger);
         $reliability = $reliability ?? ($this->passengerReliabilityService->buildForUsers([$passenger->id])[$passenger->id] ?? [
             'score' => 5.0,
             'label' => 'Excellent',

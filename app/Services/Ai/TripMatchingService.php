@@ -16,9 +16,13 @@ class TripMatchingService
 
     public function rankTripsForUser(User $user, Collection $trips, array $filters = [], bool $log = false): Collection
     {
+        // The user's saved routes and preferred hour do not change between trips,
+        // so compute them once here instead of once per trip inside the map.
+        $context = $this->featureEngineeringService->recommendationContext($user);
+
         return $trips
-            ->map(function (Trip $trip) use ($user, $log): array {
-                $score = $this->scoreTripForUser($user, $trip, $log);
+            ->map(function (Trip $trip) use ($user, $log, $context): array {
+                $score = $this->scoreTripForUser($user, $trip, $log, $context);
 
                 return [
                     'trip' => $trip,
@@ -29,9 +33,9 @@ class TripMatchingService
             ->values();
     }
 
-    public function scoreTripForUser(User $user, Trip $trip, bool $log = false): array
+    public function scoreTripForUser(User $user, Trip $trip, bool $log = false, ?array $context = null): array
     {
-        $features = $this->featureEngineeringService->recommendationFeatures($user, $trip);
+        $features = $this->featureEngineeringService->recommendationFeatures($user, $trip, $context);
         $matchScore = round(array_sum($features), 2);
         $explanations = $this->buildExplanation($features);
 

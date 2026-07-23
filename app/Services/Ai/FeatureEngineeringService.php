@@ -50,14 +50,139 @@ class FeatureEngineeringService
         ];
     }
 
-    public function recommendationFeatures(User $user, Trip $trip): array
+    /**
+     * User-invariant inputs for recommendation scoring: the user's active saved
+     * routes and their preferred travel hour. Both depend only on the user, not
+     * the trip, so ranking a page of trips computes this ONCE instead of per
+     * trip. preferred_hour is null when the user has no past joined trips (the
+     * old code's "empty" branch); it may legitimately be 0 (midnight), so
+     * callers must check `=== null`, not falsiness.
+     *
+     * @return array{saved_routes: Collection<int, SavedRoute>, preferred_hour: int|null}
+     */
+    public function recommendationContext(User $user): array
     {
         $savedRoutes = SavedRoute::query()
             ->where('user_id', $user->id)
             ->where('is_active', true)
             ->get();
 
-        $timePreferenceScore = $this->timePreferenceScore($user, $trip);
+        $pastHours = TripParticipant::query()
+            ->where('user_id', $user->id)
+            ->where('is_driver', false)
+            ->whereHas('trip', fn ($query) => $query->whereNotNull('trip_datetime'))
+            ->with('trip:id,trip_datetime')
+            ->get()
+            ->map(fn (TripParticipant $participant) => (int) $participant->trip->trip_datetime->format('H'));
+
+        return [
+            'saved_routes' => $savedRoutes,
+            'preferred_hour' => $pastHours->isEmpty() ? null : (int) round($pastHours->avg()),
+        ];
+    }
+
+    /**
+     * Batched equivalent of passengerRiskFeatures() for many users at once, so
+     * scoring a trip's join requests runs a handful of grouped queries instead
+     * of ~9 per passenger.
+     *
+     * IMPORTANT — this reproduces a quirk of passengerRiskFeatures() exactly, on
+     * purpose. There, $paymentBase is mutated in place (not cloned) by the
+     * $paymentDelays chain, so the later outstanding_amount / overdue_case_count
+     * queries silently inherit `marked_paid_at IS NOT NULL` and a trip_datetime
+     * predicate. To return identical numbers, both aggregates below carry those
+     * same predicates. avg_payment_delay_hours stays computed in PHP with Carbon
+     * (never SQL AVG) so float/rounding is bit-for-bit identical.
+     *
+     * @param  array<int>  $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function passengerRiskFeaturesForUsers(array $ids): array
+    {
+        $ids = array_values(array_unique($ids));
+        if ($ids === []) {
+            return [];
+        }
+
+        $now = now();
+
+        $joinRequests = TripJoinRequest::query()
+            ->whereIn('user_id', $ids)
+            ->groupBy('user_id')
+            ->selectRaw("user_id,
+                COUNT(*) as total,
+                SUM(status = 'approved') as approved,
+                SUM(status = 'rejected') as rejected,
+                SUM(status = 'cancelled') as cancelled")
+            ->get()->keyBy('user_id');
+
+        $absent = TripParticipant::query()
+            ->whereIn('user_id', $ids)->where('is_driver', false)->where('attendance_status', 'absent')
+            ->groupBy('user_id')->selectRaw('user_id, COUNT(*) as cnt')
+            ->get()->keyBy('user_id');
+
+        // Leaked predicates replicated: marked_paid_at NOT NULL + trip_datetime NOT NULL.
+        $outstanding = TripPayment::query()
+            ->whereIn('user_id', $ids)
+            ->whereIn('payment_status', ['unpaid', 'pending_confirmation'])
+            ->whereNotNull('marked_paid_at')
+            ->whereHas('trip', fn ($query) => $query->whereNotNull('trip_datetime'))
+            ->groupBy('user_id')->selectRaw('user_id, SUM(amount_due) as amt')
+            ->get()->keyBy('user_id');
+
+        // Leaked marked_paid_at NOT NULL; trip_datetime < now already implies NOT NULL.
+        $overdue = TripPayment::query()
+            ->whereIn('user_id', $ids)
+            ->whereIn('payment_status', ['unpaid', 'pending_confirmation'])
+            ->whereNotNull('marked_paid_at')
+            ->whereHas('trip', fn ($query) => $query->where('trip_datetime', '<', $now))
+            ->groupBy('user_id')->selectRaw('user_id, COUNT(*) as cnt')
+            ->get()->keyBy('user_id');
+
+        // Delay rows for the PHP avg — same filter as passengerRiskFeatures' $paymentDelays.
+        $delayRows = TripPayment::query()
+            ->whereIn('user_id', $ids)
+            ->whereNotNull('marked_paid_at')
+            ->whereHas('trip', fn ($query) => $query->whereNotNull('trip_datetime'))
+            ->with('trip:id,trip_datetime')
+            ->get()->groupBy('user_id');
+
+        $out = [];
+        foreach ($ids as $id) {
+            $jr = $joinRequests->get($id);
+
+            $delays = collect($delayRows->get($id) ?? [])
+                ->map(function (TripPayment $payment): ?float {
+                    if (! $payment->trip?->trip_datetime || ! $payment->marked_paid_at) {
+                        return null;
+                    }
+
+                    return (float) Carbon::parse($payment->trip->trip_datetime)
+                        ->diffInHours(Carbon::parse($payment->marked_paid_at), false);
+                })
+                ->filter(fn ($hours) => $hours !== null);
+
+            $out[$id] = [
+                'join_request_count' => (int) ($jr->total ?? 0),
+                'approved_request_count' => (int) ($jr->approved ?? 0),
+                'rejected_request_count' => (int) ($jr->rejected ?? 0),
+                'cancelled_request_count' => (int) ($jr->cancelled ?? 0),
+                'attendance_absent_count' => (int) ($absent->get($id)->cnt ?? 0),
+                'outstanding_amount' => round((float) ($outstanding->get($id)->amt ?? 0), 2),
+                'overdue_case_count' => (int) ($overdue->get($id)->cnt ?? 0),
+                'avg_payment_delay_hours' => round((float) ($delays->avg() ?? 0), 2),
+            ];
+        }
+
+        return $out;
+    }
+
+    public function recommendationFeatures(User $user, Trip $trip, ?array $context = null): array
+    {
+        $context ??= $this->recommendationContext($user);
+        $savedRoutes = $context['saved_routes'];
+
+        $timePreferenceScore = $this->timePreferenceScore($context['preferred_hour'], $trip);
         $routeScore = $this->routeAlignmentScore($savedRoutes, $trip);
         $connectionScore = $this->connectionScore($user, $trip);
         $historyScore = $this->historyScore($user, $trip);
@@ -131,25 +256,18 @@ class FeatureEngineeringService
         return 12.0;
     }
 
-    private function timePreferenceScore(User $user, Trip $trip): float
+    private function timePreferenceScore(?int $preferredHour, Trip $trip): float
     {
         if (! $trip->trip_datetime) {
             return 0.0;
         }
 
-        $pastHours = TripParticipant::query()
-            ->where('user_id', $user->id)
-            ->where('is_driver', false)
-            ->whereHas('trip', fn ($query) => $query->whereNotNull('trip_datetime'))
-            ->with('trip:id,trip_datetime')
-            ->get()
-            ->map(fn (TripParticipant $participant) => (int) $participant->trip->trip_datetime->format('H'));
-
-        if ($pastHours->isEmpty()) {
+        // Strict null check: preferred_hour === 0 (midnight) is a real value, not
+        // "no history" — matches the old isEmpty() branch order exactly.
+        if ($preferredHour === null) {
             return 10.0;
         }
 
-        $preferredHour = (int) round($pastHours->avg());
         $hourDiff = abs($preferredHour - (int) $trip->trip_datetime->format('H'));
 
         return max(0.0, 20.0 - ($hourDiff * 2.5));

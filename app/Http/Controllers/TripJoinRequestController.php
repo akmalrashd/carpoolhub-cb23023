@@ -32,15 +32,13 @@ class TripJoinRequestController extends Controller
         $reliabilityMap = $this->passengerReliabilityService->buildForUsers(
             $requests->getCollection()->pluck('user_id')->unique()->values()
         );
-        $aiRiskMap = $requests->getCollection()
-            ->mapWithKeys(fn (TripJoinRequest $joinRequest) => [
-                $joinRequest->user_id => $this->passengerRiskScoringService->scoreUserForTrip(
-                    $joinRequest->user,
-                    $trip,
-                    $trip->driver
-                ),
-            ])
-            ->all();
+        // Score all requesters at once: features batched, reliability reused.
+        $aiRiskMap = $this->passengerRiskScoringService->scoreUsersForTrip(
+            $requests->getCollection()->map(fn (TripJoinRequest $joinRequest) => $joinRequest->user)->filter(),
+            $trip,
+            $trip->driver,
+            $reliabilityMap
+        );
 
         return view('trips.requests', compact('trip', 'requests', 'reliabilityMap', 'aiRiskMap'));
     }

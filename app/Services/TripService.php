@@ -50,7 +50,7 @@ class TripService
             $query->where('status', $statusFilter);
         }
 
-        return $query->latest('trip_datetime')->paginate($perPage);
+        return $query->latest('trip_datetime')->orderByDesc('id')->paginate($perPage);
     }
 
     public function statusCountsForUser(User $user, array $filters = []): array
@@ -240,11 +240,14 @@ class TripService
             $query->whereIn('driver_id', $connectionIds->isNotEmpty() ? $connectionIds->all() : [-1]);
         }
 
+        // id tiebreaker makes paging deterministic when trip_datetime ties, and
+        // lets the composite index serve the sort without a filesort. Direction
+        // matches the primary sort so the index is read straight (not mixed).
         $sort = strtolower((string) ($filters['sort'] ?? 'nearest'));
         if ($sort === 'latest') {
-            $query->latest('trip_datetime');
+            $query->latest('trip_datetime')->orderByDesc('id');
         } else {
-            $query->oldest('trip_datetime');
+            $query->oldest('trip_datetime')->orderBy('id');
         }
 
         return $query->paginate($perPage)->appends($filters);

@@ -53,18 +53,14 @@ class RefreshController extends Controller
         $reliabilityMap = $this->passengerReliabilityService->buildForUsers(
             $requests->getCollection()->pluck('user_id')->unique()->values()
         );
-        $aiRiskMap = $requests->getCollection()
-            ->mapWithKeys(fn ($joinRequest) => [
-                $joinRequest->user_id => $this->passengerRiskScoringService->scoreUserForTrip(
-                    $joinRequest->user,
-                    $trip,
-                    $trip->driver,
-                    // Reuse the reliability already batched above instead of
-                    // re-querying per passenger. Same value, so same score.
-                    $reliabilityMap[$joinRequest->user_id] ?? null
-                ),
-            ])
-            ->all();
+        // Score all requesters at once: features are batched in a few queries,
+        // reliability reuses the map built above. Same scores, far fewer queries.
+        $aiRiskMap = $this->passengerRiskScoringService->scoreUsersForTrip(
+            $requests->getCollection()->map(fn ($joinRequest) => $joinRequest->user)->filter(),
+            $trip,
+            $trip->driver,
+            $reliabilityMap
+        );
 
         $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
         $availableSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;

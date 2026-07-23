@@ -63,6 +63,27 @@ class PaymentService
             ->paginate($perPage, ['*'], 'driver_page');
     }
 
+    /**
+     * Count breakdown by payment_status for a query, in ONE grouped query
+     * instead of a COUNT per status. Returns [status => count] with the three
+     * enum values always present (0 if absent), so callers can sum/read freely.
+     *
+     * @return array{unpaid:int, pending_confirmation:int, paid:int}
+     */
+    private function statusBreakdown(Builder $query): array
+    {
+        $rows = (clone $query)
+            ->select('payment_status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('payment_status')
+            ->pluck('aggregate', 'payment_status');
+
+        return [
+            'unpaid' => (int) ($rows['unpaid'] ?? 0),
+            'pending_confirmation' => (int) ($rows['pending_confirmation'] ?? 0),
+            'paid' => (int) ($rows['paid'] ?? 0),
+        ];
+    }
+
     public function indexCountsForUser(User $user, array $filters = [], bool $includeDriverQueue = false, ?array $tripIds = null): array
     {
         if ($user->role === 'admin') {
@@ -74,13 +95,19 @@ class PaymentService
             unset($countFilters['payment_filter'], $countFilters['direction']);
             $this->applyIndexFilters($allQuery, $countFilters);
 
+            // One grouped query replaces the old five separate COUNTs. The total
+            // is the sum of the per-status counts, so 'all'/'collect' match the
+            // old (clone $allQuery)->count() exactly.
+            $b = $this->statusBreakdown($allQuery);
+            $all = $b['unpaid'] + $b['pending_confirmation'] + $b['paid'];
+
             return [
-                'all' => (int) (clone $allQuery)->count(),
+                'all' => $all,
                 'pay' => 0,
-                'collect' => (int) (clone $allQuery)->count(),
-                'unpaid' => (int) (clone $allQuery)->where('payment_status', 'unpaid')->count(),
-                'review' => (int) (clone $allQuery)->where('payment_status', 'pending_confirmation')->count(),
-                'confirmed' => (int) (clone $allQuery)->where('payment_status', 'paid')->count(),
+                'collect' => $all,
+                'unpaid' => $b['unpaid'],
+                'review' => $b['pending_confirmation'],
+                'confirmed' => $b['paid'],
             ];
         }
 
@@ -104,24 +131,30 @@ class PaymentService
         $this->applyIndexFilters($payQuery, $countFilters);
         $this->applyIndexFilters($collectQuery, $countFilters);
 
+        // Grouped breakdowns computed once each; every old count is derived from
+        // them. payCount/collectCount are the totals (unconditional pay, driver-
+        // gated collect), matching the old (clone $query)->count() calls.
+        $payBreakdown = $this->statusBreakdown($payQuery);
+        $collectBreakdown = $includeDriverQueue ? $this->statusBreakdown($collectQuery) : null;
+
         $direction = (string) ($filters['direction'] ?? 'all');
-        $statusQueries = collect();
+        $active = [];
         if ($direction !== 'collect') {
-            $statusQueries->push(clone $payQuery);
+            $active[] = $payBreakdown;
         }
         if ($includeDriverQueue && $direction !== 'pay') {
-            $statusQueries->push(clone $collectQuery);
+            $active[] = $collectBreakdown;
         }
 
-        $sumStatus = function (string $status) use ($statusQueries): int {
-            return (int) $statusQueries->sum(fn ($query) => (clone $query)->where('payment_status', $status)->count());
-        };
+        $sumStatus = fn (string $status): int => (int) array_sum(array_map(fn ($b) => $b[$status], $active));
 
-        $payCount = (int) (clone $payQuery)->count();
-        $collectCount = $includeDriverQueue ? (int) (clone $collectQuery)->count() : 0;
+        $payCount = $payBreakdown['unpaid'] + $payBreakdown['pending_confirmation'] + $payBreakdown['paid'];
+        $collectCount = $collectBreakdown !== null
+            ? $collectBreakdown['unpaid'] + $collectBreakdown['pending_confirmation'] + $collectBreakdown['paid']
+            : 0;
 
         return [
-            'all' => (int) $statusQueries->sum(fn ($query) => (clone $query)->count()),
+            'all' => $sumStatus('unpaid') + $sumStatus('pending_confirmation') + $sumStatus('paid'),
             'pay' => $payCount,
             'collect' => $collectCount,
             'unpaid' => $sumStatus('unpaid'),

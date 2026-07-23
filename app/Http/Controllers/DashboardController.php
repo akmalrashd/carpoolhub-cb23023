@@ -82,6 +82,7 @@ class DashboardController extends Controller
             ->whereNotNull('trip_datetime')
             ->where('trip_datetime', '>=', now())
             ->orderBy('trip_datetime')
+            ->orderBy('id')
             ->limit(3)
             ->get();
 
@@ -95,6 +96,7 @@ class DashboardController extends Controller
                     ->where('is_driver', false);
             })
             ->orderBy('trip_datetime')
+            ->orderBy('id')
             ->limit(3)
             ->get();
 
@@ -123,6 +125,7 @@ class DashboardController extends Controller
                 '(seat_limit IS NULL OR seat_limit > (SELECT COUNT(*) FROM trip_participants tp WHERE tp.trip_id = trips.id AND tp.is_driver = 0))'
             )
             ->orderBy('trip_datetime')
+            ->orderBy('id')
             ->limit(10)
             ->get();
 
