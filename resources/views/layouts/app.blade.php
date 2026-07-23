@@ -27,6 +27,15 @@
             --header-btn-h: 42px;
             --header-avatar-h: 34px;
 
+            /* ─── LAYOUT CONTROL PANEL — laras saiz rangka di sini ───────────
+               Angka-angka ini dulu diulang di banyak tempat dalam fail ini.
+               Ubah satu baris di sini, seluruh rangka ikut. (Jarak tepi
+               halaman ada dalam --page-gutter di pwa-head.) */
+            --desktop-topbar-h: 52px;   /* tinggi bar atas desktop */
+            --bottom-nav-h: 83px;       /* tinggi nav bawah telefon */
+            --sidebar-w: 70px;          /* lebar sidebar (tutup) */
+            --sidebar-w-expanded: 242px;/* lebar sidebar (buka) */
+
             /* Design tokens — CarpoolHub warm yellow system */
             --ch-yellow: #FACC15;
             --ch-yellow-deep: #E6B800;
@@ -1027,7 +1036,7 @@
             backdrop-filter: blur(14px);
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            height: calc(83px + env(safe-area-inset-bottom, 0px));
+            height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
             padding-bottom: env(safe-area-inset-bottom, 0px);
             box-sizing: border-box;
             box-shadow: 0 -10px 30px rgba(11,18,32,0.12);
@@ -1042,8 +1051,8 @@
             align-items: center;
             justify-content: center;
             gap: 2px;
-            height: 83px;
-            min-height: 83px;
+            height: var(--bottom-nav-h);
+            min-height: var(--bottom-nav-h);
             padding: 1.6px 0 17.6px;
             font-size: 10px;
             font-weight: 700;
@@ -1141,7 +1150,7 @@
             }
 
             .desktop-topbar {
-                height: 52px;
+                height: var(--desktop-topbar-h);
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -1159,7 +1168,7 @@
                 max-height: min(62vh, 520px);
             }
             .page-load-line {
-                top: 52px;
+                top: var(--desktop-topbar-h);
             }
 
             .desktop-topbar-left {
@@ -1204,22 +1213,22 @@
             }
 
             .app-shell {
-                padding-top: 52px;
+                padding-top: var(--desktop-topbar-h);
                 min-height: 100vh;
                 display: grid;
-                grid-template-columns: 70px 1fr;
+                grid-template-columns: var(--sidebar-w) 1fr;
                 transition: grid-template-columns 0.2s ease;
             }
 
             body.sidebar-expanded .app-shell {
-                grid-template-columns: 242px 1fr;
+                grid-template-columns: var(--sidebar-w-expanded) 1fr;
             }
 
             .desktop-sidebar {
                 display: block;
                 position: sticky;
-                top: 52px;
-                height: calc(100vh - 52px);
+                top: var(--desktop-topbar-h);
+                height: calc(100vh - var(--desktop-topbar-h));
                 background: var(--surface);
                 overflow-y: auto;
                 overflow-x: hidden;
