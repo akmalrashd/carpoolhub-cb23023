@@ -28,7 +28,7 @@
                 'name' => $participant->user?->name ?? '-',
                 'email' => $participant->user?->email ?? '',
                 'photo_url' => $participant->user?->profile_photo
-                    ? \Illuminate\Support\Facades\Storage::disk('public')->url($participant->user->profile_photo)
+                    ? asset('storage/' . $participant->user->profile_photo)
                     : null,
                 'is_driver' => (bool) $participant->is_driver,
             ])
@@ -509,6 +509,12 @@
     </div>
 
 
-    <script>window.CH_TRIPREQ = { endpoint: @json(route('refresh.trips.requests', $trip)), page: @json((int) request('page', 1)) };</script>
+    {{-- Page values for the extracted script below. --}}
+    <script>
+        window.CH_TRIPREQ = {
+            endpoint: @json(route('refresh.trips.requests', $trip)),
+            page: @json((int) request('page', 1)),
+        };
+    </script>
     <script src="{{ asset('js/trips-requests.js') }}?v={{ filemtime(public_path('js/trips-requests.js')) }}"></script>
 @endsection
