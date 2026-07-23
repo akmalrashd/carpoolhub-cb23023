@@ -117,7 +117,7 @@ class TripService
         $this->syncLifecycleStatuses();
 
         $query = Trip::query()
-            ->with(['savedRoute', 'driver', 'participants', 'joinRequests' => fn ($joinQuery) => $joinQuery->where('user_id', $user->id)])
+            ->with(['savedRoute', 'participants', 'driver' => fn ($q) => $q->withoutHeavyMedia(), 'joinRequests' => fn ($joinQuery) => $joinQuery->where('user_id', $user->id)])
             ->whereNull('parent_trip_id')
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)

@@ -3,11 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 
 class User extends Authenticatable
 {
@@ -62,6 +64,35 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * The heavy base64 image columns (~5-7 MB each). They are only ever shown on
+     * the admin user page and the owner's own settings, so list/eager-load
+     * queries for other pages should not drag them into memory.
+     *
+     * @var list<string>
+     */
+    public const HEAVY_MEDIA_COLUMNS = ['driving_license_photo', 'selfie_photo'];
+
+    /**
+     * Select every user column EXCEPT the heavy image blobs. Selecting
+     * all-but-heavy (rather than an allowlist) guarantees no display column —
+     * name, avatar, payment fields, accessors' source columns — is ever missed,
+     * so this stays behaviour-preserving while dropping the megabytes.
+     */
+    public function scopeWithoutHeavyMedia(Builder $query): Builder
+    {
+        static $columns = null;
+
+        if ($columns === null) {
+            $columns = array_values(array_diff(
+                Schema::getColumnListing($this->getTable()),
+                self::HEAVY_MEDIA_COLUMNS
+            ));
+        }
+
+        return $query->select($columns);
     }
 
     public function requestedConnections(): HasMany

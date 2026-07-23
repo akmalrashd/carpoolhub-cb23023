@@ -104,7 +104,7 @@ class DashboardController extends Controller
         $pendingJoinRequests = $stats['pending_requests'];
 
         $driverReviewQueue = TripPayment::query()
-            ->with(['user', 'trip.savedRoute'])
+            ->with(['trip.savedRoute', 'user' => fn ($q) => $q->withoutHeavyMedia()])
             ->where('payment_status', 'pending_confirmation')
             ->whereHas('trip', fn ($query) => $query->where('driver_id', $user->id))
             ->latest('updated_at')
@@ -112,7 +112,7 @@ class DashboardController extends Controller
             ->get();
 
         $publicExploreTrips = Trip::query()
-            ->with(['savedRoute', 'driver', 'participants'])
+            ->with(['savedRoute', 'participants', 'driver' => fn ($q) => $q->withoutHeavyMedia()])
                         ->whereNull('parent_trip_id')
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)

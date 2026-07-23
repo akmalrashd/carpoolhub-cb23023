@@ -19,7 +19,13 @@ class PaymentService
     public function paginateForUser(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
     {
         $query = TripPayment::query()
-            ->with(['trip.savedRoute', 'trip.driver', 'trip.participants.user', 'trip.passengerRoutePoints.user', 'trip.parentTrip', 'trip.returnTrip', 'user'])
+            ->with([
+                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip',
+                'trip.driver' => fn ($q) => $q->withoutHeavyMedia(),
+                'trip.participants.user' => fn ($q) => $q->withoutHeavyMedia(),
+                'trip.passengerRoutePoints.user' => fn ($q) => $q->withoutHeavyMedia(),
+                'user' => fn ($q) => $q->withoutHeavyMedia(),
+            ])
             ->where('user_id', $user->id)
             ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
             ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
@@ -34,7 +40,13 @@ class PaymentService
     public function paginateForDriver(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
     {
         $query = TripPayment::query()
-            ->with(['trip.savedRoute', 'trip.driver', 'trip.participants.user', 'trip.passengerRoutePoints.user', 'trip.parentTrip', 'trip.returnTrip', 'user'])
+            ->with([
+                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip',
+                'trip.driver' => fn ($q) => $q->withoutHeavyMedia(),
+                'trip.participants.user' => fn ($q) => $q->withoutHeavyMedia(),
+                'trip.passengerRoutePoints.user' => fn ($q) => $q->withoutHeavyMedia(),
+                'user' => fn ($q) => $q->withoutHeavyMedia(),
+            ])
             ->when(
                 $user->role === 'admin',
                 fn ($query) => $query->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery)),
