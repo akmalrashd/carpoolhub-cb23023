@@ -24,7 +24,7 @@ Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+    Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:6,1')->name('register.store');
 });
 
 Route::middleware(['auth', 'active'])->group(function (): void {
@@ -67,7 +67,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/profile', [SettingsController::class, 'index'])->name('profile.index');
     Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
-    Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
+    Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->middleware('throttle:6,1')->name('settings.password.update');
 
     Route::prefix('/ai')->group(function (): void {
         Route::post('/chat', [AiChatController::class, 'chat'])->name('ai.chat');

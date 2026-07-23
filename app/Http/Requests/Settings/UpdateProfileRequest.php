@@ -37,6 +37,10 @@ class UpdateProfileRequest extends FormRequest
             'payment_qr_duitnow' => ['nullable', 'image', 'max:2048'],
             'payment_qr_tng'      => ['nullable', 'image', 'max:2048'],
             'selfie_photo'        => ['nullable', 'image', 'max:5120'],
+            // The settings form posts this field and SettingsService handles it,
+            // but with no rule here it was stripped from validated() and silently
+            // discarded, so licence uploads never saved. Validate so it works.
+            'driving_license_photo' => ['nullable', 'image', 'max:4096'],
         ];
     }
 

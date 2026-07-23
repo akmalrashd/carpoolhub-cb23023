@@ -6328,7 +6328,12 @@
                         wrapEl.innerHTML = '<span class="driver-payment-qr-empty">No QR uploaded</span>';
                         return;
                     }
-                    wrapEl.innerHTML = `<img src="${url}" alt="${label}">`;
+                    // Build the node instead of innerHTML so a QR URL can never
+                    // be parsed as markup. Same rendered <img> for real values.
+                    const qrImg = document.createElement('img');
+                    qrImg.src = url;
+                    qrImg.alt = label;
+                    wrapEl.replaceChildren(qrImg);
                 };
 
                 const closeDriverPaymentModal = () => {
@@ -6351,7 +6356,15 @@
 
                         if (driverPaymentAvatar) {
                             if (driverPhoto) {
-                                driverPaymentAvatar.innerHTML = `<img src="${driverPhoto}" alt="${driverName}">`;
+                                // Stored XSS guard: a driver's name/photo is
+                                // attacker-controlled and was interpolated raw
+                                // into innerHTML, running in the paying
+                                // passenger's session. Build the node instead —
+                                // identical <img> for legitimate values.
+                                const avatarImg = document.createElement('img');
+                                avatarImg.src = driverPhoto;
+                                avatarImg.alt = driverName;
+                                driverPaymentAvatar.replaceChildren(avatarImg);
                             } else {
                                 driverPaymentAvatar.textContent = (driverName.charAt(0) || 'D').toUpperCase();
                             }
