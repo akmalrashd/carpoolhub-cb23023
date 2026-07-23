@@ -58,7 +58,10 @@ class RefreshController extends Controller
                 $joinRequest->user_id => $this->passengerRiskScoringService->scoreUserForTrip(
                     $joinRequest->user,
                     $trip,
-                    $trip->driver
+                    $trip->driver,
+                    // Reuse the reliability already batched above instead of
+                    // re-querying per passenger. Same value, so same score.
+                    $reliabilityMap[$joinRequest->user_id] ?? null
                 ),
             ])
             ->all();

@@ -15,16 +15,23 @@ class PassengerRiskScoringService
     ) {
     }
 
-    public function scoreUserForTrip(User $passenger, Trip $trip, ?User $driver = null): array
+    /**
+     * @param  array<string, mixed>|null  $reliability  Pre-computed reliability row for
+     *   this passenger. When a caller already built the reliability map in a single batched
+     *   query (e.g. RefreshController::tripRequests), passing it here avoids re-running
+     *   buildForUsers() once per passenger. The value is identical either way — buildForUsers
+     *   returns the same row for a given id — so scores are unchanged.
+     */
+    public function scoreUserForTrip(User $passenger, Trip $trip, ?User $driver = null, ?array $reliability = null): array
     {
         $features = $this->featureEngineeringService->passengerRiskFeatures($passenger);
-        $reliability = $this->passengerReliabilityService->buildForUsers([$passenger->id])[$passenger->id] ?? [
+        $reliability = $reliability ?? ($this->passengerReliabilityService->buildForUsers([$passenger->id])[$passenger->id] ?? [
             'score' => 5.0,
             'label' => 'Excellent',
             'unpaid_cases' => 0,
             'outstanding_amount' => 0.0,
             'oldest_overdue_days' => 0,
-        ];
+        ]);
 
         $score = (int) config('ai_decision_support.passenger_risk.score.base', 70);
         $reasons = [];
