@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class RegisterController extends Controller
@@ -27,7 +28,7 @@ class RegisterController extends Controller
             'vehicle_plate'          => ['required_if:role,driver', 'nullable', 'string', 'max:20'],
             'driving_license_photo'  => ['required_if:role,driver', 'nullable', 'image', 'max:4096'],
             'selfie_photo'           => ['nullable', 'image', 'max:5120'],
-            'password'               => ['required', 'string', 'min:8', 'confirmed'],
+            'password'               => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ], [
             'vehicle_model.required_if'         => 'Vehicle model is required for drivers.',
             'vehicle_plate.required_if'         => 'Vehicle plate is required for drivers.',

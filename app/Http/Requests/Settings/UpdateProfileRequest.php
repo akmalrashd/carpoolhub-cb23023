@@ -16,13 +16,12 @@ class UpdateProfileRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'email' => [
-                'sometimes',
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($this->user()?->id),
-            ],
+            // Email is the login identifier and is shown read-only in the UI, so
+            // it is never submitted here. It is deliberately NOT accepted: a
+            // hijacked session could otherwise POST a new email and silently take
+            // over the account. Email changes must go through a dedicated,
+            // password-gated flow if ever added. SettingsService also forces the
+            // stored email, as defence in depth.
             'email_visible' => ['nullable', 'string', Rule::in(['visible_public', 'visible_friend', 'unvisible'])],
             'whatsapp_country_code' => ['nullable', 'string', 'regex:/^\+\d{1,4}$/', 'required_with:whatsapp_number'],
             'whatsapp_number' => ['nullable', 'string', 'max:20'],

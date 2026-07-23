@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Settings;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class UpdatePasswordRequest extends FormRequest
 {
@@ -15,7 +16,8 @@ class UpdatePasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string'],
-            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+            // Require a mix of cases and at least one number, min 8.
+            'new_password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ];
     }
 }

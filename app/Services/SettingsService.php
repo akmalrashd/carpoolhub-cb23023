@@ -38,7 +38,9 @@ class SettingsService
         }
 
         $name = array_key_exists('name', $data) ? (string) $data['name'] : $user->name;
-        $email = array_key_exists('email', $data) && $data['email'] ? (string) $data['email'] : $user->email;
+        // Email is never changed through the profile form (see UpdateProfileRequest);
+        // always keep the stored value so an injected email cannot take over the account.
+        $email = $user->email;
         $emailVisible = array_key_exists('email_visible', $data)
             ? (string) $data['email_visible']
             : (string) ($user->email_visible ?: 'visible_friend');

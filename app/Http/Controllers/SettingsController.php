@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class SettingsController extends Controller
@@ -46,6 +47,17 @@ class SettingsController extends Controller
             $this->settingsService->updatePassword($request->user(), $request->validated());
         } catch (ValidationException $exception) {
             return back()->withErrors($exception->errors())->withInput();
+        }
+
+        // Sign out every other device after a password change, so a stolen or
+        // shared session cannot outlive the new password. The current device
+        // stays signed in. Uses the database session store directly (no extra
+        // middleware); a no-op on any other session driver.
+        if (config('session.driver') === 'database') {
+            DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $request->user()->id)
+                ->where('id', '!=', $request->session()->getId())
+                ->delete();
         }
 
         return redirect()

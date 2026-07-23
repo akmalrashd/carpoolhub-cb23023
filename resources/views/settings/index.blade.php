@@ -894,7 +894,7 @@
                             <label class="form-label" for="newPassword">New Password</label>
                             <div class="input-wrap">
                                 <span class="input-icon"><i class="fa-solid fa-key"></i></span>
-                                <input type="password" id="newPassword" name="new_password" class="input-field" required minlength="8" placeholder="Minimum 8 characters">
+                                <input type="password" id="newPassword" name="new_password" class="input-field" required minlength="8" placeholder="Min 8, with uppercase, lowercase & a number">
                                 <button type="button" class="pass-toggle-btn" onclick="togglePassVisibility('newPassword', this)">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
