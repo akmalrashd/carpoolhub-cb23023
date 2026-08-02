@@ -47,7 +47,17 @@ class ChatbotService
 
             $bodyStr = (string) $response->getBody();
             $body    = json_decode($bodyStr, true);
-            $content = trim((string) ($body['content'][0]['text'] ?? ''));
+            
+            $text = '';
+            if (isset($body['content']) && is_array($body['content'])) {
+                foreach ($body['content'] as $block) {
+                    if (($block['type'] ?? '') === 'text') {
+                        $text = $block['text'] ?? '';
+                        break;
+                    }
+                }
+            }
+            $content = trim((string) $text);
 
             if ($content === '') {
                 return ['intent' => 'error', 'reply' => 'DEBUG EMPTY CONTENT. Body: ' . substr($bodyStr, 0, 300)];

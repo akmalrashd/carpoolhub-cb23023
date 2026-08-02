@@ -131,7 +131,17 @@ class AiChatController extends Controller
             ]);
 
             $body    = json_decode((string) $response->getBody(), true);
-            $raw     = trim((string) ($body['content'][0]['text'] ?? ''));
+            
+            $text = '';
+            if (isset($body['content']) && is_array($body['content'])) {
+                foreach ($body['content'] as $block) {
+                    if (($block['type'] ?? '') === 'text') {
+                        $text = $block['text'] ?? '';
+                        break;
+                    }
+                }
+            }
+            $raw = trim((string) $text);
 
             // Strip markdown fences if Claude wraps anyway
             $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $raw);
@@ -211,7 +221,17 @@ class AiChatController extends Controller
             ]);
 
             $body    = json_decode((string) $response->getBody(), true);
-            $raw     = trim((string) ($body['content'][0]['text'] ?? ''));
+            
+            $text = '';
+            if (isset($body['content']) && is_array($body['content'])) {
+                foreach ($body['content'] as $block) {
+                    if (($block['type'] ?? '') === 'text') {
+                        $text = $block['text'] ?? '';
+                        break;
+                    }
+                }
+            }
+            $raw = trim((string) $text);
             $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $raw);
             $cleaned = preg_replace('/\s*```$/', '', $cleaned ?? $raw);
             $decoded = json_decode(trim($cleaned ?? $raw), true);
