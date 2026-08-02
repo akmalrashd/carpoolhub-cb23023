@@ -1202,6 +1202,7 @@
             // Check element exists before firing request
             if (!document.querySelector('[data-ai-reason="' + routeIndex + '"]')) return;
             if (fareAdvisorStatus && routeIndex === selectedRouteIndex) fareAdvisorStatus.textContent = 'AI checking';
+            if (fareAiReason && routeIndex === selectedRouteIndex) fareAiReason.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-beat-fade" style="color: #eab308; margin-right: 6px;"></i>AI is analyzing route... (may take up to 20s)';
 
             fetch(fareReasonUrl, {
                 method: 'POST',
@@ -1299,7 +1300,7 @@
                     + '<div class="rf-route-option-road">' + roadSummary + '</div>'
                     + '<div class="rf-route-option-fare" data-ai-fare="' + index + '">Suggested Fare RM ' + fare.toFixed(2) + '</div>'
                     + '<div class="rf-route-option-reason" data-ai-reason="' + index + '" data-base-reason="' + suggestionReason(route) + '">'
-                    + '<div class="rf-ai-loading"><span></span><span></span><span></span></div>'
+                    + '<div class="rf-ai-loading" style="color: #64748b; font-size: 13px; margin-top: 4px;"><i class="fa-solid fa-wand-magic-sparkles fa-beat-fade" style="color: #eab308; margin-right: 6px;"></i>AI is analyzing route... (may take up to 20s)</div>'
                     + '</div>'
                     + '</button>';
             }).join('');
