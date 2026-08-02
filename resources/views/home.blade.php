@@ -129,21 +129,7 @@
         </div>
 
         {{-- 2. Stats strip -------------------------------------------------- --}}
-        <div class="hp-stats-skel-wrap">
-            {{-- Skeleton overlay: absolutely positioned over real stats --}}
-            <div id="hp-stats-skel-overlay">
-                <div class="hp-stats-strip" style="position:relative;z-index:1;">
-                    @for($sk = 0; $sk < 4; $sk++)
-                        <div class="hp-stat-card" style="pointer-events:none;">
-                            <span class="sk" style="width:32px;height:32px;border-radius:var(--r-sm);position:absolute;top:16px;right:16px;"></span>
-                            <span class="sk" style="height:11px;width:52%;margin-top:2px;"></span>
-                            <span class="sk" style="height:28px;width:38%;margin-top:4px;border-radius:var(--r-md);"></span>
-                            <span class="sk" style="height:10px;width:42%;"></span>
-                        </div>
-                    @endfor
-                </div>
-            </div>
-            {{-- Real stats strip (always visible, provides natural height) --}}
+        {{-- Real stats strip --}}
         <div class="hp-stats-strip">
 
             {{-- Card 1: Trips this week --}}
@@ -231,9 +217,7 @@
                     <span class="hp-stat-delta">{{ $pendingRequests > 0 ? 'Awaiting your response' : 'None pending' }}</span>
                 </div>
             @endif
-
         </div>{{-- /hp-stats-strip real --}}
-        </div>{{-- /hp-stats-skel-wrap --}}
 
         {{-- 3. Main body: 2fr + 1fr ---------------------------------------- --}}
         <div class="hp-body">
@@ -253,24 +237,8 @@
                         </div>
                     </div>
                     <div class="hp-section-body">
-                        {{-- Skeleton: shown briefly then fades --}}
-                        <div id="hp-trips-skel" style="opacity:1;transition:opacity 0.3s ease;">
-                            @for($sk = 0; $sk < 3; $sk++)
-                                <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:{{ $sk < 2 ? '1px solid var(--hairline)' : 'none' }};">
-                                    <div style="display:grid;gap:5px;width:52px;flex-shrink:0;">
-                                        <span class="sk" style="height:11px;width:100%;"></span>
-                                        <span class="sk" style="height:10px;width:70%;"></span>
-                                    </div>
-                                    <div style="flex:1;display:grid;gap:7px;">
-                                        <span class="sk" style="height:12px;width:{{ [72,60,80][$sk] }}%;"></span>
-                                        <span class="sk" style="height:11px;width:{{ [55,68,50][$sk] }}%;"></span>
-                                    </div>
-                                    <span class="sk" style="height:24px;width:58px;border-radius:var(--r-pill);flex-shrink:0;"></span>
-                                </div>
-                            @endfor
-                        </div>
-                        {{-- Real content: hidden then fades in --}}
-                        <div id="hp-trips-real" style="opacity:0;transition:opacity 0.3s ease 0.1s;">
+                        {{-- Real content --}}
+                        <div id="hp-trips-real">
                         {{-- As driver panel --}}
                         <div id="hp-tab-driver">
                             @if($upcomingCreatedTrips->isNotEmpty())
