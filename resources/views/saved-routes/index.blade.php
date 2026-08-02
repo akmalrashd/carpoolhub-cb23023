@@ -221,9 +221,11 @@
             <p class="sr-empty-copy">Try a different route name.</p>
         </div>
 
+        @if(method_exists($savedRoutes, 'links'))
         <div style="margin-top:14px">
             {{ $savedRoutes->links() }}
         </div>
+        @endif
     @endif
 
 </div>
