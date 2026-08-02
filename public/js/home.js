@@ -20,7 +20,7 @@
         }
 
         /* ── Skeleton fade-out on page ready ─────────────────────── */
-        document.addEventListener('DOMContentLoaded', function () {
+        function hpInitSkeletons() {
             // Stats skeleton overlay → fade out (real content always visible underneath)
             var statSkel = document.getElementById('hp-stats-skel-overlay');
             if (statSkel) {
@@ -40,4 +40,10 @@
                     setTimeout(function () { tripsSkel.style.display = 'none'; }, 350);
                 }, 320);
             }
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', hpInitSkeletons);
+        } else {
+            hpInitSkeletons();
+        }
