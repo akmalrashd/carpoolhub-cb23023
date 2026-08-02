@@ -213,7 +213,7 @@
             const sub = document.getElementById('tripPaymentReviewSub');
             const closeBtn = document.getElementById('tripPaymentReviewClose');
             const buttons = document.querySelectorAll('.open-trip-payment-review');
-            if (!modal || !list || !closeBtn || buttons.length === 0) return;
+            if (!modal || !list || !closeBtn) return;
 
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
@@ -479,7 +479,7 @@
             const sub = document.getElementById('tripPayNowSub');
             const closeBtn = document.getElementById('tripPayNowClose');
             const buttons = document.querySelectorAll('.open-trip-paynow');
-            if (!modal || !list || !closeBtn || buttons.length === 0) return;
+            if (!modal || !list || !closeBtn) return;
 
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
@@ -946,7 +946,7 @@
             const sub = document.getElementById('tripRequestsReviewSub');
             const closeBtn = document.getElementById('tripRequestsReviewClose');
             const buttons = document.querySelectorAll('.open-trip-requests-review');
-            if (!modal || !list || !closeBtn || buttons.length === 0) return;
+            if (!modal || !list || !closeBtn) return;
 
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
@@ -1423,7 +1423,7 @@
             const modal      = document.getElementById('tripDetailsModal');
             const closeBtn   = document.getElementById('tripDetailsCloseBtn');
             const detailButtons = document.querySelectorAll('.open-trip-modal-btn');
-            if (!modal || !closeBtn || detailButtons.length === 0) return;
+            if (!modal || !closeBtn) return;
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }

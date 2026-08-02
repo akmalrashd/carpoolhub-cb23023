@@ -510,7 +510,7 @@
             const tripDetailsCloseTop = document.getElementById('tripDetailsCloseTop');
             const tripDetailButtons = document.querySelectorAll('.open-trip-modal-btn');
 
-            if (tripDetailsModal && tripDetailsCloseTop && tripDetailButtons.length > 0) {
+            if (tripDetailsModal && tripDetailsCloseTop) {
                 if (tripDetailsModal.parentElement !== document.body) {
                     document.body.appendChild(tripDetailsModal);
                 }
@@ -984,7 +984,7 @@
             const driverPaymentDetailsClose = document.getElementById('driverPaymentDetailsClose');
             const driverPaymentDetailsCloseTop = document.getElementById('driverPaymentDetailsCloseTop');
             const driverPaymentButtons = document.querySelectorAll('.open-driver-payment-details-btn');
-            if (driverPaymentDetailsModal && driverPaymentButtons.length) {
+            if (driverPaymentDetailsModal) {
                 if (driverPaymentDetailsModal.parentElement !== document.body) {
                     document.body.appendChild(driverPaymentDetailsModal);
                 }
@@ -1145,7 +1145,7 @@
             }
 
             const reminderButtons = Array.from(document.querySelectorAll('.reminder-btn[data-seconds-left]'));
-            if (reminderButtons.length === 0) return;
+
 
             const pad = (value) => String(value).padStart(2, '0');
             const toHms = (seconds) => {
