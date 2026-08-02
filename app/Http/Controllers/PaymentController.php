@@ -228,6 +228,31 @@ class PaymentController extends Controller
             ->route('payments.index')
             ->with('status', 'Passenger notified.');
     }
+    public function bulkConfirm(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'payment_ids' => ['required', 'array', 'min:1'],
+            'payment_ids.*' => ['integer', 'exists:trip_payments,id'],
+        ]);
+
+        $user = $request->user();
+        $payments = TripPayment::whereIn('id', $validated['payment_ids'])->get();
+
+        $count = 0;
+        foreach ($payments as $payment) {
+            try {
+                $this->paymentService->confirmPaid($user, $payment);
+                $count++;
+            } catch (\Exception $e) {
+                // Ignore individual errors during bulk approve
+            }
+        }
+
+        return redirect()
+            ->route('payments.index')
+            ->with('status', "$count payment(s) marked as paid.");
+    }
+
     public function approveAllPending(Request $request): RedirectResponse
     {
         $user = $request->user();

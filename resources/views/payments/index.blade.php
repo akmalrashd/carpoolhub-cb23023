@@ -579,9 +579,16 @@
                             data-participants='@json($participantsPayload)'
                             data-passenger-count="{{ count($participantsPayload) }}"
                         >
-                            <div class="payment-mobile-top">
-                                <div style="min-width:0;flex:1;">
-                                    <h2 class="payment-route-title">{{ $routeLabel }}</h2>
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                @if($isDriverQueueRecord && in_array($payment->payment_status, ['unpaid', 'pending_confirmation']))
+                                    <div class="payment-bulk-checkbox-wrapper" style="padding-top:4px;">
+                                        <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="bulk-payment-cb" form="bulk-confirm-form">
+                                    </div>
+                                @endif
+                                <div style="flex:1; min-width:0;">
+                                    <div class="payment-mobile-top">
+                                        <div style="min-width:0;flex:1;">
+                                            <h2 class="payment-route-title">{{ $routeLabel }}</h2>
                                     <div class="payment-meta-inline" style="margin-top:5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                                         <span class="payment-meta-inline-item">
                                             <i class="fa-solid fa-user" style="color:#b45309;font-size:11px;"></i>
@@ -629,19 +636,28 @@
                                         data-reject-action="{{ route('payments.reject-paid', $payment) }}"
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                 @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
-                                    <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
-                                        @csrf
-                                        <button
-                                            type="submit"
-                                            class="payments-btn payments-btn-soft {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
-                                            {{ $canSendReminder ? '' : 'disabled' }}
-                                            data-payment-id="{{ $payment->id }}"
-                                            data-seconds-left="{{ $secondsLeft }}"
-                                        >
-                                            <i class="{{ $paymentActionIcon }}"></i>
-                                            {!! $canSendReminder ? $paymentActionLabel : gmdate('H:i:s', $secondsLeft) !!}
-                                        </button>
-                                    </form>
+                                    <div style="display:flex; gap:8px;">
+                                        <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
+                                            @csrf
+                                            <button
+                                                type="submit"
+                                                class="payments-btn payments-btn-soft {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
+                                                {{ $canSendReminder ? '' : 'disabled' }}
+                                                data-payment-id="{{ $payment->id }}"
+                                                data-seconds-left="{{ $secondsLeft }}"
+                                            >
+                                                <i class="{{ $paymentActionIcon }}"></i>
+                                                {!! $canSendReminder ? $paymentActionLabel : gmdate('H:i:s', $secondsLeft) !!}
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="payments-btn payments-btn-highlight">
+                                                <i class="fa-solid fa-check"></i> Mark Paid
+                                            </button>
+                                        </form>
+                                    </div>
                                 @elseif(! $isDriverQueueRecord && $payment->payment_status === 'unpaid')
                                     <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row">
                                         @csrf
@@ -722,6 +738,7 @@
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                 @endif
                                 </div>
+                                </div>
                             </div>
                         </article>
                     @empty
@@ -732,6 +749,7 @@
                     <table class="payments-table">
                         <thead>
                         <tr>
+                            <th style="width: 40px; padding-right: 0;"></th>
                             <th>Counterparty</th>
                             <th>Trip</th>
                             <th>Status</th>
@@ -840,6 +858,11 @@
                                 data-participants='@json($participantsPayload)'
                                 data-passenger-count="{{ count($participantsPayload) }}"
                             >
+                                <td onclick="event.stopPropagation();" style="padding-right:0;">
+                                    @if($isDriverQueueRecord && in_array($payment->payment_status, ['unpaid', 'pending_confirmation']))
+                                        <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="bulk-payment-cb" form="bulk-confirm-form">
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="payment-person-block">
                                         <div>
@@ -921,22 +944,31 @@
                                             ><i class="fa-solid fa-clipboard-check"></i> Review</button>
                                         </div>
                                     @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
-                                        <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
-                                            @csrf
-                                            <button
-                                                type="submit"
-                                                class="payments-btn payment-table-action {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
-                                                {{ $canSendReminder ? '' : 'disabled' }}
-                                                data-payment-id="{{ $payment->id }}"
-                                                data-seconds-left="{{ $secondsLeft }}"
-                                            >
-                                                @if($canSendReminder)
-                                                    <i class="fa-regular fa-bell"></i> Notify
-                                                @else
-                                                    {{ gmdate('H:i:s', $secondsLeft) }}
-                                                @endif
-                                            </button>
-                                        </form>
+                                        <div style="display:flex; gap:8px; justify-content:flex-end;">
+                                            <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
+                                                @csrf
+                                                <button
+                                                    type="submit"
+                                                    class="payments-btn payment-table-action {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
+                                                    {{ $canSendReminder ? '' : 'disabled' }}
+                                                    data-payment-id="{{ $payment->id }}"
+                                                    data-seconds-left="{{ $secondsLeft }}"
+                                                >
+                                                    @if($canSendReminder)
+                                                        <i class="fa-regular fa-bell"></i> Notify
+                                                    @else
+                                                        {{ gmdate('H:i:s', $secondsLeft) }}
+                                                    @endif
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="payments-btn payment-table-action" style="background:#22c55e; color:#fff; border-color:#22c55e;">
+                                                    <i class="fa-solid fa-check"></i> Mark Paid
+                                                </button>
+                                            </form>
+                                        </div>
                                     @elseif(! $isDriverQueueRecord && $payment->payment_status === 'unpaid')
                                         <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row">
                                             @csrf
@@ -1870,6 +1902,21 @@
             <div class="request-modal-actions" style="justify-content:flex-end;">
                 <button type="button" class="payments-btn" id="driverPaymentDetailsClose">Close</button>
             </div>
+        </div>
+    </div>
+
+
+    <div id="bulkActionBar" class="bulk-action-bar" style="display: none;">
+        <div class="bulk-action-content">
+            <span id="bulkActionCount">0 selected</span>
+            <form id="bulk-confirm-form" method="POST" action="{{ route('payments.bulk-confirm') }}" style="margin:0;">
+                @csrf
+                @method('PATCH')
+                <!-- Checkboxes will attach their values here implicitly via the 'form' attribute on the inputs -->
+                <button type="submit" class="payments-btn payments-btn-highlight" style="background:#22c55e; color:#fff; border-color:#22c55e;">
+                    <i class="fa-solid fa-check-double"></i> Confirm Selected
+                </button>
+            </form>
         </div>
     </div>
 

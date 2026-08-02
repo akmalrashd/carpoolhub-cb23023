@@ -1277,3 +1277,33 @@
                 panel.querySelector('input, select')?.dispatchEvent(new Event('input', { bubbles: true }));
             });
         }
+
+        (() => {
+            const bulkActionBar = document.getElementById('bulkActionBar');
+            const bulkActionCount = document.getElementById('bulkActionCount');
+
+            if (!bulkActionBar || !bulkActionCount) return;
+
+            const updateBulkActionState = () => {
+                let count = 0;
+                document.querySelectorAll('.bulk-payment-cb').forEach(cb => {
+                    if (cb.checked) count++;
+                });
+
+                if (count > 0) {
+                    bulkActionCount.textContent = `${count} selected`;
+                    bulkActionBar.style.display = 'flex';
+                } else {
+                    bulkActionBar.style.display = 'none';
+                }
+            };
+
+            document.body.addEventListener('change', (e) => {
+                if (e.target && e.target.classList.contains('bulk-payment-cb')) {
+                    updateBulkActionState();
+                }
+            });
+
+            // Initialize on load
+            updateBulkActionState();
+        })();
