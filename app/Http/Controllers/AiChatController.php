@@ -122,7 +122,7 @@ class AiChatController extends Controller
 
             $response = $http->post('/v1/messages', [
                 'json' => [
-                    'model'      => config('ai_chat.model', 'claude-haiku-4-5-20251001'),
+                    'model'      => config('ai_chat.model', 'claude-3-5-haiku-20241022'),
                     'max_tokens' => 120,
                     'messages'   => [['role' => 'user', 'content' => $prompt]],
                 ],
@@ -202,7 +202,7 @@ class AiChatController extends Controller
 
             $response = $http->post('/v1/messages', [
                 'json' => [
-                    'model'      => config('ai_chat.model', 'claude-haiku-4-5-20251001'),
+                    'model'      => config('ai_chat.model', 'claude-3-5-haiku-20241022'),
                     'max_tokens' => 180,
                     'messages'   => [['role' => 'user', 'content' => $prompt]],
                 ],

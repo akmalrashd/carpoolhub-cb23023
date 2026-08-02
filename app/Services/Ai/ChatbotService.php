@@ -38,7 +38,7 @@ class ChatbotService
         try {
             $response = $this->http->post('/v1/messages', [
                 'json' => [
-                    'model'      => config('ai_chat.model', 'claude-haiku-4-5-20251001'),
+                    'model'      => config('ai_chat.model', 'claude-3-5-haiku-20241022'),
                     'max_tokens' => (int) config('ai_chat.max_tokens', 600),
                     'system'     => $this->buildSystemPrompt($user, $language, $pendingContext),
                     'messages'   => $messages,
