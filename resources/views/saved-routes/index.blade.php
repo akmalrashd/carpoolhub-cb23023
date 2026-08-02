@@ -26,7 +26,7 @@
 {{-- Card grid area --}}
 <div style="padding:20px var(--page-gutter, 28px) 28px">
 
-    @if($savedRoutes->isEmpty())
+    @if(!($initialLoad ?? false) && $savedRoutes->isEmpty())
         <div class="sr-empty">
             <i class="fa-solid fa-route sr-empty-icon"></i>
             <p class="sr-empty-title">No saved routes yet</p>
