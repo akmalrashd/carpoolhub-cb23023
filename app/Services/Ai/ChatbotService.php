@@ -223,18 +223,25 @@ PROMPT;
         return "{$header}:\n{$lines}";
     }
 
-    /** @return array{intent:string,reply:string,data?:array,route?:string} */
     private function parseResponse(string $raw, User $user, string $language): array
     {
-        $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $raw);
-        $cleaned = preg_replace('/\s*```$/', '', $cleaned ?? $raw);
-        $decoded = json_decode(trim($cleaned ?? $raw), true);
+        $raw = trim($raw);
+        $jsonStr = $raw;
+
+        // Try to robustly extract the JSON object in case Claude added conversational text
+        if (preg_match('/\{.*\}/s', $raw, $matches)) {
+            $jsonStr = $matches[0];
+        }
+
+        $decoded = json_decode($jsonStr, true);
 
         $fallback = $language === 'en'
             ? 'Sorry, I could not process that response.'
             : 'Maaf, respons tidak dapat diproses.';
 
         if (! \is_array($decoded) || empty($decoded['intent'])) {
+            // Include JSON error for debugging if needed (but hide from user)
+            \Illuminate\Support\Facades\Log::warning('AI Chat JSON Decode Failed: ' . json_last_error_msg(), ['raw' => $raw]);
             return ['intent' => 'general', 'reply' => $raw ?: $fallback];
         }
 

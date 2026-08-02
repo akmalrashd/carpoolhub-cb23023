@@ -143,10 +143,11 @@ class AiChatController extends Controller
             }
             $raw = trim((string) $text);
 
-            // Strip markdown fences if Claude wraps anyway
-            $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $raw);
-            $cleaned = preg_replace('/\s*```$/', '', $cleaned ?? $raw);
-            $decoded = json_decode(trim($cleaned ?? $raw), true);
+            $jsonStr = $raw;
+            if (preg_match('/\{.*\}/s', $raw, $matches)) {
+                $jsonStr = $matches[0];
+            }
+            $decoded = json_decode($jsonStr, true);
 
             $adjustedFare = isset($decoded['fare']) && is_numeric($decoded['fare'])
                 ? round((float) $decoded['fare'], 2)
