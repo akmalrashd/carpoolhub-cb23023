@@ -471,7 +471,7 @@
                     </div>
                 </div>
 
-                <div class="payments-real-container" id="payments-real-container">
+                <div class="payments-real-container" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
                 <div class="payments-mobile-list">
                     @forelse($allLivePayments as $payment)
                         @php

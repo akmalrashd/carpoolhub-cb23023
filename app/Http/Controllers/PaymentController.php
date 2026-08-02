@@ -81,6 +81,22 @@ class PaymentController extends Controller
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
             : null;
 
+        if (! $request->ajax()) {
+            return view('payments.index', [
+                'myPayments' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
+                'driverPayments' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
+                'summary' => $summary,
+                'paymentCounts' => [],
+                'passengerDebtSummary' => [],
+                'reminderState' => [],
+                'isAdmin' => $isAdmin,
+                'canReviewQueue' => $canReviewQueue,
+                'filters' => $filters,
+                'summaryLabel' => $summaryLabel,
+                'initialLoad' => true,
+            ]);
+        }
+
         return view(
             'payments.index',
             compact(
@@ -92,9 +108,10 @@ class PaymentController extends Controller
                 'reminderState',
                 'showMyPayments',
                 'canReviewQueue',
+                'isAdmin',
                 'filters',
                 'summaryLabel'
-            )
+            ) + ['initialLoad' => false]
         );
     }
 

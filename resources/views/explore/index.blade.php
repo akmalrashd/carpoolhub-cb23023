@@ -231,7 +231,7 @@
         <div class="xp-body">
 
             {{-- Left: trip list --}}
-            <div class="xp-list" id="xp-real-list">
+            <div class="xp-list" id="xp-real-list" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
                 {{-- Skeleton placeholder (hidden, shown on filter submit) --}}
                 <div id="xp-skel-list" style="display:none;grid-gap:12px;display:none;">
                     @for($sk = 0; $sk < 5; $sk++)

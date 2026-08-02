@@ -189,7 +189,7 @@
                 </div>
             </div>
 
-            <div class="trips-real-container" id="trips-real-container">
+            <div class="trips-real-container" id="trips-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
             {{-- Empty state --}}
             @if($trips->isEmpty())
                 <div class="trips-empty">

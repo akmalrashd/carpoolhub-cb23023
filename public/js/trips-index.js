@@ -53,11 +53,21 @@
                 }
             };
 
+            const initOrHide = () => {
+                if (real && real.dataset.initialLoad === 'true') {
+                    // Remove flag to prevent loop, then fetch
+                    real.dataset.initialLoad = 'false';
+                    fetchPage(window.location.href);
+                } else {
+                    hideSkeleton();
+                }
+            };
+
             // Run hide on page ready
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', hideSkeleton);
+                document.addEventListener('DOMContentLoaded', initOrHide);
             } else {
-                hideSkeleton();
+                initOrHide();
             }
 
             // AJAX fetching function

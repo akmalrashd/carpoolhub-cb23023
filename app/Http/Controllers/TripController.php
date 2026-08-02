@@ -30,10 +30,25 @@ class TripController extends Controller
         ]);
 
         $filters['status_filter'] = $filters['status_filter'] ?? 'all';
+        if (! $request->ajax()) {
+            return view('trips.index', [
+                'trips' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10),
+                'filters' => $filters,
+                'tripStatusCounts' => [],
+                'initialLoad' => true,
+            ]);
+        }
+
+        $this->tripService->syncLifecycleStatuses();
         $tripStatusCounts = $this->tripService->statusCountsForUser($request->user(), $filters);
         $trips = $this->tripService->paginateForUser($request->user(), 10, $filters);
 
-        return view('trips.index', compact('trips', 'filters', 'tripStatusCounts'));
+        return view('trips.index', [
+            'trips' => $trips,
+            'filters' => $filters,
+            'tripStatusCounts' => $tripStatusCounts,
+            'initialLoad' => false,
+        ]);
     }
 
     public function create(Request $request): View

@@ -61,6 +61,16 @@ class ExploreController extends Controller
                 ->all();
             $request->session()->put('explore_recent_destinations', $recent);
         }
+        if (! $request->ajax()) {
+            return view('explore.index', [
+                'trips' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
+                'filters' => $filters,
+                'suggestedDestinations' => $this->tripService->exploreDestinationSuggestions(),
+                'aiRecommendationMap' => [],
+                'recommendedTripIds' => [],
+                'initialLoad' => true,
+            ]);
+        }
 
         $trips = $this->tripService->paginateExplore($request->user(), 12, $filters);
         $rankedTrips = $this->aiDecisionSupportService->recommendTrips($request->user(), $trips->getCollection(), $filters);
@@ -71,7 +81,7 @@ class ExploreController extends Controller
         $recommendedTripIds = $rankedTrips->take(3)->map(fn (array $row) => (int) $row['trip']->id)->all();
         $suggestedDestinations = $this->tripService->exploreDestinationSuggestions();
 
-        return view('explore.index', compact('trips', 'filters', 'suggestedDestinations', 'aiRecommendationMap', 'recommendedTripIds'));
+        return view('explore.index', compact('trips', 'filters', 'suggestedDestinations', 'aiRecommendationMap', 'recommendedTripIds') + ['initialLoad' => false]);
     }
 
     public function search(Request $request): View
