@@ -12,17 +12,18 @@
 /.vscode
 /.zed
 /auth.json
+# Nothing generates this any more — the app has no Node toolchain. Kept only so
+# a stale directory on an old clone cannot be swept into a commit by `git add -A`.
 /node_modules
-/public/build
-/public/hot
 /public/storage
 /storage/*.key
 /storage/pail
 /vendor
 
-# Build output stays out of git. Hostinger cannot build (proc_open is disabled
-# so Composer will not run, and Node is not installed), so GitHub Actions builds
-# vendor/ and public/build on its own runner and ships them as a tarball.
+# vendor/ stays out of git. Hostinger cannot run Composer (proc_open is in
+# disable_functions), so GitHub Actions installs it on its own runner and ships
+# it as a tarball. There is no asset build step any more — every stylesheet the
+# app serves is a committed file under public/css/.
 # See .github/workflows/deploy.yml and deploy.sh.
 /build.tar.gz
 Homestead.json

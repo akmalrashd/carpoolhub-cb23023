@@ -14,7 +14,11 @@ The implemented system is already beyond a basic CRUD prototype. It currently su
 
 - Backend: PHP 8.2+, Laravel 12
 - Frontend: Blade templates, CSS, JavaScript
-- Build tooling: Vite 7, Tailwind CSS 4 package installed
+- Build tooling: none. There is no Node/npm/Vite toolchain. Every stylesheet and
+  script the app serves is a plain committed file under `public/css/` and
+  `public/js/`, linked with `asset(...)?v={{ filemtime(...) }}`. The Tailwind
+  base layer lives pre-compiled at `public/css/app.css` (see
+  `resources/css/app.css` for the source it was generated from).
 - Database: MySQL/MariaDB expected through Laravel migrations
 - Local environment: XAMPP-compatible Laravel app
 - Map/routing UI: Leaflet, OpenStreetMap tiles, OSRM public routing API, Nominatim search/reverse geocoding in Blade JavaScript
@@ -24,10 +28,7 @@ Important packages:
 
 - `laravel/framework`
 - `laravel/tinker`
-- `laravel-vite-plugin`
-- `tailwindcss`
-- `axios`
-- `concurrently`
+- `minishlink/web-push`
 
 ## Current Git State
 

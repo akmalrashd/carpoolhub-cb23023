@@ -1,4 +1,15 @@
-/* CarpoolHub redesign — design tokens */
+/* CarpoolHub redesign — design tokens
+ *
+ * SOURCE ONLY — EDITING THIS FILE CHANGES NOTHING BY ITSELF. It is @imported by
+ * resources/css/app.css, which is no longer built automatically; see the header
+ * of that file for how to regenerate public/css/app.css without Node or npm.
+ *
+ * Note that public/css/shell.css re-declares 29 of these 42 variables at :root
+ * and is linked AFTER the compiled bundle, so on any page using the app layout
+ * that copy wins for those 29. This predates the removal of the build step; it
+ * just means editing a token here may well have no visible effect until you
+ * change it in shell.css too.
+ */
 :root {
   /* Brand */
   --ch-yellow: #FACC15;

@@ -7,7 +7,12 @@
          reach under a notch, which the safe-area rules then pad back. --}}
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
     <title>CarpoolHub</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Base stylesheet: Tailwind preflight, the design tokens, and the utilities
+         the default paginator needs. Pre-compiled to a static file so the app has
+         no Node build step; the link sits at exactly the position the old bundler
+         directive did, so its cascade order against the fonts and the page
+         stylesheet below is unchanged. --}}
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
