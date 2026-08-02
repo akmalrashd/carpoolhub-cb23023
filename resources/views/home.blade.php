@@ -743,7 +743,6 @@
                     @endif
                     </div>
                 </div>
-            @endif
 
         </div>{{-- /.hp-mobile-wrap --}}
     </div>{{-- /.hp-mobile-only --}}
