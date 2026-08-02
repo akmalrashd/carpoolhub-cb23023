@@ -23,8 +23,6 @@
     {{-- Shared shell styles, extracted to a cacheable static file. The link sits exactly where the <style> block did so cascade order is unchanged; pwa-head.blade.php (included after </head>) still overrides it. --}}
     <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
     @include('layouts.partials.pwa-head')
-    <!-- HTMX for lazy loading -->
-    <script src="https://unpkg.com/htmx.org@2.0.1"></script>
 </head>
 <body>
 @php

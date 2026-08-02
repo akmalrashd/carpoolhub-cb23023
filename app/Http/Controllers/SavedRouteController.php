@@ -18,16 +18,9 @@ class SavedRouteController extends Controller
 
     public function index(Request $request): View
     {
-        if (! $request->header('HX-Request')) {
-            return view('saved-routes.index', [
-                'savedRoutes' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10),
-                'initialLoad' => true,
-            ]);
-        }
-
         $savedRoutes = $this->savedRouteService->paginateForUser($request->user());
 
-        return view('saved-routes.index', compact('savedRoutes'))->with('initialLoad', false);
+        return view('saved-routes.index', compact('savedRoutes'));
     }
 
     public function create(Request $request): View

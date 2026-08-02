@@ -10,7 +10,7 @@
 
     @php
         $tripStatusCounts = $tripStatusCounts ?? [];
-        $allCount         = (int) ($tripStatusCounts['all'] ?? ($trips ? $trips->total() : 0));
+        $allCount         = (int) ($tripStatusCounts['all'] ?? $trips->total());
         $upcomingCount    = (int) ($tripStatusCounts['upcoming'] ?? 0);
         $completedCount   = (int) ($tripStatusCounts['completed'] ?? 0);
         $draftCount       = (int) ($tripStatusCounts['draft'] ?? 0);
@@ -20,15 +20,6 @@
 
         $activeChip = $filters['status_filter'] ?? request('status_filter', 'all');
     @endphp
-
-<div id="page-content-wrapper" 
-    @if($initialLoad ?? false) 
-        hx-get="{{ request()->fullUrl() }}" 
-        hx-trigger="load" 
-        hx-swap="outerHTML" 
-        hx-select="#page-content-wrapper" 
-    @endif
->
 
     {{-- ── Page header ── --}}
     <div class="trips-page-header">
@@ -124,7 +115,7 @@
 
             <div style="position: relative; min-height: 250px;">
                 {{-- Skeleton Loading Container --}}
-                <div class="trips-skel-container" id="trips-skel-container" style="{{ ($initialLoad ?? false) ? 'display:block;' : 'display:none;' }}">
+                <div class="trips-skel-container" id="trips-skel-container">
                 {{-- Desktop Table Skeleton --}}
                 <div class="trip-table-skel" style="display:none; padding:12px 16px;">
                     <table class="trip-table" style="pointer-events:none; margin:0; border:0; width:100%;">
@@ -198,9 +189,7 @@
                 </div>
             </div>
 
-            <div class="trips-real-container" id="trips-real-container" style="{{ ($initialLoad ?? false) ? 'display:none;' : 'display:block;' }}">
-            
-            @if(!($initialLoad ?? false))
+            <div class="trips-real-container" id="trips-real-container">
             {{-- Empty state --}}
             @if($trips->isEmpty())
                 <div class="trips-empty">

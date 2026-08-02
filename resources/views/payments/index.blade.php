@@ -140,14 +140,7 @@
         $mainPaymentsPaginator = $isAdmin ? $driverPayments : $myPayments;
     @endphp
 
-    <div class="payments-page" id="page-content-wrapper"
-        @if($initialLoad ?? false) 
-            hx-get="{{ request()->fullUrl() }}" 
-            hx-trigger="load" 
-            hx-swap="outerHTML" 
-            hx-select="#page-content-wrapper" 
-        @endif
-    >
+    <div class="payments-page">
         <section class="payments-page-header">
             <div class="payments-page-header-left">
                 <p class="payments-eyebrow">Payments</p>
@@ -401,7 +394,7 @@
 
                 <div style="position: relative; min-height: 250px;">
                     {{-- Skeleton Loading Container --}}
-                    <div class="payments-skel-container" id="payments-skel-container" style="{{ ($initialLoad ?? false) ? 'display:block;' : 'display:none;' }}">
+                    <div class="payments-skel-container" id="payments-skel-container">
                     {{-- Desktop Table Skeleton --}}
                     <div class="payments-table-skel" style="display:none; padding:12px 16px;">
                         <table class="payments-table" style="pointer-events:none; margin:0; border:0; width:100%;">
@@ -478,8 +471,7 @@
                     </div>
                 </div>
 
-                <div class="payments-real-container" id="payments-real-container" style="{{ ($initialLoad ?? false) ? 'display:none;' : 'display:block;' }}">
-                @if(!($initialLoad ?? false))
+                <div class="payments-real-container" id="payments-real-container">
                 <div class="payments-mobile-list">
                     @forelse($allLivePayments as $payment)
                         @php
@@ -1555,7 +1547,6 @@
                         @endforelse
                         </tbody>
                     </table>
-                @endif
                 </div>
                 @if($driverPayments)
                     <div style="margin-top:12px;">

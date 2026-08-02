@@ -62,17 +62,6 @@ class ExploreController extends Controller
             $request->session()->put('explore_recent_destinations', $recent);
         }
 
-        if (! $request->header('HX-Request')) {
-            return view('explore.index', [
-                'trips' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
-                'filters' => $filters,
-                'suggestedDestinations' => [],
-                'aiRecommendationMap' => [],
-                'recommendedTripIds' => [],
-                'initialLoad' => true,
-            ]);
-        }
-
         $trips = $this->tripService->paginateExplore($request->user(), 12, $filters);
         $rankedTrips = $this->aiDecisionSupportService->recommendTrips($request->user(), $trips->getCollection(), $filters);
         $trips->setCollection($rankedTrips->pluck('trip'));
@@ -82,7 +71,7 @@ class ExploreController extends Controller
         $recommendedTripIds = $rankedTrips->take(3)->map(fn (array $row) => (int) $row['trip']->id)->all();
         $suggestedDestinations = $this->tripService->exploreDestinationSuggestions();
 
-        return view('explore.index', compact('trips', 'filters', 'suggestedDestinations', 'aiRecommendationMap', 'recommendedTripIds'))->with('initialLoad', false);
+        return view('explore.index', compact('trips', 'filters', 'suggestedDestinations', 'aiRecommendationMap', 'recommendedTripIds'));
     }
 
     public function search(Request $request): View
