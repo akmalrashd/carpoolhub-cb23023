@@ -749,7 +749,7 @@
                     <table class="payments-table">
                         <thead>
                         <tr>
-                            <th style="width: 40px; padding-right: 0;"></th>
+                            <th style="width: 48px; min-width: 48px; max-width: 48px; padding-right: 0;"></th>
                             <th>Counterparty</th>
                             <th>Trip</th>
                             <th>Status</th>
@@ -858,7 +858,7 @@
                                 data-participants='@json($participantsPayload)'
                                 data-passenger-count="{{ count($participantsPayload) }}"
                             >
-                                <td onclick="event.stopPropagation();" style="padding-right:0;">
+                                <td onclick="event.stopPropagation();" style="width: 48px; min-width: 48px; max-width: 48px; padding-right: 0;">
                                     @if($isDriverQueueRecord && in_array($payment->payment_status, ['unpaid', 'pending_confirmation']))
                                         <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="bulk-payment-cb" form="bulk-confirm-form">
                                     @endif
@@ -944,8 +944,8 @@
                                             ><i class="fa-solid fa-clipboard-check"></i> Review</button>
                                         </div>
                                     @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
-                                        <div style="display:flex; gap:8px; justify-content:flex-end;">
-                                            <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
+                                        <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap; min-width: 130px;">
+                                            <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row" style="margin:0;">
                                                 @csrf
                                                 <button
                                                     type="submit"
@@ -953,6 +953,7 @@
                                                     {{ $canSendReminder ? '' : 'disabled' }}
                                                     data-payment-id="{{ $payment->id }}"
                                                     data-seconds-left="{{ $secondsLeft }}"
+                                                    style="min-width:0; padding:0 10px;"
                                                 >
                                                     @if($canSendReminder)
                                                         <i class="fa-regular fa-bell"></i> Notify
@@ -961,10 +962,10 @@
                                                     @endif
                                                 </button>
                                             </form>
-                                            <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
+                                            <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row" style="margin:0;">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="payments-btn payment-table-action" style="background:#22c55e; color:#fff; border-color:#22c55e;">
+                                                <button type="submit" class="payments-btn payment-table-action" style="min-width:0; padding:0 10px; background:#22c55e; color:#fff; border-color:#22c55e;">
                                                     <i class="fa-solid fa-check"></i> Mark Paid
                                                 </button>
                                             </form>
