@@ -228,4 +228,35 @@ class PaymentController extends Controller
             ->route('payments.index')
             ->with('status', 'Passenger notified.');
     }
+    public function approveAllPending(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        $pendingPayments = TripPayment::query()
+            ->whereHas('trip', function ($q) use ($user) {
+                $q->where('driver_id', $user->id);
+            })
+            ->where('status', 'pending_review')
+            ->get();
+
+        $count = 0;
+        foreach ($pendingPayments as $payment) {
+            try {
+                $this->paymentService->confirmPaid($user, $payment);
+                $count++;
+            } catch (\Exception $e) {
+                // Ignore individual errors during bulk approve
+            }
+        }
+
+        if ($count > 0) {
+            return redirect()
+                ->route('payments.index')
+                ->with('status', "$count payment(s) successfully approved.");
+        }
+
+        return redirect()
+            ->route('payments.index')
+            ->with('status', 'No pending payments found.');
+    }
 }

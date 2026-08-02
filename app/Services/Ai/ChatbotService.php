@@ -242,7 +242,7 @@ PROMPT;
         if (! \is_array($decoded) || empty($decoded['intent'])) {
             // Include JSON error for debugging if needed (but hide from user)
             \Illuminate\Support\Facades\Log::warning('AI Chat JSON Decode Failed: ' . json_last_error_msg(), ['raw' => $raw]);
-            return ['intent' => 'general', 'reply' => $raw ?: $fallback];
+            return ['intent' => 'general', 'reply' => $fallback];
         }
 
         $intent = (string) $decoded['intent'];

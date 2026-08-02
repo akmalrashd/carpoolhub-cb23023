@@ -282,7 +282,12 @@
                                     @endforeach
                                 </div>
                             @else
-                                <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started." />
+                                <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started.">
+                                    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center;">
+                                        <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">Post a Trip</a>
+                                        <a href="{{ route('explore.index') }}" class="btn btn-ghost btn-sm">Find a Ride</a>
+                                    </div>
+                                </x-empty>
                             @endif
                         </div>
                         {{-- As passenger panel --}}
@@ -328,7 +333,12 @@
                                     @endforeach
                                 </div>
                             @else
-                                <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started." />
+                                <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started.">
+                                    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center;">
+                                        <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">Post a Trip</a>
+                                        <a href="{{ route('explore.index') }}" class="btn btn-ghost btn-sm">Find a Ride</a>
+                                    </div>
+                                </x-empty>
                             @endif
                         </div>{{-- /hp-tab-passenger --}}
                         </div>{{-- /hp-trips-real --}}
@@ -477,10 +487,17 @@
                                     </p>
                                 </div>
                             @endif
-                            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--hairline);">
-                                <a href="{{ route('payments.index') }}" class="btn btn-ghost btn-sm btn-block">
-                                    Open Driver Review <i class="fa-solid fa-arrow-right"></i>
+                            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--hairline); display:flex; gap:8px;">
+                                <a href="{{ route('payments.index') }}" class="btn btn-ghost btn-sm" style="flex:1; justify-content:center;">
+                                    Open Driver Review
                                 </a>
+                                <form action="{{ route('payments.approve-all-pending') }}" method="POST" style="flex:1;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-primary btn-sm btn-block" onclick="return confirm('Approve all pending payments?');">
+                                        Approve All
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
