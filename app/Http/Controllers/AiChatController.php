@@ -49,9 +49,11 @@ class AiChatController extends Controller
             session()->forget('ai_chat_pending_trip');
         }
 
-        $history[] = ['role' => 'user',      'content' => $message];
-        $history[] = ['role' => 'assistant', 'content' => $result['reply']];
-        session(['ai_chat_history' => \array_slice($history, -$maxMessages)]);
+        if (($result['intent'] ?? '') !== 'error') {
+            $history[] = ['role' => 'user',      'content' => $message];
+            $history[] = ['role' => 'assistant', 'content' => $result['reply']];
+            session(['ai_chat_history' => \array_slice($history, -$maxMessages)]);
+        }
 
         if (($result['intent'] ?? '') === 'navigate' && ! empty($result['route'])) {
             try {

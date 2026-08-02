@@ -45,8 +45,13 @@ class ChatbotService
                 ],
             ]);
 
-            $body    = json_decode((string) $response->getBody(), true);
+            $bodyStr = (string) $response->getBody();
+            $body    = json_decode($bodyStr, true);
             $content = trim((string) ($body['content'][0]['text'] ?? ''));
+
+            if ($content === '') {
+                return ['intent' => 'error', 'reply' => 'DEBUG EMPTY CONTENT. Body: ' . substr($bodyStr, 0, 300)];
+            }
 
             return $this->parseResponse($content, $user, $language);
 
