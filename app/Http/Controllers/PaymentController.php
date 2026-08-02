@@ -95,6 +95,7 @@ class PaymentController extends Controller
                 'canReviewQueue' => $canReviewQueue,
                 'filters' => $filters,
                 'summaryLabel' => $summaryLabel,
+                'showMyPayments' => $showMyPayments,
                 'initialLoad' => true,
             ]);
         }
