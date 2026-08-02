@@ -50,10 +50,13 @@ class ChatbotService
 
             return $this->parseResponse($content, $user, $language);
 
-        } catch (GuzzleException) {
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            \Illuminate\Support\Facades\Log::error('AI Chat Error: ' . $e->getMessage(), [
+                'response' => $e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse() ? (string) $e->getResponse()->getBody() : null
+            ]);
             $err = $language === 'en'
                 ? 'Sorry, AI is unavailable right now. Please try again.'
-                : 'Maaf, sistem AI tidak dapat dihubungi sekarang. Cuba lagi sebentar.';
+                : 'Maaf, sistem AI tidak dapat dihubungi sekarang. Cuba lagi sebentar. (' . $e->getMessage() . ')';
 
             return ['intent' => 'error', 'reply' => $err];
         }
