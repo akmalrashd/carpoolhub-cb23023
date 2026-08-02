@@ -1005,11 +1005,9 @@
 
             @endif
 
-            {{-- Pagination --}}
             <div class="pagination-wrap">
                 {{ $trips->appends(request()->query())->links() }}
             </div>
-            @endif
             </div>{{-- /trips-real-container --}}
             </div>{{-- /relative-wrapper --}}
         </div>
@@ -1176,7 +1174,6 @@
             </div>
         </div>
     </div>
-</div>{{-- /#page-content-wrapper --}}
 
     <script>window.CH_TRIPS = { csrf: @json(csrf_token()) };</script>
     <script src="{{ asset('js/trips-index.js') }}?v={{ filemtime(public_path('js/trips-index.js')) }}"></script>
