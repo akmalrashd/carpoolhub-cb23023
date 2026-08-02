@@ -46,11 +46,13 @@ class PaymentController extends Controller
         };
 
         $role = (string) $request->user()->role;
-        if ($role === 'admin') {
+        $isAdmin = $role === 'admin';
+        
+        if ($isAdmin) {
             $filters['direction'] = 'all';
         }
 
-        $showMyPayments = $role !== 'admin';
+        $showMyPayments = ! $isAdmin;
         $canReviewQueue = in_array($role, ['admin', 'driver'], true);
 
         // Keep all payments visible on index.
