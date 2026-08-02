@@ -81,6 +81,25 @@ class PaymentController extends Controller
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
             : null;
 
+        if (! $request->header('HX-Request')) {
+            return view('payments.index', [
+                'myPayments' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
+                'driverPayments' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
+                'summary' => [
+                    'my' => ['unpaid' => ['amount' => 0, 'count' => 0], 'pending_confirmation' => ['amount' => 0, 'count' => 0], 'paid' => ['amount' => 0, 'count' => 0]],
+                    'driver' => ['unpaid' => ['amount' => 0, 'count' => 0], 'pending_confirmation' => ['amount' => 0, 'count' => 0], 'paid' => ['amount' => 0, 'count' => 0]],
+                ],
+                'paymentCounts' => ['all' => 0, 'pay' => 0, 'collect' => 0, 'unpaid' => 0, 'review' => 0, 'confirmed' => 0],
+                'passengerDebtSummary' => null,
+                'reminderState' => [],
+                'showMyPayments' => $showMyPayments,
+                'canReviewQueue' => $canReviewQueue,
+                'filters' => $filters,
+                'summaryLabel' => $summaryLabel,
+                'initialLoad' => true,
+            ]);
+        }
+
         return view(
             'payments.index',
             compact(
@@ -95,7 +114,7 @@ class PaymentController extends Controller
                 'filters',
                 'summaryLabel'
             )
-        );
+        )->with('initialLoad', false);
     }
 
     public function markPaid(MarkPaidRequest $request, TripPayment $payment): RedirectResponse|JsonResponse

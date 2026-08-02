@@ -106,6 +106,15 @@
     {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
     <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">
 
+<div id="page-content-wrapper" 
+    @if($initialLoad ?? false) 
+        hx-get="{{ request()->fullUrl() }}" 
+        hx-trigger="load" 
+        hx-swap="outerHTML" 
+        hx-select="#page-content-wrapper" 
+    @endif
+>
+
     {{-- ════════════════════════════════════════════════════════════════════════
          DESKTOP LAYOUT  (≥ 1024px)
     ════════════════════════════════════════════════════════════════════════ --}}
@@ -131,7 +140,7 @@
         {{-- 2. Stats strip -------------------------------------------------- --}}
         <div class="hp-stats-skel-wrap">
             {{-- Skeleton overlay: absolutely positioned over real stats --}}
-            <div id="hp-stats-skel-overlay">
+            <div id="hp-stats-skel-overlay" style="{{ ($initialLoad ?? false) ? 'display:block;' : 'display:none;' }}">
                 <div class="hp-stats-strip" style="position:relative;z-index:1;">
                     @for($sk = 0; $sk < 4; $sk++)
                         <div class="hp-stat-card" style="pointer-events:none;">
@@ -254,7 +263,7 @@
                     </div>
                     <div class="hp-section-body">
                         {{-- Skeleton: shown briefly then fades --}}
-                        <div id="hp-trips-skel" style="opacity:1;transition:opacity 0.3s ease;">
+                        <div id="hp-trips-skel" style="{{ ($initialLoad ?? false) ? 'display:block;' : 'display:none;' }}">
                             @for($sk = 0; $sk < 3; $sk++)
                                 <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:{{ $sk < 2 ? '1px solid var(--hairline)' : 'none' }};">
                                     <div style="display:grid;gap:5px;width:52px;flex-shrink:0;">
@@ -270,7 +279,8 @@
                             @endfor
                         </div>
                         {{-- Real content: hidden then fades in --}}
-                        <div id="hp-trips-real" style="opacity:0;transition:opacity 0.3s ease 0.1s;">
+                        <div id="hp-trips-real" style="{{ ($initialLoad ?? false) ? 'display:none;' : 'display:block;' }}">
+                        @if(!($initialLoad ?? false))
                         {{-- As driver panel --}}
                         <div id="hp-tab-driver">
                             @if($upcomingCreatedTrips->isNotEmpty())
@@ -363,6 +373,7 @@
                                 <x-empty icon="fa-solid fa-car" title="No upcoming trips" body="Create or join a trip to get started." />
                             @endif
                         </div>{{-- /hp-tab-passenger --}}
+                        @endif
                         </div>{{-- /hp-trips-real --}}
                     </div>{{-- /hp-section-body --}}
                 </div>{{-- /hp-section upcoming --}}
@@ -730,11 +741,13 @@
                     @else
                         <x-empty icon="fa-solid fa-car-side" title="No public trips today" body="No public trips available right now." style="box-shadow:none; border:none; background:transparent; padding:20px 0;" />
                     @endif
+                    </div>
                 </div>
-            </div>
+            @endif
 
         </div>{{-- /.hp-mobile-wrap --}}
     </div>{{-- /.hp-mobile-only --}}
+</div>{{-- /#page-content-wrapper --}}
 
-    <script src="{{ asset('js/home.js') }}?v={{ filemtime(public_path('js/home.js')) }}"></script>
+<script src="{{ asset('js/home.js') }}?v={{ filemtime(public_path('js/home.js')) }}"></script>
 @endsection

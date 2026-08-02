@@ -20,7 +20,6 @@ class TripController extends Controller
 
     public function index(Request $request): View
     {
-        $this->tripService->syncLifecycleStatuses();
         $filters = $request->validate([
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
@@ -30,10 +29,26 @@ class TripController extends Controller
         ]);
 
         $filters['status_filter'] = $filters['status_filter'] ?? 'all';
+
+        if (! $request->header('HX-Request')) {
+            return view('trips.index', [
+                'trips' => null,
+                'filters' => $filters,
+                'tripStatusCounts' => [],
+                'initialLoad' => true,
+            ]);
+        }
+
+        $this->tripService->syncLifecycleStatuses();
         $tripStatusCounts = $this->tripService->statusCountsForUser($request->user(), $filters);
         $trips = $this->tripService->paginateForUser($request->user(), 10, $filters);
 
-        return view('trips.index', compact('trips', 'filters', 'tripStatusCounts'));
+        return view('trips.index', [
+            'trips' => $trips,
+            'filters' => $filters,
+            'tripStatusCounts' => $tripStatusCounts,
+            'initialLoad' => false,
+        ]);
     }
 
     public function create(Request $request): View

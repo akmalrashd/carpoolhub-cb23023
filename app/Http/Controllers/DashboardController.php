@@ -17,6 +17,31 @@ class DashboardController extends Controller
         $user = $request->user();
         $role = $user->role;
 
+        if (! $request->header('HX-Request')) {
+            return view('home', [
+                'role' => $role,
+                'stats' => [
+                    'total_trips' => 0,
+                    'trips_this_week' => 0,
+                    'trips_this_month' => 0,
+                    'unpaid_count' => 0,
+                    'unpaid_amount' => 0,
+                    'saved_routes' => 0,
+                    'unread_notifications' => 0,
+                    'total_earnings' => 'RM 0.00',
+                    'pending_requests' => 0,
+                ],
+                'upcomingCreatedTrips' => collect(),
+                'upcomingJoinedTrips' => collect(),
+                'upcomingCreatedTrip' => null,
+                'upcomingJoinedTrip' => null,
+                'pendingJoinRequests' => 0,
+                'driverReviewQueue' => collect(),
+                'publicExploreTrips' => collect(),
+                'initialLoad' => true,
+            ]);
+        }
+
         $activeUnpaidCount = (int) TripPayment::query()
             ->where('user_id', $user->id)
             ->where('payment_status', 'unpaid')
@@ -139,6 +164,6 @@ class DashboardController extends Controller
             'pendingJoinRequests',
             'driverReviewQueue',
             'publicExploreTrips'
-        ));
+        ))->with('initialLoad', false);
     }
 }

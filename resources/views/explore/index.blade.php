@@ -134,7 +134,14 @@
         $connectionTripsCount = $visibleTripsForChips->filter(fn ($trip) => in_array((int) $trip->driver_id, $acceptedConnectionIdsForChips, true))->count();
     @endphp
 
-    <div class="xp-wrap">
+    <div class="xp-wrap" id="page-content-wrapper"
+        @if($initialLoad ?? false) 
+            hx-get="{{ request()->fullUrl() }}" 
+            hx-trigger="load" 
+            hx-swap="outerHTML" 
+            hx-select="#page-content-wrapper" 
+        @endif
+    >
 
         {{-- ── Page Header ─────────────────────────────────────────── --}}
         <div class="xp-page-header">
@@ -233,7 +240,7 @@
             {{-- Left: trip list --}}
             <div class="xp-list" id="xp-real-list">
                 {{-- Skeleton placeholder (hidden, shown on filter submit) --}}
-                <div id="xp-skel-list" style="display:none;grid-gap:12px;display:none;">
+                <div id="xp-skel-list" style="{{ ($initialLoad ?? false) ? 'display:block;' : 'display:none;' }} grid-gap:12px;">
                     @for($sk = 0; $sk < 5; $sk++)
                         <div class="xp-skel-card">
                             <div style="display:flex;align-items:center;gap:10px;">
@@ -256,6 +263,8 @@
                         </div>
                     @endfor
                 </div>
+                <div id="xp-real-list-content" style="{{ ($initialLoad ?? false) ? 'display:none;' : 'display:block;' }}">
+                @if(!($initialLoad ?? false))
                 @if($trips->isEmpty())
                     <x-empty 
                         icon="fa-solid fa-compass" 
@@ -493,7 +502,9 @@
                             {{ $trips->appends(request()->query())->links() }}
                         </div>
                     @endif
+                    @endif
                 @endif
+                </div>
             </div>
 
             {{-- Right: sticky map panel --}}

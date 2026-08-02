@@ -6,6 +6,14 @@
 {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
 <link rel="stylesheet" href="{{ asset('css/saved-routes.css') }}?v={{ filemtime(public_path('css/saved-routes.css')) }}">
 
+<div id="page-content-wrapper" 
+    @if($initialLoad ?? false) 
+        hx-get="{{ request()->fullUrl() }}" 
+        hx-trigger="load" 
+        hx-swap="outerHTML" 
+        hx-select="#page-content-wrapper" 
+    @endif
+>
 {{-- Page header --}}
 <div style="padding:20px var(--page-gutter, 28px) 0">
     <div style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Saved Routes</div>
@@ -26,7 +34,7 @@
 {{-- Card grid area --}}
 <div style="padding:20px var(--page-gutter, 28px) 28px">
 
-    @if($savedRoutes->isEmpty())
+    @if($savedRoutes->isEmpty() && !($initialLoad ?? false))
         <div class="sr-empty">
             <i class="fa-solid fa-route sr-empty-icon"></i>
             <p class="sr-empty-title">No saved routes yet</p>
@@ -46,7 +54,7 @@
 
         <div style="position: relative; min-height: 250px;">
             {{-- Skeleton Loading Container --}}
-            <div class="sr-skel-container" id="sr-skel-container">
+            <div class="sr-skel-container" id="sr-skel-container" style="{{ ($initialLoad ?? false) ? 'display:block;' : 'display:none;' }}">
                 <div class="sr-grid">
                     @for($i = 0; $i < min(2, $savedRoutes->count()); $i++)
                         <div class="card" style="padding:0; overflow:hidden;">
@@ -75,7 +83,8 @@
                 </div>
             </div>
 
-            <div class="sr-grid" id="srGrid" style="opacity:0.35; transition:opacity .35s ease;">
+            <div class="sr-grid" id="srGrid" style="{{ ($initialLoad ?? false) ? 'display:none;' : 'display:grid;' }}">
+                @if(!($initialLoad ?? false))
                 @foreach($savedRoutes as $savedRoute)
                 @php
                     $customPreviewPoints = $savedRoute->passengerStops
@@ -212,6 +221,7 @@
                     </div>{{-- /.sr-body --}}
                 </article>
             @endforeach
+            @endif
         </div>
         </div>
 
@@ -226,6 +236,7 @@
         </div>
     @endif
 
+</div>
 </div>
 
 <script src="{{ asset('js/saved-routes.js') }}?v={{ filemtime(public_path('js/saved-routes.js')) }}"></script>
