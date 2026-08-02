@@ -114,7 +114,7 @@ class AiChatController extends Controller
         try {
             $http = new \GuzzleHttp\Client([
                 'base_uri' => 'https://api.anthropic.com',
-                'timeout'  => 8,
+                'timeout'  => 25,
                 'headers'  => [
                     'x-api-key'         => config('ai_chat.api_key'),
                     'anthropic-version' => '2023-06-01',
@@ -124,7 +124,7 @@ class AiChatController extends Controller
 
             $response = $http->post('/v1/messages', [
                 'json' => [
-                    'model'      => trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
+                    'model'      => 'claude-haiku-4-5-20251001',
                     'max_tokens' => 120,
                     'messages'   => [['role' => 'user', 'content' => $prompt]],
                 ],
@@ -215,7 +215,7 @@ class AiChatController extends Controller
 
             $response = $http->post('/v1/messages', [
                 'json' => [
-                    'model'      => trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
+                    'model'      => 'claude-haiku-4-5-20251001',
                     'max_tokens' => 180,
                     'messages'   => [['role' => 'user', 'content' => $prompt]],
                 ],
