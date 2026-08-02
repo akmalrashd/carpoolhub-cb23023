@@ -664,7 +664,38 @@
         </div>
     </div>
 
-    {{-- Page values for the extracted script below. --}}
     <script>window.CH_EXPLORE = { passengerName: @json(auth()->user()?->name ?? 'Passenger') };</script>
     <script src="{{ asset('js/explore-index.js') }}?v={{ filemtime(public_path('js/explore-index.js')) }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const realList = document.getElementById('xp-real-list');
+            if (realList && realList.dataset.initialLoad === 'true') {
+                const skelList = document.getElementById('xp-skel-list');
+                if (skelList) skelList.style.display = 'grid';
+                realList.classList.add('xp-list-loading');
+                realList.dataset.initialLoad = 'false';
+
+                fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(res => res.text())
+                    .then(html => {
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        // Replace the entire explore container so map and cards get updated HTML
+                        const currentWrap = document.querySelector('.xp-wrap');
+                        const newWrap = doc.querySelector('.xp-wrap');
+                        if (currentWrap && newWrap) {
+                            currentWrap.innerHTML = newWrap.innerHTML;
+                        }
+                        // Re-run the map init script logic here by dispatching a custom event or reloading
+                        // Actually, the simplest for explore is to just let normal JS handle it, but wait, explore-index.js is already executed.
+                        // We can just reload the script:
+                        const oldScript = document.querySelector('script[src*="explore-index.js"]');
+                        if (oldScript) {
+                            const newScript = document.createElement('script');
+                            newScript.src = oldScript.src;
+                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                        }
+                    });
+            }
+        });
+    </script>
 @endsection

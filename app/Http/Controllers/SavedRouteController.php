@@ -18,9 +18,16 @@ class SavedRouteController extends Controller
 
     public function index(Request $request): View
     {
+        if (! $request->ajax()) {
+            return view('saved-routes.index', [
+                'savedRoutes' => collect([]),
+                'initialLoad' => true,
+            ]);
+        }
+
         $savedRoutes = $this->savedRouteService->paginateForUser($request->user());
 
-        return view('saved-routes.index', compact('savedRoutes'));
+        return view('saved-routes.index', compact('savedRoutes') + ['initialLoad' => false]);
     }
 
     public function create(Request $request): View

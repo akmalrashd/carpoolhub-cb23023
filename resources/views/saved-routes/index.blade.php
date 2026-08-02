@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <div class="sr-grid" id="srGrid" style="opacity:0.35; transition:opacity .35s ease;">
+            <div class="sr-grid" id="srGrid" style="opacity:0.35; transition:opacity .35s ease;" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
                 @foreach($savedRoutes as $savedRoute)
                 @php
                     $customPreviewPoints = $savedRoute->passengerStops
@@ -229,4 +229,39 @@
 </div>
 
 <script src="{{ asset('js/saved-routes.js') }}?v={{ filemtime(public_path('js/saved-routes.js')) }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const grid = document.getElementById('srGrid');
+        if (grid && grid.dataset.initialLoad === 'true') {
+            const skel = document.getElementById('sr-skel-container');
+            if (skel) skel.style.display = 'block';
+            grid.style.opacity = '0';
+            grid.dataset.initialLoad = 'false';
+
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
+                .then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const currentMain = document.querySelector('main') || document.body;
+                    const newMain = doc.querySelector('main') || doc.body;
+                    
+                    // Replace grid
+                    const newGrid = doc.getElementById('srGrid');
+                    if (newGrid && grid) {
+                        grid.innerHTML = newGrid.innerHTML;
+                        grid.style.opacity = '1';
+                    }
+                    if (skel) skel.style.display = 'none';
+
+                    // Re-run JS
+                    const oldScript = document.querySelector('script[src*="saved-routes.js"]');
+                    if (oldScript) {
+                        const newScript = document.createElement('script');
+                        newScript.src = oldScript.src;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    }
+                });
+        }
+    });
+</script>
 @endsection
