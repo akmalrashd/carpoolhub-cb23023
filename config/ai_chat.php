@@ -6,6 +6,11 @@ return [
     'max_tokens' => 4096,
     'timeout'    => 15,
 
+    // The fare endpoints allow longer than the chat timeout: they are fired in
+    // the background while the driver keeps filling the trip form, so a slower
+    // answer is preferable to no answer. Was hardcoded at two call sites.
+    'fare_timeout' => 30,
+
     // Max conversation turns kept in session (each turn = 1 user + 1 assistant msg)
     'history_turns' => 4,
 ];

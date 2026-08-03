@@ -208,7 +208,7 @@ class PaymentService
                 DB::raw('SUM(trip_payments.amount_due) as total_amount'),
             ])
             ->join('users', 'users.id', '=', 'trip_payments.user_id')
-            ->whereIn('trip_payments.payment_status', ['unpaid', 'pending_confirmation'])
+            ->whereIn('trip_payments.payment_status', TripPayment::STATUSES_OUTSTANDING)
             ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
             ->when(
                 $user->role === 'admin',
@@ -253,7 +253,7 @@ class PaymentService
             ]);
         }
 
-        if ($payment->payment_status === 'paid') {
+        if ($payment->payment_status === TripPayment::STATUS_PAID) {
             throw ValidationException::withMessages([
                 'payment' => 'Payment has already been confirmed as paid.',
             ]);
@@ -263,7 +263,7 @@ class PaymentService
             $isSelfDrivenPayment = (int) ($payment->trip?->driver_id ?? 0) === (int) $actor->id;
 
             $payment->update([
-                'payment_status' => $isSelfDrivenPayment ? 'paid' : 'pending_confirmation',
+                'payment_status' => $isSelfDrivenPayment ? TripPayment::STATUS_PAID : TripPayment::STATUS_PENDING_CONFIRMATION,
                 'marked_paid_at' => now(),
                 'confirmed_by' => $isSelfDrivenPayment ? $actor->id : null,
                 'confirmed_at' => $isSelfDrivenPayment ? now() : null,
@@ -320,17 +320,17 @@ class PaymentService
             ]);
         }
 
-        if ($payment->payment_status === 'paid') {
+        if ($payment->payment_status === TripPayment::STATUS_PAID) {
             throw ValidationException::withMessages([
                 'payment' => 'Payment has already been confirmed as paid.',
             ]);
         }
 
         return DB::transaction(function () use ($payment, $actor): TripPayment {
-            $isDirectMark = $payment->payment_status === 'unpaid';
+            $isDirectMark = $payment->payment_status === TripPayment::STATUS_UNPAID;
 
             $payment->update([
-                'payment_status' => 'paid',
+                'payment_status' => TripPayment::STATUS_PAID,
                 'confirmed_by' => $actor->id,
                 'confirmed_at' => now(),
                 'marked_paid_at' => $payment->marked_paid_at ?? now(),
@@ -371,7 +371,7 @@ class PaymentService
             ]);
         }
 
-        if ($payment->payment_status !== 'pending_confirmation') {
+        if ($payment->payment_status !== TripPayment::STATUS_PENDING_CONFIRMATION) {
             throw ValidationException::withMessages([
                 'payment' => 'Only pending confirmation payments can be rejected.',
             ]);
@@ -379,7 +379,7 @@ class PaymentService
 
         return DB::transaction(function () use ($payment, $actor, $reason): TripPayment {
             $payment->update([
-                'payment_status' => 'unpaid',
+                'payment_status' => TripPayment::STATUS_UNPAID,
                 'marked_paid_at' => null,
                 'confirmed_by' => null,
                 'confirmed_at' => null,
@@ -420,7 +420,7 @@ class PaymentService
             ]);
         }
 
-        if ($payment->payment_status === 'paid') {
+        if ($payment->payment_status === TripPayment::STATUS_PAID) {
             throw ValidationException::withMessages([
                 'payment' => 'Notification is not needed for paid records.',
             ]);
@@ -536,11 +536,11 @@ class PaymentService
     {
         $paymentFilter = (string) ($filters['payment_filter'] ?? 'all');
         if ($paymentFilter === 'review') {
-            $query->where('payment_status', 'pending_confirmation');
+            $query->where('payment_status', TripPayment::STATUS_PENDING_CONFIRMATION);
         } elseif ($paymentFilter === 'confirmed') {
-            $query->where('payment_status', 'paid');
+            $query->where('payment_status', TripPayment::STATUS_PAID);
         } elseif ($paymentFilter === 'unpaid') {
-            $query->where('payment_status', 'unpaid');
+            $query->where('payment_status', TripPayment::STATUS_UNPAID);
         }
 
         if (! empty($filters['date_from'])) {

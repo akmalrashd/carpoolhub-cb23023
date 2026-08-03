@@ -112,17 +112,7 @@ class AiChatController extends Controller
         }
 
         try {
-            $http = new \GuzzleHttp\Client([
-                'base_uri' => 'https://api.anthropic.com',
-                'timeout'  => 30,
-                'headers'  => [
-                    'x-api-key'         => config('ai_chat.api_key'),
-                    'anthropic-version' => '2023-06-01',
-                    'content-type'      => 'application/json',
-                ],
-            ]);
-
-            $response = $http->post('/v1/messages', [
+            $response = $this->anthropic()->post('/v1/messages', [
                 'json' => [
                     'model'      => trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
                     'max_tokens' => 120,
@@ -203,17 +193,7 @@ class AiChatController extends Controller
             "Rules: infer fuel type from vehicle model. Use real-world km/L for Malaysian mixed driving. Toll estimate may be approximate based on toll highway names only. Use 0 toll if unsure.";
 
         try {
-            $http = new \GuzzleHttp\Client([
-                'base_uri' => 'https://api.anthropic.com',
-                'timeout'  => 30,
-                'headers'  => [
-                    'x-api-key'         => config('ai_chat.api_key'),
-                    'anthropic-version' => '2023-06-01',
-                    'content-type'      => 'application/json',
-                ],
-            ]);
-
-            $response = $http->post('/v1/messages', [
+            $response = $this->anthropic()->post('/v1/messages', [
                 'json' => [
                     'model'      => trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
                     'max_tokens' => 180,
@@ -307,6 +287,24 @@ class AiChatController extends Controller
                 ? 'Estimated from vehicle type, route distance, travel time, and detected road names. Driver should verify fuel and toll values.'
                 : 'Vehicle model is missing, so a conservative default efficiency is used. Driver should verify fuel and toll values.',
         ];
+    }
+
+    /**
+     * One place that builds the Anthropic client. The two fare endpoints each
+     * constructed their own identical copy with the timeout hardcoded, so the
+     * configured value was ignored and a change had to be made twice.
+     */
+    private function anthropic(): \GuzzleHttp\Client
+    {
+        return new \GuzzleHttp\Client([
+            'base_uri' => 'https://api.anthropic.com',
+            'timeout'  => (int) config('ai_chat.fare_timeout', 30),
+            'headers'  => [
+                'x-api-key'         => config('ai_chat.api_key'),
+                'anthropic-version' => '2023-06-01',
+                'content-type'      => 'application/json',
+            ],
+        ]);
     }
 
     private function validFuelType(mixed $value, string $fallback): string
