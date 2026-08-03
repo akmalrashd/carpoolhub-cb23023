@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Facades\DB;
 
 class NotificationService
 {
@@ -26,16 +27,25 @@ class NotificationService
 
     public function tabCountsForUser(User $user): array
     {
-        $base = UserNotification::query()->where('user_id', $user->id);
+        // Two grouped queries replace seven COUNTs. This runs on the notifications
+        // page and is reachable from the 5-second poller, so the six saved round
+        // trips are per-tab-per-user. 'all' sums every type returned rather than
+        // the five named ones, so it stays identical to the old total count()
+        // even for a type no tab covers.
+        $byType = UserNotification::query()
+            ->where('user_id', $user->id)
+            ->select('type', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('type')
+            ->pluck('aggregate', 'type');
 
         return [
-            'all'        => (clone $base)->count(),
-            'unread'     => (clone $base)->where('is_read', false)->count(),
-            'trip'       => (clone $base)->where('type', 'trip')->count(),
-            'payment'    => (clone $base)->where('type', 'payment')->count(),
-            'connection' => (clone $base)->where('type', 'connection')->count(),
-            'system'     => (clone $base)->where('type', 'system')->count(),
-            'route'      => (clone $base)->where('type', 'route')->count(),
+            'all'        => (int) $byType->sum(),
+            'unread'     => $this->unreadCount($user),
+            'trip'       => (int) ($byType['trip'] ?? 0),
+            'payment'    => (int) ($byType['payment'] ?? 0),
+            'connection' => (int) ($byType['connection'] ?? 0),
+            'system'     => (int) ($byType['system'] ?? 0),
+            'route'      => (int) ($byType['route'] ?? 0),
         ];
     }
 

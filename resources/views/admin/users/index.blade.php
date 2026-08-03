@@ -119,7 +119,10 @@
                         data-vehicle="{{ $pdVehicle }}"
                         data-active="{{ $pd->is_active ? '1' : '0' }}"
                         data-joined="{{ $pd->created_at?->format('d M Y') ?? '—' }}"
-                        data-license="{{ $pd->driving_license_photo }}"
+                        {{-- data-license deliberately omitted: it held a byte-identical
+                             copy of src, doubling this page's weight (these are
+                             multi-MB base64 data URIs). openLicenseFromEl already
+                             falls back to el.src when alt is "License". --}}
                         data-selfie="{{ $pd->selfie_photo ?? '' }}"
                         onclick="openLicenseFromEl(this)"
                     >

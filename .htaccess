@@ -5,6 +5,18 @@
     RewriteRule ^(.*)$ public/index.php [L]
 </IfModule>
 
+# Text responses were being served uncompressed: the stylesheets are 100+ KB and
+# the payments/trips pages render several hundred KB of HTML. gzip typically
+# takes 70-80% off all of it. Guarded by IfModule so it is a no-op where the
+# module is unavailable.
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript text/javascript
+    AddOutputFilterByType DEFLATE application/json application/ld+json
+    AddOutputFilterByType DEFLATE application/manifest+json image/svg+xml
+    AddOutputFilterByType DEFLATE application/xml application/rss+xml
+</IfModule>
+
 # The service worker and manifest must never be served from cache. Hostinger
 # was sending sw.js with max-age=604800, so an installed phone would keep the
 # previous worker - and therefore the previous cached assets - for days, making
