@@ -25,19 +25,27 @@ class TripService
     {
         $this->syncLifecycleStatuses();
 
+        // Eight of these relations load users, and users carries the two
+        // multi-megabyte base64 image columns. Without withoutHeavyMedia() one
+        // page of trips materialises the same driver/passenger rows — blobs and
+        // all — once per relation. The trips views never render either column,
+        // so scoping them out is invisible. Matches PaymentService and
+        // DashboardController, which already do this.
+        $withoutHeavyMedia = fn ($relationQuery) => $relationQuery->withoutHeavyMedia();
+
         $query = $this->baseUserTripsQuery($user)
             ->with([
                 'savedRoute',
-                'driver',
-                'participants.user',
-                'joinRequests.user',
+                'driver' => $withoutHeavyMedia,
+                'participants.user' => $withoutHeavyMedia,
+                'joinRequests.user' => $withoutHeavyMedia,
                 'joinRequests.routePoint',
-                'payments.user',
+                'payments.user' => $withoutHeavyMedia,
                 'returnTrip.savedRoute',
-                'returnTrip.participants.user',
-                'returnTrip.payments.user',
-                'passengerRoutePoints.user',
-                'returnTrip.passengerRoutePoints.user',
+                'returnTrip.participants.user' => $withoutHeavyMedia,
+                'returnTrip.payments.user' => $withoutHeavyMedia,
+                'passengerRoutePoints.user' => $withoutHeavyMedia,
+                'returnTrip.passengerRoutePoints.user' => $withoutHeavyMedia,
             ]);
 
         $this->applyTripIndexFilters($query, $filters);
@@ -59,12 +67,26 @@ class TripService
 
         $this->applyTripIndexFilters($query, $filters);
 
+        // One grouped query replaces five separate COUNTs over the same filtered
+        // set (each of which re-ran the whereHas participants subquery). Summing
+        // every returned status — not just the ones named below — keeps 'all'
+        // identical to the old unconditional count() even if a status appears
+        // that no tab covers.
+        $byStatus = (clone $query)
+            ->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $sum = fn (array $statuses): int => (int) array_sum(
+            array_map(fn (string $status): int => (int) ($byStatus[$status] ?? 0), $statuses)
+        );
+
         return [
-            'all' => (clone $query)->count(),
-            'upcoming' => (clone $query)->whereIn('status', ['scheduled', 'confirmed'])->count(),
-            'completed' => (clone $query)->whereIn('status', ['recorded', 'completed'])->count(),
-            'draft' => (clone $query)->where('status', 'draft')->count(),
-            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            'all' => (int) $byStatus->sum(),
+            'upcoming' => $sum(['scheduled', 'confirmed']),
+            'completed' => $sum(['recorded', 'completed']),
+            'draft' => $sum(['draft']),
+            'cancelled' => $sum(['cancelled']),
         ];
     }
 
@@ -628,6 +650,18 @@ class TripService
             ? $savedRoute->passengerStops->where('is_active', true)->keyBy('user_id')
             : collect();
 
+        // Payments are rebuilt wholesale just below. Snapshot what each
+        // passenger has already settled BEFORE the delete: without this, editing
+        // a trip — even only its note or departure time — reset every payment
+        // row to 'unpaid' and discarded marked_paid_at / confirmed_by /
+        // confirmed_at / payment_method / remarks, silently destroying the
+        // record that a passenger had paid and a driver had confirmed it.
+        // On trip creation this is empty, so that path is byte-for-byte the same.
+        $settledPayments = TripPayment::query()
+            ->where('trip_id', $trip->id)
+            ->get()
+            ->keyBy(fn (TripPayment $payment): int => (int) $payment->user_id);
+
         TripParticipant::query()->where('trip_id', $trip->id)->delete();
         TripPayment::query()->where('trip_id', $trip->id)->delete();
         if ($trip->visibility === 'private') {
@@ -662,12 +696,22 @@ class TripService
                 'updated_at' => $now,
             ];
 
+            // Carry the settlement state forward for a passenger who already had
+            // a payment row on this trip. amount_due still takes the newly
+            // computed fare, which is the point of the edit.
+            $settled = $settledPayments->get((int) $userId);
+
             $paymentRows[] = [
                 'trip_id' => $trip->id,
                 'user_id' => $userId,
                 'amount_due' => $fareAmount,
-                'payment_status' => 'unpaid',
-                'created_at' => $now,
+                'payment_status' => $settled->payment_status ?? 'unpaid',
+                'marked_paid_at' => $settled->marked_paid_at ?? null,
+                'confirmed_by' => $settled->confirmed_by ?? null,
+                'confirmed_at' => $settled->confirmed_at ?? null,
+                'payment_method' => $settled->payment_method ?? null,
+                'remarks' => $settled->remarks ?? null,
+                'created_at' => $settled->created_at ?? $now,
                 'updated_at' => $now,
             ];
         }

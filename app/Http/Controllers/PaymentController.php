@@ -133,7 +133,7 @@ class PaymentController extends Controller
             return back()->withErrors($exception->errors());
         }
 
-        $message = $payment->payment_status === 'paid'
+        $message = $payment->payment_status === TripPayment::STATUS_PAID
             ? 'Payment marked as paid.'
             : 'Payment marked as paid. Waiting for driver confirmation.';
 
@@ -167,7 +167,7 @@ class PaymentController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Payment confirmed as paid.',
-                'payment_status' => 'paid',
+                'payment_status' => TripPayment::STATUS_PAID,
             ]);
         }
 
@@ -194,7 +194,7 @@ class PaymentController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Payment request rejected. Passenger has been notified to resubmit.',
-                'payment_status' => 'unpaid',
+                'payment_status' => TripPayment::STATUS_UNPAID,
             ]);
         }
 
@@ -231,7 +231,11 @@ class PaymentController extends Controller
     public function bulkConfirm(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'payment_ids' => ['required', 'array', 'min:1'],
+            // Capped: every id costs an `exists` query here and, once approved,
+            // a transaction plus a notification plus a synchronous web-push
+            // flush. Uncapped, one request could be made to do unbounded work.
+            // 200 is far above the real page size (12 rows paginated).
+            'payment_ids' => ['required', 'array', 'min:1', 'max:200'],
             'payment_ids.*' => ['integer', 'exists:trip_payments,id'],
         ]);
 
@@ -257,11 +261,15 @@ class PaymentController extends Controller
     {
         $user = $request->user();
         
+        // trip_payments has no `status` column and no `pending_review` value —
+        // the column is `payment_status` enum('unpaid','pending_confirmation',
+        // 'paid'). The old filter threw "Unknown column 'status'" on every
+        // click, so this endpoint had never once approved a payment.
         $pendingPayments = TripPayment::query()
             ->whereHas('trip', function ($q) use ($user) {
                 $q->where('driver_id', $user->id);
             })
-            ->where('status', 'pending_review')
+            ->where('payment_status', TripPayment::STATUS_PENDING_CONFIRMATION)
             ->get();
 
         $count = 0;
