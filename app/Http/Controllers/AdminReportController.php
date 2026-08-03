@@ -117,7 +117,11 @@ class AdminReportController extends Controller
             fputcsv($handle, ['Route', 'Trips', 'Average Fare', 'Drivers', 'Fare Total']);
             foreach ($topRoutes as $row) {
                 fputcsv($handle, [
-                    $row['route_name'],
+                    // Route names are user-supplied and this file is opened in
+                    // Excel/Sheets, where a leading = + - @ makes the cell a
+                    // live formula. Neutralised below; ordinary names are
+                    // written unchanged.
+                    $this->csvSafe($row['route_name']),
                     (string) $row['trip_count'],
                     number_format((float) $row['avg_fare'], 2, '.', ''),
                     (string) $row['driver_count'],
@@ -167,5 +171,20 @@ class AdminReportController extends Controller
             'reliabilitySummary',
             'thesisAlignment'
         ));
+    }
+
+    /**
+     * Defuse CSV formula injection. A spreadsheet treats a cell beginning with
+     * = + - @ (or a leading tab/CR) as a formula, so a route named
+     * "=HYPERLINK(...)" would execute when an admin opens the export. Prefixing
+     * a single quote makes the cell literal text; Excel and Sheets both hide
+     * that prefix on display. Values not starting with those characters are
+     * returned untouched, so normal exports are byte-identical.
+     */
+    private function csvSafe(mixed $value): string
+    {
+        $value = (string) $value;
+
+        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'" . $value : $value;
     }
 }

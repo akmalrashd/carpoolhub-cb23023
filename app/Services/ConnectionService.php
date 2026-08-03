@@ -41,7 +41,11 @@ class ConnectionService
             ->unique()
             ->values();
 
+        // The connections page renders name/email/avatar only — never the
+        // licence or selfie blobs — so keep the multi-megabyte columns out of
+        // both result sets.
         $acceptedConnections = User::query()
+            ->withoutHeavyMedia()
             ->whereIn('id', $acceptedUserIds)
             ->orderBy('name')
             ->get();
@@ -51,6 +55,7 @@ class ConnectionService
 
         if ($search !== '') {
             $searchResults = User::query()
+                ->withoutHeavyMedia()
                 ->where('is_active', true)
                 ->where('id', '!=', $user->id)
                 ->where(function ($query) use ($search): void {
@@ -72,6 +77,9 @@ class ConnectionService
             'outgoingRequests' => $outgoingRequests,
             'acceptedConnections' => $acceptedConnections,
             'searchResults' => $searchResults,
+            // Lets the view resolve "is this person a connection of mine?" when
+            // applying the contact-visibility settings, without a query per row.
+            'connectedUserIds' => $acceptedUserIds->map(fn ($id): int => (int) $id)->all(),
             'q' => $search,
         ];
     }

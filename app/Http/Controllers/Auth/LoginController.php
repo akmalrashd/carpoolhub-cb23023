@@ -28,16 +28,27 @@ class LoginController extends Controller
         // only the 6th+ failed attempt in a minute is blocked.
         $throttleKey = Str::transliterate(Str::lower($credentials['email']) . '|' . $request->ip());
 
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
+        // The email+IP key alone does not stop credential stuffing: one attempt
+        // against each of a thousand different emails never trips it. This
+        // second, per-IP counter does. The ceiling is deliberately high so a
+        // shared NAT (campus, office) never sees it, and it is intentionally
+        // NOT cleared on success — otherwise an attacker resets it at will by
+        // logging into an account they own.
+        $ipThrottleKey = 'login-ip|' . $request->ip();
 
-            return back()->withErrors([
-                'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
-            ])->onlyInput('email');
+        foreach ([$throttleKey => 5, $ipThrottleKey => 20] as $key => $maxAttempts) {
+            if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+                $seconds = RateLimiter::availableIn($key);
+
+                return back()->withErrors([
+                    'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
+                ])->onlyInput('email');
+            }
         }
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey, 60);
+            RateLimiter::hit($ipThrottleKey, 60);
 
             return back()->withErrors([
                 'email' => 'Invalid credentials.',

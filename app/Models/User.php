@@ -95,6 +95,37 @@ class User extends Authenticatable
         return $query->select($columns);
     }
 
+    /**
+     * Resolve one of the two contact-visibility settings against a viewer.
+     *
+     * The settings page has always let users choose who can see their email and
+     * phone (public / connections only / hidden) and SettingsService has always
+     * stored the choice — but nothing ever read it back, so "hidden" displayed
+     * the address to anyone regardless. This is the missing half.
+     *
+     * Takes an already-known connection flag rather than querying, so callers
+     * rendering a list resolve visibility without a query per row.
+     */
+    public function showsContactTo(?string $visibility, bool $viewerIsConnection): bool
+    {
+        // Matches SettingsService: an unset value behaves as visible_friend.
+        return match ((string) ($visibility ?: 'visible_friend')) {
+            'visible_public' => true,
+            'visible_friend' => $viewerIsConnection,
+            default => false,
+        };
+    }
+
+    public function showsEmailTo(bool $viewerIsConnection): bool
+    {
+        return $this->showsContactTo($this->email_visible, $viewerIsConnection);
+    }
+
+    public function showsPhoneTo(bool $viewerIsConnection): bool
+    {
+        return $this->showsContactTo($this->phone_visible, $viewerIsConnection);
+    }
+
     public function requestedConnections(): HasMany
     {
         return $this->hasMany(Connection::class, 'requester_id');

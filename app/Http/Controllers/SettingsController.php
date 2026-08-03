@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -58,6 +59,15 @@ class SettingsController extends Controller
                 ->where('user_id', $request->user()->id)
                 ->where('id', '!=', $request->session()->getId())
                 ->delete();
+        }
+
+        // SettingsService just cycled remember_token, which invalidates every
+        // outstanding "remember me" cookie — including this device's. Re-issue
+        // one here (and only here) so the person who just changed their own
+        // password keeps the "stay signed in" they had opted into, while every
+        // other device's cookie stays dead.
+        if ($request->cookies->has(Auth::guard()->getRecallerName())) {
+            Auth::login($request->user(), true);
         }
 
         return redirect()

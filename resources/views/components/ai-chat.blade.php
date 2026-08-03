@@ -160,9 +160,11 @@ const aiChat = (() => {
         },
     };
 
+    // Escaped because WELCOME is handed to addBubbleHtml(), which assigns it via
+    // innerHTML — a display name containing markup would otherwise execute.
     const WELCOME = {
-        ms: `Hi <strong>${FIRST_NAME}</strong>! 👋 Apa yang boleh saya bantu hari ni?`,
-        en: `Hi <strong>${FIRST_NAME}</strong>! 👋 What can I help you with today?`,
+        ms: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 Apa yang boleh saya bantu hari ni?`,
+        en: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 What can I help you with today?`,
     };
 
     const PLACEHOLDER = { ms: 'Taip mesej...', en: 'Type a message...' };
@@ -371,7 +373,11 @@ const aiChat = (() => {
 
     // ── Markdown ─────────────────────────────────────────────────────
     function escHtml(str) {
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        // The apostrophe matters: escHtml() output is interpolated into the
+        // single-quoted onclick="" attribute of the trip card (openTripForm),
+        // so an unescaped ' breaks out of the attribute. Escaped entities decode
+        // back to the same character on render, so display is unchanged.
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
     function renderMd(str) {
         return escHtml(str)

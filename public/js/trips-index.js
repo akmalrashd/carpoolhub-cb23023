@@ -1106,9 +1106,11 @@
                     tooltipAnchor: [0, -14],
                 });
                 const addPoint = (point, className, label, marker, fill = '') => {
+                    // Passenger-supplied labels reach this tooltip (line ~1184);
+                    // Leaflet assigns string tooltip content via innerHTML.
                     const mapMarker = L.marker(point, { icon: numberedIcon(className, marker, fill), title: label })
                         .addTo(requestMap)
-                        .bindTooltip(label, { permanent: false, direction: 'top', offset: [0, -10] });
+                        .bindTooltip(escapeHtml(label), { permanent: false, direction: 'top', offset: [0, -10] });
                     markerRefs.set(marker, mapMarker);
                 };
                 const renderStopList = () => {
@@ -1578,7 +1580,7 @@
                     });
                     markerLayers.push(
                         window.L.marker([stop.lat, stop.lng], { icon, interactive: true })
-                            .bindTooltip(stop.label, { direction: 'top', offset: [0, -10] })
+                            .bindTooltip(escapeHtml(stop.label), { direction: 'top', offset: [0, -10] })
                     );
                 });
 

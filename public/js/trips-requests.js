@@ -17,6 +17,16 @@
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
                 return window.L.latLng(lat, lng);
             };
+            // Stop labels carry passenger-supplied text (display name + custom
+            // pickup name), and they reach both innerHTML and Leaflet tooltips —
+            // Leaflet assigns string tooltip content via innerHTML too. Escape at
+            // every sink; ordinary names render byte-identically.
+            const escapeHtml = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
             const driverPickup = toPoint(payload.driverPickup);
             const driverDropoff = toPoint(payload.driverDropoff);
             if (!driverPickup || !driverDropoff) return;
@@ -190,7 +200,7 @@
                 const label = `${stop.label} · ${stop.status}`;
                 const mapMarker = window.L.marker(stop.point, { icon, title: label })
                     .addTo(summaryLayer)
-                    .bindTooltip(label, { permanent: false, direction: 'top', offset: [0, -10] });
+                    .bindTooltip(escapeHtml(label), { permanent: false, direction: 'top', offset: [0, -10] });
                 markerRefs.set(stop.marker, mapMarker);
                 mapMarker.on('mouseover', () => activeMarker(stop.marker, true));
                 mapMarker.on('mouseout', () => {
@@ -219,8 +229,8 @@
                     <div class="summary-stop-item ${row.requestId && !visibleRequestIds.has(row.requestId) ? 'is-hidden' : ''}" data-summary-stop="${row.marker}" ${row.requestId ? `data-summary-request="${row.requestId}"` : ''}>
                         <span class="summary-stop-marker ${row.className}" style="${row.color ? `--pin-fill:${row.color}` : ''}">${row.marker}</span>
                         <span class="summary-stop-text">
-                            <span class="summary-stop-label">${row.label}</span>
-                            <span class="summary-stop-meta">${row.meta}</span>
+                            <span class="summary-stop-label">${escapeHtml(row.label)}</span>
+                            <span class="summary-stop-meta">${escapeHtml(row.meta)}</span>
                         </span>
                         ${row.requestId ? `<button type="button" class="summary-stop-toggle ${visibleRequestIds.has(row.requestId) ? '' : 'is-off'}" data-summary-toggle="${row.requestId}" aria-label="Toggle passenger on map"><i class="fas ${visibleRequestIds.has(row.requestId) ? 'fa-eye' : 'fa-eye-slash'}"></i></button>` : ''}
                     </div>
@@ -559,7 +569,7 @@
                     });
                     markerLayers.push(
                         window.L.marker([stop.lat, stop.lng], { icon, interactive: true })
-                            .bindTooltip(stop.label, { direction: 'top', offset: [0, -10] })
+                            .bindTooltip(escapeHtml(stop.label), { direction: 'top', offset: [0, -10] })
                     );
                 });
 

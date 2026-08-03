@@ -3,6 +3,9 @@
 @section('content')
     @php
         $searchQuery = (string) ($q ?? $search ?? '');
+        // Contact-visibility settings are per-viewer: "connections only" means
+        // this set. Kept as a lookup so each card resolves without a query.
+        $connectionIdSet = array_flip($connectedUserIds ?? []);
     @endphp
 
     {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
@@ -86,7 +89,11 @@
                         @foreach($acceptedConnections as $connectedUser)
                             @php
                                 $photo = $connectedUser->profile_photo_url;
-                                $cleanPhone = preg_replace('/\D+/', '', (string) $connectedUser->phone);
+                                // Everyone in this list is an accepted connection, so only
+                                // an explicit "hidden" setting suppresses the contact details.
+                                $cleanPhone = $connectedUser->showsPhoneTo(true)
+                                    ? preg_replace('/\D+/', '', (string) $connectedUser->phone)
+                                    : '';
                             @endphp
                             <div class="member-card">
                                 <div class="member-avatar">
@@ -98,7 +105,9 @@
                                 </div>
                                 <div class="member-info">
                                     <h4 class="member-name">{{ $connectedUser->name }}</h4>
-                                    <p class="member-email">{{ $connectedUser->email }}</p>
+                                    @if($connectedUser->showsEmailTo(true))
+                                        <p class="member-email">{{ $connectedUser->email }}</p>
+                                    @endif
                                     <span class="role-pill {{ strtolower($connectedUser->role ?? 'passenger') }}">
                                         @if($connectedUser->role === 'driver')
                                             <i class="fa-solid fa-car"></i> Driver
@@ -158,7 +167,13 @@
                                 </div>
                                 <div class="req-details">
                                     <h4 class="req-user-name">{{ $requester?->name }}</h4>
-                                    <p class="req-user-email">{{ $requester?->email }} • {{ $req->created_at?->diffForHumans() }}</p>
+                                    @php
+                                        // A pending requester is not a connection yet, so their
+                                        // email shows only if they set it to public.
+                                        $showRequesterEmail = $requester
+                                            && $requester->showsEmailTo(isset($connectionIdSet[$requester->id]));
+                                    @endphp
+                                    <p class="req-user-email">{{ $showRequesterEmail ? $requester->email . ' • ' : '' }}{{ $req->created_at?->diffForHumans() }}</p>
                                 </div>
                                 <div style="display:flex; gap:6px;">
                                     <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
@@ -265,7 +280,9 @@
                                 </div>
                                 <div class="member-info">
                                     <h4 class="member-name">{{ $foundUser->name }}</h4>
-                                    <p class="member-email">{{ $foundUser->email }}</p>
+                                    @if($foundUser->showsEmailTo(isset($connectionIdSet[$foundUser->id])))
+                                        <p class="member-email">{{ $foundUser->email }}</p>
+                                    @endif
                                     <span class="role-pill {{ strtolower($foundUser->role ?? 'passenger') }}">
                                         @if($foundUser->role === 'driver')
                                             <i class="fa-solid fa-car"></i> Driver

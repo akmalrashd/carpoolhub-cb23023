@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Push\StorePushSubscriptionRequest;
 use App\Services\PushService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,17 +11,11 @@ class PushController extends Controller
 {
     public function __construct(private readonly PushService $pushService) {}
 
-    public function subscribe(Request $request): JsonResponse
+    public function subscribe(StorePushSubscriptionRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'endpoint'      => ['required', 'string'],
-            'keys.p256dh'   => ['required', 'string'],
-            'keys.auth'     => ['required', 'string'],
-        ]);
-
         $this->pushService->saveSubscription(
             $request->user(),
-            $data,
+            $request->validated(),
             $request->userAgent()
         );
 

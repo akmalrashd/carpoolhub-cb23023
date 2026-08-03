@@ -60,7 +60,15 @@ class ChatbotService
             $content = trim((string) $text);
 
             if ($content === '') {
-                return ['intent' => 'error', 'reply' => 'DEBUG EMPTY CONTENT. Body: ' . substr($bodyStr, 0, 300)];
+                // Was returning 'DEBUG EMPTY CONTENT. Body: ...' straight to the
+                // browser, exposing the raw upstream API response. Log it for
+                // diagnosis; show the user the same friendly copy as any other
+                // AI failure.
+                \Illuminate\Support\Facades\Log::warning('AI Chat returned empty content.', [
+                    'body' => substr($bodyStr, 0, 500),
+                ]);
+
+                return ['intent' => 'error', 'reply' => $this->unavailableMessage($language)];
             }
 
             return $this->parseResponse($content, $user, $language);
@@ -69,12 +77,18 @@ class ChatbotService
             \Illuminate\Support\Facades\Log::error('AI Chat Error: ' . $e->getMessage(), [
                 'response' => $e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse() ? (string) $e->getResponse()->getBody() : null
             ]);
-            $err = $language === 'en'
-                ? 'Sorry, AI is unavailable right now. Please try again.'
-                : 'Maaf, sistem AI tidak dapat dihubungi sekarang. Cuba lagi sebentar. (' . $e->getMessage() . ')';
-
-            return ['intent' => 'error', 'reply' => $err];
+            // The exception message used to be appended to the Malay copy, which
+            // put upstream API errors (and the request URL) in front of the end
+            // user. It is already logged above, which is where it belongs.
+            return ['intent' => 'error', 'reply' => $this->unavailableMessage($language)];
         }
+    }
+
+    private function unavailableMessage(string $language): string
+    {
+        return $language === 'en'
+            ? 'Sorry, AI is unavailable right now. Please try again.'
+            : 'Maaf, sistem AI tidak dapat dihubungi sekarang. Cuba lagi sebentar.';
     }
 
     private function buildSystemPrompt(User $user, string $language, string $pendingContext = ''): string

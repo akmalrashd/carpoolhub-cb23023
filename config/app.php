@@ -20,6 +20,22 @@ return [
     'vapid_subject'     => env('VAPID_SUBJECT', 'mailto:admin@carpoolhub.my'),
 
     /*
+    | Host suffixes the browser push endpoint may point at. The endpoint is
+    | supplied by the client and the server later POSTs to it, so without this
+    | allowlist any logged-in account could aim the server at an internal
+    | address (SSRF). These are the only origins the four browser push services
+    | ever issue; add to the list rather than removing the check if a new
+    | browser vendor appears.
+    */
+    'push_endpoint_hosts' => [
+        'fcm.googleapis.com',          // Chrome / Chromium / Edge
+        'android.googleapis.com',      // Chrome (legacy GCM endpoint)
+        'push.services.mozilla.com',   // Firefox
+        'notify.windows.com',          // Edge (WNS)
+        'push.apple.com',              // Safari
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

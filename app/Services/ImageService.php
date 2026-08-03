@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Turns an uploaded image into a compressed base64 data URI for storage in the
@@ -12,6 +13,13 @@ use Illuminate\Http\UploadedFile;
  */
 class ImageService
 {
+    /**
+     * Ceiling for the "GD could not decode it, keep the original bytes" path.
+     * Comfortably above any real photo that survives the max: rules on the
+     * upload (2-5 MB), because by this point the bytes are not a normal image.
+     */
+    private const MAX_UNDECODABLE_BYTES = 2 * 1024 * 1024;
+
     /**
      * Resize (down only) to fit within $maxDimension on the longest side and
      * re-encode. Photos become JPEG at $quality; set $preferPng for high-contrast
@@ -29,6 +37,19 @@ class ImageService
         $image = @imagecreatefromstring($raw);
 
         if ($image === false) {
+            // GD could not decode the bytes, so they are stored as-is to avoid
+            // losing the upload. That path skips the re-encode that normally
+            // bounds the size, so cap it here: without this, a file that passes
+            // the `image` validation rule but defeats GD is written verbatim
+            // into a LONGTEXT column and then dragged into memory by every query
+            // that touches the row. base64 adds ~33%, so the stored string stays
+            // under roughly 1.4x this limit.
+            if (strlen($raw) > self::MAX_UNDECODABLE_BYTES) {
+                throw ValidationException::withMessages([
+                    $file->getClientOriginalName() => 'That image could not be processed. Please upload a standard JPEG or PNG.',
+                ]);
+            }
+
             return 'data:' . $file->getMimeType() . ';base64,' . base64_encode($raw);
         }
 

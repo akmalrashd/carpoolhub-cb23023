@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class SettingsService
@@ -100,6 +101,14 @@ class SettingsService
         $user->update([
             'password' => $data['new_password'],
         ]);
+
+        // Changing the password must also invalidate any outstanding "remember
+        // me" cookie. Laravel authenticates those against remember_token, not
+        // the password, so without this a stolen cookie keeps working forever —
+        // defeating the whole point of changing the password after a
+        // compromise. The current session is re-authenticated by the caller.
+        $user->setRememberToken(Str::random(60));
+        $user->save();
     }
 
 }

@@ -140,6 +140,22 @@ class TripJoinRequestService
 
         return DB::transaction(function () use ($actor, $joinRequest, $action, $responseNote, $trip): TripJoinRequest {
             if ($action === 'approve') {
+                // Both checks above (request still pending, seats still free)
+                // ran outside any transaction, so two approvals submitted at the
+                // same moment could each read "one seat left" and both take it,
+                // or the same request could be approved twice and attach the
+                // passenger twice. Take a row lock on the trip first: that
+                // serialises concurrent approvals of the same trip, and lets us
+                // re-read the request status inside the critical section. A
+                // single approval is unaffected.
+                Trip::query()->whereKey($trip->id)->lockForUpdate()->first();
+
+                if ($joinRequest->fresh()?->status !== 'pending') {
+                    throw ValidationException::withMessages([
+                        'request' => 'Only pending request can be processed.',
+                    ]);
+                }
+
                 $this->assertJoinableTrip($trip);
                 $this->assertSeatsAvailable($trip);
                 $this->assertNoProcessedPayments($trip);
