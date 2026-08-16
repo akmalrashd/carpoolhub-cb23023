@@ -829,7 +829,8 @@
                         $hasCheckboxes = false;
                         foreach($allLivePayments as $p) {
                             $isDriver = (int) ($p->trip?->driver_id ?? 0) === (int) auth()->id();
-                            if (($isDriver || $isAdmin) && in_array($p->payment_status, ['unpaid', 'pending_confirmation'])) {
+                            $isPassenger = (int) $p->user_id === (int) auth()->id();
+                            if (($isDriver || $isAdmin || $isPassenger) && in_array($p->payment_status, ['unpaid', 'pending_confirmation'])) {
                                 $hasCheckboxes = true;
                                 break;
                             }
@@ -840,7 +841,7 @@
                         <tr>
                             @if($hasCheckboxes)
                                 <th class="col-cb" id="colCbHeader">
-                                    @if($activeDirection !== 'all' && $activePaymentFilter !== 'confirmed')
+                                    @if($activePaymentFilter !== 'confirmed')
                                         <label class="ch-cb-container">
                                             <input type="checkbox" id="bulkSelectAllCb" onchange="var c=this.checked;document.querySelectorAll('.bulk-payment-cb').forEach(function(cb){cb.checked=c;});">
                                             <span class="ch-checkbox"><i class="fa-solid fa-check"></i></span>
