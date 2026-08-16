@@ -59,8 +59,8 @@ class PaymentController extends Controller
         // Any trip_id/trip_ids query param is used only for client-side scroll/highlight.
         $tripIds = null;
 
-        $showPayRecords = $showMyPayments && ($filters['direction'] ?? 'all') !== 'collect';
-        $showCollectRecords = $canReviewQueue && ($filters['direction'] ?? 'all') !== 'pay';
+        $showPayRecords = $showMyPayments;
+        $showCollectRecords = $canReviewQueue;
 
         $myPayments = $showPayRecords
             ? $this->paymentService->paginateForUser($request->user(), 12, $filters, $tripIds)
@@ -83,22 +83,9 @@ class PaymentController extends Controller
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
             : null;
 
-        if (! $request->ajax()) {
-            return view('payments.index', [
-                'myPayments' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
-                'driverPayments' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
-                'summary' => $summary,
-                'paymentCounts' => [],
-                'passengerDebtSummary' => [],
-                'reminderState' => [],
-                'isAdmin' => $isAdmin,
-                'canReviewQueue' => $canReviewQueue,
-                'filters' => $filters,
-                'summaryLabel' => $summaryLabel,
-                'showMyPayments' => $showMyPayments,
-                'initialLoad' => true,
-            ]);
-        }
+        $allPaymentsUnfiltered = $this->paymentService->getAllPaymentsForSummary($request->user());
+
+        $initialLoad = false;
 
         return view(
             'payments.index',
@@ -113,8 +100,10 @@ class PaymentController extends Controller
                 'canReviewQueue',
                 'isAdmin',
                 'filters',
-                'summaryLabel'
-            ) + ['initialLoad' => false]
+                'summaryLabel',
+                'initialLoad',
+                'allPaymentsUnfiltered'
+            )
         );
     }
 
@@ -231,12 +220,10 @@ class PaymentController extends Controller
     public function bulkConfirm(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            // Capped: every id costs an `exists` query here and, once approved,
-            // a transaction plus a notification plus a synchronous web-push
-            // flush. Uncapped, one request could be made to do unbounded work.
-            // 200 is far above the real page size (12 rows paginated).
             'payment_ids' => ['required', 'array', 'min:1', 'max:200'],
             'payment_ids.*' => ['integer', 'exists:trip_payments,id'],
+            'payment_method' => ['nullable', 'string', 'in:duitnow_qr,cash,bank_transfer,other'],
+            'remarks' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = $request->user();
@@ -245,7 +232,14 @@ class PaymentController extends Controller
         $count = 0;
         foreach ($payments as $payment) {
             try {
-                $this->paymentService->confirmPaid($user, $payment);
+                if (!empty($validated['payment_method']) || !empty($validated['remarks'])) {
+                    $this->paymentService->markPaid($user, $payment, [
+                        'payment_method' => $validated['payment_method'] ?? 'cash',
+                        'remarks' => $validated['remarks'] ?? 'Marked as paid by driver (bulk)',
+                    ]);
+                } else {
+                    $this->paymentService->confirmPaid($user, $payment);
+                }
                 $count++;
             } catch (\Exception $e) {
                 // Ignore individual errors during bulk approve

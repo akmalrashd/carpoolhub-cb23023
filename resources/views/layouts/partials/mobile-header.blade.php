@@ -187,6 +187,10 @@
                 </div>
             </div>
         </details>
+        <button id="ai-fab" class="header-ai-fab" onclick="aiChat.toggle(event)" aria-label="CarpoolHub AI" title="CarpoolHub AI">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span class="ai-fab-label">AI</span>
+        </button>
         <details class="notification-wrap">
             <summary class="notification-toggle {{ $headerUnreadCount > 0 ? 'has-unread' : '' }}" style="list-style:none;">
                 <i class="fa-solid fa-bell" aria-hidden="true"></i>

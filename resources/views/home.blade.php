@@ -395,7 +395,7 @@
                                 @endforeach
                             </div>
                         @else
-                            <x-empty icon="fa-solid fa-car-side" title="No public trips near you" body="No public trips near you right now." style="box-shadow:none; border:none; background:transparent; padding:24px 0;" />
+                            <x-empty icon="fa-solid fa-car-side" title="No public trips near you" body="No public trips near you right now." />
                         @endif
                     </div>
                 </div>
@@ -636,7 +636,10 @@
             <div>
                 <div class="hp-mobile-section-head">
                     <h3 class="hp-mobile-section-title">Quick actions</h3>
-                    <button type="button" class="hp-mobile-section-link" onclick="hpToggleMobileActions(this)">View all</button>
+                    <a href="javascript:void(0)" class="hp-mobile-section-link" onclick="hpToggleMobileActions(this)">
+                        <span>View all</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
                 </div>
             <div class="hp-mobile-quick">
                 @foreach($mobileQuick as $mqa)
@@ -667,7 +670,10 @@
             <div class="hp-section">
                 <div class="hp-mobile-section-head">
                     <h3 class="hp-mobile-section-title">Public trips today</h3>
-                    <a href="{{ route('explore.index') }}" class="hp-mobile-section-link">Explore &rarr;</a>
+                    <a href="{{ route('explore.index') }}" class="hp-mobile-section-link">
+                        <span>Explore</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
                 </div>
                 <div class="hp-section-body">
                     @php $mobileExplore = ($publicExploreTrips ?? collect())->take(4); @endphp
@@ -713,7 +719,7 @@
                             @endforeach
                         </div>
                     @else
-                        <x-empty icon="fa-solid fa-car-side" title="No public trips today" body="No public trips available right now." style="box-shadow:none; border:none; background:transparent; padding:20px 0;" />
+                        <x-empty icon="fa-solid fa-car-side" title="No public trips today" body="No public trips available right now." />
                     @endif
                 </div>
             </div>

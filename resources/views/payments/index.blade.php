@@ -28,15 +28,29 @@
         $myTotalAmt = (float) (($summary['my']['unpaid']['amount'] ?? 0) + ($summary['my']['pending_confirmation']['amount'] ?? 0) + ($summary['my']['paid']['amount'] ?? 0));
         $paidOutAmt = (float) (($summary['my']['unpaid']['amount'] ?? 0) + ($summary['my']['pending_confirmation']['amount'] ?? 0));
         $monthLabel = $summaryLabel;
-        $allLivePayments = collect($myPayments?->items() ?? [])
-            ->merge(collect(($driverPayments ?? null)?->items() ?? []))
+        $statusWeight = fn ($payment): int => match ((string) ($payment->payment_status ?? 'unpaid')) {
+            'unpaid' => 1,
+            'pending_confirmation' => 2,
+            'paid' => 3,
+            default => 4,
+        };
+        $allLivePayments = ($allPaymentsUnfiltered ?? collect($myPayments?->items() ?? [])->merge(collect(($driverPayments ?? null)?->items() ?? [])))
             ->unique(fn ($payment) => $payment->id . ':' . $payment->trip_id)
-            ->sortByDesc(fn ($payment) => $payment->trip?->trip_datetime?->timestamp ?? $payment->id)
+            ->sort(function ($a, $b) use ($statusWeight) {
+                $wA = $statusWeight($a);
+                $wB = $statusWeight($b);
+                if ($wA !== $wB) {
+                    return $wA <=> $wB;
+                }
+                $tA = $a->trip?->trip_datetime?->timestamp ?? $a->id;
+                $tB = $b->trip?->trip_datetime?->timestamp ?? $b->id;
+                return $tB <=> $tA;
+            })
             ->values();
         $paymentPerspective = fn ($payment): string => (
             ((int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
                 && (int) $payment->user_id !== (int) auth()->id())
-            || $isAdmin
+            || ($isAdmin && (int) ($payment->trip?->driver_id ?? 0) !== (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id())
         )
                 ? 'collect'
                 : 'pay';
@@ -59,26 +73,21 @@
             ->implode('') ?: 'P';
         $paymentFareBreakdown = function ($payment): array {
             $trip = $payment->trip;
-            $routePoint = $trip?->passengerRoutePoints
+            $point = $trip?->passengerRoutePoints
                 ?->first(fn ($point) => (int) $point->user_id === (int) $payment->user_id
-                    && in_array((string) $point->status, ['accepted', 'approved'], true)
-                    && (float) ($point->extra_fee_amount ?? 0) > 0);
-            $extra = (float) ($routePoint?->extra_fee_amount ?? 0);
+                    && in_array((string) $point->point_type, ['custom_pickup', 'custom_dropoff'], true));
+            $customStop = $point ? ($point->point_name ?: ($point->point_type === 'custom_pickup' ? 'Custom Pickup' : 'Custom Dropoff')) : null;
+
             $total = (float) ($payment->amount_due ?? 0);
-            $base = $extra > 0 ? max(0, $total - $extra) : $total;
-            $pickupLabel = $routePoint && ! $routePoint->uses_default_pickup
-                ? ($routePoint->pickup_name ?: 'Custom pickup')
-                : null;
-            $dropoffLabel = $routePoint && ! $routePoint->uses_default_dropoff
-                ? ($routePoint->dropoff_name ?: 'Custom drop-off')
-                : null;
+            $extra = (float) ($point?->additional_fee ?? 0);
+            $base = max(0, $total - $extra);
 
             return [
+                'total' => $total,
                 'base' => $base,
                 'extra' => $extra,
-                'total' => $total,
                 'has_extra' => $extra > 0,
-                'custom_stop' => trim(implode(' -> ', array_filter([$pickupLabel, $dropoffLabel]))) ?: null,
+                'custom_stop' => $customStop,
             ];
         };
         $driverUnpaidAmount = (float) ($summary['driver']['unpaid']['amount'] ?? 0);
@@ -103,17 +112,25 @@
                 $unpaid = (float) $rows->where('payment_status', 'unpaid')->sum('amount_due');
                 $pending = (float) $rows->where('payment_status', 'pending_confirmation')->sum('amount_due');
                 $paid = (float) $rows->where('payment_status', 'paid')->sum('amount_due');
+                $total = (float) $rows->sum('amount_due');
+                $outstanding = $unpaid + $pending;
 
                 return [
                     'name' => $passengerName,
+                    'passenger' => $passengerName,
                     'unpaid' => $unpaid,
                     'pending' => $pending,
                     'paid' => $paid,
-                    'total' => $unpaid + $pending + $paid,
+                    'total' => $total,
+                    'outstanding' => $outstanding,
                     'records' => $rows->count(),
+                    'count' => $rows->count(),
+                    'sample_payment' => $rows->first(),
                 ];
             })
+            ->sortByDesc(fn ($row) => $row['outstanding'])
             ->values();
+
         $passengerPayRows = $allLivePayments
             ->filter(fn ($payment) => $paymentPerspective($payment) === 'pay' && in_array((string) $payment->payment_status, ['unpaid', 'pending_confirmation', 'paid'], true))
             ->groupBy(fn ($payment) => $payment->trip?->driver?->name ?: 'Driver')
@@ -121,23 +138,34 @@
                 $unpaid = (float) $rows->where('payment_status', 'unpaid')->sum('amount_due');
                 $pending = (float) $rows->where('payment_status', 'pending_confirmation')->sum('amount_due');
                 $paid = (float) $rows->where('payment_status', 'paid')->sum('amount_due');
+                $total = (float) $rows->sum('amount_due');
+                $outstanding = $unpaid + $pending;
 
                 return [
                     'name' => $driverName,
+                    'driver' => $driverName,
                     'unpaid' => $unpaid,
                     'pending' => $pending,
                     'paid' => $paid,
-                    'total' => $unpaid + $pending + $paid,
+                    'total' => $total,
+                    'outstanding' => $outstanding,
                     'records' => $rows->count(),
+                    'count' => $rows->count(),
+                    'sample_payment' => $rows->first(),
                     'next_trip' => $rows->first()?->trip?->savedRoute?->route_name
                         ?: trim(($rows->first()?->trip?->pickup_name ?: '-') . ' -> ' . ($rows->first()?->trip?->destination_name ?: '-')),
                 ];
             })
+            ->sortByDesc(fn ($row) => $row['outstanding'])
             ->values();
         $summaryDetailRows = $isAdmin ? $driverCollectionRows : $passengerPayRows;
         $summaryDetailTitle = $isAdmin ? 'All user payments' : 'Where you still need to pay';
         $summaryRecordCount = $isAdmin ? $allLiveCount : ($canReviewQueue ? $collectCount : $payCount);
-        $mainPaymentsPaginator = $isAdmin ? $driverPayments : $myPayments;
+        $mainPaymentsPaginator = match ($activeDirection) {
+            'collect' => $driverPayments ?: $myPayments,
+            'pay' => $myPayments ?: $driverPayments,
+            default => ($myPayments?->hasPages() ? $myPayments : ($driverPayments?->hasPages() ? $driverPayments : ($myPayments ?: $driverPayments))),
+        };
     @endphp
 
     <div class="payments-page">
@@ -149,15 +177,15 @@
                     {{ $isAdmin ? 'Review every user payment in one admin ledger.' : ($canReviewQueue ? 'Payments you need to pay are separated from fares you collect as a driver.' : 'Track fares you need to pay and payments already confirmed.') }}
                 </p>
                 <div class="payments-tab-strip">
-                    <a class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'all', 'direction' => 'all']) }}">All &middot; {{ $allLiveCount }}</a>
+                    <a class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'all', 'direction' => 'all']) }}" onclick="pmtTab(this,'all'); if(this.href) history.pushState(null,'',this.href); return false;">All &middot; {{ $allLiveCount }}</a>
                     @if($hasSplitPaymentDirections)
-                        <a class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'pay']) }}">To pay &middot; {{ $payCount }}</a>
-                        <a class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'collect']) }}">To collect &middot; {{ $collectCount }}</a>
+                        <a class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'pay']) }}" onclick="pmtTab(this,'pay'); if(this.href) history.pushState(null,'',this.href); return false;">To pay &middot; {{ $payCount }}</a>
+                        <a class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'collect']) }}" onclick="pmtTab(this,'collect'); if(this.href) history.pushState(null,'',this.href); return false;">To collect &middot; {{ $collectCount }}</a>
                     @else
-                        <a class="payments-tab {{ $activePaymentFilter === 'unpaid' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'unpaid']) }}">Unpaid &middot; {{ $unpaidCount }}</a>
+                        <a class="payments-tab {{ $activePaymentFilter === 'unpaid' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'unpaid']) }}" onclick="pmtTab(this,'unpaid'); if(this.href) history.pushState(null,'',this.href); return false;">Unpaid &middot; {{ $unpaidCount }}</a>
                     @endif
-                    <a class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'review']) }}">{{ $canReviewQueue ? 'Review' : 'Pending' }} &middot; {{ $reviewCount }}</a>
-                    <a class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'confirmed']) }}">Confirmed &middot; {{ $confirmedCount }}</a>
+                    <a class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'review']) }}" onclick="pmtTab(this,'review'); if(this.href) history.pushState(null,'',this.href); return false;">{{ $canReviewQueue ? 'Review' : 'Pending' }} &middot; {{ $reviewCount }}</a>
+                    <a class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'confirmed']) }}" onclick="pmtTab(this,'confirmed'); if(this.href) history.pushState(null,'',this.href); return false;">Confirmed &middot; {{ $confirmedCount }}</a>
                 </div>
                 <div class="payments-tab-strip">
                     <button class="payments-tab active" type="button" onclick="pmtTab(this,'all')">All · {{ $allLiveCount }}</button>
@@ -210,7 +238,7 @@
                 <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryPassenger">
                 <div class="payments-summary-top">
                     <div class="payments-summary-title-block">
-                        <span>{{ strtoupper($monthLabel) }}</span>
+                        <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
                     </div>
                     <div class="payments-summary-switch" aria-label="Summary view">
                         <label for="mobileSummaryDriver">As driver</label>
@@ -218,13 +246,9 @@
                     </div>
                 </div>
                 <div class="payments-summary-mode-panel payments-summary-driver-panel">
-                    <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount + $driverPaidAmount, 2) }}</strong>
-                    <small>To collect · {{ $collectCount }} records</small>
+                    <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount, 2) }}</strong>
+                    <small>To collect · Paid RM {{ number_format($driverPaidAmount, 2) }}</small>
                     <div class="payments-total-metrics">
-                        <div class="payments-total-metric">
-                            <span>Unpaid</span>
-                            <b>RM {{ number_format($driverUnpaidAmount, 2) }}</b>
-                        </div>
                         <div class="payments-total-metric">
                             <span>Pending</span>
                             <b>RM {{ number_format($driverPendingAmount, 2) }}</b>
@@ -239,14 +263,37 @@
                     <div class="payments-summary-detail-list">
                         @forelse($driverCollectionRows as $debtRow)
                             <div class="payments-summary-detail-row">
-                                <span>{{ $debtRow['records'] }} records</span>
-                                <strong>{{ $debtRow['name'] }}</strong>
-                                <div class="payments-summary-amount-row">
-                                    <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $debtRow['unpaid'], 2) }}</strong></span>
-                                    <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $debtRow['pending'], 2) }}</strong></span>
-                                    <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $debtRow['paid'], 2) }}</strong></span>
-                                    <span class="payments-summary-amount-chip is-total">Total <strong>RM {{ number_format((float) $debtRow['total'], 2) }}</strong></span>
+                                <div class="payments-summary-card-head">
+                                    <span class="payments-summary-card-name">{{ $debtRow['name'] }}</span>
+                                    <span class="payments-summary-card-badge">{{ $debtRow['records'] }} records</span>
                                 </div>
+                                <div class="payments-summary-receipt-body">
+                                    <div class="payments-summary-receipt-line is-unpaid">
+                                        <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
+                                        <span class="line-val">RM {{ number_format((float) $debtRow['unpaid'], 2) }}</span>
+                                    </div>
+                                    <div class="payments-summary-receipt-line is-pending">
+                                        <span><i class="fa-regular fa-clock"></i> Pending</span>
+                                        <span class="line-val">RM {{ number_format((float) $debtRow['pending'], 2) }}</span>
+                                    </div>
+                                    <div class="payments-summary-receipt-line is-paid">
+                                        <span><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                        <span class="line-val">RM {{ number_format((float) $debtRow['paid'], 2) }}</span>
+                                    </div>
+                                    <div class="payments-summary-receipt-total">
+                                        <span>Total</span>
+                                        <span class="total-val">RM {{ number_format((float) $debtRow['total'], 2) }}</span>
+                                    </div>
+                                </div>
+                                @if(($debtRow['unpaid'] + $debtRow['pending']) > 0)
+                                    <button type="button" 
+                                            class="btn-select-person-unpaid" 
+                                            data-person-name="{{ $debtRow['name'] }}"
+                                            data-direction="collect"
+                                            title="Select all unpaid payments for {{ $debtRow['name'] }}">
+                                        <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($debtRow['unpaid'] + $debtRow['pending']), 2) }})
+                                    </button>
+                                @endif
                             </div>
                         @empty
                             <div class="payments-summary-detail-empty">No passenger payment still pending.</div>
@@ -259,10 +306,6 @@
                     <small>To pay · Paid RM {{ number_format($myPaidAmount, 2) }}</small>
                     <div class="payments-total-metrics">
                         <div class="payments-total-metric">
-                            <span>Unpaid</span>
-                            <b>RM {{ number_format($myUnpaidAmount, 2) }}</b>
-                        </div>
-                        <div class="payments-total-metric">
                             <span>Pending</span>
                             <b>RM {{ number_format($myPendingAmount, 2) }}</b>
                         </div>
@@ -271,29 +314,11 @@
                             <b>RM {{ number_format($myPaidAmount, 2) }}</b>
                         </div>
                     </div>
-                <details class="payments-summary-detail">
-                    <summary>Your passenger payments</summary>
-                    <div class="payments-summary-detail-list">
-                        @forelse($passengerPayRows as $payRow)
-                            <div class="payments-summary-detail-row">
-                                <span>{{ $payRow['records'] }} records</span>
-                                <strong>{{ $payRow['name'] }}</strong>
-                                <div class="payments-summary-amount-row">
-                                    <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
-                                    <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
-                                    <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="payments-summary-detail-empty">No active passenger payment due.</div>
-                        @endforelse
-                    </div>
-                </details>
                 </div>
             @else
                 <div class="payments-summary-top">
                     <div class="payments-summary-title-block">
-                        <span>{{ strtoupper($monthLabel) }}</span>
+                        <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
                         <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
                         <small>{{ $summaryMainLabel }} · {{ $summaryRecordCount }} records</small>
                     </div>
@@ -317,13 +342,37 @@
                     <div class="payments-summary-detail-list">
                         @forelse($summaryDetailRows as $payRow)
                             <div class="payments-summary-detail-row">
-                                <span>{{ $payRow['records'] }} records</span>
-                                <strong>{{ $payRow['name'] }}</strong>
-                                <div class="payments-summary-amount-row">
-                                    <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
-                                    <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
-                                    <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
+                                <div class="payments-summary-card-head">
+                                    <span class="payments-summary-card-name">{{ $payRow['name'] }}</span>
+                                    <span class="payments-summary-card-badge">{{ $payRow['records'] }} records</span>
                                 </div>
+                                <div class="payments-summary-receipt-body">
+                                    <div class="payments-summary-receipt-line is-unpaid">
+                                        <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
+                                        <span class="line-val">RM {{ number_format((float) $payRow['unpaid'], 2) }}</span>
+                                    </div>
+                                    <div class="payments-summary-receipt-line is-pending">
+                                        <span><i class="fa-regular fa-clock"></i> Pending</span>
+                                        <span class="line-val">RM {{ number_format((float) $payRow['pending'], 2) }}</span>
+                                    </div>
+                                    <div class="payments-summary-receipt-line is-paid">
+                                        <span><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                        <span class="line-val">RM {{ number_format((float) $payRow['paid'], 2) }}</span>
+                                    </div>
+                                    <div class="payments-summary-receipt-total">
+                                        <span>Total</span>
+                                        <span class="total-val">RM {{ number_format((float) $payRow['total'], 2) }}</span>
+                                    </div>
+                                </div>
+                                @if(($payRow['unpaid'] + $payRow['pending']) > 0)
+                                    <button type="button" 
+                                            class="btn-select-person-unpaid" 
+                                            data-person-name="{{ $payRow['name'] }}"
+                                            data-direction="collect"
+                                            title="Select all unpaid payments for {{ $payRow['name'] }}">
+                                        <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($payRow['unpaid'] + $payRow['pending']), 2) }})
+                                    </button>
+                                @endif
                             </div>
                         @empty
                             <div class="payments-summary-detail-empty">No active payment due right now.</div>
@@ -356,13 +405,7 @@
             </div>
         </section>
 
-        @if(session('status'))
-            <section class="payments-success">{{ session('status') }}</section>
-        @endif
 
-        @if($errors->any())
-            <section class="payments-alert">{{ $errors->first() }}</section>
-        @endif
 
         @if($showMyPayments)
             <section class="payments-card payments-summary-card">
@@ -394,54 +437,64 @@
 
                 <div style="position: relative; min-height: 250px;">
                     {{-- Skeleton Loading Container --}}
-                    <div class="payments-skel-container" id="payments-skel-container">
+                    <div class="payments-skel-container" id="payments-skel-container" style="display:none;">
                     {{-- Desktop Table Skeleton --}}
-                    <div class="payments-table-skel" style="display:none; padding:12px 16px;">
-                        <table class="payments-table" style="pointer-events:none; margin:0; border:0; width:100%;">
-                            <thead>
-                                <tr>
-                                    <th>Counterparty</th>
-                                    <th>Trip</th>
-                                    <th>Status</th>
-                                    <th style="text-align:right;">Amount</th>
-                                    <th>Date</th>
-                                    <th style="text-align:right;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for($i = 0; $i < 4; $i++)
-                                <tr>
-                                    <td>
-                                        <div style="display:flex; flex-direction:column; gap:6px;">
-                                            <span class="sk" style="height:15px; width:130px; display:block; border-radius:6px;"></span>
-                                            <span class="sk" style="height:11px; width:70px; display:block; border-radius:4px;"></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex; flex-direction:column; gap:6px;">
-                                            <span class="sk" style="height:16px; width:180px; display:block; border-radius:6px;"></span>
-                                            <span class="sk" style="height:11px; width:110px; display:block; border-radius:4px;"></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="sk" style="height:24px; width:85px; display:block; border-radius:999px;"></span>
-                                    </td>
-                                    <td style="text-align:right;">
-                                        <span class="sk" style="height:16px; width:75px; display:inline-block; border-radius:6px;"></span>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex; flex-direction:column; gap:6px;">
-                                            <span class="sk" style="height:13px; width:85px; display:block; border-radius:4px;"></span>
-                                            <span class="sk" style="height:11px; width:45px; display:block; border-radius:4px;"></span>
-                                        </div>
-                                    </td>
-                                    <td style="text-align:right;">
-                                        <span class="sk" style="height:34px; width:90px; display:inline-block; border-radius:11px;"></span>
-                                    </td>
-                                </tr>
-                                @endfor
-                            </tbody>
-                        </table>
+                    <div class="payments-table-skel" style="display:none;">
+                        <div class="payments-table-wrap">
+                            <table class="payments-table" style="pointer-events:none; margin:0; border:0; width:100%;">
+                                <thead>
+                                    <tr>
+                                        @if(!empty($hasCheckboxes))
+                                            <th class="col-cb"><span class="sk" style="height:16px; width:16px; border-radius:4px; display:inline-block;"></span></th>
+                                        @endif
+                                        <th class="col-counterparty">Counterparty</th>
+                                        <th class="col-trip">Trip</th>
+                                        <th class="col-status">Status</th>
+                                        <th class="col-amount right">Amount</th>
+                                        <th class="col-date">Date</th>
+                                        <th class="col-action right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for($i = 0; $i < 4; $i++)
+                                    <tr>
+                                        @if(!empty($hasCheckboxes))
+                                            <td class="col-cb">
+                                                <span class="sk" style="height:16px; width:16px; border-radius:4px; display:inline-block; margin:0 auto;"></span>
+                                            </td>
+                                        @endif
+                                        <td class="col-counterparty">
+                                            <div style="display:flex; flex-direction:column; gap:5px;">
+                                                <span class="sk" style="height:14px; width:110px; display:block; border-radius:4px;"></span>
+                                                <span class="sk" style="height:10px; width:65px; display:block; border-radius:4px;"></span>
+                                            </div>
+                                        </td>
+                                        <td class="col-trip">
+                                            <div style="display:flex; flex-direction:column; gap:5px;">
+                                                <span class="sk" style="height:14px; width:80%; display:block; border-radius:4px;"></span>
+                                                <span class="sk" style="height:10px; width:120px; display:block; border-radius:4px;"></span>
+                                            </div>
+                                        </td>
+                                        <td class="col-status" style="text-align:center;">
+                                            <span class="sk" style="height:22px; width:70px; display:inline-block; border-radius:999px;"></span>
+                                        </td>
+                                        <td class="col-amount right" style="text-align:right;">
+                                            <span class="sk" style="height:15px; width:65px; display:inline-block; border-radius:4px; margin-left:auto;"></span>
+                                        </td>
+                                        <td class="col-date">
+                                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                                <span class="sk" style="height:12px; width:75px; display:block; border-radius:4px;"></span>
+                                                <span class="sk" style="height:10px; width:40px; display:block; border-radius:4px;"></span>
+                                            </div>
+                                        </td>
+                                        <td class="col-action right" style="text-align:center;">
+                                            <span class="sk" style="height:32px; width:100%; display:block; border-radius:9px;"></span>
+                                        </td>
+                                    </tr>
+                                    @endfor
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     {{-- Mobile List Skeleton --}}
                     <div class="payments-mobile-skel" style="display:none;">
@@ -471,7 +524,7 @@
                     </div>
                 </div>
 
-                <div class="payments-real-container" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
+                <div class="payments-real-container loaded" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
                 <div class="payments-mobile-list">
                     @forelse($allLivePayments as $payment)
                         @php
@@ -519,10 +572,7 @@
                             $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                             $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
                             $fareBreakdown = $paymentFareBreakdown($payment);
-                            $isDriverQueueRecord = $isAdmin || (
-                                (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
-                                && (int) $payment->user_id !== (int) auth()->id()
-                            );
+                            $isDriverQueueRecord = ((int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id()) || ($isAdmin && (int) ($payment->trip?->driver_id ?? 0) !== (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id());
                             $counterpartyName = $isDriverQueueRecord
                                 ? ($payment->user?->name ?: '-')
                                 : ($payment->trip?->driver?->name ?: '-');
@@ -536,6 +586,18 @@
                                 : $statusText;
                             $perspective = $isDriverQueueRecord ? 'collect' : 'pay';
                             $perspectiveLabel = $isAdmin ? 'Admin review' : ($isDriverQueueRecord ? 'You collect' : 'You pay');
+                            $isInitialHidden = false;
+                            if ($activeDirection === 'pay' && $perspective !== 'pay') {
+                                $isInitialHidden = true;
+                            } elseif ($activeDirection === 'collect' && $perspective !== 'collect') {
+                                $isInitialHidden = true;
+                            } elseif ($activePaymentFilter === 'unpaid' && $payment->payment_status !== 'unpaid') {
+                                $isInitialHidden = true;
+                            } elseif ($activePaymentFilter === 'review' && $payment->payment_status !== 'pending_confirmation') {
+                                $isInitialHidden = true;
+                            } elseif ($activePaymentFilter === 'confirmed' && $payment->payment_status !== 'paid') {
+                                $isInitialHidden = true;
+                            }
                             $paymentActionLabel = $isDriverQueueRecord
                                 ? ($payment->payment_status === 'pending_confirmation' ? 'Review' : ($payment->payment_status === 'unpaid' ? 'Notify' : 'Receipt'))
                                 : ($payment->payment_status === 'unpaid' ? 'Pay' : ($payment->payment_status === 'pending_confirmation' ? 'Pending' : 'Receipt'));
@@ -544,9 +606,12 @@
                                 : ($payment->payment_status === 'unpaid' ? 'fa-solid fa-credit-card' : ($payment->payment_status === 'pending_confirmation' ? 'fa-regular fa-clock' : 'fa-solid fa-receipt'));
                         @endphp
                         <article
-                            class="payment-mobile-item open-trip-card js-payment-filter-item"
+                            class="payment-mobile-item open-trip-card js-payment-filter-item {{ $isInitialHidden ? 'payments-filter-hidden' : '' }}"
+                            data-passenger="{{ $counterparty }}"
                             data-payment-perspective="{{ $perspective }}"
                             data-pmt-status="{{ $payment->payment_status }}"
+                            data-status-hidden="{{ $isInitialHidden ? '1' : '0' }}"
+                            style="{{ $isInitialHidden ? 'display:none !important;' : '' }}"
                             data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
                             data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
                             data-trip-id="{{ $payment->trip_id }}"
@@ -580,9 +645,18 @@
                             data-passenger-count="{{ count($participantsPayload) }}"
                         >
                             <div style="display:flex; gap:12px; align-items:flex-start;">
-                                @if($isDriverQueueRecord && in_array($payment->payment_status, ['unpaid', 'pending_confirmation']))
-                                    <div class="payment-bulk-checkbox-wrapper" style="padding-top:4px;">
-                                        <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="bulk-payment-cb" form="bulk-confirm-form">
+                                @php
+                                    $canConfirmMobile = $isAdmin || (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id() || (int) $payment->user_id === (int) auth()->id();
+                                @endphp
+                                @if($canConfirmMobile && in_array($payment->payment_status, ['unpaid', 'pending_confirmation']))
+                                    @php
+                                        $isSelfMobile = $counterparty === 'Self (Paying Driver)';
+                                    @endphp
+                                    <div class="payment-bulk-checkbox-wrapper" style="padding-top:2px;">
+                                        <label class="ch-cb-container">
+                                            <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="bulk-payment-cb" data-is-self="{{ $isSelfMobile ? '1' : '0' }}" form="bulk-confirm-form">
+                                            <span class="ch-checkbox"><i class="fa-solid fa-check"></i></span>
+                                        </label>
                                     </div>
                                 @endif
                                 <div style="flex:1; min-width:0;">
@@ -650,13 +724,16 @@
                                                 {!! $canSendReminder ? $paymentActionLabel : gmdate('H:i:s', $secondsLeft) !!}
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="payments-btn payments-btn-highlight">
-                                                <i class="fa-solid fa-check"></i> Mark Paid
-                                            </button>
-                                        </form>
+                                        <button
+                                            type="button"
+                                            class="payments-btn payments-btn-highlight open-mark-paid-modal"
+                                            data-action="{{ route('payments.confirm-paid', $payment) }}"
+                                            data-passenger="{{ $counterparty !== 'Self (Paying Driver)' ? $counterparty : ($payment->user?->name ?: 'Passenger') }}"
+                                            data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
+                                            data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                        >
+                                            <i class="fa-solid fa-check"></i> Mark Paid
+                                        </button>
                                     </div>
                                 @elseif(! $isDriverQueueRecord && $payment->payment_status === 'unpaid')
                                     <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row">
@@ -746,16 +823,35 @@
                     @endforelse
                 </div>
                 <div class="payments-table-wrap">
+                    @php
+                        $hasCheckboxes = false;
+                        foreach($allLivePayments as $p) {
+                            $isDriver = (int) ($p->trip?->driver_id ?? 0) === (int) auth()->id();
+                            if (($isDriver || $isAdmin) && in_array($p->payment_status, ['unpaid', 'pending_confirmation'])) {
+                                $hasCheckboxes = true;
+                                break;
+                            }
+                        }
+                    @endphp
                     <table class="payments-table">
                         <thead>
                         <tr>
-                            <th style="width: 48px; min-width: 48px; max-width: 48px; padding-right: 0;"></th>
-                            <th>Counterparty</th>
-                            <th>Trip</th>
-                            <th>Status</th>
-                            <th class="right">Amount</th>
-                            <th>Date</th>
-                            <th class="right">Action</th>
+                            @if($hasCheckboxes)
+                                <th class="col-cb" id="colCbHeader">
+                                    @if($activeDirection !== 'all' && $activePaymentFilter !== 'confirmed')
+                                        <label class="ch-cb-container">
+                                            <input type="checkbox" id="bulkSelectAllCb" onchange="var c=this.checked;document.querySelectorAll('.bulk-payment-cb').forEach(function(cb){cb.checked=c;});">
+                                            <span class="ch-checkbox"><i class="fa-solid fa-check"></i></span>
+                                        </label>
+                                    @endif
+                                </th>
+                            @endif
+                            <th class="col-counterparty">Counterparty</th>
+                            <th class="col-trip">Trip</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-amount right">Amount</th>
+                            <th class="col-date">Date</th>
+                            <th class="col-action right">Action</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -805,10 +901,7 @@
                                 $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                                 $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
                                 $fareBreakdown = $paymentFareBreakdown($payment);
-                                $isDriverQueueRecord = $isAdmin || (
-                                    (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id()
-                                    && (int) $payment->user_id !== (int) auth()->id()
-                                );
+                                $isDriverQueueRecord = ((int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id()) || ($isAdmin && (int) ($payment->trip?->driver_id ?? 0) !== (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id());
                                 $counterpartyName = $isDriverQueueRecord
                                     ? ($payment->user?->name ?: '-')
                                     : ($payment->trip?->driver?->name ?: '-');
@@ -821,11 +914,26 @@
                                 : $statusText;
                             $perspective = $isDriverQueueRecord ? 'collect' : 'pay';
                             $perspectiveLabel = $isAdmin ? 'Admin review' : ($isDriverQueueRecord ? 'You collect' : 'You pay');
+                            $isInitialHidden = false;
+                            if ($activeDirection === 'pay' && $perspective !== 'pay') {
+                                $isInitialHidden = true;
+                            } elseif ($activeDirection === 'collect' && $perspective !== 'collect') {
+                                $isInitialHidden = true;
+                            } elseif ($activePaymentFilter === 'unpaid' && $payment->payment_status !== 'unpaid') {
+                                $isInitialHidden = true;
+                            } elseif ($activePaymentFilter === 'review' && $payment->payment_status !== 'pending_confirmation') {
+                                $isInitialHidden = true;
+                            } elseif ($activePaymentFilter === 'confirmed' && $payment->payment_status !== 'paid') {
+                                $isInitialHidden = true;
+                            }
                         @endphp
                             <tr
-                                class="open-trip-card js-payment-filter-item"
+                                class="open-trip-card js-payment-filter-item {{ $isInitialHidden ? 'payments-filter-hidden' : '' }}"
+                                data-passenger="{{ $counterparty }}"
                                 data-payment-perspective="{{ $perspective }}"
                                 data-pmt-status="{{ $payment->payment_status }}"
+                                data-status-hidden="{{ $isInitialHidden ? '1' : '0' }}"
+                                style="{{ $isInitialHidden ? 'display:none !important;' : '' }}"
                                 data-filter-date="{{ $payment->trip?->trip_datetime?->format('Y-m-d') ?: '' }}"
                                 data-filter-person="{{ trim(($payment->user?->name ?: auth()->user()->name) . ' ' . ($payment->trip?->driver?->name ?: '')) }}"
                                 data-trip-id="{{ $payment->trip_id }}"
@@ -858,12 +966,31 @@
                                 data-participants='@json($participantsPayload)'
                                 data-passenger-count="{{ count($participantsPayload) }}"
                             >
-                                <td onclick="event.stopPropagation();" style="width: 48px; min-width: 48px; max-width: 48px; padding-right: 0;">
-                                    @if($isDriverQueueRecord && in_array($payment->payment_status, ['unpaid', 'pending_confirmation']))
-                                        <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="bulk-payment-cb" form="bulk-confirm-form">
+                            @if($hasCheckboxes)
+                                <td class="col-cb">
+                                    @php
+                                        $isSelf = $counterparty === 'Self (Paying Driver)';
+                                        $canConfirm = $isAdmin || (int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id() || (int) $payment->user_id === (int) auth()->id();
+                                    @endphp
+                                    @if($canConfirm && in_array($payment->payment_status, ['unpaid', 'pending_confirmation']))
+                                        <label class="ch-cb-container">
+                                            <input type="checkbox" name="payment_ids[]" value="{{ $payment->id }}" class="bulk-payment-cb" data-is-self="{{ $isSelf ? '1' : '0' }}" form="bulk-confirm-form">
+                                            <span class="ch-checkbox"><i class="fa-solid fa-check"></i></span>
+                                        </label>
+                                    @else
+                                        @if($payment->payment_status === 'paid')
+                                            <span class="ch-status-box ch-status-paid" title="Confirmed Paid"><i class="fa-solid fa-check"></i></span>
+                                        @elseif($payment->payment_status === 'pending_confirmation')
+                                            <span class="ch-status-box ch-status-pending {{ $isSelf ? 'is-self' : '' }}" title="Pending Review">
+                                                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                                            </span>
+                                        @else
+                                            <span class="ch-status-box ch-status-unpaid {{ $isSelf ? 'is-self' : '' }}" title="Unpaid"></span>
+                                        @endif
                                     @endif
                                 </td>
-                                <td>
+                            @endif
+                                <td class="col-counterparty">
                                     <div class="payment-person-block">
                                         <div>
                                             <div class="payment-name">{{ $counterparty }}</div>
@@ -871,7 +998,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td class="col-trip">
                                     <div class="payment-route-title">{{ $routeLabel }}</div>
                                     <div class="payment-trip-meta">
                                         <span><i class="fa-solid fa-hashtag"></i> {{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}</span>
@@ -911,14 +1038,14 @@
                                         data-passenger-count="{{ count($participantsPayload) }}"
                                     ><span>View</span></button>
                                 </td>
-                                <td><span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span></td>
-                                <td class="right">
+                                <td class="col-status"><span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span></td>
+                                <td class="col-amount right">
                                     <span class="payment-table-amount">{{ $amountSign }}RM {{ number_format((float) $payment->amount_due, 2) }}</span>
                                     @if($fareBreakdown['has_extra'])
                                         <div style="font-size:11px;color:#64748b;font-weight:700;">Base RM {{ number_format((float) $fareBreakdown['base'], 2) }} + Extra RM {{ number_format((float) $fareBreakdown['extra'], 2) }}</div>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="col-date">
                                     @if($payment->trip?->trip_datetime)
                                         <span class="payment-table-date">
                                             {{ $payment->trip->trip_datetime->format('d M Y') }}
@@ -928,12 +1055,13 @@
                                         -
                                     @endif
                                 </td>
-                                <td class="right">
+                                <td class="col-action right">
                                     @if($isDriverQueueRecord && $payment->payment_status === 'pending_confirmation')
-                                        <div class="payments-action-row">
+                                        <div class="payments-action-row" style="width:100%;">
                                             <button
                                                 type="button"
                                                 class="payments-btn payment-table-action open-request-btn"
+                                                style="width:100%;"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                 data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-method="{{ $methodLabel }}"
@@ -944,8 +1072,8 @@
                                             ><i class="fa-solid fa-clipboard-check"></i> Review</button>
                                         </div>
                                     @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
-                                        <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap; min-width: 130px;">
-                                            <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row" style="margin:0;">
+                                        <div style="display:flex; flex-direction:column; gap:4px; align-items:stretch; justify-content:center; width:100%; max-width:140px; margin-left:auto;">
+                                            <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row" style="margin:0; width:100%;">
                                                 @csrf
                                                 <button
                                                     type="submit"
@@ -953,7 +1081,7 @@
                                                     {{ $canSendReminder ? '' : 'disabled' }}
                                                     data-payment-id="{{ $payment->id }}"
                                                     data-seconds-left="{{ $secondsLeft }}"
-                                                    style="min-width:0; padding:0 10px;"
+                                                    style="width:100%; height:36px !important; min-height:36px !important; max-height:36px !important; flex:none !important; padding:0 10px;"
                                                 >
                                                     @if($canSendReminder)
                                                         <i class="fa-regular fa-bell"></i> Notify
@@ -962,23 +1090,27 @@
                                                     @endif
                                                 </button>
                                             </form>
-                                            <form method="POST" action="{{ route('payments.confirm-paid', $payment) }}" class="payments-action-row" style="margin:0;">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="payments-btn payment-table-action" style="min-width:0; padding:0 10px; background:#22c55e; color:#fff; border-color:#22c55e;">
-                                                    <i class="fa-solid fa-check"></i> Mark Paid
-                                                </button>
-                                            </form>
+                                            <button
+                                                 type="button"
+                                                 class="payments-btn payment-table-action ch-btn-green open-mark-paid-modal"
+                                                 style="width:100%; height:36px !important; min-height:36px !important; max-height:36px !important; flex:none !important; padding:0 10px;"
+                                                 data-action="{{ route('payments.confirm-paid', $payment) }}"
+                                                 data-passenger="{{ $payment->user?->name ?: 'Passenger' }}"
+                                                 data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
+                                                 data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                             >
+                                                 <i class="fa-solid fa-check"></i> Mark Paid
+                                             </button>
                                         </div>
                                     @elseif(! $isDriverQueueRecord && $payment->payment_status === 'unpaid')
-                                        <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row">
+                                        <form method="POST" action="{{ route('payments.mark-paid', $payment) }}" class="payments-action-row" style="width:100%;">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="payment_method" value="duitnow_qr">
                                             <input class="payments-input" type="text" name="remarks" placeholder="Remarks">
                                             <button
                                                 type="button"
-                                                class="payments-btn payment-table-action open-payment-paynow-btn"
+                                                class="payments-btn payment-table-action open-payment-paynow-btn ch-btn-green"
                                                 data-action="{{ route('payments.mark-paid', $payment) }}"
                                                 data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
                                                 data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"
@@ -995,27 +1127,33 @@
                                                 data-driver-account-name="{{ $driverAccountName }}"
                                                 data-driver-account-number="{{ $driverAccountNumber }}"
                                                 data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
+                                                style="width:100%;"
                                                 data-driver-tng-qr="{{ $driverTngQr }}"
                                             ><i class="fa-solid fa-credit-card"></i> Pay</button>
                                         </form>
                                     @elseif($payment->payment_status === 'pending_confirmation')
-                                        <span class="payments-btn payment-table-action is-muted"><i class="fa-regular fa-clock"></i> Pending</span>
+                                        <div class="payments-action-row" style="width:100%;">
+                                            <span class="payments-btn payment-table-action is-muted" style="width:100%;"><i class="fa-regular fa-clock"></i> Pending</span>
+                                        </div>
                                     @else
-                                        <button
-                                            type="button"
-                                            class="payments-btn payment-table-action open-payment-receipt-btn"
-                                            data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
-                                            data-route="{{ $routeLabel }}"
-                                            data-passenger="{{ $payment->user?->name ?: '-' }}"
-                                            data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
-                                            data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
-                                            data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
-                                            data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
-                                            data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
-                                            data-method="{{ $methodLabel }}"
-                                            data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
-                                            data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
-                                        ><i class="fa-solid fa-receipt"></i> Receipt</button>
+                                        <div class="payments-action-row" style="width:100%;">
+                                            <button
+                                                type="button"
+                                                class="payments-btn payment-table-action open-payment-receipt-btn"
+                                                style="width:100%;"
+                                                data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
+                                                data-route="{{ $routeLabel }}"
+                                                data-passenger="{{ $payment->user?->name ?: '-' }}"
+                                                data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
+                                                data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                                data-base-fare="RM {{ number_format((float) $fareBreakdown['base'], 2) }}"
+                                                data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
+                                                data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
+                                                data-method="{{ $methodLabel }}"
+                                                data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
+                                                data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
+                                            ><i class="fa-solid fa-receipt"></i> Receipt</button>
+                                        </div>
                                     @endif
                                 </td>
                             </tr>
@@ -1025,8 +1163,8 @@
                         </tbody>
                     </table>
                 </div>
-                @if($mainPaymentsPaginator)
-                <div style="margin-top:12px;">
+                @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
+                <div class="payments-pagination-wrap">
                     {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
                 </div>
                 @endif
@@ -1039,26 +1177,22 @@
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryDriver" checked>
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryPassenger">
                         <div class="payments-summary-top">
-                            <span class="payments-total-label">{{ strtoupper($monthLabel) }}</span>
+                            <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
                             <div class="payments-summary-switch" aria-label="Summary view">
                                 <label for="desktopSummaryDriver">As driver</label>
                                 <label for="desktopSummaryPassenger">As passenger</label>
                             </div>
                         </div>
                         <div class="payments-summary-mode-panel payments-summary-driver-panel">
-                            <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount + $driverPaidAmount, 2) }}</strong>
-                            <small>To collect · driver collection view</small>
+                            <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount, 2) }}</strong>
+                            <small>To collect · Paid RM {{ number_format($driverPaidAmount, 2) }}</small>
                             <div class="payments-total-metrics">
                                 <div class="payments-total-metric">
-                                    <span>Unpaid by passengers</span>
-                                    <b>RM {{ number_format($driverUnpaidAmount, 2) }}</b>
-                                </div>
-                                <div class="payments-total-metric">
-                                    <span>Pending confirmation</span>
+                                    <span>Pending</span>
                                     <b>RM {{ number_format($driverPendingAmount, 2) }}</b>
                                 </div>
                                 <div class="payments-total-metric">
-                                    <span>Paid received</span>
+                                    <span>Paid</span>
                                     <b>RM {{ number_format($driverPaidAmount, 2) }}</b>
                                 </div>
                             </div>
@@ -1067,14 +1201,37 @@
                             <div class="payments-summary-detail-list">
                                 @forelse($driverCollectionRows as $debtRow)
                                     <div class="payments-summary-detail-row">
-                                        <span>{{ $debtRow['records'] }} records</span>
-                                        <strong>{{ $debtRow['name'] }}</strong>
-                                        <div class="payments-summary-amount-row">
-                                            <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $debtRow['unpaid'], 2) }}</strong></span>
-                                            <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $debtRow['pending'], 2) }}</strong></span>
-                                            <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $debtRow['paid'], 2) }}</strong></span>
-                                            <span class="payments-summary-amount-chip is-total">Total <strong>RM {{ number_format((float) $debtRow['total'], 2) }}</strong></span>
+                                        <div class="payments-summary-card-head">
+                                            <span class="payments-summary-card-name">{{ $debtRow['name'] }}</span>
+                                            <span class="payments-summary-card-badge">{{ $debtRow['records'] }} records</span>
                                         </div>
+                                        <div class="payments-summary-receipt-body">
+                                            <div class="payments-summary-receipt-line is-unpaid">
+                                                <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
+                                                <span class="line-val">RM {{ number_format((float) $debtRow['unpaid'], 2) }}</span>
+                                            </div>
+                                            <div class="payments-summary-receipt-line is-pending">
+                                                <span><i class="fa-regular fa-clock"></i> Pending</span>
+                                                <span class="line-val">RM {{ number_format((float) $debtRow['pending'], 2) }}</span>
+                                            </div>
+                                            <div class="payments-summary-receipt-line is-paid">
+                                                <span><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                                <span class="line-val">RM {{ number_format((float) $debtRow['paid'], 2) }}</span>
+                                            </div>
+                                            <div class="payments-summary-receipt-total">
+                                                <span>Total</span>
+                                                <span class="total-val">RM {{ number_format((float) $debtRow['total'], 2) }}</span>
+                                            </div>
+                                        </div>
+                                        @if(($debtRow['unpaid'] + $debtRow['pending']) > 0)
+                                            <button type="button" 
+                                                    class="btn-select-person-unpaid" 
+                                                    data-person-name="{{ $debtRow['name'] }}"
+                                                    data-direction="collect"
+                                                    title="Select all unpaid payments for {{ $debtRow['name'] }}">
+                                                <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($debtRow['unpaid'] + $debtRow['pending']), 2) }})
+                                            </button>
+                                        @endif
                                     </div>
                                 @empty
                                     <div class="payments-summary-detail-empty">No passenger payment still pending.</div>
@@ -1084,14 +1241,10 @@
                         </div>
                         <div class="payments-summary-mode-panel payments-summary-passenger-panel">
                             <strong>RM {{ number_format($myUnpaidAmount + $myPendingAmount, 2) }}</strong>
-                            <small>To pay · passenger payment view</small>
+                            <small>To pay · Paid RM {{ number_format($myPaidAmount, 2) }}</small>
                             <div class="payments-total-metrics">
                                 <div class="payments-total-metric">
-                                    <span>Unpaid to drivers</span>
-                                    <b>RM {{ number_format($myUnpaidAmount, 2) }}</b>
-                                </div>
-                                <div class="payments-total-metric">
-                                    <span>Pending confirmation</span>
+                                    <span>Pending</span>
                                     <b>RM {{ number_format($myPendingAmount, 2) }}</b>
                                 </div>
                                 <div class="payments-total-metric">
@@ -1099,27 +1252,9 @@
                                     <b>RM {{ number_format($myPaidAmount, 2) }}</b>
                                 </div>
                             </div>
-                        <div class="payments-summary-panel">
-                            <div class="payments-summary-panel-title">Your passenger payments</div>
-                            <div class="payments-summary-detail-list">
-                                @forelse($passengerPayRows as $payRow)
-                                    <div class="payments-summary-detail-row">
-                                        <span>{{ $payRow['records'] }} records</span>
-                                        <strong>{{ $payRow['name'] }}</strong>
-                                        <div class="payments-summary-amount-row">
-                                            <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
-                                            <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
-                                            <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="payments-summary-detail-empty">No active passenger payment due.</div>
-                                @endforelse
-                            </div>
-                        </div>
                         </div>
                     @else
-                        <span class="payments-total-label">{{ strtoupper($monthLabel) }}</span>
+                        <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
                         <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
                         <small>{{ $summaryMainLabel }} · {{ $isAdmin ? 'admin payment view' : 'passenger payment view' }}</small>
                         <div class="payments-total-metrics">
@@ -1141,13 +1276,37 @@
                             <div class="payments-summary-detail-list">
                                 @forelse($summaryDetailRows as $payRow)
                                     <div class="payments-summary-detail-row">
-                                        <span>{{ $payRow['records'] }} records</span>
-                                        <strong>{{ $payRow['name'] }}</strong>
-                                        <div class="payments-summary-amount-row">
-                                            <span class="payments-summary-amount-chip is-unpaid">Unpaid <strong>RM {{ number_format((float) $payRow['unpaid'], 2) }}</strong></span>
-                                            <span class="payments-summary-amount-chip is-pending">Pending <strong>RM {{ number_format((float) $payRow['pending'], 2) }}</strong></span>
-                                            <span class="payments-summary-amount-chip is-paid">Paid <strong>RM {{ number_format((float) $payRow['paid'], 2) }}</strong></span>
+                                        <div class="payments-summary-card-head">
+                                            <span class="payments-summary-card-name">{{ $payRow['name'] }}</span>
+                                            <span class="payments-summary-card-badge">{{ $payRow['records'] }} records</span>
                                         </div>
+                                        <div class="payments-summary-receipt-body">
+                                            <div class="payments-summary-receipt-line is-unpaid">
+                                                <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
+                                                <span class="line-val">RM {{ number_format((float) $payRow['unpaid'], 2) }}</span>
+                                            </div>
+                                            <div class="payments-summary-receipt-line is-pending">
+                                                <span><i class="fa-regular fa-clock"></i> Pending</span>
+                                                <span class="line-val">RM {{ number_format((float) $payRow['pending'], 2) }}</span>
+                                            </div>
+                                            <div class="payments-summary-receipt-line is-paid">
+                                                <span><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                                <span class="line-val">RM {{ number_format((float) $payRow['paid'], 2) }}</span>
+                                            </div>
+                                            <div class="payments-summary-receipt-total">
+                                                <span>Total</span>
+                                                <span class="total-val">RM {{ number_format((float) $payRow['total'], 2) }}</span>
+                                            </div>
+                                        </div>
+                                        @if(($payRow['unpaid'] + $payRow['pending']) > 0)
+                                            <button type="button" 
+                                                    class="btn-select-person-unpaid" 
+                                                    data-person-name="{{ $payRow['name'] }}"
+                                                    data-direction="collect"
+                                                    title="Select all unpaid payments for {{ $payRow['name'] }}">
+                                                <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($payRow['unpaid'] + $payRow['pending']), 2) }})
+                                            </button>
+                                        @endif
                                     </div>
                                 @empty
                                     <div class="payments-summary-detail-empty">No active payment due right now.</div>
@@ -1910,13 +2069,101 @@
     <div id="bulkActionBar" class="bulk-action-bar" style="display: none;">
         <div class="bulk-action-content">
             <span id="bulkActionCount">0 selected</span>
-            <form id="bulk-confirm-form" method="POST" action="{{ route('payments.bulk-confirm') }}" style="margin:0;">
+            <div style="margin:0; display:flex; gap:6px; align-items:center;">
+                <button type="button" class="btn btn-ghost" id="bulkCancelBtn" style="height:38px; font-size:13.5px; border-radius:10px;">Cancel</button>
+                <button type="button" class="btn btn-ghost" id="floatingSelectAllBtn" style="height:38px; font-size:13.5px; border-radius:10px;">Select All</button>
+                <button type="button" class="btn btn-success" id="bulkMarkPaidOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px;">
+                    <i class="fa-solid fa-check-double"></i> Mark Selected as Paid
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mark Paid Action Modal (Desktop & Mobile Popup) -->
+    <div class="request-modal" id="markPaidModal" aria-hidden="true">
+        <div class="request-modal-card mark-paid-modal-card">
+            <div class="request-modal-head">
+                <h3 class="request-modal-title">Mark Payment as Paid</h3>
+                <button type="button" class="modal-close-square" id="markPaidModalCloseTop" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form method="POST" id="markPaidModalForm" action="">
                 @csrf
                 @method('PATCH')
-                <!-- Checkboxes will attach their values here implicitly via the 'form' attribute on the inputs -->
-                <button type="submit" class="payments-btn payments-btn-highlight" style="background:#22c55e; color:#fff; border-color:#22c55e;">
-                    <i class="fa-solid fa-check-double"></i> Confirm Selected
+                <div class="mark-paid-modal-body">
+                    <div class="mark-paid-info-box">
+                        <div>
+                            <div class="mark-paid-passenger-name" id="markPaidModalPassenger">Passenger Name</div>
+                            <div style="font-size:12px; color:var(--muted);" id="markPaidModalTrip">TRP-00000</div>
+                        </div>
+                        <div class="mark-paid-amount-val" id="markPaidModalAmount">RM 0.00</div>
+                    </div>
+                    
+                    <div class="mark-paid-inputs-row">
+                        <select name="payment_method" class="mark-paid-select" id="markPaidModalMethod" required>
+                            <option value="" disabled selected>Select method</option>
+                            <option value="duitnow_qr">DuitNow QR / Instant Transfer</option>
+                            <option value="cash">Cash / Tunai</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="other">Other / Lain-lain</option>
+                        </select>
+                        <input type="text" name="remarks" class="mark-paid-input" id="markPaidModalRemarks" placeholder="Remarks">
+                    </div>
+
+                    <button type="submit" class="mark-paid-submit-btn">
+                        Mark as paid
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Mark Paid Action Modal (Desktop & Mobile Popup) -->
+    <div class="request-modal" id="bulkMarkPaidModal" aria-hidden="true">
+        <div class="request-modal-card mark-paid-modal-card">
+            <div class="request-modal-head">
+                <h3 class="request-modal-title">Mark Selected as Paid</h3>
+                <button type="button" class="modal-close-square" id="bulkMarkPaidModalCloseTop" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
+            </div>
+            <form method="POST" id="bulkMarkPaidModalForm" action="{{ route('payments.bulk-confirm') }}">
+                @csrf
+                @method('PATCH')
+                <div id="bulkMarkPaidHiddenInputs"></div>
+                <div class="mark-paid-modal-body">
+                    <div class="mark-paid-info-box">
+                        <div>
+                            <div class="mark-paid-passenger-name" id="bulkMarkPaidSelectedCount">0 payments selected</div>
+                            <div style="font-size:12px; color:var(--muted);">Bulk Confirmation</div>
+                        </div>
+                        <div class="mark-paid-amount-val" id="bulkMarkPaidTotalAmount">RM 0.00</div>
+                    </div>
+                    
+                    <div class="bulk-paid-passengers-card" id="bulkMarkPaidPassengersWrap">
+                        <div class="bulk-paid-passengers-title" id="bulkMarkPaidPassengersTitle">
+                            <i class="fa-solid fa-users"></i> Selected Passengers / Counterparties
+                        </div>
+                        <div class="bulk-paid-passengers-list" id="bulkMarkPaidPassengersList">
+                        </div>
+                    </div>
+                    
+                    <div class="mark-paid-inputs-row">
+                        <select name="payment_method" class="mark-paid-select" id="bulkMarkPaidMethod" required>
+                            <option value="" disabled selected>Select method</option>
+                            <option value="duitnow_qr">DuitNow QR / Instant Transfer</option>
+                            <option value="cash">Cash / Tunai</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="other">Other / Lain-lain</option>
+                        </select>
+                        <input type="text" name="remarks" class="mark-paid-input" id="bulkMarkPaidRemarks" placeholder="Remarks">
+                    </div>
+
+                    <button type="submit" class="mark-paid-submit-btn" id="bulkMarkPaidSubmitBtn">
+                        Mark Selected as Paid
+                    </button>
+                </div>
             </form>
         </div>
     </div>

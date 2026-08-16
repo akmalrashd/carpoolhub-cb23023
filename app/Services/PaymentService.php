@@ -33,7 +33,12 @@ class PaymentService
         $this->applyIndexFilters($query, $filters);
 
         return $query
-            ->latest('id')
+            ->orderByRaw("CASE payment_status WHEN 'unpaid' THEN 1 WHEN 'pending_confirmation' THEN 2 WHEN 'paid' THEN 3 ELSE 4 END ASC")
+            ->orderByDesc(
+                \App\Models\Trip::select('trip_datetime')
+                    ->whereColumn('trips.id', 'trip_payments.trip_id')
+            )
+            ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'mine_page');
     }
 
@@ -59,7 +64,12 @@ class PaymentService
         $this->applyIndexFilters($query, $filters);
 
         return $query
-            ->latest('id')
+            ->orderByRaw("CASE payment_status WHEN 'unpaid' THEN 1 WHEN 'pending_confirmation' THEN 2 WHEN 'paid' THEN 3 ELSE 4 END ASC")
+            ->orderByDesc(
+                \App\Models\Trip::select('trip_datetime')
+                    ->whereColumn('trips.id', 'trip_payments.trip_id')
+            )
+            ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'driver_page');
     }
 
@@ -73,14 +83,15 @@ class PaymentService
     private function statusBreakdown(Builder $query): array
     {
         $rows = (clone $query)
-            ->select('payment_status', DB::raw('COUNT(*) as aggregate'))
+            ->select('payment_status', DB::raw('COUNT(*) as total'))
             ->groupBy('payment_status')
-            ->pluck('aggregate', 'payment_status');
+            ->pluck('total', 'payment_status')
+            ->all();
 
         return [
-            'unpaid' => (int) ($rows['unpaid'] ?? 0),
-            'pending_confirmation' => (int) ($rows['pending_confirmation'] ?? 0),
-            'paid' => (int) ($rows['paid'] ?? 0),
+            'unpaid' => (int) ($rows[TripPayment::STATUS_UNPAID] ?? 0),
+            'pending_confirmation' => (int) ($rows[TripPayment::STATUS_PENDING_CONFIRMATION] ?? 0),
+            'paid' => (int) ($rows[TripPayment::STATUS_PAID] ?? 0),
         ];
     }
 
@@ -127,22 +138,16 @@ class PaymentService
             ->when(! empty($tripIds), fn ($query) => $query->whereIn('trip_id', $tripIds));
 
         $countFilters = $filters;
-        unset($countFilters['payment_filter']);
+        unset($countFilters['payment_filter'], $countFilters['direction']);
         $this->applyIndexFilters($payQuery, $countFilters);
         $this->applyIndexFilters($collectQuery, $countFilters);
 
-        // Grouped breakdowns computed once each; every old count is derived from
-        // them. payCount/collectCount are the totals (unconditional pay, driver-
-        // gated collect), matching the old (clone $query)->count() calls.
         $payBreakdown = $this->statusBreakdown($payQuery);
         $collectBreakdown = $includeDriverQueue ? $this->statusBreakdown($collectQuery) : null;
 
-        $direction = (string) ($filters['direction'] ?? 'all');
         $active = [];
-        if ($direction !== 'collect') {
-            $active[] = $payBreakdown;
-        }
-        if ($includeDriverQueue && $direction !== 'pay') {
+        $active[] = $payBreakdown;
+        if ($includeDriverQueue && $collectBreakdown !== null) {
             $active[] = $collectBreakdown;
         }
 
@@ -234,6 +239,25 @@ class PaymentService
                 'total_amount' => (float) $row->total_amount,
             ])->all(),
         ];
+    }
+
+    public function getAllPaymentsForSummary(User $user): \Illuminate\Database\Eloquent\Collection
+    {
+        return TripPayment::query()
+            ->with([
+                'trip.savedRoute',
+                'trip.driver' => fn ($q) => $q->withoutHeavyMedia(),
+                'user' => fn ($q) => $q->withoutHeavyMedia(),
+            ])
+            ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))
+            ->when(
+                $user->role !== 'admin',
+                fn ($query) => $query->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->orWhereHas('trip', fn ($tq) => $tq->where('driver_id', $user->id));
+                })
+            )
+            ->get();
     }
 
     public function markPaid(User $actor, TripPayment $payment, array $data): TripPayment

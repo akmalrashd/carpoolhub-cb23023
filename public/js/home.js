@@ -3,7 +3,20 @@
             var panel = document.getElementById('hp-mobile-extra-actions');
             if (!panel) return;
             var open = panel.classList.toggle('open');
-            btn.textContent = open ? 'Show less' : 'View all';
+            var textSpan = btn.querySelector('span');
+            var icon = btn.querySelector('i');
+            if (textSpan) {
+                textSpan.textContent = open ? 'Show less' : 'View all';
+            } else {
+                btn.textContent = open ? 'Show less' : 'View all';
+            }
+            if (icon) {
+                if (open) {
+                    icon.style.transform = 'rotate(90deg)';
+                } else {
+                    icon.style.transform = 'none';
+                }
+            }
         }
 
         function hpSwitchTab(panel, btn) {

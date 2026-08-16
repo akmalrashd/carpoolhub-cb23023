@@ -9,12 +9,6 @@
     $role        = $user?->role ?? 'passenger';
 @endphp
 
-{{-- ── Floating Action Button ──────────────────────────────────────── --}}
-<button id="ai-fab" onclick="aiChat.toggle(event)" aria-label="CarpoolHub AI" title="CarpoolHub AI">
-    <i class="fa-solid fa-wand-magic-sparkles"></i>
-    <span class="ai-fab-label">AI</span>
-</button>
-
 {{-- ── Chat Window ──────────────────────────────────────────────────── --}}
 <div id="ai-chat-window" aria-hidden="true">
 
@@ -180,11 +174,11 @@ const aiChat = (() => {
     const $ = id => document.getElementById(id);
 
     function toggle(e)   { if (e) e.stopPropagation(); isOpen ? close() : open(); }
-    function close()    { isOpen = false; $('ai-fab').classList.remove('is-open'); $('ai-chat-window').classList.remove('is-open'); $('ai-chat-window').setAttribute('aria-hidden','true'); }
+    function close()    { isOpen = false; document.querySelectorAll('#ai-fab').forEach(el => el.classList.remove('is-open')); $('ai-chat-window').classList.remove('is-open'); $('ai-chat-window').setAttribute('aria-hidden','true'); }
 
     function open() {
         isOpen = true;
-        $('ai-fab').classList.add('is-open');
+        document.querySelectorAll('#ai-fab').forEach(el => el.classList.add('is-open'));
         $('ai-chat-window').classList.add('is-open');
         $('ai-chat-window').setAttribute('aria-hidden','false');
         scrollBottom();
