@@ -1,26 +1,32 @@
 @props([
-    'icon'  => 'fa-solid fa-inbox',
-    'title' => 'Nothing here yet',
-    'body'  => '',
+    'icon'      => 'fa-solid fa-compass',
+    'title'     => 'No items found',
+    'body'      => '',
+    'action'    => '',
+    'actionUrl' => '',
+    'actionId'  => '',
 ])
 
 @php
-    $baseStyle = 'text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 24px;';
+    $baseStyle = 'text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:48px 24px;width:100%;box-sizing:border-box;';
     $extraStyle = $attributes->get('style', '');
     $mergedStyle = $baseStyle . $extraStyle;
 @endphp
 
-<div {{ $attributes->except('style')->merge(['class' => 'card card-pad-lg']) }} style="{{ $mergedStyle }}">
-    <span style="width:52px;height:52px;border-radius:var(--r-lg);background:var(--surface-2);border:1px solid var(--hairline);display:grid;place-items:center;color:var(--muted);font-size:22px;">
+<div {{ $attributes->except('style')->merge(['class' => 'ch-empty-state-card']) }} style="{{ $mergedStyle }}">
+    <div class="ch-empty-state-icon-box">
         <i class="{{ $icon }}"></i>
-    </span>
-    <div>
-        <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink);margin-bottom:4px;">{{ $title }}</div>
-        @if($body)
-            <div style="font-size:13px;color:var(--muted);max-width:300px;margin:0 auto;">{{ $body }}</div>
-        @endif
     </div>
+    <h3 class="ch-empty-state-title">{{ $title }}</h3>
+    @if($body)
+        <p class="ch-empty-state-body">{{ $body }}</p>
+    @endif
+    @if($actionUrl)
+        <a href="{{ $actionUrl }}" class="ch-empty-state-btn">{{ $action }}</a>
+    @elseif($action)
+        <button type="button" @if($actionId) id="{{ $actionId }}" @endif class="ch-empty-state-btn">{{ $action }}</button>
+    @endif
     @if($slot->isNotEmpty())
-        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">{{ $slot }}</div>
+        <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">{{ $slot }}</div>
     @endif
 </div>

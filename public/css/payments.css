@@ -360,17 +360,16 @@
         }
         .payments-filter-empty {
             display: none;
-            border: 1px dashed #cbd5e1;
-            border-radius: 12px;
-            background: #f8fafc;
-            color: #64748b;
-            padding: 14px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 700;
+            padding: 48px 24px !important;
+            text-align: center !important;
+            box-sizing: border-box;
+            width: 100%;
         }
         .payments-filter-empty.show {
-            display: block;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         .payments-mobile-list {
             display: grid;

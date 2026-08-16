@@ -324,10 +324,12 @@
                     </div>
                 </div>
                 <div class="payments-total-metrics">
-                    <div class="payments-total-metric">
-                        <span>Unpaid</span>
-                        <b>RM {{ number_format($summaryPrimaryAmount, 2) }}</b>
-                    </div>
+                    @if($summaryMainLabel !== 'To pay')
+                        <div class="payments-total-metric">
+                            <span>Unpaid</span>
+                            <b>RM {{ number_format($summaryPrimaryAmount, 2) }}</b>
+                        </div>
+                    @endif
                     <div class="payments-total-metric">
                         <span>Pending</span>
                         <b>RM {{ number_format($summarySecondaryAmount, 2) }}</b>
@@ -1258,10 +1260,12 @@
                         <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
                         <small>{{ $summaryMainLabel }} · {{ $isAdmin ? 'admin payment view' : 'passenger payment view' }}</small>
                         <div class="payments-total-metrics">
-                            <div class="payments-total-metric">
-                                <span>Unpaid</span>
-                                <b>RM {{ number_format($summaryPrimaryAmount, 2) }}</b>
-                            </div>
+                            @if($summaryMainLabel !== 'To pay')
+                                <div class="payments-total-metric">
+                                    <span>Unpaid</span>
+                                    <b>RM {{ number_format($summaryPrimaryAmount, 2) }}</b>
+                                </div>
+                            @endif
                             <div class="payments-total-metric">
                                 <span>Pending</span>
                                 <b>RM {{ number_format($summarySecondaryAmount, 2) }}</b>
@@ -1745,7 +1749,12 @@
                         {{ $driverPayments->appends(request()->query())->links() }}
                     </div>
                 @endif
-                <div class="payments-filter-empty" data-filter-empty>No payment records match the current filters.</div>
+                <div class="payments-filter-empty" data-filter-empty>
+                    <div class="ch-empty-state-icon-box"><i class="fa-solid fa-compass"></i></div>
+                    <h3 class="ch-empty-state-title">No payments found</h3>
+                    <p class="ch-empty-state-body">No payment records match your filters right now. Try changing your search or check back later.</p>
+                    <button type="button" class="ch-empty-state-btn" onclick="if(window.clearPaymentFilters) window.clearPaymentFilters();">Clear Filters</button>
+                </div>
             </section>
         @endif
     </div>

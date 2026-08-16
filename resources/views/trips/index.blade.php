@@ -193,13 +193,13 @@
             {{-- Empty state --}}
             @if($trips->isEmpty())
                 <div class="trips-empty">
-                    <i class="fa-solid fa-car-side trips-empty-icon"></i>
-                    <p class="trips-empty-title">No trips yet</p>
-                    <p class="trips-empty-copy">You have no trips matching the current filters.</p>
+                    <div class="trips-empty-icon"><i class="fa-solid fa-compass"></i></div>
+                    <p class="trips-empty-title">No trips found</p>
+                    <p class="trips-empty-copy">No public trips match your filters right now. Try changing your search or check back later.</p>
                     @if(in_array(auth()->user()->role, ['admin', 'driver'], true))
-                        <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm" style="margin-top:4px;">
+                        <a href="{{ route('trips.create') }}" class="ch-empty-state-btn">
                             <i class="fa-solid fa-plus"></i>
-                            Create Your First Trip
+                            Post a New Trip
                         </a>
                     @endif
                 </div>

@@ -1713,3 +1713,11 @@ document.addEventListener('click', (e) => {
 
     selectPersonItems();
 });
+
+window.clearPaymentFilters = function() {
+    document.querySelectorAll('.payments-filter-panel input, .payments-filter-panel select').forEach((field) => {
+        field.value = '';
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+};

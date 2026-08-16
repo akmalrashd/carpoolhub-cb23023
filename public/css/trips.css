@@ -214,31 +214,48 @@
 
         /* ── Empty state ── */
         .trips-empty {
-            border: 1.5px dashed var(--hairline-strong);
-            border-radius: var(--r-md);
-            background: var(--surface-2);
-            padding: 56px 24px;
-            text-align: center;
-            display: grid;
-            gap: 12px;
-            justify-items: center;
-            margin: 16px 20px 20px;
+            padding: 48px 24px !important;
+            text-align: center !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 16px 0 !important;
+            border: none !important;
+            background: transparent !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
         .trips-empty-icon {
-            font-size: 36px;
-            color: var(--muted-2);
+            width: 54px !important;
+            height: 54px !important;
+            border-radius: 16px !important;
+            background: #fdfbf7 !important;
+            border: 1px solid #f3ebd8 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+            display: grid !important;
+            place-items: center !important;
+            color: #475569 !important;
+            font-size: 20px !important;
+            margin-bottom: 16px !important;
         }
         .trips-empty-title {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--ink-3);
+            margin: 0 0 8px 0 !important;
+            font-family: var(--font-display), sans-serif !important;
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            line-height: 1.25 !important;
+            text-align: center !important;
         }
         .trips-empty-copy {
-            margin: 0;
-            font-size: 13px;
-            color: var(--muted-2);
-            line-height: 1.5;
+            margin: 0 auto !important;
+            font-size: 14px !important;
+            color: #64748b !important;
+            font-weight: 500 !important;
+            max-width: 360px !important;
+            text-align: center !important;
+            line-height: 1.5 !important;
         }
 
         /* ── Mobile card list ── */
