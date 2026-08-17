@@ -384,14 +384,6 @@
                                         <i class="fa-regular fa-clock"></i> Pending (RM {{ number_format((float) $payRow['pending'], 2) }})
                                     </button>
                                 @endif
-                                @if($payRow['paid'] > 0)
-                                    <button type="button"
-                                            class="btn-select-person-confirmed"
-                                            data-person-name="{{ $payRow['name'] }}"
-                                            title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
-                                        <i class="fa-solid fa-circle-check"></i> Confirmed (RM {{ number_format((float) $payRow['paid'], 2) }})
-                                    </button>
-                                @endif
                             </div>
                         @empty
                             <div class="payments-summary-detail-empty">No active payment due right now.</div>
@@ -1343,14 +1335,6 @@
                                                     data-person-name="{{ $payRow['name'] }}"
                                                     title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
                                                 <i class="fa-regular fa-clock"></i> Pending (RM {{ number_format((float) $payRow['pending'], 2) }})
-                                            </button>
-                                        @endif
-                                        @if($payRow['paid'] > 0)
-                                            <button type="button"
-                                                    class="btn-select-person-confirmed"
-                                                    data-person-name="{{ $payRow['name'] }}"
-                                                    title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
-                                                <i class="fa-solid fa-circle-check"></i> Confirmed (RM {{ number_format((float) $payRow['paid'], 2) }})
                                             </button>
                                         @endif
                                     </div>
