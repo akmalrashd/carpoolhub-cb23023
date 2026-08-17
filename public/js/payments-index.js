@@ -1595,10 +1595,12 @@ document.addEventListener('click', (e) => {
         targetTabBtn = Array.from(document.querySelectorAll('.payments-tab')).find(b => b.textContent.toLowerCase().includes('to pay'));
     } else if (targetDirection === 'collect') {
         targetTabBtn = Array.from(document.querySelectorAll('.payments-tab')).find(b => b.textContent.toLowerCase().includes('to collect'));
+    } else if (targetDirection === 'unpaid') {
+        targetTabBtn = Array.from(document.querySelectorAll('.payments-tab')).find(b => b.textContent.toLowerCase().includes('unpaid'));
     }
 
     if (targetTabBtn && typeof pmtTab === 'function') {
-        pmtTab(targetTabBtn, targetDirection, true);
+        pmtTab(targetTabBtn, targetDirection === 'unpaid' ? 'unpaid' : targetDirection, true);
     }
 
     const selectPersonItems = () => {

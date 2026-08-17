@@ -371,17 +371,9 @@
                                     <button type="button" 
                                             class="btn-select-person-unpaid" 
                                             data-person-name="{{ $payRow['name'] }}"
-                                            data-direction="collect"
+                                            data-direction="unpaid"
                                             title="Select all unpaid payments for {{ $payRow['name'] }}">
                                         <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($payRow['unpaid'] + $payRow['pending']), 2) }})
-                                    </button>
-                                @endif
-                                @if($payRow['pending'] > 0)
-                                    <button type="button"
-                                            class="btn-select-person-pending"
-                                            data-person-name="{{ $payRow['name'] }}"
-                                            title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
-                                        <i class="fa-regular fa-clock"></i> Pending (RM {{ number_format((float) $payRow['pending'], 2) }})
                                     </button>
                                 @endif
                             </div>
@@ -1324,17 +1316,9 @@
                                             <button type="button" 
                                                     class="btn-select-person-unpaid" 
                                                     data-person-name="{{ $payRow['name'] }}"
-                                                    data-direction="collect"
+                                                    data-direction="unpaid"
                                                     title="Select all unpaid payments for {{ $payRow['name'] }}">
                                                 <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($payRow['unpaid'] + $payRow['pending']), 2) }})
-                                            </button>
-                                        @endif
-                                        @if($payRow['pending'] > 0)
-                                            <button type="button"
-                                                    class="btn-select-person-pending"
-                                                    data-person-name="{{ $payRow['name'] }}"
-                                                    title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
-                                                <i class="fa-regular fa-clock"></i> Pending (RM {{ number_format((float) $payRow['pending'], 2) }})
                                             </button>
                                         @endif
                                     </div>
