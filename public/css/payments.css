@@ -3835,12 +3835,16 @@
             border: 1px solid rgba(250, 204, 21, 0.7) !important;
             border-radius: 18px !important;
             padding: 10px 14px !important;
-            z-index: 9999 !important;
+            z-index: 2300 !important;
             display: flex;
             align-items: center;
             justify-content: center;
             animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
             backdrop-filter: blur(12px);
+        }
+        body.modal-open .bulk-action-bar {
+            z-index: 1000 !important;
+            pointer-events: none !important;
         }
         @media (min-width: 992px) {
             .bulk-action-bar {
