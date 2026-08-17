@@ -24,53 +24,40 @@ const showModalSkeleton = (listEl) => {
             `;
 };
 
-// ── Skeleton screen & AJAX Page Loader ──
+// ── Page Loader & AJAX Pagination ──
 (() => {
     const skel = document.getElementById('payments-skel-container');
     const real = document.getElementById('payments-real-container');
 
-    const showSkeleton = () => {
-        if (skel && real) {
-            skel.style.display = 'grid';
-            skel.style.opacity = '1';
-            skel.style.pointerEvents = 'auto';
-            real.classList.remove('loaded');
-            real.style.opacity = '0';
-            real.style.display = 'none';
+    const ensureRealVisible = () => {
+        if (skel) {
+            skel.style.display = 'none';
+            skel.style.opacity = '0';
+            skel.style.pointerEvents = 'none';
         }
-    };
-
-    const hideSkeleton = () => {
-        if (skel && real) {
+        if (real) {
             real.style.display = '';
             real.classList.add('loaded');
             real.style.opacity = '1';
-            skel.style.opacity = '0';
-            skel.style.pointerEvents = 'none';
-            setTimeout(() => {
-                skel.style.display = 'none';
-            }, 200);
+            if (real.dataset.initialLoad) real.dataset.initialLoad = 'false';
         }
     };
 
-    const initOrHide = () => {
-        if (real && real.dataset.initialLoad === 'true') {
-            real.dataset.initialLoad = 'false';
-            fetchPage(window.location.href);
-        } else {
-            hideSkeleton();
-        }
-    };
-
-    // Run hide on page ready
+    // Run immediately on page ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initOrHide);
+        document.addEventListener('DOMContentLoaded', ensureRealVisible);
     } else {
-        initOrHide();
+        ensureRealVisible();
     }
 
-    // AJAX fetching function
+    // Smooth AJAX fetching function (no skeleton flash)
     const fetchPage = async (url) => {
+        const currentReal = document.getElementById('payments-real-container');
+        if (currentReal) {
+            currentReal.style.transition = 'opacity 0.15s ease';
+            currentReal.style.opacity = '0.5';
+        }
+
         try {
             const res = await fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -82,7 +69,6 @@ const showModalSkeleton = (listEl) => {
             const doc = parser.parseFromString(html, 'text/html');
 
             const newReal = doc.getElementById('payments-real-container');
-            const currentReal = document.getElementById('payments-real-container');
 
             // Replace active states for desktop tabs
             const newTabsRow = doc.querySelector('.payments-tab-strip');
@@ -97,10 +83,14 @@ const showModalSkeleton = (listEl) => {
 
                 // Re-bind pagination clicks
                 bindPaginationEvents();
+                if (typeof window.updatePaymentsVisibility === 'function') window.updatePaymentsVisibility();
             }
         } catch (_e) {
-            // Fallback to normal navigation
             window.location.href = url;
+        } finally {
+            if (currentReal) {
+                currentReal.style.opacity = '1';
+            }
         }
     };
 
