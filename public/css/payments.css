@@ -3461,9 +3461,18 @@
             }
             /* Hide inner default showing paragraph inside pagination nav */
             .payments-pagination-wrap nav p,
-            .payments-pagination-wrap nav > div:first-child,
-            nav[aria-label="Pagination Navigation"] > div:nth-child(2) > div:first-child p {
+            .payments-pagination-wrap nav p *,
+            .payments-pagination-wrap nav div div p,
+            .payments-pagination-wrap nav div:first-child p,
+            .payments-pagination-wrap nav div:nth-child(2) div:first-child,
+            nav[aria-label="Pagination Navigation"] p {
                 display: none !important;
+                height: 0 !important;
+                max-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
             }
             /* Bold font weight for pagination numbers and links */
             nav[aria-label="Pagination Navigation"] a,
