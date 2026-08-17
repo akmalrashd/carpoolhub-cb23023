@@ -3473,15 +3473,13 @@
                     margin-top: 12px !important;
                     margin-bottom: 8px !important;
                 }
-                /* Compact standard mobile pagination: hide all inactive page numbers on mobile */
+                /* Compact standard mobile pagination: hide all numeric page links on mobile */
                 .payments-pagination-wrap nav div:nth-child(2) > div:last-child {
                     overflow-x: hidden !important;
                 }
-                .payments-pagination-wrap nav a[aria-label*="page"],
-                .payments-pagination-wrap nav a[aria-label*="Page"],
-                .payments-pagination-wrap nav a:not([rel="prev"]):not([rel="next"]):not([aria-label*="Previous"]):not([aria-label*="next"]):not([aria-label*="Next"]),
-                .payments-pagination-wrap nav span.relative.z-0 > a:not([rel="prev"]):not([rel="next"]),
-                .payments-pagination-wrap nav span.relative.z-0 > span:not([aria-current="page"]):not(:first-child):not(:last-child) {
+                .payments-pagination-wrap nav a:not([rel="prev"]):not([rel="next"]),
+                .payments-pagination-wrap nav[aria-label="Pagination Navigation"] div:nth-child(2) a:not([rel="prev"]):not([rel="next"]),
+                .payments-pagination-wrap nav[aria-label="Pagination Navigation"] div:nth-child(2) > div:last-child a:not([rel="prev"]):not([rel="next"]) {
                     display: none !important;
                 }
             }
