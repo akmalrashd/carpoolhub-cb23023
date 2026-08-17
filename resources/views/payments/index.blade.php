@@ -354,14 +354,22 @@
                                         <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
                                         <span class="line-val">RM {{ number_format((float) $payRow['unpaid'], 2) }}</span>
                                     </div>
-                                    <div class="payments-summary-receipt-line is-pending">
+                                    <button type="button"
+                                            class="payments-summary-receipt-line is-pending pmt-receipt-line-clickable"
+                                            data-person-name="{{ $payRow['name'] }}"
+                                            data-receipt-action="pending"
+                                            title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
                                         <span><i class="fa-regular fa-clock"></i> Pending</span>
                                         <span class="line-val">RM {{ number_format((float) $payRow['pending'], 2) }}</span>
-                                    </div>
-                                    <div class="payments-summary-receipt-line is-paid">
-                                        <span><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                    </button>
+                                    <button type="button"
+                                            class="payments-summary-receipt-line is-paid pmt-receipt-line-clickable"
+                                            data-person-name="{{ $payRow['name'] }}"
+                                            data-receipt-action="confirmed"
+                                            title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
+                                        <span><i class="fa-solid fa-circle-check"></i> Confirmed</span>
                                         <span class="line-val">RM {{ number_format((float) $payRow['paid'], 2) }}</span>
-                                    </div>
+                                    </button>
                                     <div class="payments-summary-receipt-total">
                                         <span>Total</span>
                                         <span class="total-val">RM {{ number_format((float) $payRow['total'], 2) }}</span>
@@ -1299,14 +1307,22 @@
                                                 <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
                                                 <span class="line-val">RM {{ number_format((float) $payRow['unpaid'], 2) }}</span>
                                             </div>
-                                            <div class="payments-summary-receipt-line is-pending">
+                                            <button type="button"
+                                                    class="payments-summary-receipt-line is-pending pmt-receipt-line-clickable"
+                                                    data-person-name="{{ $payRow['name'] }}"
+                                                    data-receipt-action="pending"
+                                                    title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
                                                 <span><i class="fa-regular fa-clock"></i> Pending</span>
                                                 <span class="line-val">RM {{ number_format((float) $payRow['pending'], 2) }}</span>
-                                            </div>
-                                            <div class="payments-summary-receipt-line is-paid">
-                                                <span><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                            </button>
+                                            <button type="button"
+                                                    class="payments-summary-receipt-line is-paid pmt-receipt-line-clickable"
+                                                    data-person-name="{{ $payRow['name'] }}"
+                                                    data-receipt-action="confirmed"
+                                                    title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
+                                                <span><i class="fa-solid fa-circle-check"></i> Confirmed</span>
                                                 <span class="line-val">RM {{ number_format((float) $payRow['paid'], 2) }}</span>
-                                            </div>
+                                            </button>
                                             <div class="payments-summary-receipt-total">
                                                 <span>Total</span>
                                                 <span class="total-val">RM {{ number_format((float) $payRow['total'], 2) }}</span>

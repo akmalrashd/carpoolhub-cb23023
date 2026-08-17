@@ -2034,6 +2034,21 @@
         .payments-summary-receipt-line.is-paid i {
             color: #16a34a !important;
         }
+        button.payments-summary-receipt-line.pmt-receipt-line-clickable {
+            width: 100% !important;
+            background: none !important;
+            border: none !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            border-radius: 4px !important;
+            transition: background 0.15s ease !important;
+        }
+        button.payments-summary-receipt-line.pmt-receipt-line-clickable:hover {
+            background: rgba(0,0,0,0.04) !important;
+        }
+        button.payments-summary-receipt-line.pmt-receipt-line-clickable:active {
+            background: rgba(0,0,0,0.08) !important;
+        }
         .payments-summary-receipt-total {
             display: flex !important;
             justify-content: space-between !important;
