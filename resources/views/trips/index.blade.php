@@ -113,8 +113,17 @@
             </div>
 
 
-            <div style="position: relative;">
-                {{-- Skeleton Loading Container --}}
+                @php
+                    $hasCheckboxes = false;
+                    foreach($trips as $t) {
+                        if(auth()->user()->role === 'admin' || auth()->id() === $t->driver_id) {
+                            $hasCheckboxes = true;
+                            break;
+                        }
+                    }
+                @endphp
+                <div style="position: relative;">
+                    {{-- Skeleton Loading Container --}}
                 <style>
                     .trips-skel-container .trip-mobile-skel { display: flex; flex-direction: column; gap: 10px; }
                     .trips-skel-container .trip-table-skel { display: none; }
@@ -129,22 +138,26 @@
                     <table class="trip-table" style="pointer-events:none; margin:0; border:0; width:100%;">
                         <thead>
                             <tr>
+                                @if($hasCheckboxes)
                                 <th class="trip-select-cell"></th>
+                                @endif
                                 <th>Trip</th>
                                 <th>When</th>
                                 <th>Visibility</th>
                                 <th>Seats</th>
                                 <th>Status</th>
                                 <th style="text-align:right;">Fare</th>
-                                <th style="text-align:right;">Action</th>
+                                <th style="text-align:center;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             @for($i = 0; $i < 5; $i++)
                             <tr>
+                                @if($hasCheckboxes)
                                 <td class="trip-select-cell">
                                     <span class="sk" style="height:18px; width:18px; display:inline-block; border-radius:4px;"></span>
                                 </td>
+                                @endif
                                 <td>
                                     <div style="display:flex; flex-direction:column; gap:6px;">
                                         <span class="sk" style="height:16px; width:180px; display:block; border-radius:6px;"></span>
@@ -166,7 +179,7 @@
                                 <td style="text-align:right;">
                                     <span class="sk" style="height:16px; width:75px; display:inline-block; border-radius:6px;"></span>
                                 </td>
-                                <td style="text-align:right;">
+                                <td style="text-align:center;">
                                     <span class="sk" style="height:34px; width:100px; display:inline-block; border-radius:11px;"></span>
                                 </td>
                             </tr>
@@ -629,18 +642,20 @@
                 <div class="trip-table-wrap">
                     <table class="trip-table">
                         <thead>
-                            <tr>
-                                <th class="trip-select-cell">
-                                    <input type="checkbox" id="selectAllTrips" class="trip-select-checkbox" title="Select all trips on this page">
-                                </th>
-                                <th>Trip</th>
-                                <th>When</th>
-                                <th>Visibility</th>
-                                <th>Seats</th>
-                                <th>Status</th>
-                                <th style="text-align:right;">Fare</th>
-                                <th style="text-align:right;">Action</th>
-                            </tr>
+                              <tr>
+                            @if($hasCheckboxes)
+                            <th class="trip-select-cell">
+                                <input type="checkbox" id="selectAllTrips" class="trip-select-checkbox" title="Select all trips on this page">
+                            </th>
+                            @endif
+                            <th>Trip</th>
+                            <th>When</th>
+                            <th>Visibility</th>
+                            <th>Seats</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Fare</th>
+                            <th style="text-align:center;">Action</th>
+                        </tr>
                         </thead>
                         <tbody>
                         @foreach($trips as $trip)
@@ -891,11 +906,13 @@
                                 $canManageRequests = $canManageTripPayment && in_array($statusSlug, ['scheduled', 'confirmed'], true) && $requestPayload->isNotEmpty();
                             @endphp
                             <tr class="open-trip-card" data-trip-anchor="{{ $trip->id }}">
+                                @if($hasCheckboxes)
                                 <td class="trip-select-cell">
                                     @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
                                         <input type="checkbox" name="ids[]" value="{{ $trip->id }}" class="trip-select-checkbox trip-row-checkbox" form="tripsBulkDeleteForm" onclick="event.stopPropagation();">
                                     @endif
                                 </td>
+                                @endif
                                 {{-- Trip column --}}
                                 <td>
                                     <div class="trip-route-main trip-route-replacement">{{ $pickupShort }} &rarr; {{ $destinationShort }}</div>
@@ -971,8 +988,8 @@
                                 </td>
 
                                 {{-- Actions --}}
-                                <td style="text-align:right;">
-                                    <div class="trip-table-actions">
+                                <td style="text-align:center;">
+                                    <div class="trip-table-actions" style="justify-content:center;">
                                         @if($canManageRequests)
                                             <a href="{{ route('trips.requests.index', $trip) }}"
                                                class="btn btn-ghost btn-sm trip-payment-table-action open-trip-requests-review"
@@ -1033,14 +1050,15 @@
 
             @endif
 
-            @if($trips->hasPages())
-                <div class="pagination-wrap">
-                    {{ $trips->appends(request()->query())->links() }}
-                </div>
-            @endif
             </div>{{-- /trips-real-container --}}
             </div>{{-- /relative-wrapper --}}
         </div>
+
+        @if($trips->hasPages())
+            <div class="pagination-wrap">
+                {{ $trips->appends(request()->query())->links() }}
+            </div>
+        @endif
     </div>
 
 
