@@ -166,9 +166,7 @@
             'pay' => $myPayments ?: $driverPayments,
             default => ($myPayments?->hasPages() ? $myPayments : ($driverPayments?->hasPages() ? $driverPayments : ($myPayments ?: $driverPayments))),
         };
-        $displayPaymentsDesktop = ($activeDirection === 'all')
-            ? $allLivePayments
-            : ($mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments);
+        $displayPaymentsDesktop = $mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments;
         $displayPaymentsMobile = $mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments;
     @endphp
 
@@ -1181,7 +1179,7 @@
 
                 {{-- Mobile Pagination: custom single bold showing text + centered buttons --}}
                 <div class="payments-pagination-wrap md:hidden" style="margin-top: 32px !important; text-align: center;">
-                    {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links('payments.mobile-pagination') }}
+                    {{ $mainPaymentsPaginator->onEachSide(0)->appends(request()->query())->links('payments.mobile-pagination') }}
                 </div>
                 @endif
                 <div class="payments-filter-empty" data-filter-empty>
