@@ -3473,6 +3473,14 @@
                     margin-top: 12px !important;
                     margin-bottom: 8px !important;
                 }
+                /* Compact standard mobile pagination: hide intermediate page numbers on mobile */
+                .payments-pagination-wrap nav div:nth-child(2) > div:last-child {
+                    overflow-x: hidden !important;
+                }
+                .payments-pagination-wrap nav span.relative.z-0 > a:not([rel="prev"]):not([rel="next"]),
+                .payments-pagination-wrap nav span.relative.z-0 > span:not([aria-current="page"]):not(:first-child):not(:last-child) {
+                    display: none !important;
+                }
             }
             .payments-table .payments-btn-primary {
                 background: var(--ch-yellow);
