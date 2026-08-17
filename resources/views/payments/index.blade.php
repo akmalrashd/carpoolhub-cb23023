@@ -178,26 +178,26 @@
                     {{ $isAdmin ? 'Review every user payment in one admin ledger.' : ($canReviewQueue ? 'Payments you need to pay are separated from fares you collect as a driver.' : 'Track fares you need to pay and payments already confirmed.') }}
                 </p>
                 <div class="payments-tab-strip">
-                    <a class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'all', 'direction' => 'all']) }}" onclick="pmtTab(this,'all'); if(this.href) history.pushState(null,'',this.href); return false;">All &middot; {{ $allLiveCount }}</a>
+                    <button class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'all')">All &middot; {{ $allLiveCount }}</button>
                     @if($hasSplitPaymentDirections)
-                        <a class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'pay']) }}" onclick="pmtTab(this,'pay'); if(this.href) history.pushState(null,'',this.href); return false;">To pay &middot; {{ $payCount }}</a>
-                        <a class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" href="{{ $paymentTabUrl(['direction' => 'collect']) }}" onclick="pmtTab(this,'collect'); if(this.href) history.pushState(null,'',this.href); return false;">To collect &middot; {{ $collectCount }}</a>
+                        <button class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'pay')">To pay &middot; {{ $payCount }}</button>
+                        <button class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'collect')">To collect &middot; {{ $collectCount }}</button>
                     @else
-                        <a class="payments-tab {{ $activePaymentFilter === 'unpaid' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'unpaid']) }}" onclick="pmtTab(this,'unpaid'); if(this.href) history.pushState(null,'',this.href); return false;">Unpaid &middot; {{ $unpaidCount }}</a>
+                        <button class="payments-tab {{ $activePaymentFilter === 'unpaid' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'unpaid')">Unpaid &middot; {{ $unpaidCount }}</button>
                     @endif
-                    <a class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'review']) }}" onclick="pmtTab(this,'review'); if(this.href) history.pushState(null,'',this.href); return false;">{{ $canReviewQueue ? 'Review' : 'Pending' }} &middot; {{ $reviewCount }}</a>
-                    <a class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" href="{{ $paymentTabUrl(['payment_filter' => 'confirmed']) }}" onclick="pmtTab(this,'confirmed'); if(this.href) history.pushState(null,'',this.href); return false;">Confirmed &middot; {{ $confirmedCount }}</a>
+                    <button class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'review')">{{ $canReviewQueue ? 'Review' : 'Pending' }} &middot; {{ $reviewCount }}</button>
+                    <button class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'confirmed')">Confirmed &middot; {{ $confirmedCount }}</button>
                 </div>
                 <div class="payments-tab-strip">
-                    <button class="payments-tab active" type="button" onclick="pmtTab(this,'all')">All · {{ $allLiveCount }}</button>
+                    <button class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'all')">All · {{ $allLiveCount }}</button>
                     @if($hasSplitPaymentDirections)
-                        <button class="payments-tab" type="button" onclick="pmtTab(this,'pay')">To pay · {{ $payCount }}</button>
-                        <button class="payments-tab" type="button" onclick="pmtTab(this,'collect')">To collect · {{ $collectCount }}</button>
+                        <button class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'pay')">To pay · {{ $payCount }}</button>
+                        <button class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'collect')">To collect · {{ $collectCount }}</button>
                     @else
-                        <button class="payments-tab" type="button" onclick="pmtTab(this,'unpaid')">Unpaid · {{ $unpaidCount }}</button>
+                        <button class="payments-tab {{ $activePaymentFilter === 'unpaid' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'unpaid')">Unpaid · {{ $unpaidCount }}</button>
                     @endif
-                    <button class="payments-tab" type="button" onclick="pmtTab(this,'review')">{{ $canReviewQueue ? 'Review' : 'Pending' }} · {{ $reviewCount }}</button>
-                    <button class="payments-tab" type="button" onclick="pmtTab(this,'confirmed')">Confirmed · {{ $confirmedCount }}</button>
+                    <button class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'review')">{{ $canReviewQueue ? 'Review' : 'Pending' }} · {{ $reviewCount }}</button>
+                    <button class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'confirmed')">Confirmed · {{ $confirmedCount }}</button>
                 </div>
             </div>
             <div class="payments-header-actions">
