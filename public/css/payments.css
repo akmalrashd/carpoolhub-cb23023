@@ -3465,23 +3465,31 @@
             .payments-pagination-wrap nav a,
             .payments-pagination-wrap nav span,
             nav[aria-label="Pagination Navigation"] p span,
+            nav[aria-label="Pagination Navigation"] p span.font-medium,
             .payments-pagination-wrap p span {
                 font-weight: 800 !important;
                 font-family: var(--font-display), var(--font-ui), sans-serif !important;
+                color: var(--ink) !important;
             }
             /* Top gap above Showing text EXCLUSIVELY for mobile card view */
             @media (max-width: 991px) {
                 .payments-mobile-list {
                     margin-bottom: 28px !important;
-                    padding-bottom: 12px !important;
+                    padding-bottom: 16px !important;
                 }
                 .payments-pagination-wrap {
                     margin-top: 32px !important;
-                    padding-top: 16px !important;
+                    padding-top: 20px !important;
+                }
+                nav[aria-label="Pagination Navigation"] > div:nth-child(2) > div:first-child,
+                .payments-pagination-wrap nav > div:nth-child(2) > div:first-child {
+                    margin-top: 20px !important;
+                    padding-top: 12px !important;
+                    margin-bottom: 8px !important;
                 }
                 nav[aria-label="Pagination Navigation"] > div:nth-child(2) > div:first-child p,
                 .payments-pagination-wrap nav p {
-                    margin-top: 20px !important;
+                    margin-top: 16px !important;
                     margin-bottom: 12px !important;
                     padding-top: 8px !important;
                 }
