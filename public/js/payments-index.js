@@ -24,114 +24,29 @@ const showModalSkeleton = (listEl) => {
             `;
 };
 
-// ── Page Loader & AJAX Pagination ──
+// ── Page Loader ──
 (() => {
     const skel = document.getElementById('payments-skel-container');
     const real = document.getElementById('payments-real-container');
 
-    const ensureRealVisible = () => {
+    const hideSkeleton = () => {
         if (skel) {
-            skel.style.display = 'none';
             skel.style.opacity = '0';
             skel.style.pointerEvents = 'none';
+            skel.style.display = 'none';
         }
         if (real) {
             real.style.display = '';
             real.classList.add('loaded');
             real.style.opacity = '1';
-            if (real.dataset.initialLoad) real.dataset.initialLoad = 'false';
         }
     };
 
-    // Run immediately on page ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', ensureRealVisible);
+        document.addEventListener('DOMContentLoaded', hideSkeleton);
     } else {
-        ensureRealVisible();
+        hideSkeleton();
     }
-
-    // Smooth AJAX fetching function (no skeleton flash)
-    const fetchPage = async (url) => {
-        const currentReal = document.getElementById('payments-real-container');
-        if (currentReal) {
-            currentReal.style.transition = 'opacity 0.15s ease';
-            currentReal.style.opacity = '0.5';
-        }
-
-        try {
-            const res = await fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            if (!res.ok) throw new Error();
-            const html = await res.text();
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            const newReal = doc.getElementById('payments-real-container');
-
-            // Replace active states for desktop tabs
-            const newTabsRow = doc.querySelector('.payments-tab-strip');
-            const currentTabsRow = document.querySelector('.payments-tab-strip');
-            if (newTabsRow && currentTabsRow) {
-                currentTabsRow.innerHTML = newTabsRow.innerHTML;
-            }
-
-            if (newReal && currentReal) {
-                currentReal.innerHTML = newReal.innerHTML;
-                history.pushState(null, '', url);
-
-                // Re-bind pagination clicks
-                bindPaginationEvents();
-                if (typeof window.updatePaymentsVisibility === 'function') window.updatePaymentsVisibility();
-            }
-        } catch (_e) {
-            window.location.href = url;
-        } finally {
-            if (currentReal) {
-                currentReal.style.opacity = '1';
-            }
-        }
-    };
-
-    const bindPaginationEvents = () => {
-        document.querySelectorAll('.payments-pagination-wrap a, .pagination-wrap a').forEach((link) => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                fetchPage(link.href);
-            });
-        });
-    };
-
-    // Form Submit Interceptor
-    const filterForm = document.getElementById('paymentsFilterPanel');
-    if (filterForm) {
-        filterForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(filterForm);
-            const params = new URLSearchParams(formData);
-            const url = new URL(filterForm.action || window.location.href);
-            for (const [key, val] of params.entries()) {
-                if (val) url.searchParams.set(key, val);
-                else url.searchParams.delete(key);
-            }
-            fetchPage(url.toString());
-        });
-
-        let submitTimer = null;
-        filterForm.querySelectorAll('input, select').forEach((field) => {
-            if (field.name === 'perspective' || field.classList.contains('js-summary-radio')) return;
-            field.addEventListener('change', () => {
-                window.clearTimeout(submitTimer);
-                submitTimer = window.setTimeout(() => {
-                    filterForm.dispatchEvent(new Event('submit', { cancelable: true }));
-                }, 250);
-            });
-        });
-    }
-
-    // Bind first load
-    bindPaginationEvents();
 })();
 
 (() => {
