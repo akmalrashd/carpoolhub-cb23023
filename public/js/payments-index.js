@@ -1469,6 +1469,7 @@ document.addEventListener('change', (e) => {
         if (count > 0) {
             bulkActionCount.textContent = `${count} selected`;
             bulkActionBar.style.display = 'flex';
+            bulkActionBar.classList.remove('closing');
             if (bulkSubmitBtn) {
                 if (hasSelf) {
                     bulkSubmitBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Mark Selected as Paid';
@@ -1476,8 +1477,14 @@ document.addEventListener('change', (e) => {
                     bulkSubmitBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Confirm Selected Payments';
                 }
             }
-        } else {
-            bulkActionBar.style.display = 'none';
+        } else if (bulkActionBar.style.display !== 'none' && !bulkActionBar.classList.contains('closing')) {
+            bulkActionBar.classList.add('closing');
+            setTimeout(() => {
+                if (bulkActionBar.classList.contains('closing')) {
+                    bulkActionBar.style.display = 'none';
+                    bulkActionBar.classList.remove('closing');
+                }
+            }, 220); // match animation duration
         }
     };
 

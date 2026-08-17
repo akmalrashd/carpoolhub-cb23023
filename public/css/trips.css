@@ -2312,6 +2312,14 @@
         }
 
         /* Bulk Action Bar & Checkboxes (100% matching Payments Floating Bar width & layout) */
+        @keyframes slideUp {
+            from { transform: translate(-50%, 30px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { transform: translate(-50%, 0); opacity: 1; }
+            to { transform: translate(-50%, 30px); opacity: 0; }
+        }
         .trips-batch-floating-bar {
             position: fixed !important;
             bottom: calc(var(--bottom-nav-h, 83px) + 12px + env(safe-area-inset-bottom, 0px)) !important;
@@ -2331,7 +2339,10 @@
             gap: 16px;
             box-sizing: border-box;
             backdrop-filter: blur(12px);
-            animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .trips-batch-floating-bar.closing {
+            animation: slideDown 0.22s ease-in forwards !important;
         }
         body.modal-open .trips-batch-floating-bar {
             z-index: 1000 !important;

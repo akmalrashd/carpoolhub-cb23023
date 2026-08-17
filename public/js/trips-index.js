@@ -1762,8 +1762,15 @@
                     if (floatingBar) {
                         if (count > 0) {
                             floatingBar.style.display = 'flex';
-                        } else {
-                            floatingBar.style.display = 'none';
+                            floatingBar.classList.remove('closing');
+                        } else if (floatingBar.style.display !== 'none' && !floatingBar.classList.contains('closing')) {
+                            floatingBar.classList.add('closing');
+                            setTimeout(() => {
+                                if (floatingBar.classList.contains('closing')) {
+                                    floatingBar.style.display = 'none';
+                                    floatingBar.classList.remove('closing');
+                                }
+                            }, 220); // match animation duration
                         }
                     }
 
