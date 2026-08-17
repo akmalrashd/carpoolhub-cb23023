@@ -3459,22 +3459,7 @@
                 margin-top: 16px;
                 padding: 4px;
             }
-            /* Hide inner default showing paragraph inside pagination nav */
-            .payments-pagination-wrap nav p,
-            .payments-pagination-wrap nav p *,
-            .payments-pagination-wrap nav div div p,
-            .payments-pagination-wrap nav div:first-child p,
-            .payments-pagination-wrap nav div:nth-child(2) div:first-child,
-            nav[aria-label="Pagination Navigation"] p {
-                display: none !important;
-                height: 0 !important;
-                max-height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                opacity: 0 !important;
-                visibility: hidden !important;
-            }
-            /* Bold font weight for pagination numbers and links */
+            /* Bold font weight for pagination numbers and links on desktop and mobile */
             nav[aria-label="Pagination Navigation"] a,
             nav[aria-label="Pagination Navigation"] span,
             .payments-pagination-wrap nav a,
@@ -3482,14 +3467,18 @@
                 font-weight: 800 !important;
                 font-family: var(--font-display), var(--font-ui), sans-serif !important;
             }
+            /* Mobile-only pagination overrides */
+            .payments-mobile-pagenums nav p,
+            .payments-mobile-pagenums nav > div:first-child p,
+            .payments-mobile-pagenums nav > div:nth-child(2) > div:first-child {
+                display: none !important;
+            }
+            .payments-mobile-pagenums nav > div:nth-child(2) {
+                justify-content: center !important;
+            }
             @media (max-width: 991px) {
                 .payments-mobile-list {
-                    margin-bottom: 28px !important;
-                    padding-bottom: 16px !important;
-                }
-                .payments-pagination-wrap {
-                    margin-top: 32px !important;
-                    padding-top: 20px !important;
+                    margin-bottom: 24px !important;
                 }
             }
             .payments-table .payments-btn-primary {

@@ -1170,11 +1170,19 @@
                 </div>
                 @endif
                 @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
-                <div class="payments-pagination-wrap" style="margin-top: 32px !important; padding-top: 16px !important; text-align: center;">
-                    <div class="payments-pagination-showing-text" style="margin-bottom: 12px !important; font-size: 13px !important; color: var(--muted) !important;">
+                {{-- Desktop Pagination: 100% original layout restored --}}
+                <div class="payments-pagination-wrap hidden md:block">
+                    {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
+                </div>
+
+                {{-- Mobile Pagination: custom top gap, bold showing numbers, centered buttons --}}
+                <div class="payments-pagination-wrap md:hidden" style="margin-top: 32px !important; text-align: center;">
+                    <div style="margin-bottom: 12px !important; font-size: 13px !important; color: var(--muted) !important;">
                         Showing <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->firstItem() }}</strong> to <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->lastItem() }}</strong> of <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->total() }}</strong> results
                     </div>
-                    {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links() }}
+                    <div class="payments-mobile-pagenums">
+                        {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links() }}
+                    </div>
                 </div>
                 @endif
                 <div class="payments-filter-empty" data-filter-empty>
