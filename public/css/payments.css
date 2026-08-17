@@ -3459,28 +3459,31 @@
                 margin-top: 16px;
                 padding: 4px;
             }
-            /* Bold font weight for pagination numbers and links */
+            /* Bold font weight for pagination numbers, links, and 'Showing X to Y' numbers */
             nav[aria-label="Pagination Navigation"] a,
             nav[aria-label="Pagination Navigation"] span,
             .payments-pagination-wrap nav a,
-            .payments-pagination-wrap nav span {
+            .payments-pagination-wrap nav span,
+            nav[aria-label="Pagination Navigation"] p span,
+            .payments-pagination-wrap p span {
                 font-weight: 800 !important;
                 font-family: var(--font-display), var(--font-ui), sans-serif !important;
             }
             /* Top gap above Showing text EXCLUSIVELY for mobile card view */
             @media (max-width: 991px) {
                 .payments-mobile-list {
-                    margin-bottom: 24px !important;
+                    margin-bottom: 28px !important;
+                    padding-bottom: 12px !important;
                 }
                 .payments-pagination-wrap {
-                    margin-top: 28px !important;
+                    margin-top: 32px !important;
                     padding-top: 16px !important;
                 }
-                .payments-pagination-wrap nav p,
-                .payments-pagination-wrap nav div:first-child p,
-                nav[aria-label="Pagination Navigation"] p {
-                    margin-top: 14px !important;
+                nav[aria-label="Pagination Navigation"] > div:nth-child(2) > div:first-child p,
+                .payments-pagination-wrap nav p {
+                    margin-top: 20px !important;
                     margin-bottom: 12px !important;
+                    padding-top: 8px !important;
                 }
             }
             .payments-table .payments-btn-primary {
