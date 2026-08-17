@@ -1170,7 +1170,10 @@
                 </div>
                 @endif
                 @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
-                <div class="payments-pagination-wrap">
+                <div class="payments-pagination-wrap" style="margin-top: 32px !important; padding-top: 16px !important; text-align: center;">
+                    <div class="payments-pagination-showing-text" style="margin-bottom: 12px !important; font-size: 13px !important; color: var(--muted) !important;">
+                        Showing <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->firstItem() }}</strong> to <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->lastItem() }}</strong> of <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->total() }}</strong> results
+                    </div>
                     {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links() }}
                 </div>
                 @endif
