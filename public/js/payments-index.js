@@ -1741,6 +1741,15 @@ window.updatePaymentsVisibility = function() {
         }
     });
 
+    const tableWraps = document.querySelectorAll('.payments-table-wrap');
+    tableWraps.forEach((tblWrap) => {
+        if (visibleCount === 0) {
+            tblWrap.style.setProperty('display', 'none', 'important');
+        } else {
+            tblWrap.style.setProperty('display', '', '');
+        }
+    });
+
     const emptyStates = document.querySelectorAll('[data-filter-empty]');
     emptyStates.forEach((emptyState) => {
         if (visibleCount === 0) {

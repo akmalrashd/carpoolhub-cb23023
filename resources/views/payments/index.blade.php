@@ -825,6 +825,7 @@
                         <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">No payment records found.</div>
                     @endforelse
                 </div>
+                @if($displayPayments->isNotEmpty())
                 <div class="payments-table-wrap">
                     @php
                         $hasCheckboxes = false;
@@ -1167,6 +1168,7 @@
                         </tbody>
                     </table>
                 </div>
+                @endif
                 @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
                 <div class="payments-pagination-wrap">
                     {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
