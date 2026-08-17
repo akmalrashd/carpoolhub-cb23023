@@ -528,9 +528,9 @@
                 </div>
 
                 <div class="payments-real-container loaded" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
-                @if($allLivePayments->isNotEmpty())
+                @if($displayPayments->isNotEmpty())
                 <div class="payments-mobile-list">
-                    @foreach($allLivePayments as $payment)
+                    @foreach($displayPayments as $payment)
                         @php
                             $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                             $pickupName = $payment->trip?->pickup_name ?? '-';
@@ -825,11 +825,11 @@
                     @endforeach
                 </div>
                 @endif
-                @if($allLivePayments->isNotEmpty())
+                @if($displayPayments->isNotEmpty())
                 <div class="payments-table-wrap">
                     @php
                         $hasCheckboxes = false;
-                        foreach($allLivePayments as $p) {
+                        foreach($displayPayments as $p) {
                             $isDriver = (int) ($p->trip?->driver_id ?? 0) === (int) auth()->id();
                             $isPassenger = (int) $p->user_id === (int) auth()->id();
                             if (($isDriver || $isAdmin || $isPassenger) && in_array($p->payment_status, ['unpaid', 'pending_confirmation'])) {
@@ -860,7 +860,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                    @forelse($allLivePayments as $payment)
+                    @forelse($displayPayments as $payment)
                             @php
                                 $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                                 $pickupName = $payment->trip?->pickup_name ?? '-';
