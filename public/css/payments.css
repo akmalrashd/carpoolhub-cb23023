@@ -2102,6 +2102,66 @@
             transform: translateY(0) !important;
             box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2) !important;
         }
+        /* Pending button – amber */
+        .btn-select-person-pending {
+            width: 100% !important;
+            margin-top: 4px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            padding: 10px 14px !important;
+            border-radius: 12px !important;
+            background: #f59e0b !important;
+            border: 1px solid #d97706 !important;
+            color: #ffffff !important;
+            font-size: 12px !important;
+            font-weight: 900 !important;
+            cursor: pointer !important;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3) !important;
+            text-transform: none !important;
+        }
+        .btn-select-person-pending:hover {
+            background: #d97706 !important;
+            border-color: #b45309 !important;
+            transform: translateY(-1.5px) !important;
+            box-shadow: 0 5px 16px rgba(245, 158, 11, 0.45) !important;
+        }
+        .btn-select-person-pending:active {
+            transform: translateY(0) !important;
+            box-shadow: 0 1px 3px rgba(245, 158, 11, 0.2) !important;
+        }
+        /* Confirmed button – slate-blue */
+        .btn-select-person-confirmed {
+            width: 100% !important;
+            margin-top: 4px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            padding: 10px 14px !important;
+            border-radius: 12px !important;
+            background: #3b82f6 !important;
+            border: 1px solid #2563eb !important;
+            color: #ffffff !important;
+            font-size: 12px !important;
+            font-weight: 900 !important;
+            cursor: pointer !important;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3) !important;
+            text-transform: none !important;
+        }
+        .btn-select-person-confirmed:hover {
+            background: #2563eb !important;
+            border-color: #1d4ed8 !important;
+            transform: translateY(-1.5px) !important;
+            box-shadow: 0 5px 16px rgba(59, 130, 246, 0.45) !important;
+        }
+        .btn-select-person-confirmed:active {
+            transform: translateY(0) !important;
+            box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2) !important;
+        }
         }
         .payments-summary-amount-chip strong {
             font-family: var(--font-ui), sans-serif;

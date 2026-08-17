@@ -354,22 +354,14 @@
                                         <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
                                         <span class="line-val">RM {{ number_format((float) $payRow['unpaid'], 2) }}</span>
                                     </div>
-                                    <button type="button"
-                                            class="payments-summary-receipt-line is-pending pmt-receipt-line-clickable"
-                                            data-person-name="{{ $payRow['name'] }}"
-                                            data-receipt-action="pending"
-                                            title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
+                                    <div class="payments-summary-receipt-line is-pending">
                                         <span><i class="fa-regular fa-clock"></i> Pending</span>
                                         <span class="line-val">RM {{ number_format((float) $payRow['pending'], 2) }}</span>
-                                    </button>
-                                    <button type="button"
-                                            class="payments-summary-receipt-line is-paid pmt-receipt-line-clickable"
-                                            data-person-name="{{ $payRow['name'] }}"
-                                            data-receipt-action="confirmed"
-                                            title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
+                                    </div>
+                                    <div class="payments-summary-receipt-line is-paid">
                                         <span><i class="fa-solid fa-circle-check"></i> Confirmed</span>
                                         <span class="line-val">RM {{ number_format((float) $payRow['paid'], 2) }}</span>
-                                    </button>
+                                    </div>
                                     <div class="payments-summary-receipt-total">
                                         <span>Total</span>
                                         <span class="total-val">RM {{ number_format((float) $payRow['total'], 2) }}</span>
@@ -382,6 +374,22 @@
                                             data-direction="collect"
                                             title="Select all unpaid payments for {{ $payRow['name'] }}">
                                         <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($payRow['unpaid'] + $payRow['pending']), 2) }})
+                                    </button>
+                                @endif
+                                @if($payRow['pending'] > 0)
+                                    <button type="button"
+                                            class="btn-select-person-pending"
+                                            data-person-name="{{ $payRow['name'] }}"
+                                            title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
+                                        <i class="fa-regular fa-clock"></i> Pending (RM {{ number_format((float) $payRow['pending'], 2) }})
+                                    </button>
+                                @endif
+                                @if($payRow['paid'] > 0)
+                                    <button type="button"
+                                            class="btn-select-person-confirmed"
+                                            data-person-name="{{ $payRow['name'] }}"
+                                            title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
+                                        <i class="fa-solid fa-circle-check"></i> Confirmed (RM {{ number_format((float) $payRow['paid'], 2) }})
                                     </button>
                                 @endif
                             </div>
@@ -1307,22 +1315,14 @@
                                                 <span><i class="fa-solid fa-circle-exclamation"></i> Unpaid</span>
                                                 <span class="line-val">RM {{ number_format((float) $payRow['unpaid'], 2) }}</span>
                                             </div>
-                                            <button type="button"
-                                                    class="payments-summary-receipt-line is-pending pmt-receipt-line-clickable"
-                                                    data-person-name="{{ $payRow['name'] }}"
-                                                    data-receipt-action="pending"
-                                                    title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
+                                            <div class="payments-summary-receipt-line is-pending">
                                                 <span><i class="fa-regular fa-clock"></i> Pending</span>
                                                 <span class="line-val">RM {{ number_format((float) $payRow['pending'], 2) }}</span>
-                                            </button>
-                                            <button type="button"
-                                                    class="payments-summary-receipt-line is-paid pmt-receipt-line-clickable"
-                                                    data-person-name="{{ $payRow['name'] }}"
-                                                    data-receipt-action="confirmed"
-                                                    title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
+                                            </div>
+                                            <div class="payments-summary-receipt-line is-paid">
                                                 <span><i class="fa-solid fa-circle-check"></i> Confirmed</span>
                                                 <span class="line-val">RM {{ number_format((float) $payRow['paid'], 2) }}</span>
-                                            </button>
+                                            </div>
                                             <div class="payments-summary-receipt-total">
                                                 <span>Total</span>
                                                 <span class="total-val">RM {{ number_format((float) $payRow['total'], 2) }}</span>
@@ -1335,6 +1335,22 @@
                                                     data-direction="collect"
                                                     title="Select all unpaid payments for {{ $payRow['name'] }}">
                                                 <i class="fa-solid fa-square-check"></i> Select Unpaid (RM {{ number_format((float) ($payRow['unpaid'] + $payRow['pending']), 2) }})
+                                            </button>
+                                        @endif
+                                        @if($payRow['pending'] > 0)
+                                            <button type="button"
+                                                    class="btn-select-person-pending"
+                                                    data-person-name="{{ $payRow['name'] }}"
+                                                    title="Lihat pembayaran pending untuk {{ $payRow['name'] }}">
+                                                <i class="fa-regular fa-clock"></i> Pending (RM {{ number_format((float) $payRow['pending'], 2) }})
+                                            </button>
+                                        @endif
+                                        @if($payRow['paid'] > 0)
+                                            <button type="button"
+                                                    class="btn-select-person-confirmed"
+                                                    data-person-name="{{ $payRow['name'] }}"
+                                                    title="Lihat pembayaran confirmed untuk {{ $payRow['name'] }}">
+                                                <i class="fa-solid fa-circle-check"></i> Confirmed (RM {{ number_format((float) $payRow['paid'], 2) }})
                                             </button>
                                         @endif
                                     </div>

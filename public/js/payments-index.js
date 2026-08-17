@@ -1638,87 +1638,88 @@ document.addEventListener('click', (e) => {
     selectPersonItems();
 });
 
-// ── Handle passenger receipt line clicks (Pending / Confirmed rows) ──
+// ── Handle passenger Pending button click ──
 document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.pmt-receipt-line-clickable');
+    const btn = e.target.closest('.btn-select-person-pending');
     if (!btn) return;
 
     e.preventDefault();
     const personName = (btn.dataset.personName || '').trim().toLowerCase();
-    const action = btn.dataset.receiptAction; // 'pending' or 'confirmed'
 
-    if (action === 'pending') {
-        // Switch to Review/Pending tab (shows pending_confirmation items)
-        const reviewTabBtn = Array.from(document.querySelectorAll('.payments-tab'))
-            .find(b => b.textContent.toLowerCase().includes('pending') || b.textContent.toLowerCase().includes('review'));
-        if (reviewTabBtn && typeof pmtTab === 'function') {
-            pmtTab(reviewTabBtn, 'review', true);
-        }
-
-        // Tick pending_confirmation items for this driver
-        setTimeout(() => {
-            document.querySelectorAll('.bulk-payment-cb').forEach(cb => { cb.checked = false; });
-
-            document.querySelectorAll('.js-payment-filter-item').forEach(row => {
-                if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
-
-                const nameEl = row.querySelector('.payment-name');
-                const rowName = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
-                const rowDriver = (row.dataset.driver || '').trim().toLowerCase();
-                const status = (row.dataset.pmtStatus || '').trim().toLowerCase();
-
-                const isMatch = (personName && rowName && (rowName.includes(personName) || personName.includes(rowName)))
-                    || (personName && rowDriver && (rowDriver.includes(personName) || personName.includes(rowDriver)));
-                const isPending = status === 'pending_confirmation';
-
-                if (isMatch && isPending) {
-                    const cb = row.querySelector('.bulk-payment-cb');
-                    if (cb) {
-                        cb.checked = true;
-                        cb.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
-            });
-
-            if (typeof updateBulkActionState === 'function') updateBulkActionState();
-        }, 50);
-
-    } else if (action === 'confirmed') {
-        // Switch to Confirmed tab
-        const confirmedTabBtn = Array.from(document.querySelectorAll('.payments-tab'))
-            .find(b => b.textContent.toLowerCase().includes('confirmed'));
-        if (confirmedTabBtn && typeof pmtTab === 'function') {
-            pmtTab(confirmedTabBtn, 'confirmed', true);
-        }
-
-        // Tick confirmed items for this driver
-        setTimeout(() => {
-            document.querySelectorAll('.bulk-payment-cb').forEach(cb => { cb.checked = false; });
-
-            document.querySelectorAll('.js-payment-filter-item').forEach(row => {
-                if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
-
-                const nameEl = row.querySelector('.payment-name');
-                const rowName = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
-                const rowDriver = (row.dataset.driver || '').trim().toLowerCase();
-                const status = (row.dataset.pmtStatus || '').trim().toLowerCase();
-
-                const isMatch = (personName && rowName && (rowName.includes(personName) || personName.includes(rowName)))
-                    || (personName && rowDriver && (rowDriver.includes(personName) || personName.includes(rowDriver)));
-                const isConfirmed = status === 'paid';
-
-                if (isMatch && isConfirmed) {
-                    const cb = row.querySelector('.bulk-payment-cb');
-                    if (cb) {
-                        cb.checked = true;
-                        cb.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
-            });
-
-            if (typeof updateBulkActionState === 'function') updateBulkActionState();
-        }, 50);
+    // Switch to Review/Pending tab
+    const reviewTabBtn = Array.from(document.querySelectorAll('.payments-tab'))
+        .find(b => b.textContent.toLowerCase().includes('pending') || b.textContent.toLowerCase().includes('review'));
+    if (reviewTabBtn && typeof pmtTab === 'function') {
+        pmtTab(reviewTabBtn, 'review', true);
     }
+
+    setTimeout(() => {
+        document.querySelectorAll('.bulk-payment-cb').forEach(cb => { cb.checked = false; });
+
+        document.querySelectorAll('.js-payment-filter-item').forEach(row => {
+            if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+
+            const nameEl = row.querySelector('.payment-name');
+            const rowName = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
+            const rowDriver = (row.dataset.driver || '').trim().toLowerCase();
+            const status = (row.dataset.pmtStatus || '').trim().toLowerCase();
+
+            const isMatch = (personName && rowName && (rowName.includes(personName) || personName.includes(rowName)))
+                || (personName && rowDriver && (rowDriver.includes(personName) || personName.includes(rowDriver)));
+
+            if (isMatch && status === 'pending_confirmation') {
+                const cb = row.querySelector('.bulk-payment-cb');
+                if (cb) {
+                    cb.checked = true;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        });
+
+        if (typeof updateBulkActionState === 'function') updateBulkActionState();
+    }, 50);
+});
+
+// ── Handle passenger Confirmed button click ──
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-select-person-confirmed');
+    if (!btn) return;
+
+    e.preventDefault();
+    const personName = (btn.dataset.personName || '').trim().toLowerCase();
+
+    // Switch to Confirmed tab
+    const confirmedTabBtn = Array.from(document.querySelectorAll('.payments-tab'))
+        .find(b => b.textContent.toLowerCase().includes('confirmed'));
+    if (confirmedTabBtn && typeof pmtTab === 'function') {
+        pmtTab(confirmedTabBtn, 'confirmed', true);
+    }
+
+    setTimeout(() => {
+        document.querySelectorAll('.bulk-payment-cb').forEach(cb => { cb.checked = false; });
+
+        document.querySelectorAll('.js-payment-filter-item').forEach(row => {
+            if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+
+            const nameEl = row.querySelector('.payment-name');
+            const rowName = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
+            const rowDriver = (row.dataset.driver || '').trim().toLowerCase();
+            const status = (row.dataset.pmtStatus || '').trim().toLowerCase();
+
+            const isMatch = (personName && rowName && (rowName.includes(personName) || personName.includes(rowName)))
+                || (personName && rowDriver && (rowDriver.includes(personName) || personName.includes(rowDriver)));
+
+            if (isMatch && status === 'paid') {
+                const cb = row.querySelector('.bulk-payment-cb');
+                if (cb) {
+                    cb.checked = true;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        });
+
+        if (typeof updateBulkActionState === 'function') updateBulkActionState();
+    }, 50);
 });
 
 window.clearPaymentFilters = function() {
