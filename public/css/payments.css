@@ -3454,16 +3454,10 @@
                 text-align: center;
             }
 
-            /* Default pagination wrapper styling for desktop & mobile */
+            /* Default pagination wrapper styling for desktop */
             .payments-pagination-wrap {
-                margin-top: 28px !important;
-                padding: 12px 4px 4px 4px !important;
-            }
-            .payments-pagination-wrap nav p,
-            .payments-pagination-wrap nav div:first-child p,
-            nav[aria-label="Pagination Navigation"] p {
-                margin-top: 14px !important;
-                margin-bottom: 12px !important;
+                margin-top: 16px;
+                padding: 4px;
             }
             /* Bold font weight for pagination numbers and links */
             nav[aria-label="Pagination Navigation"] a,
@@ -3473,13 +3467,20 @@
                 font-weight: 800 !important;
                 font-family: var(--font-display), var(--font-ui), sans-serif !important;
             }
+            /* Top gap above Showing text EXCLUSIVELY for mobile card view */
             @media (max-width: 991px) {
                 .payments-mobile-list {
                     margin-bottom: 24px !important;
                 }
                 .payments-pagination-wrap {
-                    margin-top: 32px !important;
+                    margin-top: 28px !important;
                     padding-top: 16px !important;
+                }
+                .payments-pagination-wrap nav p,
+                .payments-pagination-wrap nav div:first-child p,
+                nav[aria-label="Pagination Navigation"] p {
+                    margin-top: 14px !important;
+                    margin-bottom: 12px !important;
                 }
             }
             .payments-table .payments-btn-primary {
