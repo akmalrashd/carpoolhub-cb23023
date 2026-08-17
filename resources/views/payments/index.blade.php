@@ -1175,14 +1175,9 @@
                     {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
                 </div>
 
-                {{-- Mobile Pagination: custom top gap, bold showing numbers, centered buttons --}}
+                {{-- Mobile Pagination: custom single bold showing text + centered buttons --}}
                 <div class="payments-pagination-wrap md:hidden" style="margin-top: 32px !important; text-align: center;">
-                    <div style="margin-bottom: 12px !important; font-size: 13px !important; color: var(--muted) !important;">
-                        Showing <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->firstItem() }}</strong> to <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->lastItem() }}</strong> of <strong style="font-weight: 800 !important; color: var(--ink) !important;">{{ $mainPaymentsPaginator->total() }}</strong> results
-                    </div>
-                    <div class="payments-mobile-pagenums">
-                        {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links() }}
-                    </div>
+                    {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links('payments.mobile-pagination') }}
                 </div>
                 @endif
                 <div class="payments-filter-empty" data-filter-empty>
