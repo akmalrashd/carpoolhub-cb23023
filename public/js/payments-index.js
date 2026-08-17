@@ -894,12 +894,19 @@ const showModalSkeleton = (listEl) => {
     if (bulkOpenBtn && bulkModal) {
         bulkOpenBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            const checkedCbs = Array.from(document.querySelectorAll('.bulk-payment-cb:checked')).filter(cb => {
+            const checkedMap = new Map();
+            document.querySelectorAll('.bulk-payment-cb:checked').forEach(cb => {
                 const row = cb.closest('.js-payment-filter-item');
-                return row && row.dataset.statusHidden !== '1' && !row.classList.contains('payments-filter-hidden');
+                if (!row) return;
+                if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+
+                if (!checkedMap.has(cb.value)) {
+                    checkedMap.set(cb.value, { cb, row });
+                }
             });
 
-            if (checkedCbs.length === 0) return;
+            const checkedItems = Array.from(checkedMap.values());
+            if (checkedItems.length === 0) return;
 
             const hiddenInputsWrap = document.getElementById('bulkMarkPaidHiddenInputs');
             const passengersListWrap = document.getElementById('bulkMarkPaidPassengersList');
@@ -923,14 +930,13 @@ const showModalSkeleton = (listEl) => {
                 let totalSum = 0;
                 const passengerMap = {};
 
-                checkedCbs.forEach(cb => {
+                checkedItems.forEach(({ cb, row }) => {
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = 'payment_ids[]';
                     input.value = cb.value;
                     hiddenInputsWrap.appendChild(input);
 
-                    const row = cb.closest('.js-payment-filter-item');
                     if (row) {
                         let passengerName = row.dataset.passenger || '';
                         if (!passengerName) {
@@ -974,9 +980,9 @@ const showModalSkeleton = (listEl) => {
                 const selectEl = document.getElementById('bulkMarkPaidMethod');
                 const remarksEl = document.getElementById('bulkMarkPaidRemarks');
 
-                if (countEl) countEl.textContent = checkedCbs.length + ' payment(s) selected';
+                if (countEl) countEl.textContent = checkedItems.length + ' payment(s) selected';
                 if (amountEl) amountEl.textContent = 'RM ' + totalSum.toFixed(2);
-                if (submitBtn) submitBtn.textContent = 'Mark ' + checkedCbs.length + ' Selected as Paid';
+                if (submitBtn) submitBtn.textContent = 'Mark ' + checkedItems.length + ' Selected as Paid';
                 if (selectEl) selectEl.selectedIndex = 0;
                 if (remarksEl) remarksEl.value = '';
             }
