@@ -39,7 +39,8 @@ class PaymentService
                     ->whereColumn('trips.id', 'trip_payments.trip_id')
             )
             ->orderByDesc('id')
-            ->paginate($perPage, ['*'], 'mine_page');
+            ->paginate($perPage, ['*'], 'mine_page')
+            ->onEachSide(1);
     }
 
     public function paginateForDriver(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
@@ -70,7 +71,8 @@ class PaymentService
                     ->whereColumn('trips.id', 'trip_payments.trip_id')
             )
             ->orderByDesc('id')
-            ->paginate($perPage, ['*'], 'driver_page');
+            ->paginate($perPage, ['*'], 'driver_page')
+            ->onEachSide(1);
     }
 
     /**
