@@ -1741,7 +1741,7 @@ window.updatePaymentsVisibility = function() {
         }
     });
 
-    const tableWraps = document.querySelectorAll('.payments-table-wrap');
+    const tableWraps = document.querySelectorAll('.payments-table-wrap, .payments-mobile-list');
     tableWraps.forEach((tblWrap) => {
         if (visibleCount === 0) {
             tblWrap.style.setProperty('display', 'none', 'important');

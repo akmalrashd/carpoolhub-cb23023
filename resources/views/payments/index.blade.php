@@ -528,8 +528,9 @@
                 </div>
 
                 <div class="payments-real-container loaded" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
+                @if($displayPayments->isNotEmpty())
                 <div class="payments-mobile-list">
-                    @forelse($displayPayments as $payment)
+                    @foreach($displayPayments as $payment)
                         @php
                             $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                             $pickupName = $payment->trip?->pickup_name ?? '-';
@@ -821,10 +822,9 @@
                                 </div>
                             </div>
                         </article>
-                    @empty
-                        <div class="payment-mobile-item" style="text-align:center; padding:32px 16px; color:#64748b; font-size:13px;">No payment records found.</div>
-                    @endforelse
+                    @endforeach
                 </div>
+                @endif
                 @if($displayPayments->isNotEmpty())
                 <div class="payments-table-wrap">
                     @php
