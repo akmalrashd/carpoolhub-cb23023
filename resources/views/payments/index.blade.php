@@ -166,6 +166,7 @@
             'pay' => $myPayments ?: $driverPayments,
             default => ($myPayments?->hasPages() ? $myPayments : ($driverPayments?->hasPages() ? $driverPayments : ($myPayments ?: $driverPayments))),
         };
+        $displayPayments = $mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments;
     @endphp
 
     <div class="payments-page">
@@ -528,7 +529,7 @@
 
                 <div class="payments-real-container loaded" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
                 <div class="payments-mobile-list">
-                    @forelse($allLivePayments as $payment)
+                    @forelse($displayPayments as $payment)
                         @php
                             $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                             $pickupName = $payment->trip?->pickup_name ?? '-';
@@ -858,7 +859,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                    @forelse($allLivePayments as $payment)
+                    @forelse($displayPayments as $payment)
                             @php
                                 $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                                 $pickupName = $payment->trip?->pickup_name ?? '-';
