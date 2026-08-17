@@ -3454,15 +3454,24 @@
                 text-align: center;
             }
 
-            /* Pagination wrapper styling */
+            /* Default pagination wrapper styling for desktop */
             .payments-pagination-wrap {
-                margin-top: 28px !important;
-                padding: 12px 4px 4px 4px !important;
+                margin-top: 16px;
+                padding: 4px;
             }
-            @media (max-width: 768px) {
+            /* Extra top gap above 'Showing X to Y' text specifically for mobile view */
+            @media (max-width: 991px) {
+                .payments-mobile-list {
+                    margin-bottom: 24px !important;
+                }
                 .payments-pagination-wrap {
-                    margin-top: 32px !important;
+                    margin-top: 28px !important;
                     padding-top: 16px !important;
+                }
+                .payments-pagination-wrap nav p,
+                .payments-pagination-wrap nav div:first-child {
+                    margin-top: 12px !important;
+                    margin-bottom: 8px !important;
                 }
             }
             .payments-table .payments-btn-primary {
