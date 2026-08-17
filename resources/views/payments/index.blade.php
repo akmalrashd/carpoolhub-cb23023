@@ -166,7 +166,10 @@
             'pay' => $myPayments ?: $driverPayments,
             default => ($myPayments?->hasPages() ? $myPayments : ($driverPayments?->hasPages() ? $driverPayments : ($myPayments ?: $driverPayments))),
         };
-        $displayPayments = $mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments;
+        $displayPaymentsDesktop = ($activeDirection === 'all')
+            ? $allLivePayments
+            : ($mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments);
+        $displayPaymentsMobile = $mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments;
     @endphp
 
     <div class="payments-page">
@@ -536,9 +539,9 @@
                 </div>
 
                 <div class="payments-real-container" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}" style="display:none; opacity:0;">
-                @if($displayPayments->isNotEmpty())
+                @if($displayPaymentsMobile->isNotEmpty())
                 <div class="payments-mobile-list">
-                    @foreach($displayPayments as $payment)
+                    @foreach($displayPaymentsMobile as $payment)
                         @php
                             $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                             $pickupName = $payment->trip?->pickup_name ?? '-';
@@ -826,11 +829,11 @@
                     @endforeach
                 </div>
                 @endif
-                @if($displayPayments->isNotEmpty())
+                @if($displayPaymentsDesktop->isNotEmpty())
                 <div class="payments-table-wrap">
                     @php
                         $hasCheckboxes = false;
-                        foreach($displayPayments as $p) {
+                        foreach($displayPaymentsDesktop as $p) {
                             $isDriver = (int) ($p->trip?->driver_id ?? 0) === (int) auth()->id();
                             $isPassenger = (int) $p->user_id === (int) auth()->id();
                             if (($isDriver || $isAdmin || $isPassenger) && in_array($p->payment_status, ['unpaid', 'pending_confirmation'])) {
@@ -861,7 +864,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                    @forelse($displayPayments as $payment)
+                    @forelse($displayPaymentsDesktop as $payment)
                             @php
                                 $isReturnTrip = (bool) ($payment->trip?->is_return_trip ?? false);
                                 $pickupName = $payment->trip?->pickup_name ?? '-';
