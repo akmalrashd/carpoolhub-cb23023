@@ -30,15 +30,6 @@ class TripController extends Controller
         ]);
 
         $filters['status_filter'] = $filters['status_filter'] ?? 'all';
-        if (! $request->ajax()) {
-            return view('trips.index', [
-                'trips' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10),
-                'filters' => $filters,
-                'tripStatusCounts' => [],
-                'initialLoad' => true,
-            ]);
-        }
-
         $this->tripService->syncLifecycleStatuses();
         $tripStatusCounts = $this->tripService->statusCountsForUser($request->user(), $filters);
         $trips = $this->tripService->paginateForUser($request->user(), 10, $filters);
@@ -163,6 +154,33 @@ class TripController extends Controller
         return redirect()
             ->route('trips.index')
             ->with('status', 'Trip deleted successfully.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer|exists:trips,id',
+        ]);
+
+        $user = $request->user();
+        $deletedCount = 0;
+
+        foreach ($request->input('ids', []) as $tripId) {
+            $trip = Trip::find($tripId);
+            if (! $trip) {
+                continue;
+            }
+
+            if ($user->role === 'admin' || (int) $user->id === (int) $trip->driver_id) {
+                $this->tripService->delete($user, $trip);
+                $deletedCount++;
+            }
+        }
+
+        return redirect()
+            ->route('trips.index')
+            ->with('status', "{$deletedCount} trip(s) deleted successfully.");
     }
 
     private function ensureCanManage(Request $request): void

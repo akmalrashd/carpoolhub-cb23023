@@ -1,17 +1,5 @@
-<header class="mobile-header {{ request()->routeIs('home') || request()->routeIs('dashboard') ? '' : 'has-back-btn' }}">
+<header class="mobile-header">
     <div class="mobile-header-left">
-        @if(!request()->routeIs('home') && !request()->routeIs('dashboard'))
-            <button
-                type="button"
-                class="mobile-back-btn"
-                id="mobileBackBtn"
-                aria-label="Back"
-                title="Back"
-                data-fallback-url="{{ route('home') }}"
-            >
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-        @endif
         <a href="{{ route('home') }}" class="header-logo-link" aria-label="Go to Home">
             <img src="{{ asset('assets/branding/logo-small-b.png') }}" alt="" class="mobile-brand-logo">
             <span class="mobile-brand-text">Carpool<span>Hub</span></span>

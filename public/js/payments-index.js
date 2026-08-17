@@ -46,18 +46,7 @@ const showModalSkeleton = (listEl) => {
         hideSkeleton();
     }
 
-    // Show skeleton feedback on navigation clicks for slow networks
-    document.addEventListener('click', (e) => {
-        const link = e.target.closest('a[href]');
-        if (!link) return;
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.classList.contains('payments-tab') || link.target === '_blank') return;
 
-        if (skel && real) {
-            skel.style.display = 'grid';
-            real.style.opacity = '0.4';
-        }
-    });
 })();
 
 (() => {
@@ -1468,11 +1457,18 @@ document.addEventListener('change', (e) => {
             bulkSelectAllCb.checked = visibleCountTotal > 0 && count === visibleCountTotal;
         }
 
-        const aiFab = document.getElementById('ai-fab');
+        const floatingSelectAllBtn = document.getElementById('floatingSelectAllBtn');
+        if (floatingSelectAllBtn) {
+            if (visibleCountTotal > 0 && count === visibleCountTotal) {
+                floatingSelectAllBtn.textContent = 'Deselect All';
+            } else {
+                floatingSelectAllBtn.textContent = 'Select All';
+            }
+        }
+
         if (count > 0) {
             bulkActionCount.textContent = `${count} selected`;
             bulkActionBar.style.display = 'flex';
-            if (aiFab) aiFab.style.setProperty('display', 'none', 'important');
             if (bulkSubmitBtn) {
                 if (hasSelf) {
                     bulkSubmitBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Mark Selected as Paid';
@@ -1482,7 +1478,6 @@ document.addEventListener('change', (e) => {
             }
         } else {
             bulkActionBar.style.display = 'none';
-            if (aiFab) aiFab.style.display = '';
         }
     };
 

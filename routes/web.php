@@ -33,6 +33,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/home', [DashboardController::class, 'index'])->name('home');
     Route::redirect('/dashboard', '/home')->name('dashboard');
 
+    Route::delete('/trips/bulk-delete', [TripController::class, 'bulkDestroy'])->name('trips.bulk-destroy');
     Route::resource('trips', TripController::class);
     Route::get('/explore', [ExploreController::class, 'index'])->name('explore.index');
     Route::get('/explore/search', [ExploreController::class, 'search'])->name('explore.search');

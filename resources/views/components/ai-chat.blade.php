@@ -10,7 +10,7 @@
 @endphp
 
 {{-- ── Chat Window ──────────────────────────────────────────────────── --}}
-<div id="ai-chat-window" aria-hidden="true">
+<div id="ai-chat-window" aria-hidden="true" style="opacity:0; pointer-events:none; display:none;">
 
     {{-- Header --}}
     <div class="ai-head">

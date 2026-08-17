@@ -25,6 +25,7 @@
     @include('layouts.partials.pwa-head')
 </head>
 <body>
+
 @php
     $headerNotifications = collect();
     $headerUnreadCount = 0;

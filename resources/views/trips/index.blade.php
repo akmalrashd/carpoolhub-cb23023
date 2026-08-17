@@ -113,11 +113,19 @@
             </div>
 
 
-            <div style="position: relative; min-height: 250px;">
+            <div style="position: relative;">
                 {{-- Skeleton Loading Container --}}
+                <style>
+                    .trips-skel-container .trip-mobile-skel { display: flex; flex-direction: column; gap: 10px; }
+                    .trips-skel-container .trip-table-skel { display: none; }
+                    @media (min-width: 1024px) {
+                        .trips-skel-container .trip-mobile-skel { display: none; }
+                        .trips-skel-container .trip-table-skel { display: block; padding: 12px 16px; }
+                    }
+                </style>
                 <div class="trips-skel-container" id="trips-skel-container">
                 {{-- Desktop Table Skeleton --}}
-                <div class="trip-table-skel" style="display:none; padding:12px 16px;">
+                <div class="trip-table-skel">
                     <table class="trip-table" style="pointer-events:none; margin:0; border:0; width:100%;">
                         <thead>
                             <tr>
@@ -163,7 +171,7 @@
                     </table>
                 </div>
                 {{-- Mobile List Skeleton --}}
-                <div class="trip-mobile-skel" style="display:none;">
+                <div class="trip-mobile-skel">
                     @for($i = 0; $i < 5; $i++)
                     <div class="trip-mobile-item" style="pointer-events:none; opacity:0.95; background:var(--surface) !important; border:1px solid var(--hairline) !important; border-radius:13px !important; padding:12px !important; display:flex !important; flex-direction:column !important; gap:9px !important; box-shadow:0 5px 12px rgba(15,23,42,.06) !important;">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -189,7 +197,7 @@
                 </div>
             </div>
 
-            <div class="trips-real-container" id="trips-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
+            <div class="trips-real-container" id="trips-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}" style="display:none; opacity:0;">
             {{-- Empty state --}}
             @if($trips->isEmpty())
                 <div class="trips-empty">
@@ -448,7 +456,14 @@
                             $canManageRequests = $canManageTripPayment && in_array($statusSlug, ['scheduled', 'confirmed'], true) && $requestPayload->isNotEmpty();
                         @endphp
                         <article class="trip-mobile-item open-trip-card" data-trip-anchor="{{ $trip->id }}">
-                            <div class="trip-mobile-head">
+                            <div style="display:flex; gap:10px; align-items:flex-start;">
+                                @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
+                                    <div style="padding-top: 3px; flex-shrink: 0;" onclick="event.stopPropagation();">
+                                        <input type="checkbox" name="ids[]" value="{{ $trip->id }}" class="trip-select-checkbox trip-row-checkbox" form="tripsBulkDeleteForm">
+                                    </div>
+                                @endif
+                                <div style="min-width:0; flex:1;">
+                                    <div class="trip-mobile-head">
                                 <div style="min-width:0;">
                                     <h2 class="trip-route-title">{{ $routeName }}</h2>
                                     <div class="trip-meta-inline">
@@ -600,7 +615,8 @@
                                     </div>
                                 @endif
                             </div>
-                        </article>
+                        </div>
+                    </article>
                     @endforeach
                 </div>
 
@@ -609,6 +625,9 @@
                     <table class="trip-table">
                         <thead>
                             <tr>
+                                <th class="trip-select-cell">
+                                    <input type="checkbox" id="selectAllTrips" class="trip-select-checkbox" title="Select all trips on this page">
+                                </th>
                                 <th>Trip</th>
                                 <th>When</th>
                                 <th>Visibility</th>
@@ -867,16 +886,20 @@
                                 $canManageRequests = $canManageTripPayment && in_array($statusSlug, ['scheduled', 'confirmed'], true) && $requestPayload->isNotEmpty();
                             @endphp
                             <tr class="open-trip-card" data-trip-anchor="{{ $trip->id }}">
+                                <td class="trip-select-cell">
+                                    @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
+                                        <input type="checkbox" name="ids[]" value="{{ $trip->id }}" class="trip-select-checkbox trip-row-checkbox" form="tripsBulkDeleteForm" onclick="event.stopPropagation();">
+                                    @endif
+                                </td>
                                 {{-- Trip column --}}
                                 <td>
                                     <div class="trip-route-main trip-route-replacement">{{ $pickupShort }} &rarr; {{ $destinationShort }}</div>
                                     <div class="trip-route-subline trip-route-replacement">
                                         <span><i class="fa-solid fa-hashtag"></i> {{ $tripRef }}</span>
+                                        <span><i class="{{ $visibilityIcon }}"></i> {{ $visibilityText }}</span>
                                         <span><i class="{{ $hasReturn ? 'fa-solid fa-repeat' : 'fa-solid fa-route' }}"></i> {{ $hasReturn ? 'Round trip' : $modeText }}</span>
                                         <span><i class="fa-solid fa-location-dot"></i> {{ $trip->savedRoute?->distance_km ? number_format((float) $trip->savedRoute->distance_km, 0) . ' km' : '24 km' }}</span>
                                     </div>
-                                    <div style="font-weight:700">{{ $pickupShort }} → {{ $destinationShort }}</div>
-                                    <div style="font-size:11.5px;color:var(--muted)">{{ $modeText }} &middot; {{ $visibilityText }}</div>
                                     <button
                                         type="button"
                                         class="trip-inline-details-btn open-trip-modal-btn"
@@ -1005,9 +1028,11 @@
 
             @endif
 
-            <div class="pagination-wrap">
-                {{ $trips->appends(request()->query())->links() }}
-            </div>
+            @if($trips->hasPages())
+                <div class="pagination-wrap">
+                    {{ $trips->appends(request()->query())->links() }}
+                </div>
+            @endif
             </div>{{-- /trips-real-container --}}
             </div>{{-- /relative-wrapper --}}
         </div>
@@ -1174,6 +1199,30 @@
             </div>
         </div>
     </div>
+
+    {{-- Floating Batch Delete Action Bar (1-to-1 matching Payments Floating Bar) --}}
+    <form id="tripsBulkDeleteForm" action="{{ route('trips.bulk-destroy') }}" method="POST">
+        @csrf
+        @method('DELETE')
+        <div id="tripsBatchFloatingBar" class="trips-batch-floating-bar" style="display: none;">
+            <div class="trips-batch-content" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                <span id="tripsSelectedCountText" style="font-weight: 800; color: #0f172a; font-size: 14px; font-family: var(--font-ui), sans-serif; white-space: nowrap;">
+                    <span id="tripsSelectedCount">0</span> selected
+                </span>
+                <div style="margin: 0; display: flex; gap: 6px; align-items: center;">
+                    <button type="button" id="tripsCancelBatchBtn" class="btn btn-ghost" style="height: 38px; padding: 0 14px; font-size: 13.5px; font-weight: 700; border-radius: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                        Cancel
+                    </button>
+                    <button type="button" id="tripsSelectAllBtn" class="btn btn-ghost" style="height: 38px; padding: 0 14px; font-size: 13.5px; font-weight: 700; border-radius: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                        Select All
+                    </button>
+                    <button type="submit" class="btn btn-danger" style="height: 38px; padding: 0 16px; font-size: 13.5px; font-weight: 800; border-radius: 10px; background: #e11d48; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="return confirm('Are you sure you want to delete all selected trips?');">
+                        <i class="fa-solid fa-trash-can"></i> Delete All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 
     <script>window.CH_TRIPS = { csrf: @json(csrf_token()) };</script>
     <script src="{{ asset('js/trips-index.js') }}?v={{ filemtime(public_path('js/trips-index.js')) }}"></script>

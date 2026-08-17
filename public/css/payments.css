@@ -493,6 +493,7 @@
         .status-chip {
             display: inline-flex;
             align-items: center;
+            gap: 5px;
             border-radius: 999px;
             border: 1px solid #dbe2ea;
             padding: 6px 12px;
@@ -2412,19 +2413,22 @@
         }
         .payment-route-title {
             margin: 0;
-            font-size: 15.5px;
-            font-weight: 900;
-            color: var(--ink);
-            line-height: 1.25;
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            color: var(--ink, #0f172a) !important;
+            line-height: 1.25 !important;
+            font-family: var(--font-ui), sans-serif !important;
         }
         .payment-meta-inline {
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            color: var(--muted);
-            font-size: 12px;
+            margin-top: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-wrap: wrap !important;
+            color: var(--muted, #64748b) !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            font-family: var(--font-ui), sans-serif !important;
         }
         .payment-meta-inline-item {
             display: inline-flex;
@@ -2433,7 +2437,7 @@
             min-width: 0;
         }
         .payment-meta-inline-item i {
-            color: var(--muted-2);
+            color: #b45309;
             font-size: 11px;
         }
         .payment-inline-details-btn {
@@ -2461,14 +2465,15 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-            padding-bottom: 10px;
+            padding-bottom: 6px;
             border-bottom: 1px solid var(--hairline);
         }
         .payment-detail-date,
         .payment-detail-method {
-            color: var(--muted);
-            font-size: 12px;
-            font-weight: 800;
+            color: #64748b !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            font-family: var(--font-ui), sans-serif !important;
         }
         .payment-detail-method {
             display: inline-flex;
@@ -2503,12 +2508,14 @@
             letter-spacing: .04em;
         }
         .payment-fare-value {
-            color: var(--ink);
-            font-size: 16px;
-            font-weight: 900;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: #0f172a !important;
+            font-size: 17px !important;
+            font-weight: 900 !important;
+            font-family: var(--font-display), sans-serif !important;
+            line-height: 1 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
         }
         .payment-bottom-row .payments-btn {
             min-height: 42px;
@@ -3312,6 +3319,8 @@
                 line-height: 1.2;
                 overflow: hidden;
             }
+            .payments-table .payment-trip-meta i { color: #b45309 !important; font-size: 10px; flex: 0 0 auto; }
+            .payments-table .payment-trip-meta i.fa-hashtag { color: #c2410c !important; }
             .payments-table .payment-trip-meta span {
                 display: inline-flex;
                 align-items: center;
@@ -4085,4 +4094,22 @@
             font-weight: 800 !important;
             padding: 2px 6px !important;
             border-radius: 6px !important;
+        }
+
+        /* ── Pagination Visibility Classes ── */
+        @media (max-width: 991px) {
+            .desktop-pagination-only {
+                display: none !important;
+            }
+            .mobile-pagination-only {
+                display: block !important;
+            }
+        }
+        @media (min-width: 992px) {
+            .desktop-pagination-only {
+                display: block !important;
+            }
+            .mobile-pagination-only {
+                display: none !important;
+            }
         }

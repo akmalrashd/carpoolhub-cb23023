@@ -30,37 +30,28 @@
             const real = document.getElementById('trips-real-container');
 
             const showSkeleton = () => {
-                if (skel && real) {
-                    skel.style.display = 'grid';
-                    skel.style.opacity = '1';
-                    skel.style.pointerEvents = 'auto';
-                    real.classList.remove('loaded');
-                    real.style.opacity = '0';
-                    real.style.display = 'none';
+                if (real) {
+                    real.style.transition = 'opacity 0.12s ease';
+                    real.style.opacity = '0.4';
+                    real.style.pointerEvents = 'none';
                 }
             };
 
             const hideSkeleton = () => {
-                if (skel && real) {
+                if (real) {
                     real.style.display = '';
-                    real.classList.add('loaded');
                     real.style.opacity = '1';
-                    skel.style.opacity = '0';
-                    skel.style.pointerEvents = 'none';
-                    setTimeout(() => {
+                    real.style.pointerEvents = '';
+                    if (skel) {
                         skel.style.display = 'none';
-                    }, 200);
+                        skel.style.opacity = '0';
+                        skel.style.pointerEvents = 'none';
+                    }
                 }
             };
 
             const initOrHide = () => {
-                if (real && real.dataset.initialLoad === 'true') {
-                    // Remove flag to prevent loop, then fetch
-                    real.dataset.initialLoad = 'false';
-                    fetchPage(window.location.href);
-                } else {
-                    hideSkeleton();
-                }
+                hideSkeleton();
             };
 
             // Run hide on page ready
@@ -73,6 +64,7 @@
             // AJAX fetching function
             const fetchPage = async (url) => {
                 showSkeleton();
+
                 try {
                     const res = await fetch(url, {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -102,8 +94,11 @@
                         currentReal.innerHTML = newReal.innerHTML;
                         history.pushState(null, '', url);
                         
-                        // Re-bind pagination clicks
+                        // Re-bind pagination clicks & bulk select
                         bindPaginationEvents();
+                        if (typeof window.initTripsBulkSelect === 'function') {
+                            window.initTripsBulkSelect();
+                        }
                     }
                 } catch (_e) {
                     // Fallback to normal navigation
@@ -1746,4 +1741,94 @@
             modal.addEventListener('click', (event) => {
                 if (event.target === modal) closeModal();
             });
+        })();
+
+        // ── Bulk Select & Floating Action Bar ──
+        (() => {
+            const initTripsBulkSelect = () => {
+                const selectAllCb = document.getElementById('selectAllTrips');
+                const floatingBar = document.getElementById('tripsBatchFloatingBar');
+                const countSpan = document.getElementById('tripsSelectedCount');
+                const cancelBtn = document.getElementById('tripsCancelBatchBtn');
+                const floatingSelectAllBtn = document.getElementById('tripsSelectAllBtn');
+
+                const updateFloatingBar = () => {
+                    const checkedCbs = document.querySelectorAll('.trip-row-checkbox:checked');
+                    const totalCbs = document.querySelectorAll('.trip-row-checkbox');
+                    const count = checkedCbs.length;
+
+                    if (countSpan) countSpan.textContent = count;
+
+                    if (floatingBar) {
+                        if (count > 0) {
+                            floatingBar.style.display = 'flex';
+                        } else {
+                            floatingBar.style.display = 'none';
+                        }
+                    }
+
+                    if (selectAllCb) {
+                        selectAllCb.checked = totalCbs.length > 0 && count === totalCbs.length;
+                        selectAllCb.indeterminate = count > 0 && count < totalCbs.length;
+                    }
+
+                    if (floatingSelectAllBtn) {
+                        if (totalCbs.length > 0 && count === totalCbs.length) {
+                            floatingSelectAllBtn.textContent = 'Deselect All';
+                        } else {
+                            floatingSelectAllBtn.textContent = 'Select All';
+                        }
+                    }
+                };
+
+                if (selectAllCb) {
+                    selectAllCb.onclick = null;
+                    selectAllCb.onchange = function() {
+                        const isChecked = this.checked;
+                        document.querySelectorAll('.trip-row-checkbox').forEach(cb => {
+                            cb.checked = isChecked;
+                        });
+                        updateFloatingBar();
+                    };
+                }
+
+                if (floatingSelectAllBtn) {
+                    floatingSelectAllBtn.onclick = function() {
+                        const totalCbs = document.querySelectorAll('.trip-row-checkbox');
+                        const checkedCbs = document.querySelectorAll('.trip-row-checkbox:checked');
+                        const targetState = !(totalCbs.length > 0 && checkedCbs.length === totalCbs.length);
+                        totalCbs.forEach(cb => {
+                            cb.checked = targetState;
+                        });
+                        updateFloatingBar();
+                    };
+                }
+
+                document.querySelectorAll('.trip-row-checkbox').forEach(cb => {
+                    cb.onchange = updateFloatingBar;
+                });
+
+                if (cancelBtn) {
+                    cancelBtn.onclick = function() {
+                        document.querySelectorAll('.trip-row-checkbox').forEach(cb => {
+                            cb.checked = false;
+                        });
+                        if (selectAllCb) {
+                            selectAllCb.checked = false;
+                            selectAllCb.indeterminate = false;
+                        }
+                        updateFloatingBar();
+                    };
+                }
+
+                updateFloatingBar();
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTripsBulkSelect);
+            } else {
+                initTripsBulkSelect();
+            }
+
+            window.initTripsBulkSelect = initTripsBulkSelect;
         })();

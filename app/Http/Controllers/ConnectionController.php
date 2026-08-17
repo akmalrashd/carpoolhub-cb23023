@@ -29,7 +29,7 @@ class ConnectionController extends Controller
         return view('connections.index', $data);
     }
 
-    public function store(StoreConnectionRequest $request): RedirectResponse
+    public function store(StoreConnectionRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         try {
             $this->connectionService->sendRequest(
@@ -37,7 +37,20 @@ class ConnectionController extends Controller
                 (int) $request->validated('receiver_id')
             );
         } catch (ValidationException $exception) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                    'errors' => $exception->errors()
+                ], 422);
+            }
             return back()->withErrors($exception->errors())->withInput();
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Connection request sent.'
+            ]);
         }
 
         return redirect()

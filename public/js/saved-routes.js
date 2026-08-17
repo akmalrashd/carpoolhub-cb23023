@@ -194,6 +194,7 @@
                 setTimeout(function () {
                     skel.style.opacity = '0';
                     skel.style.pointerEvents = 'none';
+                    real.style.display = '';
                     real.style.opacity = '1';
                     setTimeout(function () {
                         skel.style.display = 'none';

@@ -46,7 +46,7 @@
 
         <div style="position: relative; min-height: 250px;">
             {{-- Skeleton Loading Container --}}
-            <div class="sr-skel-container" id="sr-skel-container">
+            <div class="sr-skel-container" id="sr-skel-container" style="position:absolute; inset:0; z-index:10; background:var(--canvas, #f8fafc); width:100%; height:100%;">
                 <div class="sr-grid">
                     @for($i = 0; $i < min(2, $savedRoutes->count()); $i++)
                         <div class="card" style="padding:0; overflow:hidden;">
@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <div class="sr-grid" id="srGrid" style="opacity:0.35; transition:opacity .35s ease;" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
+            <div class="sr-grid" id="srGrid" style="opacity:0; transition:opacity .35s ease;" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
                 @foreach($savedRoutes as $savedRoute)
                 @php
                     $customPreviewPoints = $savedRoute->passengerStops

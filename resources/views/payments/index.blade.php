@@ -440,9 +440,17 @@
 
                 <div style="position: relative; min-height: 250px;">
                     {{-- Skeleton Loading Container --}}
-                    <div class="payments-skel-container" id="payments-skel-container" style="display:none;">
+                    <style>
+                        .payments-skel-container .payments-mobile-skel { display: flex; flex-direction: column; gap: 12px; }
+                        .payments-skel-container .payments-table-skel { display: none; }
+                        @media (min-width: 1024px) {
+                            .payments-skel-container .payments-mobile-skel { display: none; }
+                            .payments-skel-container .payments-table-skel { display: block; }
+                        }
+                    </style>
+                    <div class="payments-skel-container" id="payments-skel-container" style="display:block;">
                     {{-- Desktop Table Skeleton --}}
-                    <div class="payments-table-skel" style="display:none;">
+                    <div class="payments-table-skel">
                         <div class="payments-table-wrap">
                             <table class="payments-table" style="pointer-events:none; margin:0; border:0; width:100%;">
                                 <thead>
@@ -500,7 +508,7 @@
                         </div>
                     </div>
                     {{-- Mobile List Skeleton --}}
-                    <div class="payments-mobile-skel" style="display:none;">
+                    <div class="payments-mobile-skel">
                         @for($i = 0; $i < 3; $i++)
                         <div class="payment-mobile-item" style="pointer-events:none; opacity:0.95; background:var(--surface) !important; border:1px solid var(--hairline-strong) !important; border-radius:16px !important; padding:14px 14px 12px !important; display:flex !important; flex-direction:column !important; gap:10px !important; box-shadow:0 8px 20px rgba(15,23,42,.05) !important;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -527,7 +535,7 @@
                     </div>
                 </div>
 
-                <div class="payments-real-container loaded" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}">
+                <div class="payments-real-container" id="payments-real-container" data-initial-load="{{ ($initialLoad ?? false) ? 'true' : 'false' }}" style="display:none; opacity:0;">
                 @if($displayPayments->isNotEmpty())
                 <div class="payments-mobile-list">
                     @foreach($displayPayments as $payment)
@@ -664,36 +672,28 @@
                                     </div>
                                 @endif
                                 <div style="flex:1; min-width:0;">
-                                    <div class="payment-mobile-top">
+                                    <div style="margin-bottom:12px;">
                                         <div style="min-width:0;flex:1;">
-                                            <h2 class="payment-route-title">{{ $routeLabel }}</h2>
-                                    <div class="payment-meta-inline" style="margin-top:5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                                        <span class="payment-meta-inline-item">
-                                            <i class="fa-solid fa-user" style="color:#b45309;font-size:11px;"></i>
-                                            <span style="color:var(--muted);font-size:12px;font-weight:600;">{{ $counterparty }}</span>
-                                        </span>
-                                        <span class="payment-meta-inline-item">
-                                            <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}" style="color:#b45309;font-size:11px;"></i>
-                                            <span style="color:var(--muted);font-size:12px;font-weight:600;">{{ $perspectiveLabel }}</span>
-                                        </span>
+                                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                                <h2 class="payment-route-title" style="margin-bottom:2px; font-size:14px;">{{ $counterparty }}</h2>
+                                                <span class="status-chip {{ $statusClass }}" style="font-size:10px; padding:4px 8px;">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $shortStatusText }}</span>
+                                            </div>
+                                            <div style="font-size:12px; color:var(--muted); font-weight:600; margin-bottom:4px;">
+                                                <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}" style="color:#b45309;font-size:10px;margin-right:2px;"></i> {{ $perspectiveLabel }} &middot; <span style="font-family:var(--font-mono,monospace);">{{ $tripRef }}</span>
+                                            </div>
+                                            <div style="font-size:13px; color:var(--ink); font-weight:600; word-break:break-word; margin-bottom:2px; line-height:1.3;">
+                                                {{ $routeLabel }}
+                                            </div>
+                                            <div style="font-size:12px; color:var(--muted-2); font-family:var(--font-ui), sans-serif;">
+                                                @if($payment->trip?->trip_datetime)
+                                                    {{ $payment->trip->trip_datetime->format('d M Y, H:i') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="payment-trip-ref-row" style="margin-top:4px;font-size:13.5px;font-weight:700;color:#475569;display:flex;align-items:center;gap:4px;font-family:var(--font-ui), sans-serif;">
-                                        <span style="color:#c2410c;font-weight:900;font-size:14.5px;">#</span>
-                                        <span style="letter-spacing:.01em;">{{ $tripRef }}</span>
-                                    </div>
-                                </div>
-                                <span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span>
-                            </div>
-                            <div class="payment-detail-grid" style="margin-top:8px;">
-                                <div class="payment-detail-line" style="display:flex;align-items:center;justify-content:space-between;">
-                                    @if($payment->trip?->trip_datetime)
-                                        <span class="payment-detail-date" style="color:#475569;font-weight:600;font-size:13px;font-family:var(--font-ui), sans-serif;">{{ $payment->trip->trip_datetime->format('d M Y, H:i') }}</span>
-                                    @else
-                                        <span class="payment-detail-date" style="color:#475569;font-weight:600;font-size:13px;font-family:var(--font-ui), sans-serif;">-</span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="payment-bottom-row">
+                            <div class="payment-bottom-row" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline);">
                                 <div class="payment-fare-card">
                                     <span class="payment-fare-value">RM {{ number_format((float) $payment->amount_due, 2) }}</span>
                                     @if($fareBreakdown['has_extra'])
@@ -818,6 +818,7 @@
                                         data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                 @endif
+                                </div>
                                 </div>
                                 </div>
                             </div>
@@ -1043,7 +1044,7 @@
                                         data-passenger-count="{{ count($participantsPayload) }}"
                                     ><span>View</span></button>
                                 </td>
-                                <td class="col-status"><span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span></td>
+                                <td class="col-status"><span class="status-chip {{ $statusClass }}">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $shortStatusText }}</span></td>
                                 <td class="col-amount right">
                                     <span class="payment-table-amount">{{ $amountSign }}RM {{ number_format((float) $payment->amount_due, 2) }}</span>
                                     @if($fareBreakdown['has_extra'])
@@ -1507,7 +1508,7 @@
                                         data-passenger-count="{{ count($participantsPayload) }}"
                                     ><i class="fa-regular fa-eye"></i><span>See Details</span></button>
                                 </div>
-                                <span class="status-chip {{ $statusClass }}">{{ $statusText }}</span>
+                                <span class="status-chip {{ $statusClass }}">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $statusText }}</span>
                             </div>
                             <div class="payment-mobile-grid">
                                 <div class="payment-mobile-line">
@@ -1693,7 +1694,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}</td>
-                                <td><span class="status-chip {{ $statusClass }}">{{ $statusText }}</span></td>
+                                <td><span class="status-chip {{ $statusClass }}">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $statusText }}</span></td>
                                 <td class="right">
                                     <div class="queue-actions">
                                         <div class="queue-actions-main">
@@ -2095,8 +2096,8 @@
         <div class="bulk-action-content">
             <span id="bulkActionCount">0 selected</span>
             <div style="margin:0; display:flex; gap:6px; align-items:center;">
-                <button type="button" class="btn btn-ghost" id="bulkCancelBtn" style="height:38px; font-size:13.5px; border-radius:10px;">Cancel</button>
-                <button type="button" class="btn btn-ghost" id="floatingSelectAllBtn" style="height:38px; font-size:13.5px; border-radius:10px;">Select All</button>
+                <button type="button" class="btn btn-ghost" id="bulkCancelBtn" style="height:38px; padding:0 14px; font-size:13.5px; font-weight:800; border-radius:10px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">Cancel</button>
+                <button type="button" class="btn btn-ghost" id="floatingSelectAllBtn" style="height:38px; padding:0 14px; font-size:13.5px; font-weight:800; border-radius:10px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">Select All</button>
                 <button type="button" class="btn btn-success" id="bulkMarkPaidOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px;">
                     <i class="fa-solid fa-check-double"></i> Mark Selected as Paid
                 </button>

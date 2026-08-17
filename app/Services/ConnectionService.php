@@ -58,6 +58,7 @@ class ConnectionService
                 ->withoutHeavyMedia()
                 ->where('is_active', true)
                 ->where('id', '!=', $user->id)
+                ->where('role', '!=', 'admin')
                 ->where(function ($query) use ($search): void {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");

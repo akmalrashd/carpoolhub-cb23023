@@ -3,20 +3,23 @@
 @section('content')
     @php
         $searchQuery = (string) ($q ?? $search ?? '');
-        // Contact-visibility settings are per-viewer: "connections only" means
-        // this set. Kept as a lookup so each card resolves without a query.
         $connectionIdSet = array_flip($connectedUserIds ?? []);
     @endphp
 
-    {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
     <link rel="stylesheet" href="{{ asset('css/connections.css') }}?v={{ filemtime(public_path('css/connections.css')) }}">
 
     <div class="connections-page-container">
-        {{-- Header --}}
-        <div class="connections-header">
-            <p class="pg-eyebrow">Your Network</p>
-            <h1 class="pg-title">Connections</h1>
-            <p class="pg-sub">Connect with trusted carpoolers to share trips, split fares, and travel together.</p>
+        {{-- Header Bar with Find Carpoolers Action Button --}}
+        <div class="connections-header-bar">
+            <div class="connections-header">
+                <p class="pg-eyebrow">Your Network</p>
+                <h1 class="pg-title">Connections</h1>
+                <p class="pg-sub">Connect with trusted carpoolers to share trips, split fares, and travel together.</p>
+            </div>
+            <button type="button" class="btn-find-modal-open" id="openFindModalBtn">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Find Carpoolers</span>
+            </button>
         </div>
 
         {{-- Status Notifications --}}
@@ -33,19 +36,6 @@
                 <span>{{ $errors->first() }}</span>
             </div>
         @endif
-
-        {{-- Search Bar Card --}}
-        <div class="conn-search-card">
-            <form method="GET" action="{{ route('connections.index') }}" class="conn-search-form">
-                <div class="conn-search-input-wrap">
-                    <span class="conn-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" name="q" value="{{ $searchQuery }}" class="conn-search-input" placeholder="Search carpoolers by name or email...">
-                </div>
-                <button type="submit" class="btn-search-submit">
-                    <i class="fa-solid fa-user-plus"></i> Find
-                </button>
-            </form>
-        </div>
 
         {{-- Segmented Navigation Tabs --}}
         <div class="conn-nav-tabs" role="tablist">
@@ -64,59 +54,51 @@
                 <span>Outgoing</span>
                 <span class="tab-badge">{{ $outgoingRequests->count() }}</span>
             </button>
-            <button type="button" class="conn-tab-btn {{ $searchQuery ? 'is-active' : '' }}" id="tab-btn-search" onclick="switchConnTab('search')">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Results</span>
-                @if($searchResults->isNotEmpty())
-                    <span class="tab-badge highlight">{{ $searchResults->count() }}</span>
-                @endif
-            </button>
         </div>
 
         {{-- Panels Container --}}
         <div class="conn-content">
 
-            {{-- ─────────────────────────────────────────────────────────────
-                 TAB 1: ACCEPTED CONNECTIONS
-            ─────────────────────────────────────────────────────────────── --}}
+            {{-- TAB 1: ACCEPTED CONNECTIONS (Horizontal Row List Layout) --}}
             <div class="conn-panel-card {{ $searchQuery ? '' : 'is-active' }}" id="panel-accepted">
                 <div class="panel-head">
                     <h3 class="panel-title"><i class="fa-solid fa-user-group"></i> My Connections</h3>
+                    <span class="conn-count-label">{{ $acceptedConnections->count() }} members</span>
                 </div>
 
                 @if($acceptedConnections->isNotEmpty())
-                    <div class="members-grid">
+                    <div class="conn-list-container">
                         @foreach($acceptedConnections as $connectedUser)
                             @php
                                 $photo = $connectedUser->profile_photo_url;
-                                // Everyone in this list is an accepted connection, so only
-                                // an explicit "hidden" setting suppresses the contact details.
                                 $cleanPhone = $connectedUser->showsPhoneTo(true)
                                     ? preg_replace('/\D+/', '', (string) $connectedUser->phone)
                                     : '';
                             @endphp
-                            <div class="member-card">
-                                <div class="member-avatar">
+                            <div class="conn-item-row">
+                                <div class="conn-avatar">
                                     @if($photo)
                                         <img src="{{ $photo }}" alt="{{ $connectedUser->name }}">
                                     @else
                                         <span>{{ strtoupper(substr($connectedUser->name, 0, 1)) }}</span>
                                     @endif
                                 </div>
-                                <div class="member-info">
-                                    <h4 class="member-name">{{ $connectedUser->name }}</h4>
+                                <div class="conn-user-details">
+                                    <div class="conn-user-name-line">
+                                        <span class="conn-user-name">{{ $connectedUser->name }}</span>
+                                        <span class="role-pill {{ strtolower($connectedUser->role ?? 'passenger') }}">
+                                            @if($connectedUser->role === 'driver')
+                                                <i class="fa-solid fa-car"></i> Driver
+                                            @else
+                                                <i class="fa-solid fa-user"></i> Passenger
+                                            @endif
+                                        </span>
+                                    </div>
                                     @if($connectedUser->showsEmailTo(true))
-                                        <p class="member-email">{{ $connectedUser->email }}</p>
+                                        <p class="conn-user-email">{{ $connectedUser->email }}</p>
                                     @endif
-                                    <span class="role-pill {{ strtolower($connectedUser->role ?? 'passenger') }}">
-                                        @if($connectedUser->role === 'driver')
-                                            <i class="fa-solid fa-car"></i> Driver
-                                        @else
-                                            <i class="fa-solid fa-user"></i> Passenger
-                                        @endif
-                                    </span>
                                 </div>
-                                <div class="member-actions">
+                                <div class="conn-actions-wrap">
                                     @if($cleanPhone)
                                         <a href="https://wa.me/{{ $cleanPhone }}" target="_blank" class="btn-action-sm btn-action-wa" title="WhatsApp Chat">
                                             <i class="fa-brands fa-whatsapp"></i> Chat
@@ -137,50 +119,53 @@
                     <x-empty
                         icon="fa-solid fa-user-group"
                         title="No Connections Yet"
-                        message="Use the search bar above to find carpoolers and add them to your network."
+                        message="Click 'Find Carpoolers' above to search for members and build your network."
                     />
                 @endif
             </div>
 
-            {{-- ─────────────────────────────────────────────────────────────
-                 TAB 2: INCOMING REQUESTS
-            ─────────────────────────────────────────────────────────────── --}}
+            {{-- TAB 2: INCOMING REQUESTS --}}
             <div class="conn-panel-card" id="panel-incoming">
                 <div class="panel-head">
                     <h3 class="panel-title"><i class="fa-solid fa-inbox"></i> Incoming Requests</h3>
+                    <span class="conn-count-label">{{ $incomingRequests->count() }} pending</span>
                 </div>
 
                 @if($incomingRequests->isNotEmpty())
-                    <div class="req-list-items">
+                    <div class="conn-list-container">
                         @foreach($incomingRequests as $req)
                             @php
                                 $requester = $req->requester;
                                 $reqPhoto = $requester?->profile_photo_url;
+                                $showRequesterEmail = $requester && $requester->showsEmailTo(isset($connectionIdSet[$requester->id]));
                             @endphp
-                            <div class="req-item-row">
-                                <div class="req-avatar">
+                            <div class="conn-item-row">
+                                <div class="conn-avatar">
                                     @if($reqPhoto)
-                                        <img src="{{ $reqPhoto }}" alt="{{ $requester?->name }}" style="width:100%; height:100%; border-radius:999px; object-fit:cover;">
+                                        <img src="{{ $reqPhoto }}" alt="{{ $requester?->name }}">
                                     @else
                                         <span>{{ strtoupper(substr($requester?->name ?? 'U', 0, 1)) }}</span>
                                     @endif
                                 </div>
-                                <div class="req-details">
-                                    <h4 class="req-user-name">{{ $requester?->name }}</h4>
-                                    @php
-                                        // A pending requester is not a connection yet, so their
-                                        // email shows only if they set it to public.
-                                        $showRequesterEmail = $requester
-                                            && $requester->showsEmailTo(isset($connectionIdSet[$requester->id]));
-                                    @endphp
-                                    <p class="req-user-email">{{ $showRequesterEmail ? $requester->email . ' • ' : '' }}{{ $req->created_at?->diffForHumans() }}</p>
+                                <div class="conn-user-details">
+                                    <div class="conn-user-name-line">
+                                        <span class="conn-user-name">{{ $requester?->name }}</span>
+                                        <span class="role-pill {{ strtolower($requester->role ?? 'passenger') }}">
+                                            @if(($requester->role ?? '') === 'driver')
+                                                <i class="fa-solid fa-car"></i> Driver
+                                            @else
+                                                <i class="fa-solid fa-user"></i> Passenger
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <p class="conn-user-email">{{ $showRequesterEmail ? $requester->email . ' • ' : '' }}{{ $req->created_at?->diffForHumans() }}</p>
                                 </div>
-                                <div style="display:flex; gap:6px;">
+                                <div class="conn-actions-wrap">
                                     <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="accept">
-                                        <button type="submit" class="btn btn-primary btn-xs" style="background:var(--ch-yellow); color:var(--ch-yellow-ink); border:1px solid var(--ch-yellow-line); font-weight:800;">
+                                        <button type="submit" class="btn-action-sm btn-action-accept">
                                             <i class="fa-solid fa-check"></i> Accept
                                         </button>
                                     </form>
@@ -188,7 +173,7 @@
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="reject">
-                                        <button type="submit" class="btn btn-ghost btn-xs" style="color:var(--danger-ink);">
+                                        <button type="submit" class="btn-action-sm btn-action-decline">
                                             <i class="fa-solid fa-xmark"></i> Decline
                                         </button>
                                     </form>
@@ -205,41 +190,51 @@
                 @endif
             </div>
 
-            {{-- ─────────────────────────────────────────────────────────────
-                 TAB 3: OUTGOING REQUESTS
-            ─────────────────────────────────────────────────────────────── --}}
+            {{-- TAB 3: OUTGOING REQUESTS --}}
             <div class="conn-panel-card" id="panel-outgoing">
                 <div class="panel-head">
                     <h3 class="panel-title"><i class="fa-solid fa-paper-plane"></i> Outgoing Requests</h3>
+                    <span class="conn-count-label">{{ $outgoingRequests->count() }} sent</span>
                 </div>
 
                 @if($outgoingRequests->isNotEmpty())
-                    <div class="req-list-items">
+                    <div class="conn-list-container">
                         @foreach($outgoingRequests as $req)
                             @php
                                 $receiver = $req->receiver;
                                 $recPhoto = $receiver?->profile_photo_url;
                             @endphp
-                            <div class="req-item-row">
-                                <div class="req-avatar">
+                            <div class="conn-item-row">
+                                <div class="conn-avatar">
                                     @if($recPhoto)
-                                        <img src="{{ $recPhoto }}" alt="{{ $receiver?->name }}" style="width:100%; height:100%; border-radius:999px; object-fit:cover;">
+                                        <img src="{{ $recPhoto }}" alt="{{ $receiver?->name }}">
                                     @else
                                         <span>{{ strtoupper(substr($receiver?->name ?? 'U', 0, 1)) }}</span>
                                     @endif
                                 </div>
-                                <div class="req-details">
-                                    <h4 class="req-user-name">{{ $receiver?->name }}</h4>
-                                    <p class="req-user-email">Pending response • Sent {{ $req->created_at?->diffForHumans() }}</p>
+                                <div class="conn-user-details">
+                                    <div class="conn-user-name-line">
+                                        <span class="conn-user-name">{{ $receiver?->name }}</span>
+                                        <span class="role-pill {{ strtolower($receiver->role ?? 'passenger') }}">
+                                            @if(($receiver->role ?? '') === 'driver')
+                                                <i class="fa-solid fa-car"></i> Driver
+                                            @else
+                                                <i class="fa-solid fa-user"></i> Passenger
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <p class="conn-user-email">Pending response • Sent {{ $req->created_at?->diffForHumans() }}</p>
                                 </div>
-                                <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="action" value="reject">
-                                    <button type="submit" class="btn btn-ghost btn-xs" style="color:var(--muted);">
-                                        <i class="fa-solid fa-ban"></i> Cancel Request
-                                    </button>
-                                </form>
+                                <div class="conn-actions-wrap">
+                                    <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="action" value="reject">
+                                        <button type="submit" class="btn-action-sm btn-action-decline">
+                                            <i class="fa-solid fa-ban"></i> Cancel Request
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -252,84 +247,102 @@
                 @endif
             </div>
 
-            {{-- ─────────────────────────────────────────────────────────────
-                 TAB 4: SEARCH RESULTS
-            ─────────────────────────────────────────────────────────────── --}}
-            <div class="conn-panel-card {{ $searchQuery ? 'is-active' : '' }}" id="panel-search">
-                <div class="panel-head">
-                    <h3 class="panel-title"><i class="fa-solid fa-magnifying-glass"></i> Search Results</h3>
-                    @if($searchQuery)
-                        <span style="font-size:12px; color:var(--muted);">Query: "<strong>{{ $searchQuery }}</strong>"</span>
-                    @endif
-                </div>
+        </div>
+    </div>
 
-                @if($searchResults->isNotEmpty())
-                    <div class="members-grid">
-                        @foreach($searchResults as $foundUser)
-                            @php
-                                $photo = $foundUser->profile_photo_url;
-                                $relStatus = $foundUser->relationship_status ?? 'none';
-                            @endphp
-                            <div class="member-card">
-                                <div class="member-avatar">
-                                    @if($photo)
-                                        <img src="{{ $photo }}" alt="{{ $foundUser->name }}">
-                                    @else
-                                        <span>{{ strtoupper(substr($foundUser->name, 0, 1)) }}</span>
-                                    @endif
-                                </div>
-                                <div class="member-info">
-                                    <h4 class="member-name">{{ $foundUser->name }}</h4>
-                                    @if($foundUser->showsEmailTo(isset($connectionIdSet[$foundUser->id])))
-                                        <p class="member-email">{{ $foundUser->email }}</p>
-                                    @endif
-                                    <span class="role-pill {{ strtolower($foundUser->role ?? 'passenger') }}">
-                                        @if($foundUser->role === 'driver')
-                                            <i class="fa-solid fa-car"></i> Driver
-                                        @else
-                                            <i class="fa-solid fa-user"></i> Passenger
-                                        @endif
-                                    </span>
-                                </div>
-                                <div class="member-actions">
-                                    @if($relStatus === 'accepted')
-                                        <span class="btn-action-sm" style="background:#f0fdf4; color:#15803d; border-color:#bbf7d0;">
-                                            <i class="fa-solid fa-check-double"></i> Connected
-                                        </span>
-                                    @elseif($relStatus === 'outgoing_pending')
-                                        <span class="btn-action-sm" style="background:#fefce8; color:#a16207; border-color:#fef08a;">
-                                            <i class="fa-solid fa-clock"></i> Request Sent
-                                        </span>
-                                    @else
-                                        <form method="POST" action="{{ route('connections.requests.store') }}" style="margin:0; width:100%;">
-                                            @csrf
-                                            <input type="hidden" name="receiver_id" value="{{ $foundUser->id }}">
-                                            <button type="submit" class="btn-action-sm" style="background:var(--ch-yellow); color:var(--ch-yellow-ink); border-color:var(--ch-yellow-line); width:100%; justify-content:center; font-weight:800;">
-                                                <i class="fa-solid fa-user-plus"></i> Add Connection
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    @if($searchQuery)
-                        <x-empty
-                            icon="fa-solid fa-user-slash"
-                            title="No Users Found"
-                            message="No carpoolers matched '{{ $searchQuery }}'. Check spelling or try a different search term."
-                        />
-                    @else
-                        <x-empty
-                            icon="fa-solid fa-magnifying-glass"
-                            title="Search for Carpoolers"
-                            message="Type a name or email address in the search box above to find members and grow your network."
-                        />
-                    @endif
-                @endif
+    {{-- Modern Find & Add Carpoolers Modal Popup --}}
+    <div class="find-modal-backdrop {{ ($searchQuery || request('open_modal')) ? 'show' : '' }}" id="findCarpoolersModal" aria-hidden="{{ ($searchQuery || request('open_modal')) ? 'false' : 'true' }}">
+        <div class="find-modal-card" role="dialog" aria-modal="true">
+            <div class="find-modal-head">
+                <div>
+                    <h3 class="find-modal-title">
+                        <i class="fa-solid fa-user-plus" style="color: var(--ch-yellow-ink);"></i>
+                        Find & Add Carpoolers
+                    </h3>
+                    <p class="find-modal-sub">Search members by name or email address to expand your trusted network.</p>
+                </div>
+                <button type="button" class="find-modal-close" id="closeFindModalBtn" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
+            <div class="find-modal-body">
+                <form method="GET" action="{{ route('connections.index') }}" class="modal-search-form" id="modalSearchForm">
+                    <input type="hidden" name="open_modal" value="1">
+                    <div class="conn-search-input-wrap">
+                        <span class="conn-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" name="q" value="{{ $searchQuery }}" id="modalSearchInput" class="conn-search-input" placeholder="Type name or email to search..." autocomplete="off">
+                    </div>
+                </form>
+
+                <div class="modal-results-area" id="modalResultsArea">
+                    @if($searchResults->isNotEmpty())
+                        <div class="modal-results-list">
+                            @foreach($searchResults as $foundUser)
+                                @php
+                                    $photo = $foundUser->profile_photo_url;
+                                    $relStatus = $foundUser->relationship_status ?? 'none';
+                                @endphp
+                                <div class="modal-result-row">
+                                    <div class="conn-avatar">
+                                        @if($photo)
+                                            <img src="{{ $photo }}" alt="{{ $foundUser->name }}">
+                                        @else
+                                            <span>{{ strtoupper(substr($foundUser->name, 0, 1)) }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="conn-user-details">
+                                        <div class="conn-user-name-line">
+                                            <span class="conn-user-name">{{ $foundUser->name }}</span>
+                                            <span class="role-pill {{ strtolower($foundUser->role ?? 'passenger') }}">
+                                                @if($foundUser->role === 'driver')
+                                                    <i class="fa-solid fa-car"></i> Driver
+                                                @else
+                                                    <i class="fa-solid fa-user"></i> Passenger
+                                                @endif
+                                            </span>
+                                        </div>
+                                        @if($foundUser->showsEmailTo(isset($connectionIdSet[$foundUser->id])))
+                                            <p class="conn-user-email">{{ $foundUser->email }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="conn-actions-wrap">
+                                        @if($relStatus === 'accepted')
+                                            <span class="badge-status-connected">
+                                                <i class="fa-solid fa-check-double"></i> Connected
+                                            </span>
+                                        @elseif($relStatus === 'outgoing_pending')
+                                            <span class="badge-status-pending">
+                                                <i class="fa-solid fa-clock"></i> Sent
+                                            </span>
+                                        @else
+                                            <form method="POST" action="{{ route('connections.requests.store') }}" class="add-connection-form" style="margin:0;">
+                                                @csrf
+                                                <input type="hidden" name="receiver_id" value="{{ $foundUser->id }}">
+                                                <button type="submit" class="btn-action-sm btn-add-conn">
+                                                    <i class="fa-solid fa-user-plus"></i> Add Connection
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @elseif($searchQuery !== '')
+                        <div class="modal-empty-state">
+                            <i class="fa-solid fa-user-slash"></i>
+                            <p class="modal-empty-title">No Carpoolers Found</p>
+                            <p class="modal-empty-sub">No members matched "<strong>{{ $searchQuery }}</strong>". Try another name or email.</p>
+                        </div>
+                    @else
+                        <div class="modal-empty-state">
+                            <i class="fa-solid fa-users-viewfinder"></i>
+                            <p class="modal-empty-title">Search for Carpoolers</p>
+                            <p class="modal-empty-sub">Type a name or email address above to search and send connection requests.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
