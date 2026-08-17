@@ -3459,6 +3459,14 @@
                 margin-top: 16px;
                 padding: 4px;
             }
+            /* Bold font weight for desktop pagination numbers and links */
+            nav[aria-label="Pagination Navigation"] a,
+            nav[aria-label="Pagination Navigation"] span,
+            .payments-pagination-wrap nav a,
+            .payments-pagination-wrap nav span {
+                font-weight: 800 !important;
+                font-family: var(--font-display), var(--font-ui), sans-serif !important;
+            }
             @media (max-width: 991px) {
                 .payments-mobile-list {
                     margin-bottom: 24px !important;
