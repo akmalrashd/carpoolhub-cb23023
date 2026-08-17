@@ -1183,6 +1183,7 @@ const showModalSkeleton = (listEl) => {
 
             const hasActiveFilter = Boolean(fromDate || toDate || person);
             panel.classList.toggle('has-active-filter', hasActiveFilter);
+            if (typeof window.updatePaymentsVisibility === 'function') window.updatePaymentsVisibility();
         };
 
         panel.querySelector('[data-filter-toggle]')?.addEventListener('click', () => {
@@ -1450,6 +1451,7 @@ function pmtTab(btn, tab, skipAnimation = false) {
         document.querySelectorAll('.js-payments-filter').forEach(function (panel) {
             panel.querySelector('input, select')?.dispatchEvent(new Event('input', { bubbles: true }));
         });
+        if (typeof window.updatePaymentsVisibility === 'function') window.updatePaymentsVisibility();
 
         if (!skipAnimation && skel && real) {
             real.style.display = '';
@@ -1720,4 +1722,42 @@ window.clearPaymentFilters = function() {
         field.dispatchEvent(new Event('input', { bubbles: true }));
         field.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    if (typeof window.updatePaymentsVisibility === 'function') window.updatePaymentsVisibility();
 };
+
+window.updatePaymentsVisibility = function() {
+    const allItems = document.querySelectorAll('.js-payment-filter-item');
+    let visibleCount = 0;
+    allItems.forEach((item) => {
+        const isHidden = item.classList.contains('payments-filter-hidden') || item.style.display === 'none';
+        if (!isHidden) {
+            visibleCount += 1;
+        }
+    });
+
+    const emptyStates = document.querySelectorAll('[data-filter-empty]');
+    emptyStates.forEach((emptyState) => {
+        if (visibleCount === 0) {
+            emptyState.classList.add('show');
+            emptyState.style.setProperty('display', 'flex', 'important');
+        } else {
+            emptyState.classList.remove('show');
+            emptyState.style.setProperty('display', 'none', 'important');
+        }
+    });
+
+    const paginationWraps = document.querySelectorAll('.payments-pagination-wrap, .pagination-wrap');
+    paginationWraps.forEach((pagWrap) => {
+        if (visibleCount === 0) {
+            pagWrap.style.setProperty('display', 'none', 'important');
+        } else {
+            pagWrap.style.setProperty('display', '', '');
+        }
+    });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (typeof window.updatePaymentsVisibility === 'function') window.updatePaymentsVisibility();
+    }, 150);
+});

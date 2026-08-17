@@ -1171,6 +1171,12 @@
                     {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
                 </div>
                 @endif
+                <div class="payments-filter-empty" data-filter-empty>
+                    <div class="ch-empty-state-icon-box"><i class="fa-solid fa-compass"></i></div>
+                    <h3 class="ch-empty-state-title">No payments found</h3>
+                    <p class="ch-empty-state-body">No payment records match your filters right now. Try changing your search or check back later.</p>
+                    <button type="button" class="ch-empty-state-btn" onclick="if(window.clearPaymentFilters) window.clearPaymentFilters();">Clear Filters</button>
+                </div>
                 </div>{{-- /payments-real-container --}}
                 </div>{{-- /relative-wrapper --}}
             </section>
