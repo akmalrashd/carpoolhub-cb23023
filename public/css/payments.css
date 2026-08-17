@@ -3454,10 +3454,16 @@
                 text-align: center;
             }
 
-            /* Reverted pagination overrides to default */
+            /* Pagination wrapper styling */
             .payments-pagination-wrap {
-                margin-top: 16px;
-                padding: 4px;
+                margin-top: 28px !important;
+                padding: 12px 4px 4px 4px !important;
+            }
+            @media (max-width: 768px) {
+                .payments-pagination-wrap {
+                    margin-top: 32px !important;
+                    padding-top: 16px !important;
+                }
             }
             .payments-table .payments-btn-primary {
                 background: var(--ch-yellow);
