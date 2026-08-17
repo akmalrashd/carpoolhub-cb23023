@@ -3454,12 +3454,18 @@
                 text-align: center;
             }
 
-            /* Default pagination wrapper styling for desktop */
+            /* Default pagination wrapper styling for desktop & mobile */
             .payments-pagination-wrap {
-                margin-top: 16px;
-                padding: 4px;
+                margin-top: 28px !important;
+                padding: 12px 4px 4px 4px !important;
             }
-            /* Bold font weight for desktop pagination numbers and links */
+            .payments-pagination-wrap nav p,
+            .payments-pagination-wrap nav div:first-child p,
+            nav[aria-label="Pagination Navigation"] p {
+                margin-top: 14px !important;
+                margin-bottom: 12px !important;
+            }
+            /* Bold font weight for pagination numbers and links */
             nav[aria-label="Pagination Navigation"] a,
             nav[aria-label="Pagination Navigation"] span,
             .payments-pagination-wrap nav a,
@@ -3472,8 +3478,8 @@
                     margin-bottom: 24px !important;
                 }
                 .payments-pagination-wrap {
-                    margin-top: 28px !important;
-                    padding-top: 12px !important;
+                    margin-top: 32px !important;
+                    padding-top: 16px !important;
                 }
             }
             .payments-table .payments-btn-primary {
