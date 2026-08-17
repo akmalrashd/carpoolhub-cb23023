@@ -902,7 +902,7 @@
                                     <div class="trip-route-subline trip-route-replacement">
                                         <span><i class="fa-solid fa-hashtag"></i> {{ $tripRef }}</span>
                                         <span><i class="{{ $visibilityIcon }}"></i> {{ $visibilityText }}</span>
-                                        <span><i class="{{ $hasReturn ? 'fa-solid fa-repeat' : 'fa-solid fa-route' }}"></i> {{ $hasReturn ? 'Round trip' : $modeText }}</span>
+                                        <span><i class="{{ $hasReturn ? 'fa-solid fa-repeat' : 'fa-solid fa-route' }}"></i> {{ $modeText }}</span>
                                         <span><i class="fa-solid fa-location-dot"></i> {{ $trip->savedRoute?->distance_km ? number_format((float) $trip->savedRoute->distance_km, 0) . ' km' : '24 km' }}</span>
                                     </div>
                                     <button

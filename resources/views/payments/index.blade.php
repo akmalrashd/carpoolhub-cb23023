@@ -166,9 +166,7 @@
             'pay' => $myPayments ?: $driverPayments,
             default => ($myPayments?->hasPages() ? $myPayments : ($driverPayments?->hasPages() ? $driverPayments : ($myPayments ?: $driverPayments))),
         };
-        $displayPayments = ($activeDirection === 'all')
-            ? $allLivePayments
-            : ($mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments);
+        $displayPayments = $mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments;
     @endphp
 
     <div class="payments-page">
