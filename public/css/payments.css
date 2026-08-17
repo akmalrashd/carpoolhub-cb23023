@@ -3682,37 +3682,11 @@
 
         /* ── Skeleton loading ── */
         .payments-skel-container {
-            position: absolute;
-            inset: 0;
-            z-index: 10;
-            background: transparent;
-            opacity: 1;
-            transition: opacity 0.35s ease;
-            pointer-events: none;
+            display: none !important;
         }
         .payments-real-container {
-            opacity: 0;
-            transition: opacity 0.35s ease 0.05s;
+            opacity: 1 !important;
         }
-        .payments-real-container.loaded {
-            opacity: 1;
-        }
-        @media (max-width: 767px) {
-            .payments-skel-container {
-                position: relative;
-                inset: auto;
-                background: transparent;
-                margin-top: 4px;
-            }
-            .payments-skel-container .payments-mobile-skel { display: flex !important; flex-direction: column !important; gap: 12px !important; }
-            .payments-skel-container .payments-table-skel { display: none !important; }
-        }
-        @media (min-width: 768px) {
-            .payments-skel-container {
-                background: var(--surface);
-                border-radius: var(--r-xl);
-            }
-            .payments-skel-container .payments-mobile-skel { display: none !important; }
             .payments-skel-container .payments-table-skel { display: block !important; }
         }
 

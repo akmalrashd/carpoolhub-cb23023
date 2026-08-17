@@ -2264,36 +2264,8 @@
 
         /* ── Skeleton loading ── */
         .trips-skel-container {
-            position: absolute;
-            inset: 0;
-            z-index: 10;
-            background: transparent;
-            opacity: 1;
-            transition: opacity 0.35s ease;
-            pointer-events: none;
+            display: none !important;
         }
         .trips-real-container {
-            opacity: 0;
-            transition: opacity 0.35s ease 0.05s;
-        }
-        .trips-real-container.loaded {
-            opacity: 1;
-        }
-        @media (max-width: 1023px) {
-            .trips-skel-container {
-                position: relative;
-                inset: auto;
-                background: transparent;
-                margin-top: 4px;
-            }
-            .trips-skel-container .trip-mobile-skel { display: flex !important; flex-direction: column !important; gap: 10px !important; }
-            .trips-skel-container .trip-table-skel { display: none !important; }
-        }
-        @media (min-width: 1024px) {
-            .trips-skel-container {
-                background: var(--surface);
-                border-radius: var(--r-xl);
-            }
-            .trips-skel-container .trip-mobile-skel { display: none !important; }
-            .trips-skel-container .trip-table-skel { display: block !important; }
+            opacity: 1 !important;
         }
