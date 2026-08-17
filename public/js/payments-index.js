@@ -31,8 +31,6 @@ const showModalSkeleton = (listEl) => {
 
     const hideSkeleton = () => {
         if (skel) {
-            skel.style.opacity = '0';
-            skel.style.pointerEvents = 'none';
             skel.style.display = 'none';
         }
         if (real) {
@@ -47,6 +45,19 @@ const showModalSkeleton = (listEl) => {
     } else {
         hideSkeleton();
     }
+
+    // Show skeleton feedback on navigation clicks for slow networks
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.classList.contains('payments-tab') || link.target === '_blank') return;
+
+        if (skel && real) {
+            skel.style.display = 'grid';
+            real.style.opacity = '0.4';
+        }
+    });
 })();
 
 (() => {

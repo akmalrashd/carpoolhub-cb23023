@@ -3682,12 +3682,18 @@
 
         /* ── Skeleton loading ── */
         .payments-skel-container {
-            display: none !important;
+            display: none;
         }
         .payments-real-container {
-            opacity: 1 !important;
+            opacity: 1;
         }
-            .payments-skel-container .payments-table-skel { display: block !important; }
+        @media (max-width: 767px) {
+            .payments-skel-container .payments-mobile-skel { display: flex; flex-direction: column; gap: 12px; }
+            .payments-skel-container .payments-table-skel { display: none; }
+        }
+        @media (min-width: 768px) {
+            .payments-skel-container .payments-mobile-skel { display: none; }
+            .payments-skel-container .payments-table-skel { display: block; }
         }
 
         /* CH-LAYOUT-CLAMP-V3 */

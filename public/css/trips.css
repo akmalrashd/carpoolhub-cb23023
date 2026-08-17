@@ -2264,8 +2264,16 @@
 
         /* ── Skeleton loading ── */
         .trips-skel-container {
-            display: none !important;
+            display: none;
         }
         .trips-real-container {
-            opacity: 1 !important;
+            opacity: 1;
+        }
+        @media (max-width: 1023px) {
+            .trips-skel-container .trip-mobile-skel { display: flex; flex-direction: column; gap: 10px; }
+            .trips-skel-container .trip-table-skel { display: none; }
+        }
+        @media (min-width: 1024px) {
+            .trips-skel-container .trip-mobile-skel { display: none; }
+            .trips-skel-container .trip-table-skel { display: block; }
         }
