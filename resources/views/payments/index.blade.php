@@ -1170,8 +1170,14 @@
                 </div>
                 @endif
                 @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
-                <div class="payments-pagination-wrap">
+                <div class="payments-pagination-wrap hidden md:block">
                     {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
+                </div>
+                <div class="payments-pagination-wrap md:hidden">
+                    <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--muted); font-weight: 600;">
+                        Showing {{ $mainPaymentsPaginator->firstItem() }} to {{ $mainPaymentsPaginator->lastItem() }} of {{ $mainPaymentsPaginator->total() }} results
+                    </div>
+                    {{ $mainPaymentsPaginator->appends(request()->query())->links('pagination::simple-tailwind') }}
                 </div>
                 @endif
                 <div class="payments-filter-empty" data-filter-empty>
