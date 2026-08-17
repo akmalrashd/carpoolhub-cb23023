@@ -166,7 +166,9 @@
             'pay' => $myPayments ?: $driverPayments,
             default => ($myPayments?->hasPages() ? $myPayments : ($driverPayments?->hasPages() ? $driverPayments : ($myPayments ?: $driverPayments))),
         };
-        $displayPayments = $mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments;
+        $displayPayments = ($activeDirection === 'all')
+            ? $allLivePayments
+            : ($mainPaymentsPaginator ? $mainPaymentsPaginator->getCollection() : $allLivePayments);
     @endphp
 
     <div class="payments-page">
@@ -679,7 +681,7 @@
                                                 <span class="status-chip {{ $statusClass }}" style="font-size:10px; padding:4px 8px;">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $shortStatusText }}</span>
                                             </div>
                                             <div style="font-size:12px; color:var(--muted); font-weight:600; margin-bottom:4px;">
-                                                <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}" style="color:#b45309;font-size:10px;margin-right:2px;"></i> {{ $perspectiveLabel }} &middot; <span style="font-family:var(--font-mono,monospace);">{{ $tripRef }}</span>
+                                                <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}" style="color:#b45309;font-size:10px;margin-right:2px;"></i> {{ $perspectiveLabel }} &middot; <span style="font-family:var(--font-mono,monospace);"><i class="fa-solid fa-hashtag" style="color:#c2410c;font-size:10px;margin-right:2px;"></i>{{ $tripRef }}</span>
                                             </div>
                                             <div style="font-size:13px; color:var(--ink); font-weight:600; word-break:break-word; margin-bottom:2px; line-height:1.3;">
                                                 {{ $routeLabel }}
@@ -1472,7 +1474,7 @@
                         >
                             <div class="payment-mobile-top">
                                 <div>
-                                    <div class="payment-mobile-trip">{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}</div>
+                                    <div class="payment-mobile-trip"><i class="fa-solid fa-hashtag" style="color:#c2410c;font-size:12px;margin-right:4px;"></i>{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}</div>
                                     <div class="payment-mobile-sub">{{ $routeLabel }}</div>
                                     <button
                                         type="button"

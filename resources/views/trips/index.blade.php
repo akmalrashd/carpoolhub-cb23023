@@ -129,6 +129,7 @@
                     <table class="trip-table" style="pointer-events:none; margin:0; border:0; width:100%;">
                         <thead>
                             <tr>
+                                <th class="trip-select-cell"></th>
                                 <th>Trip</th>
                                 <th>When</th>
                                 <th>Visibility</th>
@@ -141,6 +142,9 @@
                         <tbody>
                             @for($i = 0; $i < 5; $i++)
                             <tr>
+                                <td class="trip-select-cell">
+                                    <span class="sk" style="height:18px; width:18px; display:inline-block; border-radius:4px;"></span>
+                                </td>
                                 <td>
                                     <div style="display:flex; flex-direction:column; gap:6px;">
                                         <span class="sk" style="height:16px; width:180px; display:block; border-radius:6px;"></span>
@@ -616,8 +620,9 @@
                                 @endif
                             </div>
                         </div>
-                    </article>
-                    @endforeach
+                    </div>
+                </article>
+                @endforeach
                 </div>
 
                 {{-- Desktop table --}}
