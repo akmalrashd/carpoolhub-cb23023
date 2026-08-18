@@ -1140,6 +1140,8 @@
                                                 class="payments-btn payment-table-action open-payment-receipt-btn"
                                                 style="width:100%;"
                                                 data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
+                                                data-trip-ref="{{ $tripRef }}"
+                                                data-trip-mode="{{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'Two-way' : 'Outbound' }}"
                                                 data-route="{{ $routeLabel }}"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                 data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
@@ -1852,24 +1854,29 @@
             <div class="trip-payment-review-list">
                 <article class="trip-receipt-card">
                     <div class="trip-receipt-head">
-                        <span>
+                        <div>
                             <h4 class="trip-receipt-title">CarpoolHub Receipt</h4>
-                            <span class="trip-receipt-id" id="paymentReceiptNo">PAY-000000</span>
-                        </span>
+                            <span class="trip-receipt-id" id="paymentReceiptNo">Receipt PAY-000000</span>
+                        </div>
                         <span class="trip-receipt-status paid">Paid</span>
                     </div>
                     <div class="trip-receipt-total">
-                        <span>Amount paid</span>
+                        <span>AMOUNT PAID</span>
                         <strong id="paymentReceiptAmount">RM 0.00</strong>
                     </div>
                     <div class="trip-receipt-lines">
-                        <div class="trip-receipt-line"><span>Route</span><strong id="paymentReceiptRoute">-</strong></div>
                         <div class="trip-receipt-line"><span>Passenger</span><strong id="paymentReceiptPassenger">-</strong></div>
                         <div class="trip-receipt-line"><span>Driver</span><strong id="paymentReceiptDriver">-</strong></div>
+                        <div class="trip-receipt-line"><span>Route</span><strong id="paymentReceiptRoute">-</strong></div>
                         <div class="trip-receipt-line"><span>Method</span><strong id="paymentReceiptMethod">-</strong></div>
                         <div class="trip-receipt-line"><span>Marked paid</span><strong id="paymentReceiptMarked">-</strong></div>
                         <div class="trip-receipt-line"><span>Confirmed</span><strong id="paymentReceiptConfirmed">-</strong></div>
                         <div class="trip-receipt-line" id="paymentReceiptBreakdownRow" style="display:none;"><span>Breakdown</span><strong id="paymentReceiptBreakdown">-</strong></div>
+                    </div>
+                    <div class="trip-receipt-footer-actions">
+                        <button type="button" class="btn-receipt-print" onclick="window.print()">
+                            <i class="fa-solid fa-print"></i> Print / Save PDF
+                        </button>
                     </div>
                 </article>
             </div>

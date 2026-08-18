@@ -4302,3 +4302,115 @@
             background: #ffffff;
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
         }
+
+        /* ── Receipt Modal Styling (Matching Image 2) ── */
+        .trip-payment-review-card {
+            max-width: 520px !important;
+            border-radius: 18px !important;
+            padding: 20px 24px !important;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1) !important;
+        }
+        .trip-receipt-card {
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 16px !important;
+            background: #ffffff !important;
+            padding: 20px 22px !important;
+            display: grid !important;
+            gap: 16px !important;
+        }
+        .trip-receipt-head {
+            display: flex !important;
+            align-items: flex-start !important;
+            justify-content: space-between !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            padding-bottom: 12px !important;
+        }
+        .trip-receipt-title {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            margin: 0 !important;
+        }
+        .trip-receipt-id {
+            color: #64748b !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            margin-top: 3px !important;
+            display: block !important;
+        }
+        .trip-receipt-status.paid {
+            border: 1px solid #86efac !important;
+            background: #dcfce7 !important;
+            color: #166534 !important;
+            border-radius: 999px !important;
+            padding: 4px 14px !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+        }
+        .trip-receipt-total {
+            background: #fdfbf7 !important;
+            border-radius: 12px !important;
+            padding: 16px 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            border: 1px solid #fef3c7 !important;
+        }
+        .trip-receipt-total span {
+            color: #64748b !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+        }
+        .trip-receipt-total strong {
+            color: #0f172a !important;
+            font-size: 26px !important;
+            font-weight: 900 !important;
+        }
+        .trip-receipt-lines {
+            display: grid !important;
+            gap: 12px !important;
+        }
+        .trip-receipt-line {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            gap: 16px !important;
+            font-size: 13px !important;
+        }
+        .trip-receipt-line span {
+            color: #64748b !important;
+            font-weight: 700 !important;
+            flex-shrink: 0 !important;
+        }
+        .trip-receipt-line strong {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+            text-align: right !important;
+            word-break: break-word !important;
+        }
+        .trip-receipt-footer-actions {
+            margin-top: 8px;
+            display: flex;
+            justify-content: flex-start;
+        }
+        .btn-receipt-print {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border: 1px solid #cbd5e1 !important;
+            font-weight: 800 !important;
+            font-size: 13.5px !important;
+            padding: 10px 22px !important;
+            border-radius: 10px !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            transition: all 0.15s ease-in-out !important;
+        }
+        .btn-receipt-print:hover {
+            background-color: #f8fafc !important;
+            border-color: #94a3b8 !important;
+            transform: translateY(-1px);
+        }

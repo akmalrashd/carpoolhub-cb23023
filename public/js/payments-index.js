@@ -312,11 +312,18 @@ const showModalSkeleton = (listEl) => {
         event.preventDefault();
         event.stopImmediatePropagation();
         event.stopPropagation();
-        setText('paymentReceiptNo', button.dataset.receiptNo);
+        const receiptNo = button.dataset.receiptNo || 'PAY-000000';
+        const tripMode = button.dataset.tripMode || 'Outbound';
+        const tripRef = button.dataset.tripRef || '';
+        const receiptSubtitle = tripRef
+            ? `Receipt ${receiptNo} \u00B7 ${tripMode} \u00B7 ${tripRef}`
+            : `Receipt ${receiptNo}`;
+
+        setText('paymentReceiptNo', receiptSubtitle);
         setText('paymentReceiptAmount', button.dataset.amount);
-        setText('paymentReceiptRoute', button.dataset.route);
         setText('paymentReceiptPassenger', button.dataset.passenger);
         setText('paymentReceiptDriver', button.dataset.driver);
+        setText('paymentReceiptRoute', button.dataset.route);
         setText('paymentReceiptMethod', button.dataset.method);
         setText('paymentReceiptMarked', button.dataset.markedAt);
         setText('paymentReceiptConfirmed', button.dataset.confirmedAt);
