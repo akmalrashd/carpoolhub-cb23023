@@ -705,6 +705,7 @@ const showModalSkeleton = (listEl) => {
         }
         const passengerEl = document.getElementById('requestModalPassenger');
         const tripEl = document.getElementById('requestModalTrip');
+        const amountEl = document.getElementById('requestModalAmount');
         const methodEl = document.getElementById('requestModalMethod');
         const remarksEl = document.getElementById('requestModalRemarks');
         const markedEl = document.getElementById('requestModalMarked');
@@ -717,6 +718,7 @@ const showModalSkeleton = (listEl) => {
 
             if (passengerEl) passengerEl.textContent = button.dataset.passenger || '-';
             if (tripEl) tripEl.textContent = button.dataset.trip || '-';
+            if (amountEl) amountEl.textContent = button.dataset.amount || '-';
             if (methodEl) methodEl.textContent = button.dataset.method || '-';
             if (remarksEl) remarksEl.textContent = button.dataset.remarks || '-';
             if (markedEl) markedEl.textContent = button.dataset.marked || '-';

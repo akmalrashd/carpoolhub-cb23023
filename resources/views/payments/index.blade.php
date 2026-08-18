@@ -697,6 +697,7 @@
                                         class="payments-btn payments-btn-highlight open-request-btn"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
                                         data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
+                                        data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-method="{{ $methodLabel }}"
                                         data-remarks="{{ $payment->remarks ?: '-' }}"
                                         data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -1060,6 +1061,7 @@
                                                 style="width:100%;"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                 data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
+                                                data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                                 data-method="{{ $methodLabel }}"
                                                 data-remarks="{{ $payment->remarks ?: '-' }}"
                                                 data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -1530,6 +1532,7 @@
                                         class="payments-btn payments-btn-highlight open-request-btn"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
                                         data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
+                                        data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-method="{{ $methodLabel }}"
                                         data-remarks="{{ $payment->remarks ?: '-' }}"
                                         data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -1697,6 +1700,7 @@
                                                 class="payments-btn payments-btn-highlight open-request-btn"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                 data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
+                                                data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                                 data-method="{{ $methodLabel }}"
                                                 data-remarks="{{ $payment->remarks ?: '-' }}"
                                                 data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
@@ -1770,45 +1774,52 @@
     </div>
 
     <div class="request-modal" id="requestModal" aria-hidden="true">
-        <div class="request-modal-card">
+        <div class="request-modal-card request-modal-compact">
             <div class="request-modal-head">
-                <h3 class="request-modal-title">Payment Request Details</h3>
+                <div>
+                    <h3 class="request-modal-title">Payment Request Details</h3>
+                    <p class="request-modal-sub">Review payment confirmation submitted by passenger.</p>
+                </div>
                 <button type="button" class="modal-close-square" id="requestModalCloseTop" aria-label="Close">
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="request-modal-grid">
+            <div class="request-modal-grid-two">
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Passenger</span>
+                    <span class="request-modal-label"><i class="fa-solid fa-user" style="margin-right:4px;"></i> Passenger</span>
                     <span class="request-modal-value" id="requestModalPassenger">-</span>
                 </div>
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Trip</span>
+                    <span class="request-modal-label"><i class="fa-solid fa-hashtag" style="margin-right:4px;"></i> Trip Ref</span>
                     <span class="request-modal-value" id="requestModalTrip">-</span>
                 </div>
+                <div class="request-modal-line request-modal-amount-box">
+                    <span class="request-modal-label"><i class="fa-solid fa-money-bill-wave" style="margin-right:4px;"></i> Amount Claimed</span>
+                    <span class="request-modal-value request-modal-amount-val" id="requestModalAmount">RM 0.00</span>
+                </div>
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Payment Method</span>
+                    <span class="request-modal-label"><i class="fa-regular fa-credit-card" style="margin-right:4px;"></i> Payment Method</span>
                     <span class="request-modal-value" id="requestModalMethod">-</span>
                 </div>
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Passenger Remarks</span>
-                    <span class="request-modal-value" id="requestModalRemarks">-</span>
+                    <span class="request-modal-label"><i class="fa-regular fa-clock" style="margin-right:4px;"></i> Marked At</span>
+                    <span class="request-modal-value" id="requestModalMarked">-</span>
                 </div>
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Marked At</span>
-                    <span class="request-modal-value" id="requestModalMarked">-</span>
+                    <span class="request-modal-label"><i class="fa-regular fa-note-sticky" style="margin-right:4px;"></i> Remarks</span>
+                    <span class="request-modal-value" id="requestModalRemarks">-</span>
                 </div>
             </div>
             <div class="request-modal-actions">
                 <div class="request-modal-primary-actions">
-                    <form id="requestModalApproveForm" method="POST" class="payments-action-row">
+                    <form id="requestModalApproveForm" method="POST" style="margin:0;">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="payments-btn payments-btn-success">Approve</button>
+                        <button type="submit" class="btn-solid-approve"><i class="fa-solid fa-check"></i> Approve</button>
                     </form>
-                    <button type="button" class="payments-btn payments-btn-danger" id="requestModalReject">Reject</button>
+                    <button type="button" class="btn-solid-reject" id="requestModalReject"><i class="fa-solid fa-xmark"></i> Reject</button>
                 </div>
-                <button type="button" class="payments-btn" id="requestModalClose">Close</button>
+                <button type="button" class="btn-subtle-close" id="requestModalClose">Close</button>
             </div>
         </div>
     </div>
