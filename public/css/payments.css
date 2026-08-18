@@ -3311,15 +3311,14 @@
             }
             .payments-table .payment-trip-meta {
                 display: flex;
-                align-items: center;
-                gap: 7px;
-                flex-wrap: nowrap;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
                 margin-top: 3px;
                 color: var(--muted);
                 font-size: 11px;
                 font-weight: 700;
-                line-height: 1.2;
-                overflow: hidden;
+                line-height: 1.25;
             }
             .payments-table .payment-trip-meta i { color: #b45309 !important; font-size: 10px; flex: 0 0 auto; }
             .payments-table .payment-trip-meta i.fa-hashtag { color: #c2410c !important; }
@@ -3327,7 +3326,6 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 4px;
-                flex-shrink: 0;
                 white-space: nowrap;
             }
             .payments-table .payment-method-pill {
