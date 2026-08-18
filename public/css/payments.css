@@ -4478,6 +4478,53 @@
             text-align: center;
         }
 
+        /* ── Mobile Optimization for Receipt Modal ── */
+        @media (max-width: 600px) {
+            #paymentReceiptModal .trip-receipt-card {
+                padding: 16px !important;
+                gap: 12px !important;
+            }
+            #paymentReceiptModal .receipt-brand-text {
+                font-size: 17px !important;
+            }
+            #paymentReceiptModal .receipt-brand-icon {
+                height: 24px !important;
+            }
+            #paymentReceiptModal .trip-receipt-id {
+                font-size: 11px !important;
+            }
+            #paymentReceiptModal .trip-receipt-total {
+                padding: 12px 14px !important;
+            }
+            #paymentReceiptModal .trip-receipt-total strong {
+                font-size: 22px !important;
+            }
+            #paymentReceiptModal .trip-receipt-line {
+                gap: 4px !important;
+                font-size: 12.5px !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+            }
+            #paymentReceiptModal .trip-receipt-line strong {
+                text-align: left !important;
+            }
+            #paymentReceiptModal .receipt-disclaimer-note {
+                display: flex !important;
+                align-items: flex-start !important;
+                text-align: left !important;
+                line-height: 1.4 !important;
+            }
+            #paymentReceiptModal .receipt-disclaimer-note i {
+                margin-top: 2px !important;
+            }
+            #paymentReceiptModal .trip-receipt-footer-actions {
+                margin-top: 8px !important;
+            }
+            #paymentReceiptModal .btn-receipt-print {
+                width: 100% !important;
+            }
+        }
+
         /* ── Print Media Optimization (STRICT 1-PAGE OFFICIAL RECEIPT) ── */
         @media print {
             @page {
