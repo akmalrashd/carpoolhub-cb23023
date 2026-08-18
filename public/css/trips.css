@@ -1742,6 +1742,25 @@
         /* ── Pagination ── */
         .pagination-wrap { padding: 14px 20px 20px; }
         .pagination-wrap:empty { display: none !important; padding: 0 !important; }
+        .pagination-wrap nav p {
+            margin: 0 !important;
+            color: #475569 !important;
+            font-weight: 400 !important;
+            font-size: 14px !important;
+            white-space: nowrap !important;
+        }
+        .pagination-wrap nav p span,
+        .pagination-wrap nav p span.font-medium {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
+        nav[aria-label="Pagination Navigation"] a,
+        nav[aria-label="Pagination Navigation"] span,
+        .pagination-wrap nav a,
+        .pagination-wrap nav span {
+            font-weight: 800 !important;
+            font-family: var(--font-display), var(--font-ui), sans-serif !important;
+        }
 
         /* ── Trip detail modal ── */
         .trip-modal {
