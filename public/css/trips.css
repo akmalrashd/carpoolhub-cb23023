@@ -1454,14 +1454,13 @@
         .trip-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
+            table-layout: auto;
             font-family: var(--font-ui), sans-serif;
         }
         .trip-table th,
         .trip-table td {
-            padding: 16px 16px;
+            padding: 14px 12px;
             border-bottom: 1px solid var(--hairline);
-            text-align: left;
             vertical-align: middle;
         }
         .trip-table thead tr {
@@ -1473,7 +1472,6 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: .04em;
-            text-align: center !important;
         }
         .trip-table tbody tr:hover td { background: var(--ch-yellow-tint); }
         .trip-table tbody tr:last-child td { border-bottom: none !important; }
@@ -1483,17 +1481,15 @@
             font-size: 13px;
         }
 
-        /* Column widths */
-        .trip-table th.trip-select-cell, .trip-table td.trip-select-cell { width: 44px !important; text-align: center; vertical-align: middle; }
-        .trip-table th:nth-child(2), .trip-table td:nth-child(2) { width: 26%; }
-        .trip-table th:nth-child(3), .trip-table td:nth-child(3) { width: 13%; }
-        .trip-table th:nth-child(4), .trip-table td:nth-child(4) { width: 12%; }
-        .trip-table th:nth-child(5), .trip-table td:nth-child(5) { width: 7%; }
-        .trip-table th:nth-child(6), .trip-table td:nth-child(6) { width: 14%; }
-        .trip-table th:nth-child(7) { width: 8%; text-align: center !important; }
-        .trip-table td:nth-child(7) { width: 8%; text-align: right; }
-        .trip-table th:nth-child(8) { width: 18%; text-align: center !important; }
-        .trip-table td:nth-child(8) { width: 18%; text-align: right; }
+        /* Class-based column alignment & widths */
+        .trip-table .col-select { width: 40px !important; text-align: center !important; }
+        .trip-table .col-trip { text-align: left !important; }
+        .trip-table .col-when { text-align: center !important; white-space: nowrap; }
+        .trip-table .col-vis { text-align: center !important; }
+        .trip-table .col-seats { text-align: center !important; white-space: nowrap; }
+        .trip-table .col-status { text-align: center !important; }
+        .trip-table .col-fare { text-align: center !important; white-space: nowrap; }
+        .trip-table .col-action { text-align: center !important; }
 
         .trip-route-main {
             font-weight: 900;

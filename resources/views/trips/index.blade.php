@@ -139,47 +139,47 @@
                         <thead>
                             <tr>
                                 @if($hasCheckboxes)
-                                <th class="trip-select-cell"></th>
+                                <th class="trip-select-cell col-select"></th>
                                 @endif
-                                <th>Trip</th>
-                                <th>When</th>
-                                <th>Visibility</th>
-                                <th>Seats</th>
-                                <th>Status</th>
-                                <th style="text-align:right;">Fare</th>
-                                <th style="text-align:center;">Action</th>
+                                <th class="col-trip">Trip</th>
+                                <th class="col-when">When</th>
+                                <th class="col-vis">Visibility</th>
+                                <th class="col-seats">Seats</th>
+                                <th class="col-status">Status</th>
+                                <th class="col-fare">Fare</th>
+                                <th class="col-action">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             @for($i = 0; $i < 5; $i++)
                             <tr>
                                 @if($hasCheckboxes)
-                                <td class="trip-select-cell">
+                                <td class="trip-select-cell col-select">
                                     <span class="sk" style="height:18px; width:18px; display:inline-block; border-radius:4px;"></span>
                                 </td>
                                 @endif
-                                <td>
+                                <td class="col-trip">
                                     <div style="display:flex; flex-direction:column; gap:6px;">
                                         <span class="sk" style="height:16px; width:180px; display:block; border-radius:6px;"></span>
                                         <span class="sk" style="height:11px; width:110px; display:block; border-radius:4px;"></span>
                                     </div>
                                 </td>
-                                <td>
-                                    <span class="sk" style="height:13px; width:110px; display:block; border-radius:4px;"></span>
+                                <td class="col-when">
+                                    <span class="sk" style="height:13px; width:110px; display:block; margin:0 auto; border-radius:4px;"></span>
                                 </td>
-                                <td>
-                                    <span class="sk" style="height:22px; width:75px; display:block; border-radius:999px;"></span>
+                                <td class="col-vis">
+                                    <span class="sk" style="height:22px; width:75px; display:block; margin:0 auto; border-radius:999px;"></span>
                                 </td>
-                                <td>
-                                    <span class="sk" style="height:13px; width:45px; display:block; border-radius:4px;"></span>
+                                <td class="col-seats">
+                                    <span class="sk" style="height:13px; width:45px; display:block; margin:0 auto; border-radius:4px;"></span>
                                 </td>
-                                <td>
-                                    <span class="sk" style="height:24px; width:85px; display:block; border-radius:999px;"></span>
+                                <td class="col-status">
+                                    <span class="sk" style="height:24px; width:85px; display:block; margin:0 auto; border-radius:999px;"></span>
                                 </td>
-                                <td style="text-align:right;">
+                                <td class="col-fare">
                                     <span class="sk" style="height:16px; width:75px; display:inline-block; border-radius:6px;"></span>
                                 </td>
-                                <td style="text-align:center;">
+                                <td class="col-action">
                                     <span class="sk" style="height:34px; width:100px; display:inline-block; border-radius:11px;"></span>
                                 </td>
                             </tr>
@@ -644,17 +644,17 @@
                         <thead>
                               <tr>
                             @if($hasCheckboxes)
-                            <th class="trip-select-cell">
+                            <th class="trip-select-cell col-select">
                                 <input type="checkbox" id="selectAllTrips" class="trip-select-checkbox" title="Select all trips on this page">
                             </th>
                             @endif
-                            <th>Trip</th>
-                            <th>When</th>
-                            <th>Visibility</th>
-                            <th>Seats</th>
-                            <th>Status</th>
-                            <th style="text-align:right;">Fare</th>
-                            <th style="text-align:center;">Action</th>
+                            <th class="col-trip">Trip</th>
+                            <th class="col-when">When</th>
+                            <th class="col-vis">Visibility</th>
+                            <th class="col-seats">Seats</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-fare">Fare</th>
+                            <th class="col-action">Action</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -907,14 +907,14 @@
                             @endphp
                             <tr class="open-trip-card" data-trip-anchor="{{ $trip->id }}">
                                 @if($hasCheckboxes)
-                                <td class="trip-select-cell">
+                                <td class="trip-select-cell col-select">
                                     @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
                                         <input type="checkbox" name="ids[]" value="{{ $trip->id }}" class="trip-select-checkbox trip-row-checkbox" form="tripsBulkDeleteForm" onclick="event.stopPropagation();">
                                     @endif
                                 </td>
                                 @endif
                                 {{-- Trip column --}}
-                                <td>
+                                <td class="col-trip">
                                     <div class="trip-route-main trip-route-replacement">{{ $pickupShort }} &rarr; {{ $destinationShort }}</div>
                                     <div class="trip-route-subline trip-route-replacement">
                                         <span><i class="fa-solid fa-hashtag"></i> {{ $tripRef }}</span>
@@ -959,12 +959,12 @@
                                 </td>
 
                                 {{-- When --}}
-                                <td>
+                                <td class="col-when">
                                     <div class="trip-table-date">{{ $whenLabel }} <span style="color:var(--muted);padding:0 6px;">&middot;</span> {{ $trip->trip_datetime?->format('H:i') ?: '-' }}</div>
                                 </td>
 
                                 {{-- Visibility --}}
-                                <td>
+                                <td class="col-vis">
                                     @if(($trip->visibility ?? 'private') === 'public')
                                         <span class="trip-visibility-pill public">Public Trip</span>
                                     @else
@@ -973,22 +973,22 @@
                                 </td>
 
                                 {{-- Seats --}}
-                                <td>
+                                <td class="col-seats">
                                     <span class="trip-table-passengers"><i class="fa-solid fa-chair"></i>{{ $seatsTaken }}/{{ $seatsAvailable }}</span>
                                 </td>
 
                                 {{-- Status --}}
-                                <td>
+                                <td class="col-status">
                                     <span class="status-chip status-{{ $badgeStatus }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>{{ $statusLabel }}</span>
                                 </td>
 
                                 {{-- Fare --}}
-                                <td style="text-align:right;">
+                                <td class="col-fare">
                                     <span class="trip-table-fare">RM {{ number_format($displayFare, 2) }}</span>
                                 </td>
 
                                 {{-- Actions --}}
-                                <td style="text-align:center;">
+                                <td class="col-action">
                                     <div class="trip-table-actions" style="justify-content:center;">
                                         @if($canManageRequests)
                                             <a href="{{ route('trips.requests.index', $trip) }}"
