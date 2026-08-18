@@ -1877,9 +1877,6 @@
                         <button type="button" class="btn-receipt-print" onclick="window.print()">
                             <i class="fa-solid fa-print"></i> Print / Save PDF
                         </button>
-                        <button type="button" class="btn-receipt-back" id="paymentReceiptBack">
-                            <i class="fa-solid fa-bars"></i> Back
-                        </button>
                     </div>
                 </article>
             </div>
