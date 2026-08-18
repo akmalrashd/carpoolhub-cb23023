@@ -4499,20 +4499,26 @@
             #paymentReceiptModal .trip-receipt-total strong {
                 font-size: 22px !important;
             }
+            #paymentReceiptModal .trip-receipt-lines {
+                gap: 6px !important;
+            }
             #paymentReceiptModal .trip-receipt-line {
-                gap: 4px !important;
-                font-size: 12.5px !important;
-                flex-direction: column !important;
+                gap: 8px !important;
+                font-size: 12px !important;
+                flex-direction: row !important;
                 align-items: flex-start !important;
+                justify-content: space-between !important;
             }
             #paymentReceiptModal .trip-receipt-line strong {
-                text-align: left !important;
+                text-align: right !important;
+                max-width: 65% !important;
             }
             #paymentReceiptModal .receipt-disclaimer-note {
                 display: flex !important;
                 align-items: flex-start !important;
                 text-align: left !important;
                 line-height: 1.4 !important;
+                margin-top: 6px !important;
             }
             #paymentReceiptModal .receipt-disclaimer-note i {
                 margin-top: 2px !important;
