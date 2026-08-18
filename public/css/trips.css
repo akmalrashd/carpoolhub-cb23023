@@ -2481,13 +2481,13 @@
 }
 .trip-actions-filled .trip-action-btn {
     flex: 1;
-    display: flex;
+    display: inline-flex !important;
     justify-content: center;
     border-radius: 8px;
     margin: 0 !important;
 }
-.trip-actions-filled form {
+.trip-actions-filled form, .trip-actions-filled .trip-action-form {
     flex: 1;
-    display: flex;
+    display: inline-flex !important;
     margin: 0;
 }
