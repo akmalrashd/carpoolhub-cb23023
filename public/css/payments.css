@@ -3467,7 +3467,34 @@
             .payments-pagination-wrap {
                 margin-top: 16px;
                 padding: 4px;
+                text-align: left !important;
             }
+            
+            /* Force Tailwind Flex Layout for Desktop Pagination (Fixes missing utility classes) */
+            @media (min-width: 768px) {
+                .payments-pagination-wrap nav {
+                    display: block !important;
+                }
+                .payments-pagination-wrap nav > div:first-child {
+                    display: none !important; /* Hide simple prev/next mobile links */
+                }
+                .payments-pagination-wrap nav > div:last-child {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    width: 100% !important;
+                }
+                .payments-pagination-wrap nav > div:last-child > div:first-child p {
+                    margin: 0 !important;
+                    color: var(--muted, #64748b) !important;
+                    font-size: 14px !important;
+                }
+                .payments-pagination-wrap nav > div:last-child > div:last-child {
+                    display: flex !important;
+                    align-items: center !important;
+                }
+            }
+
             /* Bold font weight for pagination numbers and links on desktop and mobile */
             nav[aria-label="Pagination Navigation"] a,
             nav[aria-label="Pagination Navigation"] span,
