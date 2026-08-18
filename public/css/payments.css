@@ -3238,10 +3238,11 @@
             }
             .payments-table .col-trip {
                 width: auto;
+                min-width: 220px;
             }
             .payments-table .col-status {
-                width: 135px;
-                min-width: 130px;
+                width: 120px;
+                min-width: 115px;
                 text-align: center !important;
             }
             .payments-table th.col-status {
@@ -3326,7 +3327,7 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 4px;
-                min-width: 0;
+                flex-shrink: 0;
                 white-space: nowrap;
             }
             .payments-table .payment-method-pill {
