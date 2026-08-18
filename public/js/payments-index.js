@@ -1736,9 +1736,13 @@ window.clearPaymentFilters = function() {
 };
 
 window.updatePaymentsVisibility = function() {
-    const allItems = document.querySelectorAll('.js-payment-filter-item');
+    let visibleItems = document.querySelectorAll('.payments-table tr.js-payment-filter-item');
+    if (visibleItems.length === 0) {
+        visibleItems = document.querySelectorAll('.js-payment-filter-item');
+    }
+
     let visibleCount = 0;
-    allItems.forEach((item) => {
+    visibleItems.forEach((item) => {
         const isHidden = item.classList.contains('payments-filter-hidden') || item.style.display === 'none';
         if (!isHidden) {
             visibleCount += 1;
@@ -1765,14 +1769,45 @@ window.updatePaymentsVisibility = function() {
         }
     });
 
-    const paginationWraps = document.querySelectorAll('.payments-pagination-wrap, .pagination-wrap');
-    paginationWraps.forEach((pagWrap) => {
-        if (visibleCount === 0) {
-            pagWrap.style.setProperty('display', 'none', 'important');
-        } else {
-            pagWrap.style.setProperty('display', '', '');
+    // Dynamic pagination text & buttons update
+    const desktopPag = document.querySelector('.payments-pagination-wrap.desktop-pagination-only');
+    const mobilePag = document.querySelector('.payments-pagination-wrap.mobile-pagination-only');
+    const pageSize = 12;
+    const firstItem = visibleCount > 0 ? 1 : 0;
+    const lastItem = Math.min(visibleCount, pageSize);
+
+    if (desktopPag) {
+        // Update "Showing X to Y of Z results" text dynamically
+        const pElem = desktopPag.querySelector('nav p');
+        if (pElem) {
+            pElem.innerHTML = `Showing <span class="font-medium">${firstItem}</span> to <span class="font-medium">${lastItem}</span> of <span class="font-medium">${visibleCount}</span> results`;
         }
-    });
+
+        // Hide page numbers container if all visible items fit on 1 page (visibleCount <= 12)
+        const btnContainer = desktopPag.querySelector('nav > div:last-child > div:last-child, nav > div.sm\\:flex-1 > div:last-child');
+        if (btnContainer) {
+            if (visibleCount <= pageSize) {
+                btnContainer.style.setProperty('display', 'none', 'important');
+            } else {
+                btnContainer.style.setProperty('display', 'flex', 'important');
+            }
+        }
+
+        // Hide entire desktop pagination block if visibleCount === 0
+        if (visibleCount === 0) {
+            desktopPag.style.setProperty('display', 'none', 'important');
+        } else {
+            desktopPag.style.removeProperty('display');
+        }
+    }
+
+    if (mobilePag) {
+        if (visibleCount <= pageSize) {
+            mobilePag.style.setProperty('display', 'none', 'important');
+        } else {
+            mobilePag.style.removeProperty('display');
+        }
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
