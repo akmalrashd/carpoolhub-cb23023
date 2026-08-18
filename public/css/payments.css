@@ -4303,7 +4303,7 @@
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
         }
 
-        /* ── Receipt Modal Styling (Matching Image 2 Exactly) ── */
+        /* ── Receipt Modal Styling ── */
         #paymentReceiptModal .trip-payment-review-card {
             max-width: 500px !important;
             border-radius: 20px !important;
@@ -4348,11 +4348,33 @@
             padding-bottom: 12px !important;
             margin-bottom: -2px !important;
         }
-        .receipt-brand-logo {
-            height: 34px !important;
+        .receipt-brand-logo-inline {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+        .receipt-brand-icon {
+            height: 32px !important;
             width: auto !important;
             display: block !important;
             object-fit: contain !important;
+        }
+        .receipt-brand-text {
+            margin: 0 !important;
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            font-family: var(--font-display), sans-serif !important;
+            letter-spacing: -0.4px !important;
+            line-height: 1 !important;
+        }
+        .receipt-brand-text .hub-yellow {
+            color: #eab308 !important;
+        }
+        .receipt-brand-text .receipt-title-tag {
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            margin-left: 4px !important;
         }
         .trip-receipt-head {
             display: flex !important;
@@ -4361,97 +4383,11 @@
             border-bottom: none !important;
             padding-bottom: 0 !important;
         }
-
-        /* ── Print Media Optimization (Official 1-Page Document) ── */
-        @media print {
-            @page {
-                size: A4 portrait;
-                margin: 12mm 15mm;
-            }
-            html, body {
-                background: #ffffff !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                height: auto !important;
-                overflow: visible !important;
-            }
-            body * {
-                visibility: hidden !important;
-            }
-            #paymentReceiptModal,
-            #paymentReceiptModal * {
-                visibility: visible !important;
-            }
-            #paymentReceiptModal {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                min-height: 0 !important;
-                background: #ffffff !important;
-                display: block !important;
-                opacity: 1 !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            #paymentReceiptModal .trip-payment-review-card {
-                max-width: 620px !important;
-                width: 100% !important;
-                margin: 0 auto !important;
-                padding: 0 !important;
-                border: none !important;
-                box-shadow: none !important;
-                background: #ffffff !important;
-            }
-            #paymentReceiptModal .trip-payment-review-head,
-            #paymentReceiptModal .trip-receipt-footer-actions,
-            #paymentReceiptModal .trip-payment-review-close {
-                display: none !important;
-            }
-            #paymentReceiptModal .trip-payment-review-list {
-                padding: 0 !important;
-                max-height: none !important;
-                overflow: visible !important;
-            }
-            #paymentReceiptModal .trip-receipt-card {
-                border: 1px solid #cbd5e1 !important;
-                border-radius: 16px !important;
-                padding: 24px 28px !important;
-                background: #ffffff !important;
-                box-shadow: none !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            #paymentReceiptModal .receipt-brand-logo {
-                height: 40px !important;
-            }
-            #paymentReceiptModal .trip-receipt-total {
-                background: #fdfbf7 !important;
-                border: 1px solid #fef3c7 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            #paymentReceiptModal .trip-receipt-status.paid {
-                background: #dcfce7 !important;
-                border: 1px solid #86efac !important;
-                color: #15803d !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-        }
-        .trip-receipt-title {
-            font-size: 19px !important;
-            font-weight: 900 !important;
-            color: #0f172a !important;
-            margin: 0 !important;
-        }
         .trip-receipt-id {
             color: #64748b !important;
             font-size: 12px !important;
             font-weight: 700 !important;
-            margin-top: 3px !important;
+            margin-top: 0 !important;
             display: block !important;
         }
         .trip-receipt-status.paid {
@@ -4531,23 +4467,86 @@
             background-color: #f8fafc !important;
             border-color: #94a3b8 !important;
         }
-        .btn-receipt-back {
-            flex: 1;
-            background-color: #16a34a !important;
-            color: #ffffff !important;
-            border: none !important;
-            font-weight: 800 !important;
-            font-size: 13.5px !important;
-            padding: 10px 18px !important;
-            border-radius: 10px !important;
-            cursor: pointer !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 8px !important;
-            transition: all 0.15s ease-in-out !important;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
-        }
-        .btn-receipt-back:hover {
-            background-color: #15803d !important;
+
+        /* ── Print Media Optimization (STRICT 1-PAGE OFFICIAL RECEIPT) ── */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm 15mm;
+            }
+            html, body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+            }
+            body > *:not(#paymentReceiptModal) {
+                display: none !important;
+            }
+            header, footer, nav, sidebar, .app-layout, .payments-container, .main-content, .mobile-header, .desktop-header {
+                display: none !important;
+            }
+            #paymentReceiptModal {
+                display: block !important;
+                position: relative !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                background: #ffffff !important;
+                opacity: 1 !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                transform: none !important;
+            }
+            #paymentReceiptModal .trip-payment-review-card {
+                max-width: 600px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                transform: none !important;
+            }
+            #paymentReceiptModal .trip-payment-review-head,
+            #paymentReceiptModal .trip-receipt-footer-actions,
+            #paymentReceiptModal .trip-payment-review-close {
+                display: none !important;
+            }
+            #paymentReceiptModal .trip-payment-review-list {
+                padding: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            #paymentReceiptModal .trip-receipt-card {
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 16px !important;
+                padding: 24px 28px !important;
+                background: #ffffff !important;
+                box-shadow: none !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 0 auto !important;
+            }
+            #paymentReceiptModal .receipt-brand-icon {
+                height: 38px !important;
+            }
+            #paymentReceiptModal .trip-receipt-total {
+                background: #fdfbf7 !important;
+                border: 1px solid #fef3c7 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #paymentReceiptModal .trip-receipt-status.paid {
+                background: #dcfce7 !important;
+                border: 1px solid #86efac !important;
+                color: #15803d !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }

@@ -1854,12 +1854,14 @@
             <div class="trip-payment-review-list">
                 <article class="trip-receipt-card">
                     <div class="receipt-brand-wrap">
-                        <img src="{{ asset('assets/branding/logo-horizontal-b.png') }}" alt="CarpoolHub" class="receipt-brand-logo">
+                        <div class="receipt-brand-logo-inline">
+                            <img src="{{ asset('assets/branding/logo-small-b.png') }}" alt="CarpoolHub" class="receipt-brand-icon">
+                            <h4 class="receipt-brand-text">Carpool<span class="hub-yellow">Hub</span> <span class="receipt-title-tag">Receipt</span></h4>
+                        </div>
                         <span class="trip-receipt-status paid">Paid</span>
                     </div>
                     <div class="trip-receipt-head">
                         <div>
-                            <h4 class="trip-receipt-title">CarpoolHub Receipt</h4>
                             <span class="trip-receipt-id" id="paymentReceiptNo">Receipt PAY-000000</span>
                         </div>
                     </div>
