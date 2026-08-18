@@ -3506,13 +3506,18 @@
                     width: auto !important;
                 }
 
-                .payments-pagination-wrap nav p,
-                .payments-pagination-wrap nav p span {
+                .payments-pagination-wrap nav p {
                     margin: 0 !important;
-                    color: var(--ink, #0f172a) !important;
-                    font-weight: 700 !important;
+                    color: #475569 !important;
+                    font-weight: 400 !important;
                     font-size: 14px !important;
                     white-space: nowrap !important;
+                }
+
+                .payments-pagination-wrap nav p span,
+                .payments-pagination-wrap nav p span.font-medium {
+                    color: #0f172a !important;
+                    font-weight: 700 !important;
                 }
 
                 /* Right side: Page number buttons container */
