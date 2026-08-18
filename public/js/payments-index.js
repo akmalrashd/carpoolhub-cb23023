@@ -915,6 +915,110 @@ const showModalSkeleton = (listEl) => {
         });
     }
 
+    // ── Bulk Approve & Bulk Reject Action Modals (Review Tab) ──
+    const setupReviewBulkModal = (openBtnId, modalId, hiddenInputsId, countId, amountId, listWrapId, closeTopId, cancelBtnId) => {
+        const openBtn = document.getElementById(openBtnId);
+        const modal = document.getElementById(modalId);
+        const closeTop = document.getElementById(closeTopId);
+        const cancelBtn = document.getElementById(cancelBtnId);
+
+        if (!openBtn || !modal) return;
+
+        openBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const checkedMap = new Map();
+            document.querySelectorAll('.bulk-payment-cb:checked').forEach(cb => {
+                const row = cb.closest('.js-payment-filter-item');
+                if (!row) return;
+                if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+
+                if (!checkedMap.has(cb.value)) {
+                    checkedMap.set(cb.value, { cb, row });
+                }
+            });
+
+            const checkedItems = Array.from(checkedMap.values());
+            if (checkedItems.length === 0) return;
+
+            const hiddenInputsWrap = document.getElementById(hiddenInputsId);
+            const countEl = document.getElementById(countId);
+            const amountEl = document.getElementById(amountId);
+            const listWrap = document.getElementById(listWrapId);
+
+            if (hiddenInputsWrap) hiddenInputsWrap.innerHTML = '';
+            if (listWrap) listWrap.innerHTML = '';
+
+            let totalSum = 0;
+            const passengerMap = {};
+
+            checkedItems.forEach(({ cb, row }) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'payment_ids[]';
+                input.value = cb.value;
+                if (hiddenInputsWrap) hiddenInputsWrap.appendChild(input);
+
+                if (row) {
+                    let passengerName = row.dataset.passenger || '';
+                    if (!passengerName) {
+                        const nameEl = row.querySelector('.payment-name') || row.querySelector('.col-counterparty div');
+                        passengerName = nameEl ? nameEl.textContent.trim() : 'Counterparty';
+                    }
+
+                    let val = 0;
+                    const amountBtn = row.querySelector('[data-amount]');
+                    if (amountBtn && amountBtn.dataset.amount) {
+                        val = parseFloat(amountBtn.dataset.amount.replace(/[^0-9.]/g, '')) || 0;
+                    } else {
+                        const amountCell = row.querySelector('.col-amount');
+                        if (amountCell) {
+                            val = parseFloat(amountCell.textContent.replace(/[^0-9.]/g, '')) || 0;
+                        }
+                    }
+                    totalSum += val;
+
+                    if (!passengerMap[passengerName]) {
+                        passengerMap[passengerName] = { count: 0, total: 0 };
+                    }
+                    passengerMap[passengerName].count++;
+                    passengerMap[passengerName].total += val;
+                }
+            });
+
+            if (countEl) countEl.textContent = `${checkedItems.length} payment(s) selected`;
+            if (amountEl) amountEl.textContent = `RM ${totalSum.toFixed(2)}`;
+
+            if (listWrap) {
+                Object.keys(passengerMap).forEach(name => {
+                    const data = passengerMap[name];
+                    const chip = document.createElement('span');
+                    chip.className = 'bulk-passenger-chip';
+                    chip.innerHTML = `<i class="fa-solid fa-user" style="font-size:10px; color:#64748b;"></i> ${name} <span class="bulk-passenger-chip-badge">${data.count}x · RM ${data.total.toFixed(2)}</span>`;
+                    listWrap.appendChild(chip);
+                });
+            }
+
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        });
+
+        const closeModal = () => {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        };
+
+        if (closeTop) closeTop.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    };
+
+    setupReviewBulkModal('bulkApproveOpenBtn', 'bulkApproveModal', 'bulkApproveHiddenInputs', 'bulkApproveSelectedCount', 'bulkApproveTotalAmount', 'bulkApprovePassengersList', 'bulkApproveModalCloseTop', 'bulkApproveModalCancel');
+    setupReviewBulkModal('bulkRejectOpenBtn', 'bulkRejectModal', 'bulkRejectHiddenInputs', 'bulkRejectSelectedCount', 'bulkRejectTotalAmount', 'bulkRejectPassengersList', 'bulkRejectModalCloseTop', 'bulkRejectModalCancel');
+
     const rejectModal = document.getElementById('rejectModal');
     const rejectCancelBtn = document.getElementById('rejectModalCancel');
     const rejectCloseTopBtn = document.getElementById('rejectModalCloseTop');
@@ -1472,11 +1576,29 @@ document.addEventListener('change', (e) => {
             bulkActionCount.textContent = `${count} selected`;
             bulkActionBar.style.display = 'flex';
             bulkActionBar.classList.remove('closing');
-            if (bulkSubmitBtn) {
-                if (hasSelf) {
-                    bulkSubmitBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Mark Selected as Paid';
-                } else {
-                    bulkSubmitBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Confirm Selected Payments';
+
+            const activeTab = document.querySelector('.payments-tab.active');
+            const isReviewTab = activeTab && (activeTab.textContent.toLowerCase().includes('review') || activeTab.textContent.toLowerCase().includes('pending'));
+
+            const bulkMarkPaidOpenBtn = document.getElementById('bulkMarkPaidOpenBtn');
+            const bulkApproveOpenBtn = document.getElementById('bulkApproveOpenBtn');
+            const bulkRejectOpenBtn = document.getElementById('bulkRejectOpenBtn');
+
+            if (isReviewTab) {
+                if (bulkMarkPaidOpenBtn) bulkMarkPaidOpenBtn.style.setProperty('display', 'none', 'important');
+                if (bulkApproveOpenBtn) bulkApproveOpenBtn.style.setProperty('display', 'inline-flex', 'important');
+                if (bulkRejectOpenBtn) bulkRejectOpenBtn.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+                if (bulkMarkPaidOpenBtn) bulkMarkPaidOpenBtn.style.removeProperty('display');
+                if (bulkApproveOpenBtn) bulkApproveOpenBtn.style.setProperty('display', 'none', 'important');
+                if (bulkRejectOpenBtn) bulkRejectOpenBtn.style.setProperty('display', 'none', 'important');
+
+                if (bulkSubmitBtn) {
+                    if (hasSelf) {
+                        bulkSubmitBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Mark Selected as Paid';
+                    } else {
+                        bulkSubmitBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Confirm Selected Payments';
+                    }
                 }
             }
         } else if (bulkActionBar.style.display !== 'none' && !bulkActionBar.classList.contains('closing')) {

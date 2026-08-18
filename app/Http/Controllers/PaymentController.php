@@ -286,4 +286,30 @@ class PaymentController extends Controller
             ->route('payments.index')
             ->with('status', 'No pending payments found.');
     }
+
+    public function bulkReject(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'payment_ids' => ['required', 'array', 'min:1', 'max:200'],
+            'payment_ids.*' => ['integer', 'exists:trip_payments,id'],
+            'rejection_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $user = $request->user();
+        $payments = TripPayment::whereIn('id', $validated['payment_ids'])->get();
+
+        $count = 0;
+        foreach ($payments as $payment) {
+            try {
+                $this->paymentService->rejectPaidRequest($user, $payment, $validated['rejection_reason']);
+                $count++;
+            } catch (\Exception $e) {
+                // Ignore individual errors during bulk reject
+            }
+        }
+
+        return redirect()
+            ->route('payments.index')
+            ->with('status', "$count payment request(s) rejected.");
+    }
 }

@@ -2110,6 +2110,12 @@
                 <button type="button" class="btn btn-success" id="bulkMarkPaidOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px;">
                     <i class="fa-solid fa-check-double"></i> Mark Selected as Paid
                 </button>
+                <button type="button" class="btn-solid-approve" id="bulkApproveOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px; display:none;">
+                    <i class="fa-solid fa-check"></i> Approve Selected
+                </button>
+                <button type="button" class="btn-solid-reject" id="bulkRejectOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px; display:none;">
+                    <i class="fa-solid fa-xmark"></i> Reject Selected
+                </button>
             </div>
         </div>
     </div>
@@ -2198,6 +2204,96 @@
                     <button type="submit" class="mark-paid-submit-btn" id="bulkMarkPaidSubmitBtn">
                         Mark Selected as Paid
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Approve Modal (Review Tab) -->
+    <div class="request-modal" id="bulkApproveModal" aria-hidden="true">
+        <div class="request-modal-card request-modal-compact">
+            <div class="request-modal-head">
+                <div>
+                    <h3 class="request-modal-title">Bulk Approve Payments</h3>
+                    <p class="request-modal-sub">Approve all selected passenger payment confirmation requests.</p>
+                </div>
+                <button type="button" class="modal-close-square" id="bulkApproveModalCloseTop" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form method="POST" id="bulkApproveModalForm" action="{{ route('payments.bulk-confirm') }}">
+                @csrf
+                @method('PATCH')
+                <div id="bulkApproveHiddenInputs"></div>
+                <div class="mark-paid-modal-body" style="padding:0; margin-top:16px;">
+                    <div class="mark-paid-info-box" style="background:#f0fdf4; border-color:#bbf7d0;">
+                        <div>
+                            <div class="mark-paid-passenger-name" id="bulkApproveSelectedCount" style="color:#15803d;">0 payments selected</div>
+                            <div style="font-size:12px; color:#166534;">Bulk Approval</div>
+                        </div>
+                        <div class="mark-paid-amount-val" id="bulkApproveTotalAmount" style="color:#15803d;">RM 0.00</div>
+                    </div>
+                    
+                    <div class="bulk-paid-passengers-card" id="bulkApprovePassengersWrap" style="margin-top:12px;">
+                        <div class="bulk-paid-passengers-title">
+                            <i class="fa-solid fa-users"></i> Selected Passengers
+                        </div>
+                        <div class="bulk-paid-passengers-list" id="bulkApprovePassengersList"></div>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                        <button type="button" class="btn-subtle-close" id="bulkApproveModalCancel">Cancel</button>
+                        <button type="submit" class="btn-solid-approve" id="bulkApproveSubmitBtn">
+                            <i class="fa-solid fa-check"></i> Confirm Approve Selected
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Reject Modal (Review Tab) -->
+    <div class="request-modal" id="bulkRejectModal" aria-hidden="true">
+        <div class="request-modal-card request-modal-compact">
+            <div class="request-modal-head">
+                <div>
+                    <h3 class="request-modal-title">Bulk Reject Payments</h3>
+                    <p class="request-modal-sub">State reason for rejecting selected payment requests.</p>
+                </div>
+                <button type="button" class="modal-close-square" id="bulkRejectModalCloseTop" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form method="POST" id="bulkRejectModalForm" action="{{ route('payments.bulk-reject') }}">
+                @csrf
+                @method('PATCH')
+                <div id="bulkRejectHiddenInputs"></div>
+                <div class="mark-paid-modal-body" style="padding:0; margin-top:16px;">
+                    <div class="mark-paid-info-box" style="background:#fef2f2; border-color:#fecaca;">
+                        <div>
+                            <div class="mark-paid-passenger-name" id="bulkRejectSelectedCount" style="color:#b91c1c;">0 payments selected</div>
+                            <div style="font-size:12px; color:#991b1b;">Bulk Rejection</div>
+                        </div>
+                        <div class="mark-paid-amount-val" id="bulkRejectTotalAmount" style="color:#b91c1c;">RM 0.00</div>
+                    </div>
+
+                    <div class="reject-reason-wrap" style="margin-top:14px; margin-bottom:16px;">
+                        <label class="request-modal-label" style="display:block; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px; color:#eab308;"></i> Rejection Reason</label>
+                        <textarea
+                            class="reject-reason-input-modern"
+                            id="bulkRejectReason"
+                            name="rejection_reason"
+                            placeholder="Explain briefly why these payment requests are rejected..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                        <button type="button" class="btn-subtle-close" id="bulkRejectModalCancel">Cancel</button>
+                        <button type="submit" class="btn-solid-reject" id="bulkRejectSubmitBtn">
+                            <i class="fa-solid fa-xmark"></i> Confirm Reject Selected
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

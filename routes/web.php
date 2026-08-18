@@ -54,6 +54,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::patch('/payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
     Route::patch('/payments/{payment}/confirm-paid', [PaymentController::class, 'confirmPaid'])->name('payments.confirm-paid');
     Route::patch('/payments/bulk-confirm', [PaymentController::class, 'bulkConfirm'])->name('payments.bulk-confirm');
+    Route::patch('/payments/bulk-reject', [PaymentController::class, 'bulkReject'])->name('payments.bulk-reject');
     Route::patch('/payments/approve-all-pending', [PaymentController::class, 'approveAllPending'])->name('payments.approve-all-pending');
     Route::patch('/payments/{payment}/reject-paid', [PaymentController::class, 'rejectPaid'])->name('payments.reject-paid');
     Route::post('/payments/{payment}/send-reminder', [PaymentController::class, 'sendReminder'])->name('payments.send-reminder');
