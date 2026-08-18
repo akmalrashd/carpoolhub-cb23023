@@ -570,13 +570,11 @@
                                             </form>
                                         @endif
                                     @else
-                                        @if($trip->driver && $trip->driver->whatsapp_url)
-                                            <a href="{{ $trip->driver->whatsapp_url }}" class="trip-action-btn is-filled whatsapp-btn" target="_blank">
-                                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                                            </a>
-                                        @endif
                                         <a href="https://t.me/{{ $trip->driver->whatsapp_digits ?? '' }}" class="trip-action-btn is-filled telegram-btn" target="_blank" @if(!($trip->driver && $trip->driver->whatsapp_digits)) onclick="alert('Telegram contact not specified.'); return false;" @endif>
-                                            <i class="fa-brands fa-telegram"></i> Telegram
+                                            <i class="fa-brands fa-telegram-plane"></i> Telegram
+                                        </a>
+                                        <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-action-btn is-filled whatsapp-btn" target="_blank" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
+                                            <i class="fa-brands fa-whatsapp"></i> WhatsApp
                                         </a>
                                     @endif
                                 </div>
@@ -953,13 +951,11 @@
                                                 </form>
                                             @endif
                                         @else
-                                            @if($trip->driver && $trip->driver->whatsapp_url)
-                                            <a href="{{ $trip->driver->whatsapp_url }}" class="trip-row-icon-btn is-filled whatsapp-btn" target="_blank" title="Contact WhatsApp" aria-label="WhatsApp">
-                                                <i class="fa-brands fa-whatsapp"></i>
-                                            </a>
-                                            @endif
                                             <a href="https://t.me/{{ $trip->driver->whatsapp_digits ?? '' }}" class="trip-row-icon-btn is-filled telegram-btn" target="_blank" title="Contact Telegram" aria-label="Telegram" @if(!($trip->driver && $trip->driver->whatsapp_digits)) onclick="alert('Telegram contact not specified.'); return false;" @endif>
-                                                <i class="fa-brands fa-telegram"></i>
+                                                <i class="fa-brands fa-telegram-plane"></i>
+                                            </a>
+                                            <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-row-icon-btn is-filled whatsapp-btn" target="_blank" title="Contact WhatsApp" aria-label="WhatsApp" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
+                                                <i class="fa-brands fa-whatsapp"></i>
                                             </a>
                                         @endif
                                     </div>
