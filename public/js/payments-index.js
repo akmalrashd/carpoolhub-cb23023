@@ -319,8 +319,8 @@ const showModalSkeleton = (listEl) => {
         const tripMode = button.dataset.tripMode || 'Outbound';
         const tripRef = button.dataset.tripRef || '';
         const receiptSubtitle = tripRef
-            ? `Receipt ${receiptNo} \u00B7 ${tripMode} \u00B7 ${tripRef}`
-            : `Receipt ${receiptNo}`;
+            ? `Official Payment Receipt \u00B7 ${receiptNo} \u00B7 ${tripMode} \u00B7 ${tripRef}`
+            : `Official Payment Receipt \u00B7 ${receiptNo}`;
 
         setText('paymentReceiptNo', receiptSubtitle);
         setText('paymentReceiptSub', button.dataset.route || 'View your confirmed payment record.');

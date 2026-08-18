@@ -1856,13 +1856,13 @@
                     <div class="receipt-brand-wrap">
                         <div class="receipt-brand-logo-inline">
                             <img src="{{ asset('assets/branding/logo-small-b.png') }}" alt="CarpoolHub" class="receipt-brand-icon">
-                            <h4 class="receipt-brand-text">Carpool<span class="hub-yellow">Hub</span> <span class="receipt-title-tag">Receipt</span></h4>
+                            <h4 class="receipt-brand-text">Carpool<span class="hub-yellow">Hub</span></h4>
                         </div>
                         <span class="trip-receipt-status paid">Paid</span>
                     </div>
                     <div class="trip-receipt-head">
                         <div>
-                            <span class="trip-receipt-id" id="paymentReceiptNo">Receipt PAY-000000</span>
+                            <span class="trip-receipt-id" id="paymentReceiptNo">Official Payment Receipt · PAY-000000</span>
                         </div>
                     </div>
                     <div class="trip-receipt-total">
@@ -1877,6 +1877,9 @@
                         <div class="trip-receipt-line"><span>Marked paid</span><strong id="paymentReceiptMarked">-</strong></div>
                         <div class="trip-receipt-line"><span>Confirmed</span><strong id="paymentReceiptConfirmed">-</strong></div>
                         <div class="trip-receipt-line" id="paymentReceiptBreakdownRow" style="display:none;"><span>Breakdown</span><strong id="paymentReceiptBreakdown">-</strong></div>
+                    </div>
+                    <div class="receipt-disclaimer-note">
+                        <i class="fa-solid fa-circle-info"></i> This is a computer-generated document. No signature is required.
                     </div>
                     <div class="trip-receipt-footer-actions">
                         <button type="button" class="btn-receipt-print" onclick="window.print()">
