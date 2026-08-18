@@ -3240,7 +3240,8 @@
                 width: auto;
             }
             .payments-table .col-status {
-                width: 100px;
+                width: 135px;
+                min-width: 130px;
                 text-align: center !important;
             }
             .payments-table th.col-status {
