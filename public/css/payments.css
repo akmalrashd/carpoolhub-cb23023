@@ -4340,12 +4340,106 @@
             display: grid !important;
             gap: 14px !important;
         }
+        .receipt-brand-wrap {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            padding-bottom: 12px !important;
+            margin-bottom: -2px !important;
+        }
+        .receipt-brand-logo {
+            height: 34px !important;
+            width: auto !important;
+            display: block !important;
+            object-fit: contain !important;
+        }
         .trip-receipt-head {
             display: flex !important;
             align-items: flex-start !important;
             justify-content: space-between !important;
-            border-bottom: 1px solid #f1f5f9 !important;
-            padding-bottom: 10px !important;
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        /* ── Print Media Optimization (Official 1-Page Document) ── */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm 15mm;
+            }
+            html, body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            body * {
+                visibility: hidden !important;
+            }
+            #paymentReceiptModal,
+            #paymentReceiptModal * {
+                visibility: visible !important;
+            }
+            #paymentReceiptModal {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                background: #ffffff !important;
+                display: block !important;
+                opacity: 1 !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #paymentReceiptModal .trip-payment-review-card {
+                max-width: 620px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+            }
+            #paymentReceiptModal .trip-payment-review-head,
+            #paymentReceiptModal .trip-receipt-footer-actions,
+            #paymentReceiptModal .trip-payment-review-close {
+                display: none !important;
+            }
+            #paymentReceiptModal .trip-payment-review-list {
+                padding: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            #paymentReceiptModal .trip-receipt-card {
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 16px !important;
+                padding: 24px 28px !important;
+                background: #ffffff !important;
+                box-shadow: none !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            #paymentReceiptModal .receipt-brand-logo {
+                height: 40px !important;
+            }
+            #paymentReceiptModal .trip-receipt-total {
+                background: #fdfbf7 !important;
+                border: 1px solid #fef3c7 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #paymentReceiptModal .trip-receipt-status.paid {
+                background: #dcfce7 !important;
+                border: 1px solid #86efac !important;
+                color: #15803d !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
         .trip-receipt-title {
             font-size: 19px !important;

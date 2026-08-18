@@ -1853,12 +1853,15 @@
             </div>
             <div class="trip-payment-review-list">
                 <article class="trip-receipt-card">
+                    <div class="receipt-brand-wrap">
+                        <img src="{{ asset('assets/branding/logo-horizontal-b.png') }}" alt="CarpoolHub" class="receipt-brand-logo">
+                        <span class="trip-receipt-status paid">Paid</span>
+                    </div>
                     <div class="trip-receipt-head">
                         <div>
                             <h4 class="trip-receipt-title">CarpoolHub Receipt</h4>
                             <span class="trip-receipt-id" id="paymentReceiptNo">Receipt PAY-000000</span>
                         </div>
-                        <span class="trip-receipt-status paid">Paid</span>
                     </div>
                     <div class="trip-receipt-total">
                         <span>AMOUNT PAID</span>
