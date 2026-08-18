@@ -699,7 +699,7 @@ const showModalSkeleton = (listEl) => {
     const modal = document.getElementById('requestModal');
     const closeBtn = document.getElementById('requestModalClose');
     const closeBtnTop = document.getElementById('requestModalCloseTop');
-    if (modal && closeBtn) {
+    if (modal) {
         if (modal.parentElement !== document.body) {
             document.body.appendChild(modal);
         }
@@ -744,7 +744,7 @@ const showModalSkeleton = (listEl) => {
             }
         };
 
-        closeBtn.addEventListener('click', closeModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
         if (closeBtnTop) closeBtnTop.addEventListener('click', closeModal);
         modal.addEventListener('click', (event) => {
             if (event.target === modal) closeModal();
