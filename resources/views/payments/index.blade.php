@@ -2004,37 +2004,43 @@
     </div>
 
     <div class="request-modal" id="rejectModal" aria-hidden="true">
-        <div class="request-modal-card">
+        <div class="request-modal-card request-modal-compact">
             <div class="request-modal-head">
-                <h3 class="request-modal-title">Reject Payment</h3>
+                <div>
+                    <h3 class="request-modal-title">Reject Payment</h3>
+                    <p class="request-modal-sub">State the reason why this payment request is rejected.</p>
+                </div>
                 <button type="button" class="modal-close-square" id="rejectModalCloseTop" aria-label="Close">
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="request-modal-grid">
+            <div class="request-modal-grid-two" style="margin-bottom: 12px;">
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Passenger</span>
+                    <span class="request-modal-label"><i class="fa-solid fa-user" style="margin-right:4px;"></i> Passenger</span>
                     <span class="request-modal-value" id="rejectModalPassenger">-</span>
                 </div>
                 <div class="request-modal-line">
-                    <span class="request-modal-label">Trip</span>
+                    <span class="request-modal-label"><i class="fa-solid fa-hashtag" style="margin-right:4px;"></i> Trip Ref</span>
                     <span class="request-modal-value" id="rejectModalTrip">-</span>
                 </div>
-                <form id="rejectModalForm" method="POST">
-                    @csrf
-                    @method('PATCH')
+            </div>
+            <form id="rejectModalForm" method="POST" style="margin-bottom: 20px;">
+                @csrf
+                @method('PATCH')
+                <div class="reject-reason-wrap">
+                    <label class="request-modal-label" style="display:block; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px; color:#eab308;"></i> Rejection Reason</label>
                     <textarea
-                        class="reject-reason-input"
+                        class="reject-reason-input-modern"
                         id="rejectModalReason"
                         name="rejection_reason"
-                        placeholder="Write the rejection reason..."
+                        placeholder="Explain briefly why this payment was rejected..."
                         required
                     ></textarea>
-                </form>
-            </div>
+                </div>
+            </form>
             <div class="reject-modal-actions">
-                <button type="button" class="payments-btn" id="rejectModalCancel">Cancel</button>
-                <button type="submit" class="payments-btn payments-btn-danger" form="rejectModalForm">Reject</button>
+                <button type="button" class="btn-subtle-close" id="rejectModalCancel">Cancel</button>
+                <button type="submit" class="btn-solid-reject" form="rejectModalForm"><i class="fa-solid fa-xmark"></i> Reject Payment</button>
             </div>
         </div>
     </div>
