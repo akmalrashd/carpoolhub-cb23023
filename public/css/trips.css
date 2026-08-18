@@ -2445,3 +2445,49 @@
             padding-bottom: 6px;
             border-bottom: 1px dashed var(--hairline, #e2e8f0);
         }
+
+
+
+
+/* --- Filled Action Buttons --- */
+.trip-row-icon-btn.is-filled, .trip-action-btn.is-filled {
+    border: none;
+    color: #fff !important;
+}
+
+.trip-row-icon-btn.is-filled i, .trip-action-btn.is-filled i {
+    color: #fff !important;
+}
+
+/* Edit: Blue */
+.is-filled.edit-btn { background: #3b82f6 !important; }
+.is-filled.edit-btn:hover { background: #2563eb !important; }
+
+/* Delete: Red */
+.is-filled.delete-btn { background: #ef4444 !important; }
+.is-filled.delete-btn:hover { background: #dc2626 !important; }
+
+/* WhatsApp: Green */
+.is-filled.whatsapp-btn { background: #25D366 !important; }
+.is-filled.whatsapp-btn:hover { background: #128C7E !important; }
+
+/* Telegram: Blue */
+.is-filled.telegram-btn { background: #229ED9 !important; }
+.is-filled.telegram-btn:hover { background: #0088cc !important; }
+
+.trip-actions-filled {
+    display: flex;
+    gap: 8px;
+}
+.trip-actions-filled .trip-action-btn {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    border-radius: 8px;
+    margin: 0 !important;
+}
+.trip-actions-filled form {
+    flex: 1;
+    display: flex;
+    margin: 0;
+}

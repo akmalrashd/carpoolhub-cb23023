@@ -555,82 +555,31 @@
                                     <span class="trip-fare-label">{{ $fareLabel }}</span>
                                     <span class="trip-fare-value">RM {{ number_format($displayFare, 2) }}</span>
                                 </div>
-                                <div class="trip-actions">
-                                    @if($canManageRequests)
-                                        <a href="{{ route('trips.requests.index', $trip) }}"
-                                           class="trip-action-btn trip-payment-action open-trip-requests-review"
-                                           data-route-name="{{ $routeName }}"
-                                           data-trip-id="{{ $trip->id }}"
-                                           data-trip-status="{{ $statusLabel }}"
-                                           data-open-state="{{ $trip->is_open_for_request ? 'Open' : 'Closed' }}"
-                                           data-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
-                                           data-toggle-url="{{ route('trips.requests.toggle-open', $trip) }}"
-                                           data-seats="{{ $seatsTaken }}/{{ $seatsAvailable }}"
-                                           data-pickup-name="{{ $pickupName }}"
-                                           data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
-                                           data-pickup-lng="{{ $trip->pickup_longitude ?? '' }}"
-                                           data-destination-name="{{ $destinationName }}"
-                                           data-destination-lat="{{ $trip->destination_latitude ?? '' }}"
-                                           data-destination-lng="{{ $trip->destination_longitude ?? '' }}"
-                                           data-requests-b64="{{ $requestPayloadB64 }}"
-                                        >
-                                            <i class="fa-solid fa-user-check"></i> Manage Requests
+                                <div class="trip-actions trip-actions-filled">
+                                    @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
+                                        <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn is-filled edit-btn" title="Edit trip">
+                                            <i class="fa-regular fa-pen-to-square"></i> Edit
                                         </a>
-                                    @elseif($paymentActionLabel)
-                                        <a href="{{ $paymentUrl }}" class="trip-action-btn trip-payment-action {{ $canOpenPaymentReview ? 'open-trip-payment-review' : (in_array($paymentActionLabel, ['Pay Now', 'Pending'], true) ? 'open-trip-paynow' : ($paymentActionLabel === 'Receipt' ? 'open-trip-receipts' : '')) }}"
-                                           @if($canOpenPaymentReview)
-                                               data-route-name="{{ $routeName }}"
-                                               data-trip-ids="{{ $paymentReviewTripIds }}"
-                                               data-payments-b64="{{ $paymentReviewPayloadB64 }}"
-                                           @elseif(in_array($paymentActionLabel, ['Pay Now', 'Pending'], true))
-                                               data-route-name="{{ $routeName }}"
-                                               data-payments-b64="{{ $payNowPayloadB64 }}"
-                                           @elseif($paymentActionLabel === 'Receipt')
-                                               data-route-name="{{ $routeName }}"
-                                               data-payments-b64="{{ $receiptPayloadB64 }}"
-                                           @endif
-                                        >
-                                            <i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}
-                                        </a>
-                                    @endif
-                                    @if($trip->status === 'scheduled' && ($trip->visibility === 'public') && (auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id))
-                                        <a href="{{ route('trips.requests.index', $trip) }}"
-                                           class="trip-action-btn open-trip-requests-review"
-                                           data-route-name="{{ $routeName }}"
-                                           data-trip-id="{{ $trip->id }}"
-                                           data-trip-status="{{ $statusLabel }}"
-                                           data-open-state="{{ $trip->is_open_for_request ? 'Open' : 'Closed' }}"
-                                           data-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
-                                           data-toggle-url="{{ route('trips.requests.toggle-open', $trip) }}"
-                                           data-seats="{{ $seatsTaken }}/{{ $seatsAvailable }}"
-                                           data-pickup-name="{{ $pickupName }}"
-                                           data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
-                                           data-pickup-lng="{{ $trip->pickup_longitude ?? '' }}"
-                                           data-destination-name="{{ $destinationName }}"
-                                           data-destination-lat="{{ $trip->destination_latitude ?? '' }}"
-                                           data-destination-lng="{{ $trip->destination_longitude ?? '' }}"
-                                           data-requests-b64="{{ $requestPayloadB64 }}"
-                                        >
-                                            <i class="fa-solid fa-inbox"></i> Requests
+                                        @if($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true))
+                                            <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Cancel this trip? This will delete the trip and all related records.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="trip-action-btn is-filled delete-btn" title="Delete trip">
+                                                    <i class="fa-regular fa-trash-can"></i> Delete
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @else
+                                        @if($trip->driver && $trip->driver->whatsapp_url)
+                                            <a href="{{ $trip->driver->whatsapp_url }}" class="trip-action-btn is-filled whatsapp-btn" target="_blank">
+                                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                            </a>
+                                        @endif
+                                        <a href="https://t.me/{{ $trip->driver->whatsapp_digits ?? '' }}" class="trip-action-btn is-filled telegram-btn" target="_blank" @if(!($trip->driver && $trip->driver->whatsapp_digits)) onclick="alert('Telegram contact not specified.'); return false;" @endif>
+                                            <i class="fa-brands fa-telegram"></i> Telegram
                                         </a>
                                     @endif
                                 </div>
-                                @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
-                                    <div class="trip-mobile-owner-actions">
-                                            <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn icon-only" title="Edit trip" aria-label="Edit trip">
-                                                <i class="fa-regular fa-pen-to-square"></i>
-                                            </a>
-                                            @if($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true))
-                                                <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Cancel this trip? This will delete the trip and all related records.');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="trip-action-btn trip-action-btn-danger icon-only" title="Delete trip" aria-label="Delete trip">
-                                                        <i class="fa-regular fa-trash-can"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                    </div>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -990,55 +939,28 @@
                                 {{-- Actions --}}
                                 <td class="col-action">
                                     <div class="trip-table-actions" style="justify-content:center;">
-                                        @if($canManageRequests)
-                                            <a href="{{ route('trips.requests.index', $trip) }}"
-                                               class="btn btn-ghost btn-sm trip-payment-table-action open-trip-requests-review"
-                                               data-route-name="{{ $routeName }}"
-                                               data-trip-id="{{ $trip->id }}"
-                                               data-trip-status="{{ $statusLabel }}"
-                                               data-open-state="{{ $trip->is_open_for_request ? 'Open' : 'Closed' }}"
-                                               data-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
-                                               data-toggle-url="{{ route('trips.requests.toggle-open', $trip) }}"
-                                               data-seats="{{ $seatsTaken }}/{{ $seatsAvailable }}"
-                                               data-pickup-name="{{ $pickupName }}"
-                                               data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
-                                               data-pickup-lng="{{ $trip->pickup_longitude ?? '' }}"
-                                               data-destination-name="{{ $destinationName }}"
-                                               data-destination-lat="{{ $trip->destination_latitude ?? '' }}"
-                                               data-destination-lng="{{ $trip->destination_longitude ?? '' }}"
-                                               data-requests-b64="{{ $requestPayloadB64 }}"
-                                            ><i class="fa-solid fa-inbox" style="font-size:10px;"></i> Requests</a>
-                                        @elseif($paymentActionLabel)
-                                            <a href="{{ $paymentUrl }}"
-                                               class="btn btn-ghost btn-sm trip-payment-table-action {{ $paymentTableLabel === 'Pending' ? 'is-muted' : '' }} {{ $canOpenPaymentReview ? 'open-trip-payment-review' : (in_array($paymentActionLabel, ['Pay Now', 'Pending'], true) ? 'open-trip-paynow' : ($paymentActionLabel === 'Receipt' ? 'open-trip-receipts' : '')) }}"
-                                               @if($canOpenPaymentReview)
-                                                   data-route-name="{{ $routeName }}"
-                                                   data-trip-ids="{{ $paymentReviewTripIds }}"
-                                                   data-payments-b64="{{ $paymentReviewPayloadB64 }}"
-                                               @elseif(in_array($paymentActionLabel, ['Pay Now', 'Pending'], true))
-                                                   data-route-name="{{ $routeName }}"
-                                                   data-payments-b64="{{ $payNowPayloadB64 }}"
-                                               @elseif($paymentActionLabel === 'Receipt')
-                                                   data-route-name="{{ $routeName }}"
-                                                   data-payments-b64="{{ $receiptPayloadB64 }}"
-                                               @endif
-                                            ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentTableLabel }}</a>
-                                        @else
-                                            <a href="{{ route('trips.show', $trip) }}" class="btn btn-ghost btn-sm">Open <i class="fa-solid fa-chevron-right" style="font-size:10px;"></i></a>
-                                        @endif
                                         @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
-                                            <a href="{{ route('trips.edit', $trip) }}" class="trip-row-icon-btn" title="Edit trip" aria-label="Edit trip">
+                                            <a href="{{ route('trips.edit', $trip) }}" class="trip-row-icon-btn is-filled edit-btn" title="Edit trip" aria-label="Edit trip">
                                                 <i class="fa-regular fa-pen-to-square"></i>
                                             </a>
-                                            @if($isAdmin || $trip->status !== 'completed')
+                                            @if($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true))
                                                 <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-row-icon-form" onsubmit="return confirm('Delete this trip? This will remove the trip and all related records.');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="trip-row-icon-btn danger" title="Delete trip" aria-label="Delete trip">
+                                                    <button type="submit" class="trip-row-icon-btn is-filled delete-btn" title="Delete trip" aria-label="Delete trip">
                                                         <i class="fa-regular fa-trash-can"></i>
                                                     </button>
                                                 </form>
                                             @endif
+                                        @else
+                                            @if($trip->driver && $trip->driver->whatsapp_url)
+                                            <a href="{{ $trip->driver->whatsapp_url }}" class="trip-row-icon-btn is-filled whatsapp-btn" target="_blank" title="Contact WhatsApp" aria-label="WhatsApp">
+                                                <i class="fa-brands fa-whatsapp"></i>
+                                            </a>
+                                            @endif
+                                            <a href="https://t.me/{{ $trip->driver->whatsapp_digits ?? '' }}" class="trip-row-icon-btn is-filled telegram-btn" target="_blank" title="Contact Telegram" aria-label="Telegram" @if(!($trip->driver && $trip->driver->whatsapp_digits)) onclick="alert('Telegram contact not specified.'); return false;" @endif>
+                                                <i class="fa-brands fa-telegram"></i>
+                                            </a>
                                         @endif
                                     </div>
                                 </td>
