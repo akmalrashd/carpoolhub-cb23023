@@ -1819,7 +1819,6 @@
                     </form>
                     <button type="button" class="btn-solid-reject" id="requestModalReject"><i class="fa-solid fa-xmark"></i> Reject</button>
                 </div>
-                <button type="button" class="btn-subtle-close" id="requestModalClose">Close</button>
             </div>
         </div>
     </div>
