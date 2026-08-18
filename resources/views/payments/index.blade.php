@@ -1159,6 +1159,7 @@
                         </tbody>
                     </table>
                 </div>
+                @endif
 
                 @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
                 {{-- Desktop Pagination: 100% original layout restored --}}
