@@ -189,17 +189,6 @@
                     <button class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'review')">{{ $canReviewQueue ? 'Review' : 'Pending' }} &middot; {{ $reviewCount }}</button>
                     <button class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'confirmed')">Confirmed &middot; {{ $confirmedCount }}</button>
                 </div>
-                <div class="payments-tab-strip">
-                    <button class="payments-tab {{ $activePaymentFilter === 'all' && $activeDirection === 'all' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'all')">All · {{ $allLiveCount }}</button>
-                    @if($hasSplitPaymentDirections)
-                        <button class="payments-tab {{ $activeDirection === 'pay' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'pay')">To pay · {{ $payCount }}</button>
-                        <button class="payments-tab {{ $activeDirection === 'collect' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'collect')">To collect · {{ $collectCount }}</button>
-                    @else
-                        <button class="payments-tab {{ $activePaymentFilter === 'unpaid' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'unpaid')">Unpaid · {{ $unpaidCount }}</button>
-                    @endif
-                    <button class="payments-tab {{ $activePaymentFilter === 'review' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'review')">{{ $canReviewQueue ? 'Review' : 'Pending' }} · {{ $reviewCount }}</button>
-                    <button class="payments-tab {{ $activePaymentFilter === 'confirmed' ? 'active' : '' }}" type="button" onclick="pmtTab(this,'confirmed')">Confirmed · {{ $confirmedCount }}</button>
-                </div>
             </div>
             <div class="payments-header-actions">
                 <button type="button" class="btn btn-ghost btn-sm payments-filter-launch" data-payments-filter-launch>
@@ -1171,17 +1160,6 @@
                     </table>
                 </div>
                 @endif
-                @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
-                {{-- Desktop Pagination: 100% original layout restored --}}
-                <div class="payments-pagination-wrap desktop-pagination-only">
-                    {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
-                </div>
-
-                {{-- Mobile Pagination: numbered pages (same pattern as desktop) --}}
-                <div class="payments-pagination-wrap mobile-pagination-only" style="margin-top: 32px !important; text-align: center;">
-                    {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links('payments.mobile-pagination') }}
-                </div>
-                @endif
                 <div class="payments-filter-empty" data-filter-empty>
                     <div class="ch-empty-state-icon-box"><i class="fa-solid fa-compass"></i></div>
                     <h3 class="ch-empty-state-title">No payments found</h3>
@@ -1191,6 +1169,18 @@
                 </div>{{-- /payments-real-container --}}
                 </div>{{-- /relative-wrapper --}}
             </section>
+
+            @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
+            {{-- Desktop Pagination: 100% original layout restored --}}
+            <div class="payments-pagination-wrap desktop-pagination-only">
+                {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
+            </div>
+
+            {{-- Mobile Pagination: numbered pages (same pattern as desktop) --}}
+            <div class="payments-pagination-wrap mobile-pagination-only" style="margin-top: 32px !important; text-align: center;">
+                {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links('payments.mobile-pagination') }}
+            </div>
+            @endif
             <aside class="payments-side-panel">
                 <section class="payments-total-card">
                     @if($hasSplitPaymentDirections)
