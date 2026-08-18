@@ -24,6 +24,21 @@ const showModalSkeleton = (listEl) => {
             `;
 };
 
+// A row can be hidden by two independent passes: the tab strip / filter panel
+// (which decide whether the record belongs in the result set at all) and the
+// pager (which decides whether it falls on the current page). Keep the two
+// apart — counting a page-hidden row as filtered out would shrink the result
+// set on every page turn until the list emptied itself.
+window.isPaymentRowFilteredOut = function (row) {
+    if (!row) return true;
+    return row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden');
+};
+
+window.isPaymentRowHidden = function (row) {
+    if (!row) return true;
+    return window.isPaymentRowFilteredOut(row) || row.classList.contains('payments-page-hidden');
+};
+
 // ── Page Loader ──
 (() => {
     const skel = document.getElementById('payments-skel-container');
@@ -816,7 +831,7 @@ const showModalSkeleton = (listEl) => {
             document.querySelectorAll('.bulk-payment-cb:checked').forEach(cb => {
                 const row = cb.closest('.js-payment-filter-item');
                 if (!row) return;
-                if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+                if (window.isPaymentRowHidden(row)) return;
 
                 if (!checkedMap.has(cb.value)) {
                     checkedMap.set(cb.value, { cb, row });
@@ -941,7 +956,7 @@ const showModalSkeleton = (listEl) => {
             document.querySelectorAll('.bulk-payment-cb:checked').forEach(cb => {
                 const row = cb.closest('.js-payment-filter-item');
                 if (!row) return;
-                if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+                if (window.isPaymentRowHidden(row)) return;
 
                 if (!checkedMap.has(cb.value)) {
                     checkedMap.set(cb.value, { cb, row });
@@ -1382,6 +1397,8 @@ function pmtTab(btn, tab, skipAnimation = false) {
     const real = document.getElementById('payments-real-container');
 
     const applyTabFilter = () => {
+        if (window.paymentsPager) window.paymentsPager.reset();
+
         if (btn) {
             document.querySelectorAll('.payments-tab').forEach(function (b) { b.classList.remove('active'); });
             btn.classList.add('active');
@@ -1554,7 +1571,7 @@ document.addEventListener('change', (e) => {
 
         document.querySelectorAll('.bulk-payment-cb').forEach(cb => {
             const row = cb.closest('.js-payment-filter-item');
-            const isRowHidden = row && (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden'));
+            const isRowHidden = row && (window.isPaymentRowHidden(row));
 
             if (!isRowHidden && cb.value) {
                 visiblePaymentIds.add(cb.value);
@@ -1657,7 +1674,7 @@ document.addEventListener('change', (e) => {
             const checked = e.target.checked;
             document.querySelectorAll('.bulk-payment-cb').forEach(cb => {
                 const row = cb.closest('.js-payment-filter-item');
-                if (row && (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden'))) {
+                if (row && (window.isPaymentRowHidden(row))) {
                     return;
                 }
                 cb.checked = checked;
@@ -1671,7 +1688,7 @@ document.addEventListener('change', (e) => {
         floatingSelectAllBtn.addEventListener('click', () => {
             const visibleCbs = Array.from(document.querySelectorAll('.bulk-payment-cb')).filter(cb => {
                 const row = cb.closest('.js-payment-filter-item');
-                return row && row.dataset.statusHidden !== '1' && !row.classList.contains('payments-filter-hidden');
+                return row && !window.isPaymentRowHidden(row);
             });
 
             const allChecked = visibleCbs.length > 0 && visibleCbs.every(cb => cb.checked);
@@ -1748,7 +1765,7 @@ document.addEventListener('click', (e) => {
 
         // 2. Find and check all unpaid/pending rows matching this person's name
         document.querySelectorAll('.js-payment-filter-item').forEach(row => {
-            if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+            if (window.isPaymentRowHidden(row)) return;
 
             const counterpartyEl = row.querySelector('.payment-name');
             const rowPersonName = counterpartyEl ? counterpartyEl.textContent.trim().toLowerCase() : '';
@@ -1796,7 +1813,7 @@ document.addEventListener('click', (e) => {
         document.querySelectorAll('.bulk-payment-cb').forEach(cb => { cb.checked = false; });
 
         document.querySelectorAll('.js-payment-filter-item').forEach(row => {
-            if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+            if (window.isPaymentRowHidden(row)) return;
 
             const nameEl = row.querySelector('.payment-name');
             const rowName = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
@@ -1838,7 +1855,7 @@ document.addEventListener('click', (e) => {
         document.querySelectorAll('.bulk-payment-cb').forEach(cb => { cb.checked = false; });
 
         document.querySelectorAll('.js-payment-filter-item').forEach(row => {
-            if (row.dataset.statusHidden === '1' || row.classList.contains('payments-filter-hidden')) return;
+            if (window.isPaymentRowHidden(row)) return;
 
             const nameEl = row.querySelector('.payment-name');
             const rowName = nameEl ? nameEl.textContent.trim().toLowerCase() : '';
@@ -1878,8 +1895,7 @@ window.updatePaymentsVisibility = function() {
 
     let visibleCount = 0;
     visibleItems.forEach((item) => {
-        const isHidden = item.classList.contains('payments-filter-hidden') || item.style.display === 'none';
-        if (!isHidden) {
+        if (!window.isPaymentRowFilteredOut(item)) {
             visibleCount += 1;
         }
     });
@@ -1904,36 +1920,287 @@ window.updatePaymentsVisibility = function() {
         }
     });
 
-    // Dynamic pagination text & buttons update
-    const desktopPag = document.querySelector('.payments-pagination-wrap.desktop-pagination-only');
-    const mobilePag = document.querySelector('.payments-pagination-wrap.mobile-pagination-only');
-    const pageSize = 12;
-    const firstItem = visibleCount > 0 ? 1 : 0;
-    const lastItem = Math.min(visibleCount, pageSize);
-
-    if (desktopPag) {
-        // Update "Showing X to Y of Z results" text dynamically
-        const pElem = desktopPag.querySelector('nav p');
-        if (pElem) {
-            pElem.innerHTML = `Showing <span class="font-medium">${firstItem}</span> to <span class="font-medium">${lastItem}</span> of <span class="font-medium">${visibleCount}</span> results`;
-        }
-
-        // Hide entire desktop pagination block if visibleCount <= pageSize (<= 12, no extra pages)
-        if (visibleCount <= pageSize) {
-            desktopPag.style.setProperty('display', 'none', 'important');
-        } else {
-            desktopPag.style.removeProperty('display');
-        }
-    }
-
-    if (mobilePag) {
-        if (visibleCount <= pageSize) {
-            mobilePag.style.setProperty('display', 'none', 'important');
-        } else {
-            mobilePag.style.removeProperty('display');
-        }
-    }
+    // Slice whatever survived the tab/filter passes into pages. This runs last so
+    // it always pages the current result set, not the full ledger.
+    if (window.paymentsPager) window.paymentsPager.apply();
 };
+
+// ── Ledger pagination (client-side) ─────────────────────────────────────────
+// The ledger renders every record on purpose: the tab strip and the filter panel
+// narrow it in the browser with no round-trip. Paging therefore has to happen on
+// the same client-side result set, otherwise "Showing 1 to 12 of N" describes a
+// server page nobody is looking at while all N rows stay on screen.
+window.paymentsPager = (function () {
+    const LIST_SELECTOR = '#my-payments-list';
+    const ON_EACH_SIDE = 1;
+
+    let currentPage = 1;
+    let lastSignature = null;
+    let focusResolved = false;
+
+    // Trips link here with ?trip_id=/?trip_ids= to highlight their payment rows.
+    // Those rows can land on any page, so the first paging pass opens the page
+    // holding them instead of dropping the visitor on page 1 next to nothing.
+    const focusTripIds = () => {
+        const params = new URLSearchParams(window.location.search);
+        const many = String(params.get('trip_ids') || '').split(',');
+        const one = String(params.get('trip_id') || '');
+        return [...many, one].map((id) => id.trim()).filter(Boolean);
+    };
+
+    const pageSize = () => {
+        const shell = document.querySelector('[data-payments-pagination]');
+        const size = shell ? parseInt(shell.dataset.pageSize, 10) : NaN;
+        return Number.isFinite(size) && size > 0 ? size : 12;
+    };
+
+    // Desktop rows and mobile cards are two renderings of the same records in the
+    // same order, so both get paged with the same page number.
+    const collections = () => {
+        const scope = document.querySelector(LIST_SELECTOR);
+        if (!scope) return [];
+
+        return [
+            Array.from(scope.querySelectorAll('.payments-table-wrap tbody tr.js-payment-filter-item')),
+            Array.from(scope.querySelectorAll('.payments-mobile-list > .js-payment-filter-item')),
+        ]
+            .filter((rows) => rows.length > 0)
+            .map((rows) => ({
+                all: rows,
+                visible: rows.filter((row) => !window.isPaymentRowFilteredOut(row)),
+            }));
+    };
+
+    // Which records are in the result set right now. When this changes the user
+    // has re-filtered, so the pager goes back to page 1; turning a page leaves it
+    // untouched, which is what keeps page 2 from bouncing back to page 1.
+    const signatureOf = (groups) => groups
+        .map((group) => {
+            const positions = new Map(group.all.map((row, index) => [row, index]));
+            return group.visible.map((row) => positions.get(row)).join(',');
+        })
+        .join('|');
+
+    const range = (from, to) => {
+        const out = [];
+        for (let page = from; page <= to; page += 1) out.push(page);
+        return out;
+    };
+
+    // Same window Laravel's paginator builds with onEachSide(1), so the strip of
+    // page numbers looks exactly as it did when it was rendered server-side.
+    const pageElements = (current, last) => {
+        if (last < (ON_EACH_SIDE * 2) + 8) {
+            return range(1, last);
+        }
+        if (current <= (ON_EACH_SIDE * 2) + 3) {
+            return [...range(1, (ON_EACH_SIDE * 2) + 5), '...', ...range(last - 1, last)];
+        }
+        if (current > last - ((ON_EACH_SIDE * 2) + 3)) {
+            return [...range(1, 2), '...', ...range(last - ((ON_EACH_SIDE * 2) + 5), last)];
+        }
+        return [
+            ...range(1, 2),
+            '...',
+            ...range(current - ON_EACH_SIDE, current + ON_EACH_SIDE),
+            '...',
+            ...range(last - 1, last),
+        ];
+    };
+
+    // Phones get a tighter window than the desktop strip, which runs up to ten
+    // slots and spills off the screen. This one is always exactly MOBILE_SLOTS
+    // wide, so the row keeps the same size — and the same centring — on every
+    // page instead of shrinking to a stub at the ends.
+    const MOBILE_SLOTS = 7;
+
+    // Same breakpoint the ledger swaps its table for cards at, and the same one
+    // the stylesheet stacks this pager at.
+    const NARROW = '(max-width: 991px)';
+    const narrowQuery = typeof window.matchMedia === 'function' ? window.matchMedia(NARROW) : null;
+    const isNarrow = () => (narrowQuery ? narrowQuery.matches : false);
+
+    const pageWindow = (current, last) => (isNarrow() ? compactPageElements(current, last) : pageElements(current, last));
+
+    const compactPageElements = (current, last) => {
+        if (last <= MOBILE_SLOTS) return range(1, last);
+
+        if (current <= 4) {
+            return [...range(1, MOBILE_SLOTS - 2), '...', last];
+        }
+        if (current >= last - 3) {
+            return [1, '...', ...range(last - (MOBILE_SLOTS - 3), last)];
+        }
+        return [1, '...', current - 1, current, current + 1, '...', last];
+    };
+
+    const ARROW_LEFT ='<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>';
+    const ARROW_RIGHT = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>';
+
+    const link = (page, className, label, inner) => `<a href="#" data-payments-page="${page}" class="${className}" aria-label="${label}">${inner}</a>`;
+    const disabled = (className, label, inner) => `<span aria-disabled="true" aria-label="${label}"><span class="${className}" aria-hidden="true">${inner}</span></span>`;
+
+    // Markup matches Laravel's pagination::tailwind view exactly, because the app
+    // already styles that structure responsively: payments.css lays it out from
+    // 768px up (text left, numbers right) and app.css restacks and centres it
+    // below 640px. Anything else has to fight those rules.
+    const navHtml = (first, last, total, current, pages, totalPages) => {
+        const prevClasses = 'inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md leading-5 hover:text-gray-400 transition ease-in-out duration-150';
+        const prevDisabled = 'inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 cursor-not-allowed rounded-l-md leading-5';
+        const nextClasses = 'inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md leading-5 hover:text-gray-400 transition ease-in-out duration-150';
+        const nextDisabled = 'inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-500 bg-white border border-gray-300 cursor-not-allowed rounded-r-md leading-5';
+        const dots = 'inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-gray-700 bg-white border border-gray-300 cursor-default leading-5';
+        const activePage = 'inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 cursor-default leading-5';
+        const idlePage = 'inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-gray-700 bg-white border border-gray-300 leading-5 hover:text-gray-700 transition ease-in-out duration-150';
+
+        const numbers = pages.map((page) => {
+            if (page === '...') return `<span aria-disabled="true"><span class="${dots}">...</span></span>`;
+            if (page === current) return `<span aria-current="page"><span class="${activePage}">${page}</span></span>`;
+            return link(page, idlePage, `Go to page ${page}`, String(page));
+        }).join('');
+
+        // Laravel's first div holds a simple prev/next pair for narrow screens.
+        // Both stylesheets hide it and this pager never uses it, but it has to
+        // stay in the tree: every rule below keys off the layout div being
+        // :nth-child(2). Hidden inline so it can't paint an empty shadowed box.
+        return `<nav role="navigation" aria-label="Pagination Navigation">
+            <div class="flex gap-2 items-center justify-between sm:hidden" style="display: none;"></div>
+            <div class="hidden sm:flex-1 sm:flex sm:gap-2 sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700 leading-5">
+                        Showing
+                        <span class="font-medium">${first}</span>
+                        to
+                        <span class="font-medium">${last}</span>
+                        of
+                        <span class="font-medium">${total}</span>
+                        results
+                    </p>
+                </div>
+                <div>
+                    <span class="relative z-0 inline-flex rtl:flex-row-reverse shadow-sm rounded-md">
+                        ${current > 1
+                            ? link(current - 1, prevClasses, 'Previous', ARROW_LEFT)
+                            : disabled(prevDisabled, 'Previous', ARROW_LEFT)}
+                        ${numbers}
+                        ${current < totalPages
+                            ? link(current + 1, nextClasses, 'Next', ARROW_RIGHT)
+                            : disabled(nextDisabled, 'Next', ARROW_RIGHT)}
+                    </span>
+                </div>
+            </div>
+        </nav>`;
+    };
+
+    const renderShells = (total, current, totalPages, size) => {
+        const shells = document.querySelectorAll('[data-payments-pagination]');
+        if (shells.length === 0) return;
+
+        // One page's worth of results needs no pager, same as the server-rendered
+        // paginator which only drew itself when hasPages() was true.
+        if (totalPages <= 1) {
+            shells.forEach((shell) => {
+                shell.innerHTML = '';
+                shell.style.setProperty('display', 'none', 'important');
+            });
+            return;
+        }
+
+        const first = ((current - 1) * size) + 1;
+        const last = Math.min(current * size, total);
+
+        shells.forEach((shell) => {
+            shell.innerHTML = navHtml(first, last, total, current, pageWindow(current, totalPages), totalPages);
+            shell.style.removeProperty('display');
+        });
+    };
+
+    const apply = () => {
+        const groups = collections();
+        const size = pageSize();
+
+        if (groups.length === 0) {
+            renderShells(0, 1, 1, size);
+            return;
+        }
+
+        const signature = signatureOf(groups);
+        if (signature !== lastSignature) {
+            lastSignature = signature;
+            currentPage = 1;
+        }
+
+        const total = groups.reduce((max, group) => Math.max(max, group.visible.length), 0);
+        const totalPages = Math.max(1, Math.ceil(total / size));
+
+        if (!focusResolved) {
+            focusResolved = true;
+            const wanted = focusTripIds();
+            if (wanted.length > 0) {
+                const position = groups[0].visible.findIndex((row) => wanted.includes(String(row.dataset.tripId || '')));
+                if (position >= 0) currentPage = Math.floor(position / size) + 1;
+            }
+        }
+
+        currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+
+        const start = (currentPage - 1) * size;
+        const end = start + size;
+
+        groups.forEach((group) => {
+            group.all.forEach((row) => row.classList.remove('payments-page-hidden'));
+
+            group.visible.forEach((row, index) => {
+                const onPage = index >= start && index < end;
+                if (onPage) return;
+
+                row.classList.add('payments-page-hidden');
+
+                // A selection the user can no longer see must not ride along into a
+                // bulk action, so rows leaving the page give up their checkbox.
+                const checkbox = row.querySelector('.bulk-payment-cb');
+                if (checkbox && checkbox.checked) {
+                    checkbox.checked = false;
+                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        });
+
+        renderShells(total, currentPage, totalPages, size);
+    };
+
+    const goTo = (page) => {
+        currentPage = page;
+        apply();
+
+        // All the way up, not just to the ledger's top edge: the mobile header is
+        // sticky, so aligning the section with the viewport top parks the first
+        // rows underneath it and the page looks like it stopped short.
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-payments-page]');
+        if (!trigger) return;
+
+        event.preventDefault();
+        const page = parseInt(trigger.dataset.paymentsPage, 10);
+        if (Number.isFinite(page)) goTo(page);
+    });
+
+    // Crossing the breakpoint swaps the strip between the full and the compact
+    // window, so redraw rather than leave a phone showing the desktop run of
+    // numbers after a rotation.
+    const onBreakpoint = () => apply();
+    if (narrowQuery && narrowQuery.addEventListener) narrowQuery.addEventListener('change', onBreakpoint);
+    else if (narrowQuery && narrowQuery.addListener) narrowQuery.addListener(onBreakpoint);
+
+    // Picking a tab is a fresh look at the ledger, so it starts at page 1 even when
+    // the tab happens to hold the same records the previous one did.
+    const reset = () => { currentPage = 1; };
+
+    return { apply, goTo, reset, page: () => currentPage };
+})();
 
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {

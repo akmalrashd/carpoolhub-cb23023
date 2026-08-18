@@ -570,8 +570,8 @@
                                             </form>
                                         @endif
                                     @else
-                                        <a href="https://t.me/{{ $trip->driver->whatsapp_digits ?? '' }}" class="trip-action-btn is-filled telegram-btn" target="_blank" @if(!($trip->driver && $trip->driver->whatsapp_digits)) onclick="alert('Telegram contact not specified.'); return false;" @endif>
-                                            <i class="fa-brands fa-telegram-plane"></i> Telegram
+                                        <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-action-btn is-filled email-btn" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
+                                            <i class="fa-regular fa-envelope"></i> Email
                                         </a>
                                         <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-action-btn is-filled whatsapp-btn" target="_blank" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
                                             <i class="fa-brands fa-whatsapp"></i> WhatsApp
@@ -951,8 +951,8 @@
                                                 </form>
                                             @endif
                                         @else
-                                            <a href="https://t.me/{{ $trip->driver->whatsapp_digits ?? '' }}" class="trip-row-icon-btn is-filled telegram-btn" target="_blank" title="Contact Telegram" aria-label="Telegram" @if(!($trip->driver && $trip->driver->whatsapp_digits)) onclick="alert('Telegram contact not specified.'); return false;" @endif>
-                                                <i class="fa-brands fa-telegram-plane"></i>
+                                            <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-row-icon-btn is-filled email-btn" title="Email driver" aria-label="Email" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
+                                                <i class="fa-regular fa-envelope"></i>
                                             </a>
                                             <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-row-icon-btn is-filled whatsapp-btn" target="_blank" title="Contact WhatsApp" aria-label="WhatsApp" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
                                                 <i class="fa-brands fa-whatsapp"></i>
@@ -972,11 +972,15 @@
             </div>{{-- /relative-wrapper --}}
         </div>
 
-        @if($trips->hasPages())
-            <div class="pagination-wrap">
-                {{ $trips->appends(request()->query())->links() }}
-            </div>
-        @endif
+        {{--
+            Always emit the wrapper, even with nothing to page. Paging here is an
+            AJAX swap, and the swap needs a node that is always present to write
+            into — when this was wrapped in @if the pager simply stopped being
+            replaced, so it kept highlighting the page you had left and its links
+            kept pointing at the previous filter. `.pagination-wrap:empty` hides
+            it when there is only one page, hence no whitespace inside the tag.
+        --}}
+        <div class="pagination-wrap">@if($trips->hasPages()){{ $trips->onEachSide(1)->appends(request()->query())->links() }}@endif</div>
     </div>
 
 

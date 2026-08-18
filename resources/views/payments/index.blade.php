@@ -161,11 +161,9 @@
         $summaryDetailRows = $isAdmin ? $driverCollectionRows : $passengerPayRows;
         $summaryDetailTitle = $isAdmin ? 'All user payments' : 'Where you still need to pay';
         $summaryRecordCount = $isAdmin ? $allLiveCount : ($canReviewQueue ? $collectCount : $payCount);
-        $mainPaymentsPaginator = match ($activeDirection) {
-            'collect' => $driverPayments ?: $myPayments,
-            'pay' => $myPayments ?: $driverPayments,
-            default => ($myPayments?->hasPages() ? $myPayments : ($driverPayments?->hasPages() ? $driverPayments : ($myPayments ?: $driverPayments))),
-        };
+        // The ledger list is rendered in full and narrowed client-side, so its
+        // pager is client-side too; this is the page size it slices with.
+        $ledgerPageSize = 12;
         $displayPaymentsDesktop = $allLivePayments;
         $displayPaymentsMobile = $allLivePayments;
     @endphp
@@ -666,10 +664,10 @@
                                         <div style="min-width:0;flex:1;">
                                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
                                                 <h2 class="payment-route-title" style="margin-bottom:2px; font-size:14px;">{{ $counterparty }}</h2>
-                                                <span class="status-chip {{ $statusClass }}" style="font-size:10px; padding:4px 8px;">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $shortStatusText }}</span>
+                                                <span class="status-chip {{ $statusClass }}" style="font-size:10px; padding:4px 8px;">{{ $shortStatusText }}</span>
                                             </div>
                                             <div style="font-size:12px; color:var(--muted); font-weight:600; margin-bottom:4px;">
-                                                <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}" style="color:#b45309;font-size:10px;margin-right:2px;"></i> {{ $perspectiveLabel }} &middot; <span style="font-family:var(--font-mono,monospace);"><i class="fa-solid fa-hashtag" style="color:#c2410c;font-size:10px;margin-right:2px;"></i>{{ $tripRef }}</span>
+                                                <i class="{{ $isDriverQueueRecord ? 'fa-solid fa-sack-dollar' : 'fa-solid fa-credit-card' }}" style="color:#b45309;font-size:10px;margin-right:2px;"></i> {{ $perspectiveLabel }} <span style="font-family:var(--font-mono,monospace);"><i class="fa-solid fa-hashtag" style="color:#c2410c;font-size:10px;margin-right:2px;"></i>{{ $tripRef }}</span>
                                             </div>
                                             <div style="font-size:13px; color:var(--ink); font-weight:600; word-break:break-word; margin-bottom:2px; line-height:1.3;">
                                                 {{ $routeLabel }}
@@ -1035,7 +1033,7 @@
                                         data-passenger-count="{{ count($participantsPayload) }}"
                                     ><span>View</span></button>
                                 </td>
-                                <td class="col-status"><span class="status-chip {{ $statusClass }}">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $shortStatusText }}</span></td>
+                                <td class="col-status"><span class="status-chip {{ $statusClass }}">{{ $shortStatusText }}</span></td>
                                 <td class="col-amount right">
                                     <span class="payment-table-amount">{{ $amountSign }}RM {{ number_format((float) $payment->amount_due, 2) }}</span>
                                     @if($fareBreakdown['has_extra'])
@@ -1165,16 +1163,20 @@
                 </div>
                 @endif
 
-                @if($mainPaymentsPaginator && $mainPaymentsPaginator->hasPages())
-                {{-- Desktop Pagination: 100% original layout restored --}}
-                <div class="payments-pagination-wrap desktop-pagination-only">
-                    {{ $mainPaymentsPaginator->appends(request()->query())->links() }}
-                </div>
-
-                {{-- Mobile Pagination: numbered pages (same pattern as desktop) --}}
-                <div class="payments-pagination-wrap mobile-pagination-only" style="margin-top: 32px !important; text-align: center;">
-                    {{ $mainPaymentsPaginator->onEachSide(1)->appends(request()->query())->links('payments.mobile-pagination') }}
-                </div>
+                {{--
+                    Pagination shells. The ledger deliberately renders every record so the
+                    tab strip and the filter panel can narrow the list without a round-trip,
+                    so paging has to run on that same client-side result — a server paginator
+                    here would report "1 to 12" while the page still showed every row and its
+                    page links would just re-render the identical list. payments-index.js
+                    fills these shells (same markup/classes as before) and slices the rows
+                    that survived the tab + filter passes into pages of {{ $ledgerPageSize }}.
+                --}}
+                @if($displayPaymentsDesktop->isNotEmpty())
+                <div class="payments-pagination-wrap"
+                     data-payments-pagination
+                     data-page-size="{{ $ledgerPageSize }}"
+                     style="display:none;"></div>
                 @endif
                 
                 <div class="payments-filter-empty" data-filter-empty>
@@ -1505,7 +1507,7 @@
                                         data-passenger-count="{{ count($participantsPayload) }}"
                                     ><i class="fa-regular fa-eye"></i><span>See Details</span></button>
                                 </div>
-                                <span class="status-chip {{ $statusClass }}">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $statusText }}</span>
+                                <span class="status-chip {{ $statusClass }}">{{ $statusText }}</span>
                             </div>
                             <div class="payment-mobile-grid">
                                 <div class="payment-mobile-line">
@@ -1692,7 +1694,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}</td>
-                                <td><span class="status-chip {{ $statusClass }}">@if($payment->payment_status === 'paid')<i class="fa-solid fa-check" style="font-size:10px;"></i>@endif{{ $statusText }}</span></td>
+                                <td><span class="status-chip {{ $statusClass }}">{{ $statusText }}</span></td>
                                 <td class="right">
                                     <div class="queue-actions">
                                         <div class="queue-actions-main">

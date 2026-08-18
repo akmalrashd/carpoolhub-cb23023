@@ -243,12 +243,28 @@ class PaymentService
         ];
     }
 
-    public function getAllPaymentsForSummary(User $user): \Illuminate\Database\Eloquent\Collection
+    /**
+     * The full set the ledger renders. It honours the filter form (dates,
+     * visibility, search) but deliberately not payment_filter/direction — those
+     * are the tab strip, which switches client-side without a reload, so the
+     * rows behind every tab have to stay in the response. Same split
+     * indexCountsForUser() makes, which is why the tab counts line up.
+     */
+    public function getAllPaymentsForSummary(User $user, array $filters = []): \Illuminate\Database\Eloquent\Collection
     {
+        $listFilters = $filters;
+        unset($listFilters['payment_filter'], $listFilters['direction']);
+
         return TripPayment::query()
+            ->tap(fn ($query) => $this->applyIndexFilters($query, $listFilters))
+            // This collection backs the rendered ledger, not just the totals, so it
+            // eager-loads everything a row draws (paired trip, participants, custom
+            // stop fees). Without them each row lazy-loaded its own relations.
             ->with([
-                'trip.savedRoute',
+                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip',
                 'trip.driver' => fn ($q) => $q->withoutHeavyMedia(),
+                'trip.participants.user' => fn ($q) => $q->withoutHeavyMedia(),
+                'trip.passengerRoutePoints.user' => fn ($q) => $q->withoutHeavyMedia(),
                 'user' => fn ($q) => $q->withoutHeavyMedia(),
             ])
             ->whereHas('trip', fn ($tripQuery) => $this->applyPayableTripScope($tripQuery))

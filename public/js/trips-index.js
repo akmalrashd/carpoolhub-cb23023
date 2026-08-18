@@ -90,16 +90,29 @@
                         currentTabsRow.innerHTML = newTabsRow.innerHTML;
                     }
 
+                    // The pager lives outside #trips-real-container, so swapping
+                    // the list alone left the old one in place: it kept the
+                    // previous page highlighted and its links still carried the
+                    // previous filter, which is why clicking through pages
+                    // wandered off. Swap it with the list.
+                    const newPager = doc.querySelector('.pagination-wrap');
+                    const currentPager = document.querySelector('.pagination-wrap');
+                    if (newPager && currentPager) {
+                        currentPager.innerHTML = newPager.innerHTML;
+                    }
+
                     if (newReal && currentReal) {
                         currentReal.innerHTML = newReal.innerHTML;
                         history.pushState(null, '', url);
-                        
-                        // Re-bind pagination clicks & bulk select
-                        bindPaginationEvents();
+
                         if (typeof window.initTripsBulkSelect === 'function') {
                             window.initTripsBulkSelect();
                         }
                     }
+                    // A new page starts at the top of the list, same as the
+                    // payments ledger — otherwise you land mid-list on rows you
+                    // have not seen.
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 } catch (_e) {
                     // Fallback to normal navigation
                     window.location.href = url;
@@ -108,17 +121,18 @@
                 }
             };
 
-            const bindPaginationEvents = () => {
-                document.querySelectorAll('.pagination-wrap a').forEach((link) => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        fetchPage(link.href);
-                    });
-                });
-            };
-
-            // Bind click events on chips, tabs, and pagination links via event delegation/listeners
+            // Chips, tabs and page links are all handled by one delegated
+            // listener. Binding the page links individually meant every AJAX
+            // swap added another listener to them, so a single click fired as
+            // many fetches as pages you had already visited.
             document.addEventListener('click', (e) => {
+                const pageLink = e.target.closest('.pagination-wrap a');
+                if (pageLink) {
+                    e.preventDefault();
+                    fetchPage(pageLink.href);
+                    return;
+                }
+
                 const tab = e.target.closest('.tab[data-tab]');
                 if (tab) {
                     e.preventDefault();
@@ -163,8 +177,6 @@
                 });
             }
 
-            // Bind first load
-            bindPaginationEvents();
         })();
 
 

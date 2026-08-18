@@ -353,6 +353,7 @@
             cursor: pointer;
         }
         .payments-filter-hidden,
+        .payments-page-hidden,
         [data-status-hidden="1"],
         tr[data-status-hidden="1"],
         article[data-status-hidden="1"] {
@@ -3712,7 +3713,12 @@
         @media (max-width: 767px) {
             .payments-page {
                 max-width: 100%;
-                padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 92px);
+                /* No side padding here: .main-content (shell.css) already gives
+                   every page a 14px gutter. Adding 14px more on top of that
+                   doubled the payments page's side margin to 28px, wider than
+                   every other mobile page (trips included, which relies on the
+                   shell's 14px alone). */
+                padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + 92px);
                 gap: 12px;
             }
             .payments-page-header {
@@ -4645,3 +4651,56 @@
                 font-style: italic !important;
             }
         }
+
+/* ── Ledger pagination (client-side pager) ─────────────────────────────── */
+/* The ledger card clips its overflow, so a page-number group sitting
+   flush against the right edge lost its last button's border. */
+.payments-pagination-wrap[data-payments-pagination] {
+    padding-right: 4px;
+    margin-top: 28px;
+}
+
+/* The "Showing 1 to 12 of 114 results" line reads as a summary of the
+   list, so it carries the ink colour rather than the muted grey
+   app.css gives paginator text, with the counts bolder still. */
+.payments-pagination-wrap[data-payments-pagination] nav p {
+    color: #1e293b !important;
+}
+.payments-pagination-wrap[data-payments-pagination] nav p span,
+.payments-pagination-wrap[data-payments-pagination] nav p span.font-medium {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+}
+
+/* Below 992px the ledger swaps its table for cards, so its pager
+   stacks at the same point: the "Showing" line over a centred,
+   scrollable strip. Left on one row it outgrew the card and the
+   card's overflow:hidden cut the last button off. This mirrors what
+   app.css already does for every other paginator under 640px. */
+@media (max-width: 991px) {
+    .payments-pagination-wrap[data-payments-pagination] nav > div:nth-child(2) {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+    }
+    .payments-pagination-wrap[data-payments-pagination] nav > div:nth-child(2) > div:first-child {
+        width: 100% !important;
+    }
+    .payments-pagination-wrap[data-payments-pagination] nav > div:nth-child(2) > div:first-child p {
+        margin: 0 !important;
+        text-align: center !important;
+        white-space: normal !important;
+    }
+    .payments-pagination-wrap[data-payments-pagination] nav > div:nth-child(2) > div:last-child {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        padding: 2px 2px 4px !important;
+    }
+    .payments-pagination-wrap[data-payments-pagination] nav > div:nth-child(2) > div:last-child > span {
+        flex-shrink: 0 !important;
+    }
+}

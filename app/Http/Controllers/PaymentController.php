@@ -68,8 +68,16 @@ class PaymentController extends Controller
         $driverPayments = $showCollectRecords
             ? $this->paymentService->paginateForDriver($request->user(), 12, $filters, $tripIds)
             : null;
-        $reminderState = $canReviewQueue && $driverPayments
-            ? $this->paymentService->reminderStateForPayments($driverPayments->getCollection())
+        $allPaymentsUnfiltered = $this->paymentService->getAllPaymentsForSummary($request->user(), $filters);
+
+        // The ledger renders every record and pages it in the browser, so reminder
+        // cooldowns have to cover the whole set. Reading them off the driver
+        // paginator alone left every row past its first page claiming a clear
+        // cooldown, so "Notify" looked available on payments already reminded.
+        $reminderState = $canReviewQueue
+            ? $this->paymentService->reminderStateForPayments(
+                $allPaymentsUnfiltered->merge($driverPayments?->getCollection() ?? collect())
+            )
             : [];
         $summary = $this->paymentService->summarizeForUser(
             $request->user(),
@@ -82,8 +90,6 @@ class PaymentController extends Controller
         $passengerDebtSummary = $canReviewQueue
             ? $this->paymentService->summarizeOutstandingByPassenger($request->user(), $tripIds)
             : null;
-
-        $allPaymentsUnfiltered = $this->paymentService->getAllPaymentsForSummary($request->user());
 
         $initialLoad = false;
 

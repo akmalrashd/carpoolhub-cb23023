@@ -1758,6 +1758,37 @@
             font-family: var(--font-display), var(--font-ui), sans-serif !important;
         }
 
+        /* Below 992px the list switches to cards, so the pager stacks with it:
+           the "Showing" line over a centred, scrollable strip. Same treatment
+           the payments ledger uses, and what app.css already does under 640px. */
+        @media (max-width: 991px) {
+            .pagination-wrap nav > div:nth-child(2) {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                justify-content: flex-start !important;
+                gap: 8px !important;
+            }
+            .pagination-wrap nav > div:nth-child(2) > div:first-child {
+                width: 100% !important;
+            }
+            .pagination-wrap nav > div:nth-child(2) > div:first-child p {
+                margin: 0 !important;
+                text-align: center !important;
+                white-space: normal !important;
+            }
+            .pagination-wrap nav > div:nth-child(2) > div:last-child {
+                display: flex !important;
+                justify-content: center !important;
+                width: 100% !important;
+                overflow-x: auto !important;
+                padding: 2px 2px 4px !important;
+            }
+            .pagination-wrap nav > div:nth-child(2) > div:last-child > span {
+                flex-shrink: 0 !important;
+            }
+        }
+
         /* ── Trip detail modal ── */
         .trip-modal {
             position: fixed;
@@ -2471,9 +2502,10 @@
 .is-filled.whatsapp-btn { background: #25D366 !important; }
 .is-filled.whatsapp-btn:hover { background: #128C7E !important; }
 
-/* Telegram: Blue */
-.is-filled.telegram-btn { background: #229ED9 !important; }
-.is-filled.telegram-btn:hover { background: #0088cc !important; }
+/* Email: Indigo — the Telegram button it replaced was a blue that read as a
+   second Edit; indigo keeps it clearly its own action next to WhatsApp green. */
+.is-filled.email-btn { background: #6366f1 !important; }
+.is-filled.email-btn:hover { background: #4f46e5 !important; }
 
 .trip-actions-filled {
     display: flex;
