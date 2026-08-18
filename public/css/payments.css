@@ -4480,6 +4480,9 @@
 
         /* ── Mobile Optimization for Receipt Modal ── */
         @media (max-width: 600px) {
+            #paymentReceiptModal .trip-payment-review-card {
+                border-radius: 24px 24px 0 0 !important;
+            }
             #paymentReceiptModal .trip-receipt-card {
                 padding: 16px !important;
                 gap: 12px !important;
