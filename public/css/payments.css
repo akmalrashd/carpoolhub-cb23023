@@ -4328,7 +4328,7 @@
             margin-top: 2px !important;
         }
         #paymentReceiptModal .trip-payment-review-list {
-            padding: 14px 0 0 0 !important;
+            padding: 14px 0 24px 0 !important;
             max-height: none !important;
             overflow-y: visible !important;
         }
@@ -4443,7 +4443,7 @@
             word-break: break-word !important;
         }
         .trip-receipt-footer-actions {
-            margin-top: 4px;
+            margin-top: 14px;
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -4524,7 +4524,7 @@
                 margin-top: 2px !important;
             }
             #paymentReceiptModal .trip-receipt-footer-actions {
-                margin-top: 8px !important;
+                margin-top: 16px !important;
             }
             #paymentReceiptModal .btn-receipt-print {
                 width: 100% !important;
