@@ -1844,8 +1844,8 @@
         <div class="trip-payment-review-card" role="dialog" aria-modal="true" aria-labelledby="paymentReceiptTitle">
             <div class="trip-payment-review-head">
                 <div>
-                    <h3 class="trip-payment-review-title" id="paymentReceiptTitle">Payment receipt</h3>
-                    <p class="trip-payment-review-sub">View your confirmed payment record.</p>
+                    <h3 class="trip-payment-review-title" id="paymentReceiptTitle">Payment receipts</h3>
+                    <p class="trip-payment-review-sub" id="paymentReceiptSub">View your confirmed payment record.</p>
                 </div>
                 <button type="button" class="trip-payment-review-close" id="paymentReceiptClose" aria-label="Close">
                     <i class="fa-solid fa-xmark"></i>
@@ -1876,6 +1876,9 @@
                     <div class="trip-receipt-footer-actions">
                         <button type="button" class="btn-receipt-print" onclick="window.print()">
                             <i class="fa-solid fa-print"></i> Print / Save PDF
+                        </button>
+                        <button type="button" class="btn-receipt-back" id="paymentReceiptBack">
+                            <i class="fa-solid fa-bars"></i> Back
                         </button>
                     </div>
                 </article>

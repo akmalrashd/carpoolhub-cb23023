@@ -291,6 +291,7 @@ const showModalSkeleton = (listEl) => {
     }
 
     const closeBtn = document.getElementById('paymentReceiptClose');
+    const backBtn = document.getElementById('paymentReceiptBack');
     const breakdownRow = document.getElementById('paymentReceiptBreakdownRow');
     const setText = (id, value) => {
         const el = document.getElementById(id);
@@ -302,6 +303,8 @@ const showModalSkeleton = (listEl) => {
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
     };
+
+    if (backBtn) backBtn.addEventListener('click', close);
 
     document.addEventListener('click', (event) => {
         const button = event.target instanceof Element
@@ -320,6 +323,7 @@ const showModalSkeleton = (listEl) => {
             : `Receipt ${receiptNo}`;
 
         setText('paymentReceiptNo', receiptSubtitle);
+        setText('paymentReceiptSub', button.dataset.route || 'View your confirmed payment record.');
         setText('paymentReceiptAmount', button.dataset.amount);
         setText('paymentReceiptPassenger', button.dataset.passenger);
         setText('paymentReceiptDriver', button.dataset.driver);
