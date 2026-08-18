@@ -3467,44 +3467,44 @@
             .payments-pagination-wrap {
                 margin-top: 16px;
                 padding: 4px 0;
-                text-align: left !important;
+                width: 100% !important;
+                display: block !important;
+                box-sizing: border-box !important;
             }
 
-            /* Desktop Pagination: Single horizontal row with "Showing..." on left and buttons on right */
+            /* Desktop Pagination: Match Trips layout (Showing text on far left, buttons on far right) */
             @media (min-width: 768px) {
                 .payments-pagination-wrap nav {
-                    display: flex !important;
-                    flex-direction: row !important;
-                    flex-wrap: nowrap !important;
-                    align-items: center !important;
-                    justify-content: space-between !important;
+                    display: block !important;
                     width: 100% !important;
+                    box-sizing: border-box !important;
                 }
 
                 /* Hide mobile simple prev/next links container inside nav */
-                .payments-pagination-wrap nav > div:first-child:not(:last-child) {
+                .payments-pagination-wrap nav > div:first-child:not(:only-child) {
                     display: none !important;
                 }
 
-                /* Desktop container inside nav */
-                .payments-pagination-wrap nav > div:last-child {
+                /* Desktop flex container inside nav */
+                .payments-pagination-wrap nav > div:nth-child(2),
+                .payments-pagination-wrap nav > div.sm\:flex-1 {
                     display: flex !important;
                     flex-direction: row !important;
                     flex-wrap: nowrap !important;
                     align-items: center !important;
                     justify-content: space-between !important;
                     width: 100% !important;
-                    flex: 1 1 auto !important;
+                    box-sizing: border-box !important;
                 }
 
                 /* Left side: "Showing X to Y of Z results" text wrapper */
-                .payments-pagination-wrap nav > div:last-child > div:first-child {
-                    display: flex !important;
-                    align-items: center !important;
+                .payments-pagination-wrap nav > div:nth-child(2) > div:first-child,
+                .payments-pagination-wrap nav > div.sm\:flex-1 > div:first-child {
+                    display: block !important;
+                    flex: 0 0 auto !important;
                     margin: 0 !important;
                     padding: 0 !important;
                     width: auto !important;
-                    flex: 0 0 auto !important;
                 }
 
                 .payments-pagination-wrap nav p {
@@ -3515,13 +3515,14 @@
                 }
 
                 /* Right side: Page number buttons container */
-                .payments-pagination-wrap nav > div:last-child > div:last-child {
+                .payments-pagination-wrap nav > div:nth-child(2) > div:last-child,
+                .payments-pagination-wrap nav > div.sm\:flex-1 > div:last-child {
                     display: flex !important;
                     align-items: center !important;
+                    flex: 0 0 auto !important;
                     margin: 0 !important;
                     padding: 0 !important;
                     width: auto !important;
-                    flex: 0 0 auto !important;
                 }
 
                 .payments-pagination-wrap nav span.relative.z-0 {
