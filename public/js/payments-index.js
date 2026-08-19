@@ -2189,10 +2189,15 @@ window.paymentsPager = (function () {
         currentPage = page;
         apply();
 
-        // All the way up, not just to the ledger's top edge: the mobile header is
-        // sticky, so aligning the section with the viewport top parks the first
-        // rows underneath it and the page looks like it stopped short.
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Land just below the summary cards, at the ledger's top edge, not all the
+        // way up at the page top. #my-payments-list carries scroll-margin-top so it
+        // still clears the sticky mobile header instead of hiding under it.
+        const target = document.getElementById('my-payments-list');
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     document.addEventListener('click', (event) => {

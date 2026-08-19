@@ -43,11 +43,19 @@
             box-shadow: var(--shadow-1);
         }
 
-        /* ── Page header ── */
+        /* ── Page header ──
+           Title/subtitle and the Filter/New Trip buttons share one row,
+           vertically centered against each other; the status tabs sit on
+           their own row below. Previously the tabs lived inside the same
+           flex item as the title, which made that item tall enough to push
+           the buttons (aligned to its bottom) down below the tabs instead
+           of beside the title. */
         .trips-page-header {
             padding: 10px var(--page-gutter, 28px) 20px;
+        }
+        .trips-page-header-top {
             display: flex;
-            align-items: flex-end;
+            align-items: center;
             justify-content: space-between;
             gap: 12px;
             flex-wrap: wrap;
@@ -55,6 +63,22 @@
         .trips-page-header-left {
             display: grid;
             gap: 2px;
+        }
+        /* Filter stays where it always was — beside the tabs — while New
+           Trip is the one that moved up next to the title. The gap above
+           was .tabs' own margin-top:18px; moved onto this row instead so it
+           does not also push .tabs down out of line with the Filter button
+           it now shares a flex row with. */
+        .trips-tabs-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+        .trips-tabs-row .tabs {
+            margin-top: 0;
         }
         .trips-eyebrow {
             font-size: 11px;
@@ -2190,6 +2214,7 @@
                 grid-template-columns: minmax(0, 1fr) auto auto;
                 gap: 8px;
                 align-items: center;
+                margin-top: 8px;
             }
             .trip-detail-line {
                 display: inline-flex;
@@ -2205,8 +2230,8 @@
             }
             .trip-detail-value {
                 color: var(--muted);
-                font-size: 11px;
-                font-weight: 800;
+                font-size: 12px;
+                font-weight: 500;
                 text-align: left;
                 white-space: nowrap;
             }

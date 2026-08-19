@@ -27,7 +27,7 @@
 
         .pg-header {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
             gap: 12px;
             flex-wrap: wrap;
@@ -35,11 +35,31 @@
         }
 
         .pg-header-actions {
-            display: inline-flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
             flex-shrink: 0;
+        }
+
+        /* ── Header action buttons ── */
+        .notif-clear-read-btn {
+            border-color: var(--danger) !important;
+            background: var(--danger) !important;
+            color: #fff !important;
+        }
+        .notif-clear-read-btn:hover {
+            background: var(--danger-ink) !important;
+            border-color: var(--danger-ink) !important;
+        }
+        .notif-mark-all-btn {
+            border-color: #16a34a !important;
+            background: #16a34a !important;
+            color: #fff !important;
+        }
+        .notif-mark-all-btn:hover {
+            background: #15803d !important;
+            border-color: #15803d !important;
         }
 
         /* ── Unread badge ── */

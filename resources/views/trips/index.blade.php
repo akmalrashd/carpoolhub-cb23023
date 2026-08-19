@@ -23,10 +23,22 @@
 
     {{-- ── Page header ── --}}
     <div class="trips-page-header">
-        <div class="trips-page-header-left">
-            <p class="trips-eyebrow">{{ $isAdmin ? 'Admin trips' : 'My trips' }}</p>
-            <h1 class="trips-h1">{{ $isAdmin ? 'All user trips' : 'Your trips' }}</h1>
-            <p class="trips-sub">{{ $isAdmin ? 'Review and manage every trip created by users.' : "All trips you've driven or joined." }}</p>
+        <div class="trips-page-header-top">
+            <div class="trips-page-header-left">
+                <p class="trips-eyebrow">{{ $isAdmin ? 'Admin trips' : 'My trips' }}</p>
+                <h1 class="trips-h1">{{ $isAdmin ? 'All user trips' : 'Your trips' }}</h1>
+                <p class="trips-sub">{{ $isAdmin ? 'Review and manage every trip created by users.' : "All trips you've driven or joined." }}</p>
+            </div>
+            <div class="trips-header-actions">
+                @if(in_array(auth()->user()->role, ['admin', 'driver'], true))
+                    <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-plus"></i>
+                        New Trip
+                    </a>
+                @endif
+            </div>
+        </div>
+        <div class="trips-tabs-row">
             <div class="tabs">
                 <span class="tab {{ $activeChip === 'all' ? 'active' : '' }}" data-tab="all">All &middot; {{ $allCount }}</span>
                 <span class="tab {{ $activeChip === 'upcoming' ? 'active' : '' }}" data-tab="upcoming">Upcoming &middot; {{ $upcomingCount }}</span>
@@ -34,18 +46,10 @@
                 <span class="tab {{ $activeChip === 'draft' ? 'active' : '' }}" data-tab="draft">Drafts &middot; {{ $draftCount }}</span>
                 <span class="tab {{ $activeChip === 'cancelled' ? 'active' : '' }}" data-tab="cancelled">Cancelled &middot; {{ $cancelledCount }}</span>
             </div>
-        </div>
-        <div class="trips-header-actions">
             <button type="button" class="btn btn-ghost btn-sm" id="tripsFilterBtn" onclick="(function(){var p=document.getElementById('tripsFilterPanel');p.style.display=p.offsetParent===null?'grid':'none';})()">
                 <i class="fa-solid fa-sliders"></i>
                 Filter
             </button>
-            @if(in_array(auth()->user()->role, ['admin', 'driver'], true))
-                <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fa-solid fa-plus"></i>
-                    New Trip
-                </a>
-            @endif
         </div>
     </div>
 
@@ -496,10 +500,6 @@
                                             <i class="{{ $visibilityIcon }}"></i>
                                             <span>{{ $visibilityText }}</span>
                                         </span>
-                                        <span class="trip-meta-inline-item" style="font-family:var(--font-mono,monospace);color:var(--muted-2);">
-                                            <i class="fa-solid fa-hashtag"></i>
-                                            <span>{{ $tripRef }}</span>
-                                        </span>
                                     </div>
                                     <button
                                         type="button"
@@ -552,8 +552,8 @@
 
                             <div class="trip-bottom-row">
                                 <div class="trip-fare-card">
-                                    <span class="trip-fare-label">{{ $fareLabel }}</span>
-                                    <span class="trip-fare-value">RM {{ number_format($displayFare, 2) }}</span>
+                                    <span class="trip-fare-label">Trip ID</span>
+                                    <span class="trip-fare-value">{{ $tripRef }}</span>
                                 </div>
                                 <div class="trip-actions trip-actions-filled">
                                     @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)

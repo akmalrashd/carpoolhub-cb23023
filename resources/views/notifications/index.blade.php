@@ -17,15 +17,15 @@
                     <i class="fa-solid fa-bell"></i> {{ $unreadCount }} Unread
                 </span>
             @endif
-            <button type="button" class="btn btn-ghost btn-sm" id="notif-clear-read-btn"
+            <button type="button" class="btn btn-ghost btn-sm notif-clear-read-btn" id="notif-clear-read-btn"
                     data-url="{{ route('notifications.clear-read') }}"
-                    title="Delete all read notifications">
-                <i class="fa-solid fa-trash-can"></i> Clear read
+                    title="Tidy up — removes notifications you've already read">
+                <i class="fa-solid fa-broom"></i> Tidy up
             </button>
             <form method="POST" action="{{ route('notifications.read-all') }}" style="margin:0;" id="notif-mark-all-form">
                 @csrf
                 @method('PATCH')
-                <button type="button" class="btn btn-ghost btn-sm" id="notif-mark-all-btn">
+                <button type="button" class="btn btn-ghost btn-sm notif-mark-all-btn" id="notif-mark-all-btn">
                     <i class="fa-solid fa-check-double"></i> Mark all as read
                 </button>
             </form>
@@ -143,10 +143,10 @@
             </div>
 
         @empty
-            <div class="notif-empty">
-                <div class="notif-empty-icon"><i class="fa-regular fa-bell-slash"></i></div>
-                <p class="notif-empty-text">No notifications yet</p>
-                <p class="notif-empty-sub">You're all caught up — check back later.</p>
+            <div class="ch-empty-state-card">
+                <div class="ch-empty-state-icon-box"><i class="fa-regular fa-bell-slash"></i></div>
+                <h3 class="ch-empty-state-title">No notifications yet</h3>
+                <p class="ch-empty-state-body">You're all caught up — check back later.</p>
             </div>
         @endforelse
 
@@ -159,6 +159,7 @@
 
     </div>
 
+<script>window.CH_NOTIFICATIONS = { csrf: @json(csrf_token()) };</script>
 <script src="{{ asset('js/notifications.js') }}?v={{ filemtime(public_path('js/notifications.js')) }}"></script>
 
 @endsection

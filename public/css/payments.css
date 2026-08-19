@@ -37,6 +37,9 @@
         #archived-queue {
             scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 120px);
         }
+        #my-payments-list {
+            scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 96px);
+        }
         .payments-title {
             margin: 0;
             font-family: Poppins, sans-serif;
@@ -1400,6 +1403,9 @@
             }
             #archived-queue {
                 scroll-margin-top: 96px;
+            }
+            #my-payments-list {
+                scroll-margin-top: 76px;
             }
             .payments-card { padding: 16px; }
             .payments-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

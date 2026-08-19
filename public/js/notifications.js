@@ -1,6 +1,13 @@
 /* Extracted from resources/views/notifications/index.blade.php — cacheable. */
 (function () {
-    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    // This page never had a <meta name="csrf-token"> tag — that element does
+    // not exist anywhere in the layout, only an inline `csrfToken` JS var — so
+    // every fetch below was sending an empty X-CSRF-TOKEN, failing Laravel's
+    // CSRF check with a silent 419 that the `if (!r.ok) return;` guards below
+    // swallowed without any visible error. All four actions on this page were
+    // silently doing nothing. Matches the window.CH_TRIPS.csrf / window.
+    // CH_PAYMENTS.csrf pattern those pages already use correctly.
+    var csrf = (window.CH_NOTIFICATIONS || {}).csrf || '';
 
     function fadeRemove(row) {
         row.style.transition = 'opacity .2s, max-height .25s';
@@ -71,6 +78,10 @@
     var clearBtn = document.getElementById('notif-clear-read-btn');
     if (clearBtn) {
         clearBtn.addEventListener('click', function () {
+            if (!document.querySelector('.notif-row.is-read')) {
+                if (window.showToast) window.showToast('No read notifications to tidy up.', 'info');
+                return;
+            }
             fetch(clearBtn.dataset.url, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
@@ -89,6 +100,10 @@
     var markAllBtn = document.getElementById('notif-mark-all-btn');
     if (markAllBtn) {
         markAllBtn.addEventListener('click', function () {
+            if (!document.querySelector('.notif-row.is-unread')) {
+                if (window.showToast) window.showToast('No unread notifications.', 'info');
+                return;
+            }
             var form = document.getElementById('notif-mark-all-form');
             fetch(form.action, {
                 method: 'PATCH',
