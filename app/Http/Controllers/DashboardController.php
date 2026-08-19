@@ -94,6 +94,8 @@ class DashboardController extends Controller
 
         $stats['week_start'] = $weekStart->toDateString();
         $stats['week_end'] = $weekEnd->toDateString();
+        $stats['month_start'] = $monthStart->toDateString();
+        $stats['month_end'] = $monthEnd->toDateString();
 
         $upcomingCreatedTrips = Trip::query()
             ->with(['savedRoute', 'participants'])

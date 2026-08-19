@@ -145,77 +145,44 @@
 
         /* ── Navigation Tabs ── */
         .conn-nav-tabs {
-            display: flex;
-            width: 100%;
+            display: inline-flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            width: fit-content;
             max-width: 100%;
-            gap: 6px;
             background: var(--surface-2);
             border: 1px solid var(--hairline);
-            border-radius: 14px;
-            padding: 5px;
+            border-radius: 10px;
+            padding: 4px;
             box-sizing: border-box;
-            overflow-x: auto;
-            scrollbar-width: none;
         }
-        .conn-nav-tabs::-webkit-scrollbar { display: none; }
 
         .conn-tab-btn {
-            flex: 1 0 auto;
-            min-width: 0;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 9.5px 14px;
-            border-radius: 10px;
+            gap: 5px;
             border: 1px solid transparent;
+            border-radius: 8px;
             background: transparent;
             color: var(--muted);
-            font-size: 12.5px;
+            padding: 8px 14px;
+            font-size: 12px;
             font-weight: 800;
             font-family: var(--font-ui), sans-serif;
             cursor: pointer;
             white-space: nowrap;
-            transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
-            text-align: center;
-        }
-        @media (max-width: 520px) {
-            .conn-tab-btn {
-                font-size: 11.5px;
-                padding: 8.5px 8px;
-                gap: 5px;
-            }
+            transition: background .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease;
         }
         .conn-tab-btn:hover {
-            color: var(--ink);
+            background: var(--canvas);
+            border-color: var(--ch-yellow-line);
+            color: var(--ink-2);
         }
         .conn-tab-btn.is-active {
-            background: #ffffff;
+            background: var(--surface);
             border-color: var(--hairline);
             color: var(--ink);
             box-shadow: var(--shadow-1);
-            font-weight: 800;
-        }
-        .tab-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 6px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 800;
-            background: var(--canvas);
-            color: var(--muted);
-        }
-        .conn-tab-btn.is-active .tab-badge {
-            background: var(--ch-yellow-tint);
-            color: var(--warning-ink);
-        }
-        .tab-badge.highlight {
-            background: #ef4444;
-            color: #ffffff !important;
         }
 
         /* ── Content Panels ── */

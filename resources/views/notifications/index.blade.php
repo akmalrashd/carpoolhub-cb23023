@@ -59,7 +59,7 @@
     </div>
 
     {{-- ── Notifications card ── --}}
-    <div class="notif-card">
+    <div class="{{ $notifications->isEmpty() ? '' : 'notif-card' }}">
 
         @php $shownReadGroup = false; $shownUnreadGroup = false; @endphp
 

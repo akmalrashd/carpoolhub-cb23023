@@ -119,7 +119,7 @@
                 <p class="hp-subtitle">{{ $statSubtitle }}</p>
             </div>
             <div class="hp-header-actions">
-                <a href="{{ route('trips.index') }}" class="btn btn-ghost btn-sm">
+                <a href="{{ route('trips.index', ['date_from' => $stats['week_start'], 'date_to' => $stats['week_end']]) }}" class="btn btn-ghost btn-sm">
                     <i class="fa-regular fa-calendar-days"></i> This week
                 </a>
                 <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">
@@ -142,10 +142,10 @@
 
             @if($role === 'passenger')
                 {{-- Passenger Card 2: Outstanding payments --}}
-                <a href="{{ route('payments.index') }}" class="hp-stat-card {{ $unpaidCount > 0 ? 'warning-tone' : '' }}">
+                <a href="{{ route('payments.index') }}" class="hp-stat-card">
                     <div class="hp-stat-icon"><i class="fa-solid fa-wallet"></i></div>
                     <span class="hp-stat-label">Outstanding</span>
-                    <span class="hp-stat-value" style="font-size:20px;{{ $unpaidCount > 0 ? 'color:var(--warning-ink)' : '' }}">
+                    <span class="hp-stat-value" style="font-size:20px;">
                         RM {{ number_format((float) $unpaidAmount, 2) }}
                     </span>
                     <span class="hp-stat-delta">{{ $unpaidCount > 0 ? $unpaidCount . ' unpaid fare' . ($unpaidCount !== 1 ? 's' : '') : 'All fares settled' }}</span>
@@ -169,7 +169,7 @@
 
             @elseif($role === 'admin')
                 {{-- Admin Card 2: Total trips --}}
-                <a href="{{ route('trips.index') }}" class="hp-stat-card highlighted">
+                <a href="{{ route('trips.index') }}" class="hp-stat-card">
                     <div class="hp-stat-icon"><i class="fa-solid fa-route"></i></div>
                     <span class="hp-stat-label">Total trips</span>
                     <span class="hp-stat-value">{{ $stats['total_trips'] ?? 0 }}</span>
@@ -177,10 +177,10 @@
                 </a>
 
                 {{-- Admin Card 3: Payment reviews --}}
-                <a href="{{ route('payments.index') }}" class="hp-stat-card {{ $pendingReviews > 0 ? 'warning-tone' : '' }}">
+                <a href="{{ route('payments.index', ['payment_filter' => 'review']) }}" class="hp-stat-card">
                     <div class="hp-stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
                     <span class="hp-stat-label">Payment review</span>
-                    <span class="hp-stat-value" style="{{ $pendingReviews > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingReviews }}</span>
+                    <span class="hp-stat-value">{{ $pendingReviews }}</span>
                     <span class="hp-stat-delta">{{ $pendingReviews > 0 ? 'Awaiting confirmation' : 'Queue clear' }}</span>
                 </a>
 
@@ -194,26 +194,26 @@
 
             @else
                 {{-- Driver Card 2: Earnings this month --}}
-                <a href="{{ route('payments.index') }}" class="hp-stat-card highlighted">
+                <a href="{{ route('payments.index', ['date_from' => $stats['month_start'], 'date_to' => $stats['month_end']]) }}" class="hp-stat-card">
                     <div class="hp-stat-icon"><i class="fa-solid fa-receipt"></i></div>
-                    <span class="hp-stat-label">Earnings &middot; Month</span>
+                    <span class="hp-stat-label">Monthly Earnings</span>
                     <span class="hp-stat-value" style="font-size:20px;">{{ $totalEarnings }}</span>
                     <span class="hp-stat-delta">Paid fares this month</span>
                 </a>
 
                 {{-- Driver Card 3: Payment review queue --}}
-                <a href="{{ route('payments.index') }}" class="hp-stat-card {{ $pendingReviews > 0 ? 'warning-tone' : '' }}">
+                <a href="{{ route('payments.index', ['payment_filter' => 'review']) }}" class="hp-stat-card">
                     <div class="hp-stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
                     <span class="hp-stat-label">Payment review</span>
-                    <span class="hp-stat-value" style="{{ $pendingReviews > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingReviews }}</span>
+                    <span class="hp-stat-value">{{ $pendingReviews }}</span>
                     <span class="hp-stat-delta">{{ $pendingReviews > 0 ? 'Awaiting your approval' : 'Queue clear' }}</span>
                 </a>
 
                 {{-- Driver Card 4: Pending join requests on your trips --}}
-                <a href="{{ route('trips.index') }}" class="hp-stat-card {{ $pendingRequests > 0 ? 'warning-tone' : '' }}">
+                <a href="{{ route('trips.index') }}" class="hp-stat-card">
                     <div class="hp-stat-icon"><i class="fa-solid fa-inbox"></i></div>
                     <span class="hp-stat-label">Join requests</span>
-                    <span class="hp-stat-value" style="{{ $pendingRequests > 0 ? 'color:var(--warning-ink)' : '' }}">{{ $pendingRequests }}</span>
+                    <span class="hp-stat-value">{{ $pendingRequests }}</span>
                     <span class="hp-stat-delta">{{ $pendingRequests > 0 ? 'Awaiting your response' : 'None pending' }}</span>
                 </a>
             @endif
@@ -411,18 +411,19 @@
                         <h3 class="hp-section-title">Quick actions</h3>
                     </div>
                     <div class="hp-section-body">
-                        <div class="hp-quick-grid">
                             @php
                                 $qaDriver = [
-                                    ['art' => 'quick-trip-3d.svg',       'label' => 'New Trip',     'route' => 'trips.create'],
+                                    ['art' => 'quick-newtrip-3d.svg',    'label' => 'New Trip',     'route' => 'trips.create'],
                                     ['art' => 'quick-route-3d.svg',      'label' => 'Saved Routes', 'route' => 'saved-routes.index'],
-                                    ['art' => 'quick-payment-3d.svg',    'label' => 'Payments',     'route' => 'payments.index', 'badge' => $pendingReviews],
+                                    ['art' => 'quick-payment-3d.svg',    'label' => 'Payments',     'route' => 'payments.index', 'badge' => $unpaidCount],
                                     ['art' => 'quick-connection-3d.svg', 'label' => 'Connections',  'route' => 'connections.index'],
+                                    ['art' => 'quick-explore-3d.svg',    'label' => 'Explore',      'route' => 'explore.index'],
+                                    ['art' => 'quick-trip-3d.svg',       'label' => 'My Trips',     'route' => 'trips.index'],
                                 ];
                                 $qaPassenger = [
                                     ['art' => 'quick-explore-3d.svg',    'label' => 'Explore',     'route' => 'explore.index'],
                                     ['art' => 'quick-trip-3d.svg',       'label' => 'My Trips',    'route' => 'trips.index'],
-                                    ['art' => 'quick-payment-3d.svg',    'label' => 'Payments',    'route' => 'payments.index'],
+                                    ['art' => 'quick-payment-3d.svg',    'label' => 'Payments',    'route' => 'payments.index', 'badge' => $unpaidCount],
                                     ['art' => 'quick-connection-3d.svg', 'label' => 'Connections', 'route' => 'connections.index'],
                                 ];
                                 $qaAdmin = [
@@ -437,20 +438,21 @@
                                     default     => $qaDriver,
                                 };
                             @endphp
-                            @foreach($qaItems as $qa)
-                                <a href="{{ route($qa['route']) }}" class="hp-quick-item">
-                                    @if(!empty($qa['badge']) && $qa['badge'] > 0)
-                                        <span class="hp-quick-badge">{{ $qa['badge'] > 99 ? '99+' : $qa['badge'] }}</span>
-                                    @endif
-                                    <span class="hp-quick-icon">
-                                        <img src="{{ asset('assets/illustrations/' . $qa['art']) }}" alt="" class="hp-quick-icon-img">
-                                    </span>
-                                    <span class="hp-quick-label">{{ $qa['label'] }}</span>
-                                </a>
-                            @endforeach
+                            <div class="hp-quick-grid {{ count($qaItems) > 4 ? 'hp-quick-grid--wide' : '' }}">
+                                @foreach($qaItems as $qa)
+                                    <a href="{{ route($qa['route']) }}" class="hp-quick-item">
+                                        @if(!empty($qa['badge']) && $qa['badge'] > 0)
+                                            <span class="hp-quick-badge">{{ $qa['badge'] > 99 ? '99+' : $qa['badge'] }}</span>
+                                        @endif
+                                        <span class="hp-quick-icon">
+                                            <img src="{{ asset('assets/illustrations/' . $qa['art']) }}" alt="" class="hp-quick-icon-img">
+                                        </span>
+                                        <span class="hp-quick-label">{{ $qa['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
-                </div>
 
                 {{-- Driver review queue --}}
                 @if($role === 'driver')
@@ -464,16 +466,25 @@
                         <div class="hp-section-body">
                             @if($reviewQueue->isNotEmpty())
                                 @foreach($reviewQueue->take(5) as $item)
+                                    @php
+                                        $drMethodLabel = match ($item->payment_method ?? null) {
+                                            'duitnow_qr' => 'DuitNow QR',
+                                            'bank_account' => 'Bank Account',
+                                            'digital_wallet' => 'Digital Wallet',
+                                            'others' => 'Others',
+                                            default => 'Payment',
+                                        };
+                                    @endphp
                                     <div class="hp-review-row">
                                         <div class="hp-review-avatar">
                                             {{ strtoupper(substr($item->passenger?->name ?? $item->user?->name ?? '?', 0, 1)) }}
                                         </div>
                                         <div style="flex:1;min-width:0;">
                                             <div class="hp-review-name">{{ $item->passenger?->name ?? $item->user?->name ?? 'Passenger' }}</div>
-                                            <div class="hp-review-sub">{{ $item->payment_method ?? 'Payment' }} &middot; {{ $item->updated_at?->diffForHumans() ?? '' }}</div>
+                                            <div class="hp-review-sub">{{ $drMethodLabel }} &middot; {{ $item->updated_at?->diffForHumans() ?? '' }}</div>
                                         </div>
                                         <span class="hp-review-amount">RM {{ number_format((float) ($item->amount_due ?? $item->amount ?? $item->fare_per_person ?? 0), 2) }}</span>
-                                        <a href="{{ route('payments.index') }}" class="btn btn-primary btn-sm" style="margin-left:8px;">Review</a>
+                                        <a href="{{ route('payments.index', ['review_payment' => $item->id]) }}" class="btn btn-primary btn-sm" style="margin-left:8px;">Review</a>
                                     </div>
                                 @endforeach
                             @else
@@ -487,17 +498,10 @@
                                     </p>
                                 </div>
                             @endif
-                            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--hairline); display:flex; gap:8px;">
-                                <a href="{{ route('payments.index') }}" class="btn btn-ghost btn-sm" style="flex:1; justify-content:center;">
+                            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--hairline);">
+                                <a href="{{ route('payments.index', ['payment_filter' => 'review']) }}" class="btn btn-ghost btn-sm btn-block" style="justify-content:center;">
                                     Open Driver Review
                                 </a>
-                                <form action="{{ route('payments.approve-all-pending') }}" method="POST" style="flex:1;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-primary btn-sm btn-block" onclick="return confirm('Approve all pending payments?');">
-                                        Approve All
-                                    </button>
-                                </form>
                             </div>
                         </div>
                     </div>
@@ -558,10 +562,10 @@
             {{-- 2-col mini stats --}}
             <div class="hp-mobile-stats">
                 @if($role === 'passenger')
-                    <a href="{{ route('payments.index') }}" class="hp-mobile-stat {{ $unpaidCount > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $unpaidCount > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
+                    <a href="{{ route('payments.index') }}" class="hp-mobile-stat">
                         <span class="hp-mobile-stat-label">Outstanding</span>
                         <span class="hp-mobile-stat-value" style="font-size:18px;">RM {{ number_format((float) $unpaidAmount, 2) }}</span>
-                        <span class="hp-mobile-stat-delta {{ $unpaidCount > 0 ? 'warning' : '' }}">@if($unpaidCount > 0)<i class="fa-solid fa-triangle-exclamation" style="font-size:9px;margin-right:3px;"></i>@endif{{ $unpaidCount > 0 ? $unpaidCount . ' unpaid' : 'All settled' }}</span>
+                        <span class="hp-mobile-stat-delta {{ $unpaidCount > 0 ? 'warning' : '' }}">{{ $unpaidCount > 0 ? $unpaidCount . ' unpaid' : 'All settled' }}</span>
                     </a>
                     <a href="{{ route('trips.index', ['date_from' => $stats['week_start'], 'date_to' => $stats['week_end']]) }}" class="hp-mobile-stat">
                         <span class="hp-mobile-stat-label">Trips this week</span>
@@ -574,21 +578,21 @@
                         <span class="hp-mobile-stat-value">{{ $stats['total_trips'] ?? 0 }}</span>
                         <span class="hp-mobile-stat-delta">All time</span>
                     </a>
-                    <a href="{{ route('payments.index') }}" class="hp-mobile-stat {{ $pendingReviews > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $pendingReviews > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
+                    <a href="{{ route('payments.index', ['payment_filter' => 'review']) }}" class="hp-mobile-stat">
                         <span class="hp-mobile-stat-label">Reviews</span>
                         <span class="hp-mobile-stat-value">{{ $pendingReviews }}</span>
-                        <span class="hp-mobile-stat-delta {{ $pendingReviews > 0 ? 'warning' : '' }}">@if($pendingReviews > 0)<i class="fa-solid fa-triangle-exclamation" style="font-size:9px;margin-right:3px;"></i>@endif{{ $pendingReviews > 0 ? 'Action needed' : 'Queue clear' }}</span>
+                        <span class="hp-mobile-stat-delta {{ $pendingReviews > 0 ? 'warning' : '' }}">{{ $pendingReviews > 0 ? 'Action needed' : 'Queue clear' }}</span>
                     </a>
                 @else
-                    <a href="{{ route('payments.index') }}" class="hp-mobile-stat">
-                        <span class="hp-mobile-stat-label">Earnings &middot; Month</span>
+                    <a href="{{ route('payments.index', ['date_from' => $stats['month_start'], 'date_to' => $stats['month_end']]) }}" class="hp-mobile-stat">
+                        <span class="hp-mobile-stat-label">Monthly Earnings</span>
                         <span class="hp-mobile-stat-value" style="font-size:18px;">{{ str_replace('RM ', '', $totalEarnings) }}</span>
                         <span class="hp-mobile-stat-delta">Paid fares</span>
                     </a>
-                    <a href="{{ route('payments.index') }}" class="hp-mobile-stat {{ $pendingReviews > 0 ? 'hp-mobile-stat--warn' : '' }}" style="{{ $pendingReviews > 0 ? 'background:var(--warning-soft);border-color:rgba(180,83,9,0.25);' : '' }}">
+                    <a href="{{ route('payments.index', ['payment_filter' => 'review']) }}" class="hp-mobile-stat">
                         <span class="hp-mobile-stat-label">Reviews</span>
                         <span class="hp-mobile-stat-value">{{ $pendingReviews }}</span>
-                        <span class="hp-mobile-stat-delta {{ $pendingReviews > 0 ? 'warning' : '' }}">@if($pendingReviews > 0)<i class="fa-solid fa-triangle-exclamation" style="font-size:9px;margin-right:3px;"></i>@endif{{ $pendingReviews > 0 ? 'Action needed' : 'Queue clear' }}</span>
+                        <span class="hp-mobile-stat-delta {{ $pendingReviews > 0 ? 'warning' : '' }}">{{ $pendingReviews > 0 ? 'Action needed' : 'Queue clear' }}</span>
                     </a>
                 @endif
             </div>
@@ -626,8 +630,8 @@
                         ['art' => 'quick-settings-3d.svg',     'label' => 'Settings', 'route' => 'settings.index'],
                     ],
                     default => [
-                        ['art' => 'quick-trip-3d.svg',         'label' => 'New Trip', 'route' => 'trips.create'],
-                        ['art' => 'quick-summary-3d.svg',      'label' => 'My Trips', 'route' => 'trips.index'],
+                        ['art' => 'quick-newtrip-3d.svg',      'label' => 'New Trip', 'route' => 'trips.create'],
+                        ['art' => 'quick-trip-3d.svg',         'label' => 'My Trips', 'route' => 'trips.index'],
                         ['art' => 'quick-notification-3d.svg', 'label' => 'Notifications', 'route' => 'notifications.index'],
                         ['art' => 'quick-settings-3d.svg',     'label' => 'Settings', 'route' => 'settings.index'],
                     ],
@@ -642,8 +646,8 @@
                 <div class="hp-mobile-quick" id="hp-mobile-quick-track">
                     @foreach($mobileQuickAll as $mqa)
                         <a href="{{ route($mqa['route']) }}" class="hp-mobile-quick-item">
-                            @if(($mqa['route'] ?? '') === 'payments.index' && $pendingReviews > 0)
-                                <span class="hp-mobile-quick-badge">{{ $pendingReviews > 99 ? '99+' : $pendingReviews }}</span>
+                            @if(($mqa['route'] ?? '') === 'payments.index' && $unpaidCount > 0)
+                                <span class="hp-mobile-quick-badge">{{ $unpaidCount > 99 ? '99+' : $unpaidCount }}</span>
                             @endif
                             <span class="hp-mobile-quick-icon">
                                 <img src="{{ asset('assets/illustrations/' . $mqa['art']) }}" alt="" class="hp-mobile-quick-icon-img">
@@ -772,7 +776,7 @@
 
             {{-- Driver review queue --}}
             @if($role === 'driver' && $pendingReviews > 0)
-                <div style="background:var(--warning-soft);border:1px solid rgba(180,83,9,.22);border-radius:16px;padding:14px 16px 16px;box-shadow:var(--shadow-1);">
+                <div style="background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:14px 16px 16px;box-shadow:var(--shadow-1);">
                     <div class="hp-mobile-section-head">
                         <div>
                             <h3 class="hp-mobile-section-title">Driver review queue</h3>
@@ -782,33 +786,36 @@
                     <div>
                         @if($reviewQueue->isNotEmpty())
                             @foreach($reviewQueue->take(3) as $item)
-                                <div class="hp-review-row">
+                                @php
+                                    $mrMethodLabel = match ($item->payment_method ?? null) {
+                                        'duitnow_qr' => 'DuitNow QR',
+                                        'bank_account' => 'Bank Account',
+                                        'digital_wallet' => 'Digital Wallet',
+                                        'others' => 'Others',
+                                        default => 'Payment',
+                                    };
+                                @endphp
+                                <a href="{{ route('payments.index', ['review_payment' => $item->id]) }}" class="hp-review-row" style="text-decoration:none;color:inherit;">
                                     <div class="hp-review-avatar">
                                         {{ strtoupper(substr($item->passenger?->name ?? $item->user?->name ?? '?', 0, 1)) }}
                                     </div>
                                     <div style="flex:1;min-width:0;">
                                         <div class="hp-review-name">{{ $item->passenger?->name ?? $item->user?->name ?? 'Passenger' }}</div>
-                                        <div class="hp-review-sub">{{ $item->payment_method ?? 'Payment' }} &middot; {{ $item->updated_at?->diffForHumans() ?? '' }}</div>
+                                        <div class="hp-review-sub">{{ $mrMethodLabel }} &middot; {{ $item->updated_at?->diffForHumans() ?? '' }}</div>
                                     </div>
                                     <span class="hp-review-amount">RM {{ number_format((float) ($item->amount_due ?? $item->amount ?? $item->fare_per_person ?? 0), 2) }}</span>
-                                </div>
+                                    <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--muted-2);margin-left:6px;"></i>
+                                </a>
                             @endforeach
                         @else
                             <p style="font-size:12px;color:var(--warning-ink);font-weight:700;margin:6px 0 0;">
                                 {{ $pendingReviews }} request(s) awaiting review
                             </p>
                         @endif
-                        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--hairline);display:flex;gap:8px;">
-                            <a href="{{ route('payments.index') }}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;">
+                        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--hairline);">
+                            <a href="{{ route('payments.index', ['payment_filter' => 'review']) }}" class="btn btn-ghost btn-sm btn-block" style="justify-content:center;">
                                 Open Review
                             </a>
-                            <form action="{{ route('payments.approve-all-pending') }}" method="POST" style="flex:1;">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="btn btn-primary btn-sm btn-block" onclick="return confirm('Approve all pending payments?');">
-                                    Approve All
-                                </button>
-                            </form>
                         </div>
                     </div>
                 </div>

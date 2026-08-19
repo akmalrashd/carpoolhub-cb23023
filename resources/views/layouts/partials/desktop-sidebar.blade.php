@@ -11,8 +11,8 @@
         default => [
             ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
             ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => $role === 'admin' ? 'All Trips' : 'My Trips'],
-            ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
             ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
+            ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
             ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
         ],
     };
@@ -46,7 +46,13 @@
         <div class="desktop-nav-group-label">Account</div>
         <nav class="desktop-nav">
             <a href="{{ route('notifications.index') }}" class="{{ request()->routeIs('notifications.*') ? 'active' : '' }}" title="Notifications">
-                <i class="fa-solid fa-bell"></i><span class="desktop-nav-label">Notifications</span>
+                <span class="desktop-nav-icon">
+                    <i class="fa-solid fa-bell"></i>
+                    @if(($headerUnreadCount ?? 0) > 0)
+                        <span class="notification-badge">{{ $headerUnreadCount > 99 ? '99+' : $headerUnreadCount }}</span>
+                    @endif
+                </span>
+                <span class="desktop-nav-label">Notifications</span>
             </a>
             <a href="{{ route('profile.index') }}" class="{{ request()->routeIs('profile.*') || request()->routeIs('settings.*') ? 'active' : '' }}" title="Settings">
                 <i class="fa-solid fa-user-gear"></i><span class="desktop-nav-label">Settings</span>

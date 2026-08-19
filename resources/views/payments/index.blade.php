@@ -693,6 +693,7 @@
                                     <button
                                         type="button"
                                         class="payments-btn payments-btn-highlight open-request-btn"
+                                        data-payment-id="{{ $payment->id }}"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
                                         data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                         data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
@@ -1059,6 +1060,7 @@
                                                 type="button"
                                                 class="payments-btn payment-table-action open-request-btn"
                                                 style="width:100%;"
+                                                data-payment-id="{{ $payment->id }}"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                 data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
@@ -1536,6 +1538,7 @@
                                     <button
                                         type="button"
                                         class="payments-btn payments-btn-highlight open-request-btn"
+                                        data-payment-id="{{ $payment->id }}"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
                                         data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                         data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
@@ -1704,6 +1707,7 @@
                                             <button
                                                 type="button"
                                                 class="payments-btn payments-btn-highlight open-request-btn"
+                                                data-payment-id="{{ $payment->id }}"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                 data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"

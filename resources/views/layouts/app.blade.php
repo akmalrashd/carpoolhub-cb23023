@@ -376,38 +376,46 @@
                 'passenger' => [
                     ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
                     ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
-                    ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-clock-rotate-left', 'label' => 'My Trips'],
-                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-receipt', 'label' => 'Payments'],
+                    ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'My Trips'],
+                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-wallet', 'label' => 'Payments'],
                     ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
-                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-gear', 'label' => 'Settings'],
+                    ['route' => 'notifications.index', 'active' => ['notifications.*'], 'icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'badge' => true],
+                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user-gear', 'label' => 'Settings'],
                 ],
                 'admin' => [
                     ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
+                    ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'All Trips'],
+                    ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
+                    ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+                    ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
+                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-wallet', 'label' => 'Payments'],
+                    ['route' => 'notifications.index', 'active' => ['notifications.*'], 'icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'badge' => true],
                     ['route' => 'admin.users.index', 'active' => ['admin.users.*'], 'icon' => 'fa-solid fa-users-gear', 'label' => 'Users Admin'],
                     ['route' => 'admin.reports.index', 'active' => ['admin.reports.*'], 'icon' => 'fa-solid fa-chart-line', 'label' => 'Reports'],
-                    ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-clock-rotate-left', 'label' => 'All Trips'],
-                    ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
-                    ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
-                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-receipt', 'label' => 'Payments'],
-                    ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
-                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-gear', 'label' => 'Settings'],
+                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user-gear', 'label' => 'Settings'],
                 ],
                 default => [
                     ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
                     ['route' => 'trips.create', 'active' => ['trips.create'], 'icon' => 'fa-solid fa-plus', 'label' => 'New Trip'],
-                    ['route' => 'trips.index', 'active' => ['trips.index', 'trips.show', 'trips.edit', 'trips.requests.*'], 'icon' => 'fa-solid fa-clock-rotate-left', 'label' => 'My Trips'],
-                    ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+                    ['route' => 'trips.index', 'active' => ['trips.index', 'trips.show', 'trips.edit', 'trips.requests.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'My Trips'],
                     ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
-                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-receipt', 'label' => 'Payments'],
+                    ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
+                    ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-wallet', 'label' => 'Payments'],
                     ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
-                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-gear', 'label' => 'Settings'],
+                    ['route' => 'notifications.index', 'active' => ['notifications.*'], 'icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'badge' => true],
+                    ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user-gear', 'label' => 'Settings'],
                 ],
             };
         @endphp
 
         <nav class="mobile-drawer-nav">
             @foreach($drawerNavItems as $item)
-                <a href="{{ route($item['route']) }}" class="{{ request()->routeIs(...$item['active']) ? 'active' : '' }}"><i class="{{ $item['icon'] }}"></i><span>{{ $item['label'] }}</span></a>
+                <a href="{{ route($item['route']) }}" class="{{ request()->routeIs(...$item['active']) ? 'active' : '' }}">
+                    <i class="{{ $item['icon'] }}"></i><span>{{ $item['label'] }}</span>
+                    @if(!empty($item['badge']) && ($headerUnreadCount ?? 0) > 0)
+                        <span class="notification-badge mobile-drawer-badge">{{ $headerUnreadCount > 99 ? '99+' : $headerUnreadCount }}</span>
+                    @endif
+                </a>
             @endforeach
             <form action="{{ route('logout') }}" method="POST" style="padding: 0 8px;">
                 @csrf
@@ -1035,6 +1043,11 @@
         document.addEventListener('toggle', function (e) {
             if (e.target && e.target.classList && e.target.classList.contains('notification-wrap')) {
                 if (e.target.open && notifFirstLoad) { showNotifSkeleton(); }
+            }
+            /* Lock background scroll while the bento menu is open — it has no
+               backdrop of its own, so without this the page behind it still scrolls. */
+            if (e.target && e.target.classList && e.target.classList.contains('bento-menu-wrap')) {
+                document.body.classList.toggle('bento-menu-open', e.target.open);
             }
         }, true);
 

@@ -786,6 +786,20 @@ window.isPaymentRowHidden = function (row) {
         modal.addEventListener('click', (event) => {
             if (event.target === modal) closeModal();
         });
+
+        // Deep-link: ?review_payment=<id> opens that payment's review modal
+        // directly — used by the Home dashboard's Driver Review Queue card to
+        // jump straight into one item instead of landing on the general ledger.
+        (() => {
+            const targetId = new URLSearchParams(window.location.search).get('review_payment');
+            if (!targetId) return;
+            const trigger = document.querySelector('.open-request-btn[data-payment-id="' + targetId + '"]');
+            if (!trigger) return;
+            trigger.click();
+            const url = new URL(window.location.href);
+            url.searchParams.delete('review_payment');
+            window.history.replaceState({}, '', url);
+        })();
     }
 
     // ── Mark Paid Action Modal (Popup) ──

@@ -861,6 +861,11 @@
             font-size: 16px;
         }
 
+        .mobile-drawer-nav a .mobile-drawer-badge {
+            position: static;
+            margin-left: auto;
+        }
+
         .mobile-drawer-nav a.active {
             color: var(--ink);
             font-weight: 700;
@@ -1269,6 +1274,19 @@
                 flex-shrink: 0;
             }
 
+            .desktop-nav-icon {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .desktop-nav-icon .notification-badge {
+                top: -6px;
+                right: -9px;
+            }
+
             .desktop-nav-label {
                 display: none;
             }
@@ -1366,6 +1384,7 @@
             position: relative;
             display: inline-block;
         }
+        body.bento-menu-open { overflow: hidden; }
         .bento-menu-toggle {
             width: 36px;
             height: 36px;

@@ -4311,6 +4311,31 @@
             }
         }
 
+        /* .request-modal-compact forces its own 20px/24px padding with
+           !important, fighting the bottom-sheet rules above (padding:0,
+           width:100%): the head ended up with its own padding stacked on top of
+           the card's, doubling it, while the grid/actions below it — which have
+           no padding of their own — need that reset to actually apply to them. */
+        @media (max-width: 767px) {
+            .request-modal-card.request-modal-compact {
+                max-width: 100% !important;
+                padding: 0 !important;
+                overflow-y: auto;
+            }
+            .request-modal-compact .request-modal-grid-two {
+                padding: 0 20px;
+            }
+            .request-modal-compact .request-modal-actions {
+                padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            }
+            .request-modal-compact .reject-reason-wrap {
+                padding: 0 20px;
+            }
+            .request-modal-compact .reject-modal-actions {
+                padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
         .reject-reason-input-modern {
             width: 100%;
             min-height: 96px;
@@ -4325,8 +4350,12 @@
             transition: all 0.15s ease-in-out;
         }
         .reject-reason-input-modern:focus {
-            border-color: #ef4444;
+            border-color: var(--ch-yellow-line);
             background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.18);
+        }
+        .reject-reason-input-modern:user-invalid {
+            border-color: #ef4444;
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
         }
 

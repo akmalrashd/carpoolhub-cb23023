@@ -40,19 +40,13 @@
         {{-- Segmented Navigation Tabs --}}
         <div class="conn-nav-tabs" role="tablist">
             <button type="button" class="conn-tab-btn {{ $searchQuery ? '' : 'is-active' }}" id="tab-btn-accepted" onclick="switchConnTab('accepted')">
-                <i class="fa-solid fa-user-group"></i>
-                <span>Connections</span>
-                <span class="tab-badge">{{ $acceptedConnections->count() }}</span>
+                Connections &middot; {{ $acceptedConnections->count() }}
             </button>
             <button type="button" class="conn-tab-btn" id="tab-btn-incoming" onclick="switchConnTab('incoming')">
-                <i class="fa-solid fa-inbox"></i>
-                <span>Incoming</span>
-                <span class="tab-badge {{ $incomingRequests->count() > 0 ? 'highlight' : '' }}">{{ $incomingRequests->count() }}</span>
+                Incoming &middot; {{ $incomingRequests->count() }}
             </button>
             <button type="button" class="conn-tab-btn" id="tab-btn-outgoing" onclick="switchConnTab('outgoing')">
-                <i class="fa-solid fa-paper-plane"></i>
-                <span>Outgoing</span>
-                <span class="tab-badge">{{ $outgoingRequests->count() }}</span>
+                Outgoing &middot; {{ $outgoingRequests->count() }}
             </button>
         </div>
 
