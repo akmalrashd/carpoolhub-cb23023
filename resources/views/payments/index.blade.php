@@ -225,15 +225,13 @@
             @if($hasSplitPaymentDirections)
                 <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryDriver" checked>
                 <input class="payments-summary-mode-input" type="radio" name="mobile_summary_mode" id="mobileSummaryPassenger">
-                <div class="payments-summary-top">
-                    <div class="payments-summary-title-block">
-                        <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
-                    </div>
+                <div class="payments-summary-top payments-summary-top--switch-only">
                     <div class="payments-summary-switch" aria-label="Summary view">
                         <label for="mobileSummaryDriver">As driver</label>
                         <label for="mobileSummaryPassenger">As passenger</label>
                     </div>
                 </div>
+                <span class="payments-total-label payments-total-label--range">{{ strtoupper($monthLabel) }}</span>
                 <div class="payments-summary-mode-panel payments-summary-driver-panel">
                     <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount, 2) }}</strong>
                     <small>To collect · Paid RM {{ number_format($driverPaidAmount, 2) }}</small>
@@ -307,7 +305,7 @@
             @else
                 <div class="payments-summary-top">
                     <div class="payments-summary-title-block">
-                        <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
+                        <span class="payments-total-label">{{ strtoupper($monthLabel) }}</span>
                         <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
                         <small>{{ $summaryMainLabel }} · {{ $summaryRecordCount }} records</small>
                     </div>
@@ -1198,13 +1196,13 @@
                     @if($hasSplitPaymentDirections)
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryDriver" checked>
                         <input class="payments-summary-mode-input" type="radio" name="desktop_summary_mode" id="desktopSummaryPassenger">
-                        <div class="payments-summary-top">
-                            <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
+                        <div class="payments-summary-top payments-summary-top--switch-only">
                             <div class="payments-summary-switch" aria-label="Summary view">
                                 <label for="desktopSummaryDriver">As driver</label>
                                 <label for="desktopSummaryPassenger">As passenger</label>
                             </div>
                         </div>
+                        <span class="payments-total-label payments-total-label--range">{{ strtoupper($monthLabel) }}</span>
                         <div class="payments-summary-mode-panel payments-summary-driver-panel">
                             <strong>RM {{ number_format($driverUnpaidAmount + $driverPendingAmount, 2) }}</strong>
                             <small>To collect · Paid RM {{ number_format($driverPaidAmount, 2) }}</small>
@@ -1276,7 +1274,7 @@
                             </div>
                         </div>
                     @else
-                        <span class="payments-total-label">{!! str_replace(' ', '<br>', e(strtoupper($monthLabel))) !!}</span>
+                        <span class="payments-total-label">{{ strtoupper($monthLabel) }}</span>
                         <strong>RM {{ number_format($summaryMainAmount, 2) }}</strong>
                         <small>{{ $summaryMainLabel }} · {{ $isAdmin ? 'admin payment view' : 'passenger payment view' }}</small>
                         <div class="payments-total-metrics">

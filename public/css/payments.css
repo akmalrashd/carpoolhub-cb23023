@@ -1747,6 +1747,13 @@
             justify-content: space-between;
             gap: 10px;
         }
+        .payments-summary-top--switch-only {
+            justify-content: center;
+        }
+        .payments-total-label--range {
+            display: block !important;
+            white-space: normal;
+        }
         .payments-summary-title-block {
             display: grid;
             gap: 2px;

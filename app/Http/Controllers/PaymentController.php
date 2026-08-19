@@ -42,7 +42,7 @@ class PaymentController extends Controller
             $dateFrom !== null && $dateTo !== null => $dateFrom->format('d M') . ' – ' . $dateTo->format('d M Y'),
             $dateFrom !== null => 'From ' . $dateFrom->format('d M Y'),
             $dateTo   !== null => 'Until ' . $dateTo->format('d M Y'),
-            default => strtoupper(now()->format('F Y')),
+            default => 'Overall',
         };
 
         $role = (string) $request->user()->role;
