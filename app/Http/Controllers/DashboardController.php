@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Connection;
 use App\Models\SavedRoute;
 use App\Models\Trip;
 use App\Models\TripJoinRequest;
@@ -74,6 +75,25 @@ class DashboardController extends Controller
             ->where('status', 'pending')
             ->whereHas('trip', fn ($query) => $query->where('driver_id', $user->id))
             ->count();
+
+        // Requests *this user sent* as a passenger, awaiting a driver's decision —
+        // distinct from 'pending_requests' above, which is requests on trips *they drive*.
+        $stats['sent_pending_requests'] = (int) TripJoinRequest::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->count();
+
+        $stats['platform_pending_requests'] = (int) TripJoinRequest::query()
+            ->where('status', 'pending')
+            ->count();
+
+        $stats['connections_count'] = Connection::query()
+            ->accepted()
+            ->forUser($user->id)
+            ->count();
+
+        $stats['week_start'] = $weekStart->toDateString();
+        $stats['week_end'] = $weekEnd->toDateString();
 
         $upcomingCreatedTrips = Trip::query()
             ->with(['savedRoute', 'participants'])

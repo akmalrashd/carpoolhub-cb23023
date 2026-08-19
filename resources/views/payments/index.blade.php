@@ -214,10 +214,10 @@
             </div>
             <div class="trips-filter-field">
                 <label class="trips-filter-label" for="myPaymentsPassengerSearch">Search</label>
-                <input id="myPaymentsPassengerSearch" name="payment_search" class="trips-filter-input" type="search" placeholder="Search by trip, driver, or passenger..." value="{{ $filters['payment_search'] ?? request('payment_search') }}">
+                <input id="myPaymentsPassengerSearch" name="payment_search" class="trips-filter-input" type="search" placeholder="Trip ID, driver, or passenger" value="{{ $filters['payment_search'] ?? request('payment_search') }}">
             </div>
             <div class="trips-filter-actions">
-                <a href="{{ route('payments.index', array_filter(['payment_filter' => $activePaymentFilter !== 'all' ? $activePaymentFilter : null, 'direction' => $activeDirection !== 'all' ? $activeDirection : null])) }}" class="btn btn-ghost btn-sm">Reset</a>
+                <a href="{{ route('payments.index', array_filter(['payment_filter' => $activePaymentFilter !== 'all' ? $activePaymentFilter : null, 'direction' => $activeDirection !== 'all' ? $activeDirection : null])) }}" class="trips-filter-reset">Reset</a>
             </div>
         </form>
 

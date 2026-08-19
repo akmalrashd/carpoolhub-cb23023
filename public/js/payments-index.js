@@ -1284,12 +1284,13 @@ window.isPaymentRowHidden = function (row) {
     const paymentsFilterPanel = document.getElementById('paymentsFilterPanel');
     if (paymentsFilterPanel instanceof HTMLFormElement) {
         let paymentFilterTimer = null;
-        const submitPaymentFilter = () => {
+        const submitPaymentFilter = (delay) => {
             window.clearTimeout(paymentFilterTimer);
-            paymentFilterTimer = window.setTimeout(() => paymentsFilterPanel.requestSubmit(), 250);
+            paymentFilterTimer = window.setTimeout(() => paymentsFilterPanel.requestSubmit(), delay);
         };
         paymentsFilterPanel.querySelectorAll('input, select').forEach((field) => {
-            field.addEventListener('change', submitPaymentFilter);
+            const isTextField = field.tagName === 'INPUT' && (field.type === 'text' || field.type === 'search');
+            field.addEventListener(isTextField ? 'input' : 'change', () => submitPaymentFilter(isTextField ? 400 : 250));
         });
     }
 

@@ -80,7 +80,7 @@
         <div class="trips-filter-field">
             <label class="trips-filter-label" for="trip_search">Search</label>
             <input id="trip_search" name="trip_search" type="text" class="trips-filter-input"
-                placeholder="Route, driver, or passenger"
+                placeholder="Trip ID, route, driver, or passenger"
                 value="{{ $filters['trip_search'] ?? request('trip_search') }}">
         </div>
         <div class="trips-filter-actions">

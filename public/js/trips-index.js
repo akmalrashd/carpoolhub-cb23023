@@ -168,11 +168,12 @@
 
                 let submitTimer = null;
                 filterForm.querySelectorAll('input, select').forEach((field) => {
-                    field.addEventListener('change', () => {
+                    const isTextField = field.tagName === 'INPUT' && (field.type === 'text' || field.type === 'search');
+                    field.addEventListener(isTextField ? 'input' : 'change', () => {
                         window.clearTimeout(submitTimer);
                         submitTimer = window.setTimeout(() => {
                             filterForm.dispatchEvent(new Event('submit', { cancelable: true }));
-                        }, 250);
+                        }, isTextField ? 400 : 250);
                     });
                 });
             }

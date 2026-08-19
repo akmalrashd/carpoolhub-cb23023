@@ -1,13 +1,27 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="e1" x1="24" y1="22" x2="102" y2="100" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#93C5FD"/>
-      <stop offset="1" stop-color="#2563EB"/>
+    <linearGradient id="pinBody" x1="30" y1="18" x2="98" y2="90" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
     </linearGradient>
+    <radialGradient id="pinCore" cx="0.35" cy="0.3" r="0.8">
+      <stop stop-color="#EFF6FF"/>
+      <stop offset="1" stop-color="#BFDBFE"/>
+    </radialGradient>
+    <filter id="pinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
   </defs>
-  <ellipse cx="64" cy="104" rx="34" ry="9" fill="#0F172A" fill-opacity="0.12"/>
-  <circle cx="64" cy="56" r="30" fill="url(#e1)"/>
-  <circle cx="64" cy="56" r="20" fill="#DBEAFE"/>
-  <circle cx="64" cy="56" r="8" fill="#1D4ED8"/>
-  <path d="M86 78L98 90" stroke="#1E3A8A" stroke-width="8" stroke-linecap="round"/>
+
+  <ellipse cx="62" cy="106" rx="26" ry="7" fill="#0F172A" fill-opacity="0.15" filter="url(#pinShadow)"/>
+
+  <path d="M62 16C40.5 16 25 32.9 25 53.5C25 79 53 97 60 106.5C61 108 63 108 64 106.5C71 97 99 79 99 53.5C99 32.9 83.5 16 62 16Z" fill="url(#pinBody)"/>
+
+  <circle cx="62" cy="53" r="21" fill="url(#pinCore)"/>
+  <circle cx="62" cy="53" r="9" fill="#2563EB"/>
+
+  <path d="M40 34C45 27 53 23 61 23" stroke="#EFF6FF" stroke-width="5" stroke-linecap="round" stroke-opacity="0.6"/>
+
+  <path d="M96 34L98 39L103 41L98 43L96 48L94 43L89 41L94 39Z" fill="#93C5FD"/>
+  <circle cx="24" cy="70" r="3" fill="#93C5FD"/>
 </svg>

@@ -266,13 +266,13 @@
             color: #64748b;
         }
         .payments-filter-panel {
-            border: 1px solid #dbe2ea;
-            border-radius: 14px;
-            background: #f8fafc;
-            padding: 12px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--surface-2);
+            padding: 14px;
             margin: 0 0 12px;
             display: grid;
-            gap: 8px;
+            gap: 10px;
         }
         .payments-filter-head {
             display: flex;
@@ -3114,11 +3114,12 @@
         }
         .trips-filter-input {
             width: 100%;
+            height: 40px;
             border: 1px solid var(--hairline-strong);
             border-radius: var(--r-sm);
             background: var(--surface);
             color: var(--ink);
-            padding: 8px 10px;
+            padding: 0 10px;
             font-size: 13px;
             outline: none;
             font-family: var(--font-ui), sans-serif;
@@ -3131,9 +3132,28 @@
             display: inline-flex;
             align-items: flex-end;
         }
+        .trips-filter-reset {
+            height: 40px;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
         @media (min-width: 640px) {
             .payments-ledger-card .trips-filter-form {
                 grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(140px, 180px) minmax(180px, 1fr) auto;
+                align-items: end;
+            }
+            #paymentsFilterPanel {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(200px, 1fr) auto;
                 align-items: end;
             }
         }

@@ -610,7 +610,8 @@ class PaymentService
                     ->whereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('trip', function ($tripQuery) use ($search): void {
                         $tripQuery
-                            ->where('pickup_name', 'like', "%{$search}%")
+                            ->where('trip_ref', 'like', "%{$search}%")
+                            ->orWhere('pickup_name', 'like', "%{$search}%")
                             ->orWhere('destination_name', 'like', "%{$search}%")
                             ->orWhereHas('driver', fn ($driverQuery) => $driverQuery->where('name', 'like', "%{$search}%"))
                             ->orWhereHas('savedRoute', fn ($routeQuery) => $routeQuery->where('route_name', 'like', "%{$search}%"));

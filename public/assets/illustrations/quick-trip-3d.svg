@@ -1,22 +1,50 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="g1" x1="20" y1="18" x2="104" y2="106" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#9AE6B4"/>
-      <stop offset="1" stop-color="#22C55E"/>
-    </linearGradient>
-    <linearGradient id="g2" x1="38" y1="38" x2="88" y2="88" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#34D399"/>
+    <linearGradient id="carBody" x1="24" y1="50" x2="104" y2="92" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4ADE80"/>
       <stop offset="1" stop-color="#16A34A"/>
     </linearGradient>
+    <linearGradient id="carRoof" x1="40" y1="34" x2="88" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#86EFAC"/>
+      <stop offset="1" stop-color="#22C55E"/>
+    </linearGradient>
+    <linearGradient id="carGlass" x1="46" y1="38" x2="82" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EFF6FF"/>
+      <stop offset="1" stop-color="#BFDBFE"/>
+    </linearGradient>
+    <radialGradient id="wheelHub" cx="0.35" cy="0.35" r="0.75">
+      <stop stop-color="#94A3B8"/>
+      <stop offset="1" stop-color="#475569"/>
+    </radialGradient>
+    <filter id="carShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
   </defs>
-  <ellipse cx="64" cy="102" rx="38" ry="10" fill="#0F172A" fill-opacity="0.12"/>
-  <rect x="26" y="44" width="76" height="34" rx="12" fill="url(#g1)"/>
-  <path d="M38 44C42 34 50 28 64 28C78 28 86 34 90 44" stroke="#15803D" stroke-width="8" stroke-linecap="round"/>
-  <rect x="46" y="50" width="36" height="16" rx="6" fill="url(#g2)"/>
-  <circle cx="42" cy="80" r="9" fill="#1F2937"/>
-  <circle cx="86" cy="80" r="9" fill="#1F2937"/>
-  <circle cx="42" cy="80" r="4" fill="#94A3B8"/>
-  <circle cx="86" cy="80" r="4" fill="#94A3B8"/>
-  <circle cx="34" cy="62" r="3" fill="#14532D"/>
-  <circle cx="94" cy="62" r="3" fill="#14532D"/>
+
+  <ellipse cx="64" cy="103" rx="38" ry="8" fill="#0F172A" fill-opacity="0.15" filter="url(#carShadow)"/>
+
+  <path d="M20 78C20 70 24 65 32 63L36 62L44 48C47 43 52 40 58 40H74C80 40 85 43 88 48L96 62L100 63C108 65 112 70 112 78V82C112 86 109 89 105 89H27C23 89 20 86 20 82V78Z" fill="url(#carBody)"/>
+
+  <path d="M44 61L50 47C51.5 44 54.5 42 58 42H74C77.5 42 80.5 44 82 47L88 61H44Z" fill="url(#carRoof)"/>
+
+  <path d="M49 59L54 48.5C54.7 47 56.2 46 57.8 46H63V59H49Z" fill="url(#carGlass)"/>
+  <path d="M65 46H70.2C71.8 46 73.3 47 74 48.5L79 59H65V46Z" fill="url(#carGlass)"/>
+
+  <path d="M64 63V88" stroke="#15803D" stroke-width="2" stroke-opacity="0.5"/>
+  <rect x="52" y="70" width="10" height="3" rx="1.5" fill="#DCFCE7" fill-opacity="0.8"/>
+  <rect x="68" y="70" width="10" height="3" rx="1.5" fill="#DCFCE7" fill-opacity="0.8"/>
+
+  <ellipse cx="106" cy="73" rx="5" ry="6" fill="#FEF08A"/>
+  <ellipse cx="22" cy="73" rx="4" ry="5" fill="#FCA5A5"/>
+
+  <rect x="24" y="83" width="80" height="4" rx="2" fill="#166534" fill-opacity="0.35"/>
+
+  <circle cx="40" cy="90" r="12" fill="#1E293B"/>
+  <circle cx="88" cy="90" r="12" fill="#1E293B"/>
+  <circle cx="40" cy="90" r="6" fill="url(#wheelHub)"/>
+  <circle cx="88" cy="90" r="6" fill="url(#wheelHub)"/>
+  <circle cx="40" cy="90" r="2" fill="#CBD5E1"/>
+  <circle cx="88" cy="90" r="2" fill="#CBD5E1"/>
+
+  <path d="M28 68C34 62 46 58 58 58" stroke="#F0FDF4" stroke-width="4" stroke-linecap="round" stroke-opacity="0.55"/>
 </svg>

@@ -348,21 +348,20 @@
             transform: translateY(-2px);
         }
         .hp-quick-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: var(--r-sm);
-            background: var(--surface-2);
-            border: 1px solid var(--hairline);
+            width: 44px;
+            height: 44px;
             display: grid;
             place-items: center;
-            font-size: 15px;
-            color: var(--muted);
             flex-shrink: 0;
+            transition: transform 0.2s ease;
         }
-        .hp-quick-icon.yellow {
-            background: var(--ch-yellow);
-            border-color: var(--ch-yellow-deep);
-            color: var(--ch-yellow-ink);
+        .hp-quick-item:hover .hp-quick-icon {
+            transform: scale(1.06);
+        }
+        .hp-quick-icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         .hp-quick-label {
             font-size: 12px;
@@ -675,14 +674,23 @@
             color: var(--warning-ink);
         }
 
-        /* ── Mobile 4-col quick actions ───────────────────────── */
+        /* ── Mobile quick actions carousel ────────────────────── */
         .hp-mobile-quick {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            display: flex;
             gap: 10px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding: 2px 2px 4px;
+            margin: 0 -2px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .hp-mobile-quick::-webkit-scrollbar { display: none; }
         .hp-mobile-quick-item {
             display: flex;
+            flex: 0 0 calc((100% - 30px) / 4);
+            width: calc((100% - 30px) / 4);
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -695,7 +703,43 @@
             border-radius: 14px;
             position: relative;
             box-shadow: var(--shadow-1);
+            scroll-snap-align: start;
             transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hp-mobile-quick-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2px;
+        }
+        .hp-mobile-quick-dot {
+            appearance: none;
+            -webkit-appearance: none;
+            border: none;
+            background: transparent;
+            padding: 12px 6px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .hp-mobile-quick-dot::before {
+            content: "";
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--hairline-strong);
+            transition: width 0.25s ease, background-color 0.25s ease;
+        }
+        .hp-mobile-quick-dot.active::before {
+            width: 18px;
+            background: var(--ch-yellow-deep);
+        }
+        .hp-mobile-quick-dot:focus-visible::before {
+            outline: 2px solid var(--ch-yellow-deep);
+            outline-offset: 2px;
         }
         .hp-mobile-quick-item:hover {
             transform: translateY(-2px);
@@ -703,24 +747,19 @@
             box-shadow: var(--shadow-2);
         }
         .hp-mobile-quick-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            background: var(--surface-2);
-            border: none;
+            width: 40px;
+            height: 40px;
             display: grid;
             place-items: center;
-            font-size: 14px;
-            color: var(--ch-yellow-ink);
-            transition: background-color 0.2s ease, transform 0.2s ease;
+            transition: transform 0.2s ease;
         }
         .hp-mobile-quick-item:hover .hp-mobile-quick-icon {
-            background: var(--ch-yellow-soft);
-            transform: scale(1.05);
+            transform: scale(1.06);
         }
-        .hp-mobile-quick-icon.yellow {
-            background: var(--ch-yellow-tint);
-            color: var(--ch-yellow-ink);
+        .hp-mobile-quick-icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         .hp-mobile-quick-label {
             font-size: 11px;
@@ -759,52 +798,6 @@
             font-weight: 800;
             color: var(--ink);
         }
-        .hp-mobile-section-link,
-        .hp-mobile-section-link:visited {
-            border: 1px solid var(--ch-yellow-line);
-            background: var(--ch-yellow-tint);
-            padding: 4px 10px;
-            border-radius: 999px;
-            color: var(--ch-yellow-ink);
-            text-decoration: none;
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            white-space: nowrap;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            line-height: 1;
-            margin: 0;
-            vertical-align: middle;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(11, 18, 32, 0.03);
-        }
-        .hp-mobile-section-link i {
-            font-size: 8px;
-            transition: transform 0.2s ease;
-        }
-        .hp-mobile-section-link:hover,
-        .hp-mobile-section-link:focus,
-        .hp-mobile-section-link:active {
-            background: var(--ch-yellow-soft);
-            border-color: var(--ch-yellow-deep);
-            color: var(--ch-yellow-ink);
-            text-decoration: none;
-            outline: none;
-            box-shadow: 0 2px 4px rgba(250, 204, 21, 0.15);
-        }
-        .hp-mobile-extra-actions {
-            display: none;
-            margin-top: 10px;
-        }
-        .hp-mobile-extra-actions.open {
-            display: grid;
-        }
-
         /* ── Show/hide by breakpoint ──────────────────────────── */
         .hp-desktop-only { display: none; }
         .hp-mobile-only  { display: block; }
@@ -816,6 +809,7 @@
         /* Mobile wrapper padding */
         .hp-mobile-wrap {
             display: grid;
+            grid-template-columns: minmax(0, 1fr);
             gap: 14px;
             padding: 14px var(--page-gutter, 14px) 92px;
             background: transparent;

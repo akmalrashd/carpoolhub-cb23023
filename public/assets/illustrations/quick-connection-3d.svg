@@ -1,15 +1,29 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="c1" x1="26" y1="26" x2="104" y2="102" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#E9D5FF"/>
+    <linearGradient id="cp2Body" x1="60" y1="52" x2="112" y2="98" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DDD6FE"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="cp1Body" x1="18" y1="60" x2="60" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C4B5FD"/>
       <stop offset="1" stop-color="#7C3AED"/>
     </linearGradient>
+    <radialGradient id="cHeadGrad" cx="0.35" cy="0.3" r="0.8">
+      <stop stop-color="#F5F3FF"/>
+      <stop offset="1" stop-color="#C4B5FD"/>
+    </radialGradient>
+    <filter id="cPeopleShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
   </defs>
-  <ellipse cx="64" cy="104" rx="34" ry="9" fill="#0F172A" fill-opacity="0.12"/>
-  <circle cx="50" cy="46" r="14" fill="url(#c1)"/>
-  <circle cx="78" cy="50" r="12" fill="#A78BFA"/>
-  <path d="M30 86C30 72 40 62 54 62H58C72 62 82 72 82 86" fill="#C4B5FD"/>
-  <path d="M58 90C58 79 66 70 77 70H79C90 70 98 79 98 90" fill="#8B5CF6"/>
-  <circle cx="50" cy="46" r="5" fill="#F5F3FF"/>
-  <circle cx="78" cy="50" r="4" fill="#F5F3FF"/>
+
+  <ellipse cx="64" cy="106" rx="36" ry="8" fill="#0F172A" fill-opacity="0.15" filter="url(#cPeopleShadow)"/>
+
+  <path d="M40 100C40 84 50 72 64 72H68C82 72 92 84 92 100V102H40V100Z" fill="url(#cp2Body)"/>
+  <circle cx="66" cy="52" r="18" fill="url(#cHeadGrad)"/>
+
+  <path d="M20 102C20 84 31 70 47 70H51C67 70 78 84 78 102V104H20V102Z" fill="url(#cp1Body)"/>
+  <circle cx="49" cy="50" r="19" fill="url(#cHeadGrad)"/>
+
+  <path d="M39 43C42 38 46 35 51 34" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-opacity="0.7"/>
 </svg>
