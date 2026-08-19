@@ -795,6 +795,8 @@
                                         type="button"
                                         class="payments-btn payments-btn-primary open-payment-receipt-btn"
                                         data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
+                                        data-trip-ref="{{ $tripRef }}"
+                                        data-trip-mode="{{ ($payment->trip?->is_return_trip ?? false) ? 'Return' : 'Outbound' }}"
                                         data-route="{{ $routeLabel }}"
                                         data-passenger="{{ $payment->user?->name ?: '-' }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
@@ -1139,7 +1141,7 @@
                                                 style="width:100%;"
                                                 data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
                                                 data-trip-ref="{{ $tripRef }}"
-                                                data-trip-mode="{{ ($payment->trip?->trip_mode ?? 'one_way') === 'two_way' ? 'Two-way' : 'Outbound' }}"
+                                                data-trip-mode="{{ ($payment->trip?->is_return_trip ?? false) ? 'Return' : 'Outbound' }}"
                                                 data-route="{{ $routeLabel }}"
                                                 data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                 data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
@@ -1847,7 +1849,6 @@
             <div class="trip-payment-review-head">
                 <div>
                     <h3 class="trip-payment-review-title" id="paymentReceiptTitle">Payment receipts</h3>
-                    <p class="trip-payment-review-sub" id="paymentReceiptSub">View your confirmed payment record.</p>
                 </div>
                 <button type="button" class="trip-payment-review-close" id="paymentReceiptClose" aria-label="Close">
                     <i class="fa-solid fa-xmark"></i>

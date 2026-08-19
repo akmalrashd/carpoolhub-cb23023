@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SavedRoute\RedeemSavedRouteRequest;
 use App\Http\Requests\SavedRoute\StoreSavedRouteRequest;
 use App\Http\Requests\SavedRoute\UpdateSavedRouteRequest;
 use App\Models\SavedRoute;
@@ -9,6 +10,7 @@ use App\Services\SavedRouteService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class SavedRouteController extends Controller
 {
@@ -89,6 +91,22 @@ class SavedRouteController extends Controller
         return redirect()
             ->route('saved-routes.index')
             ->with('status', 'Saved route and related trips deleted.');
+    }
+
+    public function redeem(RedeemSavedRouteRequest $request): RedirectResponse
+    {
+        try {
+            $savedRoute = $this->savedRouteService->redeemShareCode(
+                $request->user(),
+                $request->validated('code')
+            );
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors())->withInput();
+        }
+
+        return redirect()
+            ->route('saved-routes.index')
+            ->with('status', "Added \"{$savedRoute->route_name}\" from the shared code.");
     }
 
     private function authorizeOwner(Request $request, SavedRoute $savedRoute): void

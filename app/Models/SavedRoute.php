@@ -14,6 +14,7 @@ class SavedRoute extends Model
 
     protected $fillable = [
         'user_id',
+        'share_code',
         'route_name',
         'point_a_name',
         'point_a_latitude',

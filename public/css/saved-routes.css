@@ -131,13 +131,16 @@
         top: 30px;
         background: #0f172a;
     }
-    .sr-thumb-name {
+    /* Same overlay bar the route name used to sit in, kept for legibility
+       over the map — only the content changed: plain colored status text,
+       no pill/border around it. */
+    .sr-thumb-status {
         position: absolute;
         left: 0;
         right: 0;
         bottom: 0;
         z-index: 4;
-        color: var(--ink);
+        display: flex; align-items: center; gap: 5px;
         font-size: 12px;
         font-weight: 800;
         background: rgba(255,255,255,.88);
@@ -147,6 +150,8 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .sr-thumb-status.is-active { color: #15803d; }
+    .sr-thumb-status.is-inactive { color: var(--muted); }
     .sr-thumb-icon {
         display: none;
     }
@@ -154,20 +159,8 @@
     /* Card body */
     .sr-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 
-    /* Status + badges row */
+    /* Default badge */
     .sr-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .sr-badge-active {
-        display: inline-flex; align-items: center; gap: 4px;
-        font-size: 11px; font-weight: 700; padding: 3px 9px;
-        border-radius: var(--r-pill);
-        border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d;
-    }
-    .sr-badge-inactive {
-        display: inline-flex; align-items: center; gap: 4px;
-        font-size: 11px; font-weight: 700; padding: 3px 9px;
-        border-radius: var(--r-pill);
-        border: 1px solid var(--hairline-strong); background: var(--surface-2); color: var(--muted);
-    }
     .sr-badge-default {
         display: inline-flex; align-items: center; gap: 4px;
         font-size: 11px; font-weight: 700; padding: 3px 9px;
@@ -175,7 +168,7 @@
         border: 1px solid var(--ch-yellow-line); background: var(--ch-yellow); color: var(--ch-yellow-ink);
     }
 
-    /* Route title + edit button */
+    /* Route title + share code badge */
     .sr-title-row {
         display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
     }
@@ -187,15 +180,46 @@
         color: var(--ink);
         line-height: 1.25;
     }
-    .sr-edit-btn {
+    /* Kept at the same slot/shape the old Edit link used, so the card layout
+       is unchanged — only the content (a 6-digit share code) is new. Now a
+       <button>, not a plain <span>, so it can copy the code on click. */
+    .sr-share-code {
         display: inline-flex; align-items: center; gap: 5px;
         border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
         background: var(--surface-2); color: var(--ink-2);
         font-size: 12px; font-weight: 700; padding: 5px 10px;
-        text-decoration: none; white-space: nowrap; flex-shrink: 0;
-        transition: background .15s, border-color .15s;
+        white-space: nowrap; flex-shrink: 0;
+        cursor: pointer; transition: background .15s, border-color .15s;
     }
-    .sr-edit-btn:hover { background: var(--canvas); border-color: var(--muted-2); }
+    .sr-share-code:hover { background: var(--canvas); border-color: var(--muted-2); }
+    .sr-share-code-value {
+        font-family: var(--font-mono, monospace);
+        letter-spacing: .04em;
+        color: var(--ink);
+    }
+    .sr-share-code-copy-icon { font-size: 11px; color: var(--muted-2); }
+    /* The icon itself swaps to fa-check via JS on copy — this just recolors
+       the badge and whichever icon is currently in the slot. */
+    .sr-share-code.is-copied { border-color: #86efac; background: #dcfce7; color: #15803d; }
+    .sr-share-code.is-copied .sr-share-code-copy-icon { color: #15803d; }
+
+    /* Filled action buttons — Edit, Use in new trip, Delete all share this
+       base, sit in one row in the footer, and are all the same height
+       regardless of whether they carry a text label or just an icon. */
+    .sr-action-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        height: 34px; box-sizing: border-box;
+        border: 1px solid transparent; border-radius: var(--r-sm);
+        font-size: 12px; font-weight: 800; padding: 0 12px;
+        text-decoration: none; white-space: nowrap; cursor: pointer;
+        transition: background .15s, border-color .15s, transform .15s;
+    }
+    .sr-action-btn:active { transform: translateY(1px); }
+
+    .sr-edit-btn {
+        background: var(--ink); color: #fff; border-color: var(--ink);
+    }
+    .sr-edit-btn:hover { background: var(--ink-2); border-color: var(--ink-2); }
 
     /* 4-col KV grid */
     .sr-kv-grid {
@@ -226,22 +250,15 @@
     .sr-footer-actions { display: flex; align-items: center; gap: 7px; }
 
     .sr-use-btn {
-        display: inline-flex; align-items: center; gap: 5px;
-        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
-        background: var(--surface-2); color: var(--ink-2);
-        font-size: 12px; font-weight: 700; padding: 6px 11px;
-        text-decoration: none; transition: background .15s;
+        background: var(--ch-yellow); color: var(--ch-yellow-ink); border-color: var(--ch-yellow);
     }
-    .sr-use-btn:hover { background: var(--canvas); }
+    .sr-use-btn:hover { background: var(--ch-yellow-deep); border-color: var(--ch-yellow-deep); }
 
     .sr-delete-btn {
-        display: inline-flex; align-items: center; gap: 5px;
-        border: 1px solid #fecaca; border-radius: var(--r-sm);
-        background: var(--danger-soft); color: var(--danger);
-        font-size: 12px; font-weight: 700; padding: 6px 10px;
-        cursor: pointer; transition: background .15s;
+        width: 34px; padding: 0;
+        background: var(--danger); color: #fff; border-color: var(--danger);
     }
-    .sr-delete-btn:hover { background: #fee2e2; }
+    .sr-delete-btn:hover { background: var(--danger-ink); border-color: var(--danger-ink); }
 
     /* Empty state */
     .sr-empty {
@@ -288,3 +305,62 @@
         0% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
+
+    /* ── Redeem-by-code modal ──
+       Self-contained rather than reusing .request-modal: that system only
+       exists in payments.css/trips-requests.css, which this page does not
+       load, and copying its full (including mobile) rule set just for one
+       small form would have been its own duplication. */
+    .sr-redeem-modal {
+        position: fixed; inset: 0; z-index: 2600;
+        display: none; align-items: center; justify-content: center;
+        padding: 18px;
+        background: rgba(11,18,32,.52);
+    }
+    .sr-redeem-modal.show { display: flex; }
+    .sr-redeem-card {
+        width: 100%; max-width: 380px;
+        background: var(--surface, #fff);
+        border-radius: var(--r-lg, 16px);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.1);
+        padding: 20px;
+    }
+    .sr-redeem-head {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+        margin-bottom: 16px;
+    }
+    .sr-redeem-title { margin: 0; font-family: var(--font-display), sans-serif; font-size: 17px; font-weight: 800; color: var(--ink); }
+    .sr-redeem-sub { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+    .sr-redeem-close {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 30px; height: 30px; flex-shrink: 0;
+        border: 1px solid var(--hairline-strong); border-radius: 10px;
+        background: var(--surface); color: var(--muted); cursor: pointer;
+    }
+    .sr-redeem-close:hover { background: var(--surface-2); }
+    .sr-redeem-field label {
+        display: block; font-size: 12px; font-weight: 700; color: var(--ink-2);
+        margin-bottom: 6px;
+    }
+    .sr-redeem-input {
+        width: 100%; box-sizing: border-box;
+        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+        background: var(--surface); color: var(--ink);
+        font-family: var(--font-mono, monospace);
+        font-size: 20px; font-weight: 800; letter-spacing: .2em;
+        text-align: center; text-transform: uppercase;
+        padding: 12px 10px;
+    }
+    .sr-redeem-input:focus { outline: none; border-color: var(--ch-yellow-deep); box-shadow: 0 0 0 3px var(--ch-yellow-tint); }
+    .sr-redeem-error { margin: 8px 0 0; font-size: 12px; font-weight: 700; color: var(--danger); }
+    .sr-redeem-actions {
+        display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+        margin-top: 20px;
+    }
+    .sr-redeem-cancel {
+        border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+        background: var(--surface); color: var(--ink-2);
+        font-size: 13px; font-weight: 700; padding: 0 14px; height: 36px;
+        cursor: pointer;
+    }
+    .sr-redeem-cancel:hover { background: var(--surface-2); }

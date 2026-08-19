@@ -8,18 +8,65 @@
 
 {{-- Page header --}}
 <div style="padding:20px var(--page-gutter, 28px) 0">
-    <div style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Saved Routes</div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:6px;flex-wrap:wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <div>
-            <h1 style="margin:0;font-family:var(--font-display);font-size:28px;font-weight:800">My Routes</h1>
+            <div style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Saved Routes</div>
+            <h1 style="margin:6px 0 0;font-family:var(--font-display);font-size:28px;font-weight:800">My Routes</h1>
             <p style="margin:4px 0 0;color:var(--muted);font-size:13px">Reusable templates for daily commutes.</p>
         </div>
-        <div>
-            <a href="{{ route('saved-routes.create') }}" class="btn btn-primary">
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <a href="{{ route('saved-routes.create') }}" class="btn btn-primary btn-sm">
                 <i class="fa-solid fa-plus"></i>
                 Create Saved Route
             </a>
+            <button type="button" class="btn btn-ghost btn-sm" id="srOpenRedeemModalBtn">
+                <i class="fa-solid fa-key"></i>
+                Add via code
+            </button>
         </div>
+    </div>
+</div>
+
+{{-- Redeem-by-code modal --}}
+<div class="sr-redeem-modal" id="srRedeemModal" aria-hidden="true">
+    <div class="sr-redeem-card">
+        <div class="sr-redeem-head">
+            <div>
+                <h3 class="sr-redeem-title">Add a shared route</h3>
+                <p class="sr-redeem-sub">Enter the 6-character code someone shared with you.</p>
+            </div>
+            <button type="button" class="sr-redeem-close" id="srRedeemModalCloseTop" aria-label="Close">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ route('saved-routes.redeem') }}" id="srRedeemForm">
+            @csrf
+            <div class="sr-redeem-field">
+                <label for="srRedeemCodeInput">Route code</label>
+                <input
+                    type="text"
+                    id="srRedeemCodeInput"
+                    name="code"
+                    class="sr-redeem-input"
+                    maxlength="6"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                    placeholder="1A3RE4"
+                    required
+                >
+                @error('code')
+                    <p class="sr-redeem-error">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="sr-redeem-actions">
+                <button type="button" class="sr-redeem-cancel" id="srRedeemModalCancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i>
+                    Add route
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -48,7 +95,11 @@
             {{-- Skeleton Loading Container --}}
             <div class="sr-skel-container" id="sr-skel-container" style="position:absolute; inset:0; z-index:10; background:var(--canvas, #f8fafc); width:100%; height:100%;">
                 <div class="sr-grid">
-                    @for($i = 0; $i < min(2, $savedRoutes->count()); $i++)
+                    {{-- Fixed count, not derived from $savedRoutes: the container this fills
+                         renders on the very first (non-AJAX) load, where $savedRoutes is
+                         always empty by design — deriving from its count left the skeleton
+                         with zero cards, i.e. invisible, on exactly the load that needed it. --}}
+                    @for($i = 0; $i < 4; $i++)
                         <div class="card" style="padding:0; overflow:hidden;">
                             {{-- Map Thumbnail Skeleton --}}
                             <div class="sr-thumb-skel sk" style="height:150px; position:relative; overflow:hidden;"></div>
@@ -136,31 +187,35 @@
                         </svg>
                         <span class="sr-thumb-pin pickup"></span>
                         <span class="sr-thumb-pin destination"></span>
-                        <span class="sr-thumb-name">{{ $savedRoute->route_name ?? 'Untitled Route' }}</span>
+                        <span class="sr-thumb-status {{ ($savedRoute->is_active ?? true) ? 'is-active' : 'is-inactive' }}">
+                            <i class="fa-solid fa-circle" style="font-size:7px"></i>
+                            {{ ($savedRoute->is_active ?? true) ? 'Active' : 'Inactive' }}
+                        </span>
                     </div>
 
                     {{-- Card body --}}
                     <div class="sr-body">
 
-                        {{-- Status + default badge --}}
+                        {{-- Default badge --}}
+                        @if($savedRoute->is_default ?? false)
                         <div class="sr-badges">
-                            @if($savedRoute->is_active ?? true)
-                                <span class="sr-badge-active"><i class="fa-solid fa-circle" style="font-size:7px"></i>Active</span>
-                            @else
-                                <span class="sr-badge-inactive"><i class="fa-solid fa-circle" style="font-size:7px"></i>Inactive</span>
-                            @endif
-                            @if($savedRoute->is_default ?? false)
-                                <span class="sr-badge-default"><i class="fa-solid fa-star" style="font-size:9px"></i>Default</span>
-                            @endif
+                            <span class="sr-badge-default"><i class="fa-solid fa-star" style="font-size:9px"></i>Default</span>
                         </div>
+                        @endif
 
-                        {{-- Title + edit button --}}
+                        {{-- Title + share code --}}
                         <div class="sr-title-row">
                             <h2 class="sr-route-title">{{ $savedRoute->route_name ?? 'Untitled Route' }}</h2>
-                            <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="sr-edit-btn">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                Edit
-                            </a>
+                            <button
+                                type="button"
+                                class="sr-share-code js-copy-share-code"
+                                data-code="{{ $savedRoute->share_code }}"
+                                title="Copy this code so someone else can add this route"
+                            >
+                                <i class="fa-solid fa-share-nodes"></i>
+                                <span class="sr-share-code-value">{{ $savedRoute->share_code }}</span>
+                                <i class="fa-regular fa-copy sr-share-code-copy-icon"></i>
+                            </button>
                         </div>
 
                         {{-- 4-col KV grid --}}
@@ -190,9 +245,13 @@
                                 Saved {{ $savedRoute->created_at ? $savedRoute->created_at->diffForHumans() : '—' }}
                             </span>
                             <div class="sr-footer-actions">
-                                <a href="{{ route('trips.create', ['route_id' => $savedRoute->id]) }}" class="sr-use-btn">
+                                <a href="{{ route('trips.create', ['route_id' => $savedRoute->id]) }}" class="sr-action-btn sr-use-btn">
                                     <i class="fa-solid fa-arrow-right"></i>
                                     Use in new trip
+                                </a>
+                                <a href="{{ route('saved-routes.edit', $savedRoute) }}" class="sr-action-btn sr-edit-btn">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    Edit
                                 </a>
                                 <form
                                     method="POST"
@@ -202,8 +261,8 @@
                                 >
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="sr-delete-btn" title="Delete route">
-                                        <i class="fa-solid fa-trash"></i>
+                                    <button type="submit" class="sr-action-btn sr-delete-btn" title="Delete route">
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
                             </div>

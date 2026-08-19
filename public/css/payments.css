@@ -4520,12 +4520,14 @@
             #paymentReceiptModal .receipt-disclaimer-note {
                 display: flex !important;
                 align-items: flex-start !important;
+                gap: 8px !important;
                 text-align: left !important;
                 line-height: 1.4 !important;
                 margin-top: 6px !important;
             }
             #paymentReceiptModal .receipt-disclaimer-note i {
                 margin-top: 2px !important;
+                flex-shrink: 0 !important;
             }
             #paymentReceiptModal .trip-receipt-footer-actions {
                 margin-top: 16px !important;

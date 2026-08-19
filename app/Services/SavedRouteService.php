@@ -41,12 +41,69 @@ class SavedRouteService
             $savedRoute = SavedRoute::query()->create([
                 ...$data,
                 'user_id' => $user->id,
+                'share_code' => $this->generateShareCode(),
             ]);
 
             $this->syncPassengerStops($savedRoute, $user, $stops);
 
             return $savedRoute->refresh()->load('passengerStops.user');
         });
+    }
+
+    /**
+     * Add someone else's saved route to $user's own list via its share code.
+     * Copies the route's points/fare into a brand new row owned by $user (with
+     * its own fresh share code) rather than granting access to the original —
+     * a saved route's passenger stops are tied to the owner's own accepted
+     * connections, so those are deliberately not copied; $user adds their own
+     * from the edit screen if they want any.
+     */
+    public function redeemShareCode(User $user, string $code): SavedRoute
+    {
+        $code = trim($code);
+
+        $source = SavedRoute::query()->where('share_code', $code)->first();
+        if (! $source) {
+            throw ValidationException::withMessages([
+                'code' => 'No saved route matches that code. Check the code and try again.',
+            ]);
+        }
+
+        if ((int) $source->user_id === (int) $user->id) {
+            throw ValidationException::withMessages([
+                'code' => 'That code belongs to one of your own saved routes.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($source, $user): SavedRoute {
+            return SavedRoute::query()->create([
+                'user_id' => $user->id,
+                'share_code' => $this->generateShareCode(),
+                'route_name' => $source->route_name,
+                'point_a_name' => $source->point_a_name,
+                'point_a_latitude' => $source->point_a_latitude,
+                'point_a_longitude' => $source->point_a_longitude,
+                'point_b_name' => $source->point_b_name,
+                'point_b_latitude' => $source->point_b_latitude,
+                'point_b_longitude' => $source->point_b_longitude,
+                'default_fare' => $source->default_fare,
+                'is_active' => true,
+            ]);
+        });
+    }
+
+    private function generateShareCode(): string
+    {
+        $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+        do {
+            $code = '';
+            for ($i = 0; $i < 6; $i++) {
+                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+        } while (SavedRoute::query()->where('share_code', $code)->exists());
+
+        return $code;
     }
 
     public function update(SavedRoute $savedRoute, array $data): SavedRoute

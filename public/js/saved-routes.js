@@ -1,4 +1,116 @@
 /* Extracted from resources/views/saved-routes/index.blade.php — cacheable. */
+
+// Delegated on document (not bound per-button) because the grid this button
+// lives in gets replaced wholesale after the AJAX initial-load fetch and on
+// every search filter — a direct listener would go stale the moment that swap
+// happens. That same initial-load swap also re-inserts this very <script>
+// tag to re-run it (see the inline script in the Blade view), so without the
+// window guard below this listener was registering a second time on every
+// first page load — one click, two toasts.
+if (!window.__srCopyShareCodeBound) {
+    window.__srCopyShareCodeBound = true;
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.js-copy-share-code');
+        if (!btn) return;
+
+        var code = btn.dataset.code || '';
+        if (!code) return;
+
+        var icon = btn.querySelector('.sr-share-code-copy-icon');
+
+        var showCopied = function () {
+            btn.classList.add('is-copied');
+            // Swapped via JS instead of a CSS content-swap on the <i> — Font
+            // Awesome's glyphs are also drawn through ::before, so overriding
+            // that content alone left the checkmark using the "copy" icon's
+            // font-weight and rendering as a blank/wrong glyph.
+            if (icon) icon.className = 'fa-solid fa-check sr-share-code-copy-icon';
+            if (window.showToast) window.showToast('Route code copied.', 'success');
+            setTimeout(function () {
+                btn.classList.remove('is-copied');
+                if (icon) icon.className = 'fa-regular fa-copy sr-share-code-copy-icon';
+            }, 1600);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(showCopied).catch(function () {
+                if (window.showToast) window.showToast('Could not copy the code.', 'error');
+            });
+            return;
+        }
+
+        // Clipboard API needs a secure context; this covers plain-http fallback.
+        var temp = document.createElement('textarea');
+        temp.value = code;
+        temp.style.position = 'fixed';
+        temp.style.opacity = '0';
+        document.body.appendChild(temp);
+        temp.select();
+        try {
+            document.execCommand('copy');
+            showCopied();
+        } catch (err) {
+            if (window.showToast) window.showToast('Could not copy the code.', 'error');
+        }
+        document.body.removeChild(temp);
+    });
+}
+
+// Same double-run hazard as the copy-code listener above (the initial-load
+// AJAX swap re-inserts this <script> tag) — guarded the same way, otherwise
+// a second bound Escape-key handler etc. would pile up after first load.
+if (!window.__srRedeemModalBound) {
+    window.__srRedeemModalBound = true;
+
+    // No DOMContentLoaded wrapper needed: this <script src> tag is placed
+    // after the modal markup in the page, so the elements already exist by
+    // the time this runs — matches how the rest of this file is written.
+    (function () {
+        var openBtn = document.getElementById('srOpenRedeemModalBtn');
+        var modal = document.getElementById('srRedeemModal');
+        var closeBtn = document.getElementById('srRedeemModalCloseTop');
+        var cancelBtn = document.getElementById('srRedeemModalCancel');
+        var input = document.getElementById('srRedeemCodeInput');
+        if (!openBtn || !modal) return;
+
+        var openModal = function () {
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            if (input) setTimeout(function () { input.focus(); }, 50);
+        };
+        var closeModal = function () {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        };
+
+        openBtn.addEventListener('click', openModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
+        });
+
+        // Codes are stored/matched uppercase — normalize as the user types
+        // instead of letting a lowercase paste silently fail to match.
+        if (input) {
+            input.addEventListener('input', function () {
+                var upper = input.value.toUpperCase();
+                if (upper !== input.value) input.value = upper;
+            });
+        }
+
+        // A failed redeem posts back to this same page with a flashed error
+        // on `code` — reopen the modal so the message is not silently missed.
+        if (document.querySelector('.sr-redeem-error')) openModal();
+    })();
+}
+
     (function () {
         var searchInput = document.getElementById('srSearchInput');
         var cards = Array.prototype.slice.call(document.querySelectorAll('#srGrid [data-route-name]'));

@@ -50,6 +50,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::delete('/connections/{user}/remove', [ConnectionController::class, 'remove'])->name('connections.remove');
     Route::resource('saved-routes', SavedRouteController::class)->except(['show']);
     Route::patch('/saved-routes/{savedRoute}/status', [SavedRouteController::class, 'toggleStatus'])->name('saved-routes.toggle-status');
+    Route::post('/saved-routes/redeem', [SavedRouteController::class, 'redeem'])->name('saved-routes.redeem');
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::patch('/payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
     Route::patch('/payments/{payment}/confirm-paid', [PaymentController::class, 'confirmPaid'])->name('payments.confirm-paid');
