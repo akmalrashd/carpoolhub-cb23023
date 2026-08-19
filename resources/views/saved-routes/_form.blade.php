@@ -39,17 +39,17 @@
             <div class="rf-map-section-head">
                 <span class="rf-map-section-title">
                     <i class="fa-solid fa-map-location-dot"></i>
-                    Pickup and Drop-off
+                    Point A and Point B
                 </span>
-                <p class="rf-map-section-hint">Set the main pickup and drop-off points.</p>
+                <p class="rf-map-section-hint">Set your saved route's Point A and Point B.</p>
             </div>
 
             <div class="rf-target-switch" aria-label="Route point target">
                 <button type="button" class="rf-target-btn active" data-map-target="pickup">
-                    <i class="fa-solid fa-location-dot"></i>Pickup Point A
+                    <i class="fa-solid fa-location-dot"></i>Point A
                 </button>
                 <button type="button" class="rf-target-btn" data-map-target="destination">
-                    <i class="fa-solid fa-flag-checkered"></i>Drop-off Point B
+                    <i class="fa-solid fa-flag-checkered"></i>Point B
                 </button>
             </div>
 
@@ -203,11 +203,11 @@
             <h3 class="rf-ctrl-head"><i class="fa-solid fa-map-pin"></i> Route points</h3>
             <div class="rf-stop-list">
 
-                {{-- Pickup point --}}
+                {{-- Point A --}}
                 <div class="rf-stop-row">
                     <span class="rf-stop-dot pickup"></span>
                     <div class="rf-stop-meta">
-                        <span class="rf-stop-eyebrow">Pickup</span>
+                        <span class="rf-stop-eyebrow">Point A</span>
                         <input
                             id="point_a_name"
                             class="rf-stop-input"
@@ -231,11 +231,11 @@
                     </div>
                 </div>
 
-                {{-- Destination --}}
+                {{-- Point B --}}
                 <div class="rf-stop-row">
                     <span class="rf-stop-dot dest"></span>
                     <div class="rf-stop-meta">
-                        <span class="rf-stop-eyebrow">Drop-off</span>
+                        <span class="rf-stop-eyebrow">Point B</span>
                         <input
                             id="point_b_name"
                             class="rf-stop-input"
@@ -399,17 +399,34 @@
                 </div>
                 <div class="rf-fare-ai-reason" id="fareAiReason">Set both points to get AI fuel and toll advice.</div>
             </div>
-            <label class="rf-default-label" style="margin-top:12px">
-                <input
-                    type="checkbox"
-                    name="is_default"
-                    value="1"
-                    {{ old('is_default', $savedRoute->is_default ?? false) ? 'checked' : '' }}
-                >
-                Make default route
-            </label>
-            {{-- Keep is_active hidden so existing toggle logic is preserved --}}
-            <input type="hidden" name="is_active" value="{{ old('is_active', $savedRoute->is_active ?? 1) ? '1' : '0' }}">
+        </div>
+
+        {{-- Settings card --}}
+        <div class="card rf-ctrl-card">
+            <h3 class="rf-ctrl-head"><i class="fa-solid fa-sliders"></i> Route settings</h3>
+            <div class="rf-toggle-group">
+                <label class="rf-toggle-row">
+                    <div class="rf-toggle-text">
+                        <span class="rf-toggle-title">Active route</span>
+                        <span class="rf-toggle-hint">Available to pick when starting a new trip. Turn off to keep it saved without using it right now.</span>
+                    </div>
+                    <span class="rf-switch">
+                        <input type="hidden" name="is_active" value="0">
+                        <input type="checkbox" name="is_active" value="1" {{ old('is_active', $savedRoute->is_active ?? true) ? 'checked' : '' }}>
+                        <span class="rf-switch-track"><span class="rf-switch-thumb"></span></span>
+                    </span>
+                </label>
+                <label class="rf-toggle-row">
+                    <div class="rf-toggle-text">
+                        <span class="rf-toggle-title">Make default route</span>
+                        <span class="rf-toggle-hint">Pre-selected first when you start creating a new trip.</span>
+                    </div>
+                    <span class="rf-switch">
+                        <input type="checkbox" name="is_default" value="1" {{ old('is_default', $savedRoute->is_default ?? false) ? 'checked' : '' }}>
+                        <span class="rf-switch-track"><span class="rf-switch-thumb"></span></span>
+                    </span>
+                </label>
+            </div>
         </div>
 
         {{-- Validation errors --}}
@@ -436,6 +453,19 @@
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
+
+        // The map card is stretched to match the (usually taller) controls
+        // column via CSS, and #routeMap fills that with flex — but Leaflet
+        // measures its container once at init, before webfonts/icons finish
+        // loading and settle that final height, leaving unrendered tiles
+        // below the fold until something forces a remeasure.
+        setTimeout(function () { map.invalidateSize(); }, 0);
+        window.addEventListener('load', function () { map.invalidateSize(); });
+        if (window.ResizeObserver) {
+            new ResizeObserver(function () { map.invalidateSize(); }).observe(document.getElementById('routeMap'));
+        } else {
+            window.addEventListener('resize', function () { map.invalidateSize(); });
+        }
 
         var searchInput = document.getElementById('mapSearchInput');
         var searchBtn = document.getElementById('mapSearchBtn');
@@ -500,10 +530,14 @@
         var fareAdvisorEdited = false;
         var presetCapture = null;
         var activePresetRow = null;
-        var presetRadiusKm = 3;
+        // Same two-part rule the Explore join-request map uses: a custom stop is
+        // allowed if it's close to the fetched route path itself (not just a
+        // circle around Point A/B), or still within a wider circle around the
+        // anchor point. Both radii scale with the route's total length.
+        var allowedRouteRadiusKm = 0.20;
+        var allowedEndpointRadiusKm = 0.50;
         var presetMarkerLayer = L.layerGroup().addTo(map);
         var presetRadiusLayers = [];
-        var mapToastTimer = null;
 
         function toNumber(value) {
             var num = parseFloat(value);
@@ -517,19 +551,10 @@
         }
 
         function showMapToast(message) {
-            var toast = document.getElementById('savedRouteMapToast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'savedRouteMapToast';
-                toast.className = 'rf-map-toast';
-                document.body.appendChild(toast);
-            }
-            toast.textContent = message;
-            toast.classList.add('show');
-            if (mapToastTimer) clearTimeout(mapToastTimer);
-            mapToastTimer = setTimeout(function () {
-                toast.classList.remove('show');
-            }, 2600);
+            // Match the app's one standard toast (top toast-container/toast-card,
+            // used on trips/payments/notifications) instead of this page's own
+            // bottom pill, so a blocked map point looks consistent everywhere else.
+            if (window.showToast) window.showToast(message, 'error');
         }
 
         function updatePresetStopEmpty() {
@@ -576,6 +601,66 @@
             return km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1) + ' km';
         }
 
+        // Local equirectangular projection + point-to-segment distance, same
+        // formula the Explore join-request map uses to measure how far a
+        // candidate point sits from the actual route path (not just its ends).
+        function pointToLocalKm(latLng, origin) {
+            return {
+                x: (latLng.lng - origin.lng) * 111.32 * Math.cos((origin.lat * Math.PI) / 180),
+                y: (latLng.lat - origin.lat) * 110.57
+            };
+        }
+
+        function distanceToSegmentKm(point, start, end) {
+            var p = pointToLocalKm(point, start);
+            var b = pointToLocalKm(end, start);
+            var lengthSquared = (b.x * b.x) + (b.y * b.y);
+            if (lengthSquared === 0) return Math.sqrt((p.x * p.x) + (p.y * p.y));
+            var t = Math.max(0, Math.min(1, ((p.x * b.x) + (p.y * b.y)) / lengthSquared));
+            return Math.sqrt(Math.pow(p.x - (t * b.x), 2) + Math.pow(p.y - (t * b.y), 2));
+        }
+
+        function currentRouteLinePoints() {
+            var selectedRoute = fetchedRoutes[selectedRouteIndex] || fetchedRoutes[0] || null;
+            if (selectedRoute && selectedRoute.geometry && Array.isArray(selectedRoute.geometry.coordinates)) {
+                return selectedRoute.geometry.coordinates.map(function (pair) { return L.latLng(pair[1], pair[0]); });
+            }
+            if (pickupMarker && destinationMarker) {
+                return [pickupMarker.getLatLng(), destinationMarker.getLatLng()];
+            }
+            return [];
+        }
+
+        function distanceToRouteKm(latLng) {
+            var points = currentRouteLinePoints();
+            if (points.length < 2) return null;
+            var nearest = Infinity;
+            for (var i = 0; i < points.length - 1; i += 1) {
+                nearest = Math.min(nearest, distanceToSegmentKm(latLng, points[i], points[i + 1]));
+            }
+            return Number.isFinite(nearest) ? nearest : null;
+        }
+
+        function updateAllowedPresetRadius() {
+            var selectedRoute = fetchedRoutes[selectedRouteIndex] || fetchedRoutes[0] || null;
+            var fallbackKm = pickupMarker && destinationMarker
+                ? distanceKmBetween(pickupMarker.getLatLng(), destinationMarker.getLatLng())
+                : null;
+            var routeKm = (selectedRoute && Number.isFinite(Number(selectedRoute.distance)) && Number(selectedRoute.distance) > 0)
+                ? Number(selectedRoute.distance) / 1000
+                : (fallbackKm || 1);
+
+            if (routeKm <= 3) {
+                allowedRouteRadiusKm = 0.40; allowedEndpointRadiusKm = 0.50;
+            } else if (routeKm <= 10) {
+                allowedRouteRadiusKm = 0.70; allowedEndpointRadiusKm = 0.80;
+            } else if (routeKm <= 25) {
+                allowedRouteRadiusKm = 1.00; allowedEndpointRadiusKm = 1.20;
+            } else {
+                allowedRouteRadiusKm = 1.30; allowedEndpointRadiusKm = 1.50;
+            }
+        }
+
         function customPinIcon(kind, sequence) {
             var color = kind === 'dropoff' ? '#ea580c' : '#16a34a';
             return L.divIcon({
@@ -591,11 +676,12 @@
         }
 
         function syncPresetRadius() {
+            updateAllowedPresetRadius();
             presetRadiusLayers.forEach(function (layer) { map.removeLayer(layer); });
             presetRadiusLayers = [];
             if (pickupMarker) {
                 presetRadiusLayers.push(L.circle(pickupMarker.getLatLng(), {
-                    radius: presetRadiusKm * 1000,
+                    radius: allowedEndpointRadiusKm * 1000,
                     color: '#16a34a',
                     weight: 1,
                     fillColor: '#16a34a',
@@ -605,7 +691,7 @@
             }
             if (destinationMarker) {
                 presetRadiusLayers.push(L.circle(destinationMarker.getLatLng(), {
-                    radius: presetRadiusKm * 1000,
+                    radius: allowedEndpointRadiusKm * 1000,
                     color: '#ea580c',
                     weight: 1,
                     fillColor: '#ea580c',
@@ -672,6 +758,16 @@
             });
         }
 
+        function refreshPresetCaptureStepText() {
+            if (!presetCapture) return;
+            mapStepNumber.textContent = 'Preset';
+            mapStepText.textContent = presetCapture.kind === 'dropoff'
+                ? 'Tap the map near Point B to set passenger drop-off. Tap again to adjust it.'
+                : 'Tap the map near Point A to set passenger pickup. Tap again to adjust it.';
+            updateAllowedPresetRadius();
+            mapStepHint.textContent = 'Allowed: within ' + formatRadiusDistance(allowedRouteRadiusKm) + ' of the route path, or ' + formatRadiusDistance(allowedEndpointRadiusKm) + ' of the route point. Switch to Point A / Point B above to leave this mode.';
+        }
+
         function startPresetCapture(kind, row) {
             setCustomStopPanel(true);
             if (row) {
@@ -686,11 +782,7 @@
                 row: activePresetRow,
                 kind: kind === 'dropoff' ? 'dropoff' : 'pickup'
             };
-            mapStepNumber.textContent = 'Preset';
-            mapStepText.textContent = presetCapture.kind === 'dropoff'
-                ? 'Tap the map near Point B to set passenger drop-off.'
-                : 'Tap the map near Point A to set passenger pickup.';
-            mapStepHint.textContent = 'Allowed radius is ' + presetRadiusKm + ' km from the original route point.';
+            refreshPresetCaptureStepText();
             syncTargetButtons();
             syncPresetCaptureButtons();
         }
@@ -705,8 +797,8 @@
 
             if (!anchor) {
                 var missingMessage = targetPrefix === 'dropoff'
-                    ? 'Set Drop-off Point B first, then choose passenger drop-off.'
-                    : 'Set Pickup Point A first, then choose passenger pickup.';
+                    ? 'Set Point B first, then choose the passenger drop-off.'
+                    : 'Set Point A first, then choose the passenger pickup.';
                 showMapToast(missingMessage);
                 mapStepText.textContent = targetPrefix === 'dropoff'
                     ? 'Set Point B first before adding a passenger drop-off.'
@@ -715,10 +807,16 @@
                 return false;
             }
 
-            if (distanceFromAnchor !== null && distanceFromAnchor > presetRadiusKm) {
-                showMapToast('Pick a point within ' + presetRadiusKm + ' km of the original route point.');
-                mapStepText.textContent = 'That point is too far from the route point.';
-                mapStepHint.textContent = 'Choose a point within ' + presetRadiusKm + ' km. Current distance: ' + formatRadiusDistance(distanceFromAnchor) + '.';
+            updateAllowedPresetRadius();
+            var distanceFromRoute = distanceToRouteKm(selectedPoint);
+            var withinRoute = distanceFromRoute !== null && distanceFromRoute <= allowedRouteRadiusKm;
+            var withinEndpoint = distanceFromAnchor !== null && distanceFromAnchor <= allowedEndpointRadiusKm;
+
+            if (!withinRoute && !withinEndpoint) {
+                var nearestRouteText = distanceFromRoute === null ? 'unknown' : formatRadiusDistance(distanceFromRoute);
+                showMapToast('Pick a point closer to the route. Nearest route distance: ' + nearestRouteText + '.');
+                mapStepText.textContent = 'That point is too far from the route.';
+                mapStepHint.textContent = 'Allowed: within ' + formatRadiusDistance(allowedRouteRadiusKm) + ' of the route path, or ' + formatRadiusDistance(allowedEndpointRadiusKm) + ' of Point ' + (targetPrefix === 'dropoff' ? 'B' : 'A') + '. Nearest route distance: ' + nearestRouteText + '.';
                 return false;
             }
 
@@ -1529,7 +1627,7 @@
             if (!previewPlace || !previewCard) return;
             var targetText = presetCapture
                 ? (presetCapture.kind === 'dropoff' ? 'passenger drop-off' : 'passenger pickup')
-                : (nextTarget === 'pickup' ? 'pickup Point A' : 'drop-off Point B');
+                : (nextTarget === 'pickup' ? 'Point A' : 'Point B');
             var title = String(previewPlace.name || 'Selected location').split(',')[0] || 'Selected location';
             previewTitle.textContent = title;
             previewSub.textContent = String(previewPlace.name || '').trim() || 'Drag the preview pin or confirm this point.';
@@ -1721,9 +1819,12 @@
                         applyPresetMapPoint(activeRow, activeKind, event.latlng.lat, event.latlng.lng, resolvedName);
                     }
                 });
-                activeRow.classList.remove('is-active-capture');
-                clearPresetCapture();
+                // Stay in this same custom-stop capture (pickup or drop-off) so the
+                // next tap can still adjust it — only leave capture mode when the
+                // user explicitly clicks Point A / Point B, or picks another
+                // capture button (both already call clearPresetCapture()).
                 updateStepIndicator();
+                refreshPresetCaptureStepText();
                 return;
             }
 

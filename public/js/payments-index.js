@@ -1707,10 +1707,25 @@ document.addEventListener('change', (e) => {
                 return row && !window.isPaymentRowHidden(row);
             });
 
-            const allChecked = visibleCbs.length > 0 && visibleCbs.every(cb => cb.checked);
+            // The "All" tab mixes You Pay and You Collect rows together, so Select
+            // All stays within whichever side the user already ticked instead of
+            // sweeping both into one bulk action. The To pay / To collect tabs are
+            // already single-perspective, so this only matters on "All".
+            const activeTab = document.querySelector('.payments-tab.active');
+            const isAllTab = !!activeTab && activeTab.textContent.trim().toLowerCase().startsWith('all');
+            let scopedCbs = visibleCbs;
+            if (isAllTab) {
+                const checkedCb = visibleCbs.find(cb => cb.checked);
+                const activePerspective = checkedCb ? checkedCb.closest('.js-payment-filter-item')?.dataset.paymentPerspective : null;
+                if (activePerspective) {
+                    scopedCbs = visibleCbs.filter(cb => cb.closest('.js-payment-filter-item')?.dataset.paymentPerspective === activePerspective);
+                }
+            }
+
+            const allChecked = scopedCbs.length > 0 && scopedCbs.every(cb => cb.checked);
             const targetState = !allChecked;
 
-            visibleCbs.forEach(cb => {
+            scopedCbs.forEach(cb => {
                 cb.checked = targetState;
                 cb.dispatchEvent(new Event('change', { bubbles: true }));
             });

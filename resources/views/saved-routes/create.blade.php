@@ -38,7 +38,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:6px;flex-wrap:wrap">
         <div>
             <h1 style="margin:0;font-family:var(--font-display);font-size:28px;font-weight:800">Create Saved Route</h1>
-            <p style="margin:4px 0 0;color:var(--muted);font-size:13px">Set pickup, destination, and custom stops on the map.</p>
+            <p style="margin:4px 0 0;color:var(--muted);font-size:13px">Set Point A, Point B, and custom stops on the map.</p>
         </div>
         <div class="sr-form-actions sr-desktop-form-actions">
             <a href="{{ route('saved-routes.index') }}" class="btn btn-ghost">Cancel</a>
