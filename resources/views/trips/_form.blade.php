@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="{{ asset('css/trips-form.css') }}?v={{ filemtime(public_path('css/trips-form.css')) }}">
 
 @php
+    $isCreate = !isset($trip) || !$trip;
     $currentTripType = old('trip_type', (isset($trip) && (($trip->trip_mode ?? 'one_way') === 'two_way' || $trip->returnTrip)) ? 'two_way' : 'one_way');
     $selectedSavedRouteId = old('saved_route_id', $trip->saved_route_id ?? request('route_id'));
     $outboundPickupKey = old('outbound_pickup_key');
@@ -48,10 +49,52 @@
     </div>
 @endif
 
+@if($isCreate)
+    <nav class="tf-wizard-stepper" id="tripWizardStepper" aria-label="Trip creation steps">
+        <ol class="tf-wizard-steps">
+            <li class="tf-wizard-step">
+                <button type="button" class="tf-wizard-step-btn" data-wizard-step-trigger="1">
+                    <span class="tf-wizard-step-dot">1</span>
+                    <span class="tf-wizard-step-label">Route</span>
+                </button>
+            </li>
+            <li class="tf-wizard-step-sep" aria-hidden="true"></li>
+            <li class="tf-wizard-step">
+                <button type="button" class="tf-wizard-step-btn" data-wizard-step-trigger="2">
+                    <span class="tf-wizard-step-dot">2</span>
+                    <span class="tf-wizard-step-label">Schedule</span>
+                </button>
+            </li>
+            <li class="tf-wizard-step-sep" aria-hidden="true"></li>
+            <li class="tf-wizard-step">
+                <button type="button" class="tf-wizard-step-btn" data-wizard-step-trigger="3">
+                    <span class="tf-wizard-step-dot">3</span>
+                    <span class="tf-wizard-step-label">Passengers</span>
+                </button>
+            </li>
+            <li class="tf-wizard-step-sep" aria-hidden="true"></li>
+            <li class="tf-wizard-step">
+                <button type="button" class="tf-wizard-step-btn" data-wizard-step-trigger="4">
+                    <span class="tf-wizard-step-dot">4</span>
+                    <span class="tf-wizard-step-label">Fare</span>
+                </button>
+            </li>
+            <li class="tf-wizard-step-sep" aria-hidden="true"></li>
+            <li class="tf-wizard-step">
+                <button type="button" class="tf-wizard-step-btn" data-wizard-step-trigger="5">
+                    <span class="tf-wizard-step-dot">5</span>
+                    <span class="tf-wizard-step-label">Review</span>
+                </button>
+            </li>
+        </ol>
+        <p class="tf-wizard-step-caption" id="tripWizardStepCaption">Step 1 of 5 — Saved Route</p>
+    </nav>
+@endif
+
 {{-- ══════════════════════════════════════════════════════════════════ --}}
 {{-- ── Two-column page grid ─────────────────────────────────────────── --}}
 {{-- ══════════════════════════════════════════════════════════════════ --}}
-<div class="tf-page-grid">
+<div class="tf-page-grid" @if($isCreate) data-wizard-review @endif>
 
     {{-- ═══════════════════════════════════ --}}
     {{-- LEFT COLUMN ───────────────────────── --}}
@@ -59,7 +102,7 @@
     <div class="tf-left-col">
 
         {{-- ── SECTION 1 · SAVED ROUTE ───────── --}}
-        <div class="tf-card">
+        <div class="tf-card" @if($isCreate) data-wizard-step="1" @endif>
             <div class="tf-section-header">
                 <span class="tf-section-icon"><i class="fa-solid fa-route"></i></span>
                 <h2 class="tf-section-title">1 · Saved Route</h2>
@@ -158,10 +201,18 @@
                     </div>
                 </div>
             </div>
+
+            @if($isCreate)
+                <div class="tf-wizard-card-actions tf-wizard-card-actions-end">
+                    <button type="button" class="btn btn-primary" data-wizard-next="1">
+                        Next <i class="fa-solid fa-arrow-right" style="font-size:12px"></i>
+                    </button>
+                </div>
+            @endif
         </div>
 
         {{-- ── SECTION 2 · SCHEDULE & CAPACITY ── --}}
-        <div class="tf-card" data-route-dependent-section>
+        <div class="tf-card" data-route-dependent-section @if($isCreate) data-wizard-step="2" @endif>
             <div class="tf-section-header">
                 <span class="tf-section-icon"><i class="fa-regular fa-calendar"></i></span>
                 <h2 class="tf-section-title">2 · Schedule &amp; Capacity</h2>
@@ -255,6 +306,13 @@
                 </div>
             </div>
 
+            {{-- Private-only nudge toward Public visibility — lives with the
+                 field it's actually about, not in the final-review Summary. --}}
+            <div class="tf-tip-box" id="visibilityTipBox">
+                <i class="fa-solid fa-bolt" style="margin-right:4px"></i>
+                Public trips with open seats receive more join requests from Explore. Set visibility to <strong>Public</strong> to reach more passengers.
+            </div>
+
             {{-- Row 2: seat limit + public note (visibility-conditional) --}}
             <div class="tf-sched-row2">
                 {{-- Public-only: seat limit --}}
@@ -288,13 +346,77 @@
                     </div>
                 </div>
             </div>
+
+            @if($isCreate)
+                <div class="tf-wizard-card-actions">
+                    <button type="button" class="btn btn-ghost" data-wizard-back="2">
+                        <i class="fa-solid fa-arrow-left" style="font-size:12px"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary" data-wizard-next="2">
+                        Next <i class="fa-solid fa-arrow-right" style="font-size:12px"></i>
+                    </button>
+                </div>
+            @endif
         </div>
 
-        {{-- ── SECTION 3 · FARE ──────────────── --}}
-        <div class="tf-card" data-route-dependent-section>
+        {{-- ── SECTION 3 · INVITE PASSENGERS ─── --}}
+        <div class="tf-card" data-route-dependent-section @if($isCreate) data-wizard-step="3" @endif>
+            <div class="tf-section-header">
+                <span class="tf-section-icon"><i class="fa-solid fa-users"></i></span>
+                <h2 class="tf-section-title">3 · Invite Passengers <span style="font-weight:400;color:var(--muted)">(optional)</span></h2>
+            </div>
+
+            <label class="field-label" id="passengerSelectionLabel">Passengers (Accepted Connections)</label>
+            <div class="tf-participants-card" style="margin-top:6px">
+                @forelse($selectableParticipants as $participant)
+                    <label class="tf-participant-card">
+                        <input
+                            type="checkbox"
+                            name="participant_ids[]"
+                            value="{{ $participant->id }}"
+                            {{ in_array($participant->id, old('participant_ids', $selectedParticipants ?? []), true) ? 'checked' : '' }}
+                        >
+                        <span class="tf-participant-avatar" aria-hidden="true">{{ strtoupper(substr($participant->name, 0, 1)) }}</span>
+                        <span class="tf-participant-meta">
+                            <span class="tf-participant-name">{{ $participant->name }}</span>
+                            <span class="tf-participant-email">{{ $participant->email }}</span>
+                            <span class="tf-participant-preset-note" data-preset-note></span>
+                        </span>
+                    </label>
+                @empty
+                    <p class="tf-participants-empty">No accepted connections yet.</p>
+                @endforelse
+            </div>
+            <p class="tf-participants-connection-help">Don't see your friend here? <a href="{{ route('connections.index') }}">Open Connections to add them first.</a></p>
+            <p class="field-hint" id="passengerSelectionHint" style="margin-top:4px">Select trusted passengers for a private trip. Public trips can receive join requests from Explore.</p>
+            <p class="field-hint" id="privateRoutePointHint">Private passengers use the trip date/time and route points by default.</p>
+
+            {{-- Notes --}}
+            <div class="tf-field" style="margin-top:14px">
+                <label class="field-label" for="note">Notes</label>
+                <textarea id="note" class="tf-textarea" name="note" rows="3">{{ old('note', $trip->note ?? '') }}</textarea>
+                @error('note')
+                    <p class="tf-field-error">{{ $message }}</p>
+                @enderror
+            </div>
+
+            @if($isCreate)
+                <div class="tf-wizard-card-actions">
+                    <button type="button" class="btn btn-ghost" data-wizard-back="3">
+                        <i class="fa-solid fa-arrow-left" style="font-size:12px"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary" data-wizard-next="3">
+                        Next <i class="fa-solid fa-arrow-right" style="font-size:12px"></i>
+                    </button>
+                </div>
+            @endif
+        </div>
+
+        {{-- ── SECTION 4 · FARE ──────────────── --}}
+        <div class="tf-card" data-route-dependent-section @if($isCreate) data-wizard-step="4" @endif>
             <div class="tf-section-header">
                 <span class="tf-section-icon"><i class="fa-solid fa-sack-dollar"></i></span>
-                <h2 class="tf-section-title">3 · Fare</h2>
+                <h2 class="tf-section-title">4 · Fare</h2>
             </div>
 
             <div class="tf-fare-grid">
@@ -350,49 +472,128 @@
                 </div>
             </div>
             <p class="field-hint" style="margin-top:8px">Passengers see the per-seat fare. The total is drawn from the saved route default.</p>
+
+            @if($isCreate)
+                <div class="tf-wizard-card-actions">
+                    <button type="button" class="btn btn-ghost" data-wizard-back="4">
+                        <i class="fa-solid fa-arrow-left" style="font-size:12px"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary" data-wizard-next="4">
+                        Next <i class="fa-solid fa-arrow-right" style="font-size:12px"></i>
+                    </button>
+                </div>
+            @endif
         </div>
 
-        {{-- ── SECTION 4 · INVITE PASSENGERS ─── --}}
-        <div class="tf-card" data-route-dependent-section>
+        {{-- ── SECTION 5 · REVIEW & PUBLISH ─── --}}
+        @if($isCreate)
+        <div class="tf-card" data-wizard-step="5">
             <div class="tf-section-header">
-                <span class="tf-section-icon"><i class="fa-solid fa-users"></i></span>
-                <h2 class="tf-section-title">4 · Invite Passengers <span style="font-weight:400;color:var(--muted)">(optional)</span></h2>
+                <span class="tf-section-icon"><i class="fa-solid fa-clipboard-check"></i></span>
+                <h2 class="tf-section-title">5 · Review &amp; Publish</h2>
             </div>
 
-            <label class="field-label" id="passengerSelectionLabel">Passengers (Accepted Connections)</label>
-            <div class="tf-participants-card" style="margin-top:6px">
-                @forelse($selectableParticipants as $participant)
-                    <label class="tf-participant-card">
-                        <input
-                            type="checkbox"
-                            name="participant_ids[]"
-                            value="{{ $participant->id }}"
-                            {{ in_array($participant->id, old('participant_ids', $selectedParticipants ?? []), true) ? 'checked' : '' }}
-                        >
-                        <span class="tf-participant-avatar" aria-hidden="true">{{ strtoupper(substr($participant->name, 0, 1)) }}</span>
-                        <span class="tf-participant-meta">
-                            <span class="tf-participant-name">{{ $participant->name }}</span>
-                            <span class="tf-participant-email">{{ $participant->email }}</span>
-                            <span class="tf-participant-preset-note" data-preset-note></span>
-                        </span>
-                    </label>
-                @empty
-                    <p class="tf-participants-empty">No accepted connections yet.</p>
-                @endforelse
-            </div>
-            <p class="tf-participants-connection-help">Don't see your friend here? <a href="{{ route('connections.index') }}">Open Connections to add them first.</a></p>
-            <p class="field-hint" id="passengerSelectionHint" style="margin-top:4px">Select trusted passengers for a private trip. Public trips can receive join requests from Explore.</p>
-            <p class="field-hint" id="privateRoutePointHint">Private passengers use the trip date/time and route points by default.</p>
+            <div class="tf-review-grid">
 
-            {{-- Notes --}}
-            <div class="tf-field" style="margin-top:14px">
-                <label class="field-label" for="note">Notes</label>
-                <textarea id="note" class="tf-textarea" name="note" rows="3">{{ old('note', $trip->note ?? '') }}</textarea>
-                @error('note')
-                    <p class="tf-field-error">{{ $message }}</p>
-                @enderror
+            <div class="tf-review-group">
+                <div class="tf-review-group-head">
+                    <span class="tf-review-group-title"><i class="fa-solid fa-route"></i> 1 &middot; Saved Route</span>
+                    <button type="button" class="tf-review-edit-link" data-wizard-goto="1"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
+                <div class="tf-summary-kv">
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Route</span>
+                        <span class="tf-summary-val" id="reviewRouteName">—</span>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Pickup</span>
+                        <span class="tf-summary-val" id="reviewPickup">—</span>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Destination</span>
+                        <span class="tf-summary-val" id="reviewDestination">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tf-review-group">
+                <div class="tf-review-group-head">
+                    <span class="tf-review-group-title"><i class="fa-regular fa-calendar"></i> 2 &middot; Schedule &amp; Capacity</span>
+                    <button type="button" class="tf-review-edit-link" data-wizard-goto="2"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
+                <div class="tf-summary-kv">
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Date &amp; Time</span>
+                        <span class="tf-summary-val" id="summaryDate">—</span>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Trip Type</span>
+                        <span class="tf-summary-val" id="summaryTripType">One-way</span>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Visibility</span>
+                        <span class="tf-summary-val" id="summaryVisibility">Private</span>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Seats</span>
+                        <span class="tf-summary-val" id="summarySeats">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tf-review-group">
+                <div class="tf-review-group-head">
+                    <span class="tf-review-group-title"><i class="fa-solid fa-users"></i> 3 &middot; Invite Passengers</span>
+                    <button type="button" class="tf-review-edit-link" data-wizard-goto="3"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
+                <div class="tf-summary-kv">
+                    <div class="tf-review-chip-block">
+                        <span class="tf-summary-key">Passengers</span>
+                        <div class="tf-review-chip-list" id="reviewPassengers">
+                            <span class="tf-review-chip-empty">No passengers invited</span>
+                        </div>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Notes</span>
+                        <span class="tf-summary-val" id="reviewNotes">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tf-review-group">
+                <div class="tf-review-group-head">
+                    <span class="tf-review-group-title"><i class="fa-solid fa-sack-dollar"></i> 4 &middot; Fare</span>
+                    <button type="button" class="tf-review-edit-link" data-wizard-goto="4"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
+                <div class="tf-summary-kv">
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Total Fare</span>
+                        <span class="tf-summary-val" id="reviewFareTotal">RM 0.00</span>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Split Count</span>
+                        <span class="tf-summary-val" id="reviewSplitCount">1</span>
+                    </div>
+                    <div class="tf-summary-row">
+                        <span class="tf-summary-key">Per Seat</span>
+                        <span class="tf-summary-val" id="summaryPerSeat">RM 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+
+            <div class="tf-wizard-card-actions">
+                <button type="button" class="btn btn-ghost" data-wizard-back="5">
+                    <i class="fa-solid fa-arrow-left" style="font-size:12px"></i> Back
+                </button>
+                <button type="submit" class="btn btn-primary trip-publish-btn" form="tripCreateForm" data-trip-publish-button>
+                    <span data-trip-publish-label>{{ $submitLabel ?? 'Publish trip' }}</span>
+                    <i class="fa-solid fa-paper-plane" data-trip-publish-icon style="font-size:12px"></i>
+                </button>
             </div>
         </div>
+        @endif
 
     </div>
     {{-- /LEFT COLUMN --}}
@@ -422,7 +623,8 @@
             <span id="mapDestinationLabel" hidden></span>
         @endif
 
-        {{-- ── Summary card ─────────────────── --}}
+        {{-- ── Summary card (edit only — create shows the Review step instead) ── --}}
+        @if(!$isCreate)
         <div class="tf-card tf-card-pad">
             <h3 style="margin:0 0 2px;font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ink)">Summary</h3>
             <div class="tf-summary-kv">
@@ -447,12 +649,8 @@
                     <span class="tf-summary-val" id="summaryPerSeat">RM 0.00</span>
                 </div>
             </div>
-
-            <div class="tf-tip-box" id="summaryTipBox">
-                <i class="fa-solid fa-bolt" style="margin-right:4px"></i>
-                Public trips with open seats receive more join requests from Explore. Set visibility to <strong>Public</strong> to reach more passengers.
-            </div>
         </div>
+        @endif
 
     </div>
     {{-- /RIGHT COLUMN --}}
@@ -461,81 +659,6 @@
 {{-- /tf-page-grid --}}
 
 {{-- ── Cancel confirm modal ────────────────────────────────────────── --}}
-@if(!isset($trip) || !$trip)
-    <div class="tf-card tf-card-pad tf-mobile-summary-card">
-        <h3 style="margin:0 0 2px;font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ink)">Trip summary</h3>
-        <p class="field-hint" id="mobileSummaryInlineMeta" style="margin:2px 0 12px">Complete the required details to review your trip.</p>
-        <div class="tf-summary-kv">
-            <div class="tf-summary-row">
-                <span class="tf-summary-key">Date &amp; Time</span>
-                <span class="tf-summary-val" id="mobileSummaryInlineDate">-</span>
-            </div>
-            <div class="tf-summary-row">
-                <span class="tf-summary-key">Trip Type</span>
-                <span class="tf-summary-val" id="mobileSummaryInlineTripType">One-way</span>
-            </div>
-            <div class="tf-summary-row">
-                <span class="tf-summary-key">Visibility</span>
-                <span class="tf-summary-val" id="mobileSummaryInlineVisibility">Private</span>
-            </div>
-            <div class="tf-summary-row">
-                <span class="tf-summary-key">Seats</span>
-                <span class="tf-summary-val" id="mobileSummaryInlineSeats">-</span>
-            </div>
-            <div class="tf-summary-row">
-                <span class="tf-summary-key">Per Seat</span>
-                <span class="tf-summary-val" id="mobileSummaryInlinePerSeat">RM 0.00</span>
-            </div>
-        </div>
-        <div class="tf-mobile-summary-actions">
-            <a href="{{ route('trips.index') }}" class="btn btn-ghost tf-mobile-cancel-btn">Cancel</a>
-            <button type="submit" class="btn btn-primary tf-mobile-publish-btn" form="tripCreateForm" data-trip-publish-button>
-                Publish
-                <i class="fa-solid fa-arrow-right" style="font-size:11px"></i>
-            </button>
-        </div>
-    </div>
-@endif
-
-@if(!isset($trip) || !$trip)
-    <div class="tf-mobile-publish-bar" aria-label="Trip publish summary">
-        <div class="tf-mobile-publish-summary">
-            <span class="tf-mobile-step-pill" id="mobilePublishStep">Step 1 of 3</span>
-            <span class="tf-mobile-publish-title" id="mobilePublishTitle">Choose a saved route</span>
-            <span class="tf-mobile-publish-meta" id="mobilePublishSummary">Select a saved route first.</span>
-            <div class="tf-mobile-publish-grid">
-                <span class="tf-mobile-publish-item">
-                    <span>Date</span>
-                    <strong id="mobileSummaryDate">-</strong>
-                </span>
-                <span class="tf-mobile-publish-item">
-                    <span>Trip Type</span>
-                    <strong id="mobileSummaryTripType">One-way</strong>
-                </span>
-                <span class="tf-mobile-publish-item">
-                    <span>Visibility</span>
-                    <strong id="mobileSummaryVisibility">Private</strong>
-                </span>
-                <span class="tf-mobile-publish-item">
-                    <span>Seats</span>
-                    <strong id="mobileSummarySeats">-</strong>
-                </span>
-                <span class="tf-mobile-publish-item">
-                    <span>Per Seat</span>
-                    <strong id="mobileSummaryPerSeat">RM 0.00</strong>
-                </span>
-            </div>
-        </div>
-        <div class="tf-mobile-publish-actions">
-            <a href="{{ route('trips.index') }}" class="btn btn-ghost tf-mobile-cancel-btn">Cancel</a>
-            <button type="submit" class="btn btn-primary tf-mobile-publish-btn" form="tripCreateForm" data-trip-publish-button>
-                Publish
-                <i class="fa-solid fa-arrow-right" style="font-size:11px"></i>
-            </button>
-        </div>
-    </div>
-@endif
-
 <div class="tf-cancel-modal" id="tripCancelModal" aria-hidden="true">
     <div class="tf-cancel-card" role="dialog" aria-modal="true" aria-labelledby="tripCancelTitle">
         <h3 class="tf-cancel-card-title" id="tripCancelTitle">Discard changes?</h3>
@@ -600,36 +723,41 @@
         const summaryVisibility = document.getElementById('summaryVisibility');
         const summarySeats = document.getElementById('summarySeats');
         const summaryPerSeat = document.getElementById('summaryPerSeat');
-        const summaryTipBox = document.getElementById('summaryTipBox');
-        const mobileSummaryDate = document.getElementById('mobileSummaryDate');
-        const mobileSummaryTripType = document.getElementById('mobileSummaryTripType');
-        const mobileSummaryVisibility = document.getElementById('mobileSummaryVisibility');
-        const mobileSummarySeats = document.getElementById('mobileSummarySeats');
-        const mobileSummaryPerSeat = document.getElementById('mobileSummaryPerSeat');
-        const mobileSummaryInlineMeta = document.getElementById('mobileSummaryInlineMeta');
-        const mobileSummaryInlineDate = document.getElementById('mobileSummaryInlineDate');
-        const mobileSummaryInlineTripType = document.getElementById('mobileSummaryInlineTripType');
-        const mobileSummaryInlineVisibility = document.getElementById('mobileSummaryInlineVisibility');
-        const mobileSummaryInlineSeats = document.getElementById('mobileSummaryInlineSeats');
-        const mobileSummaryInlinePerSeat = document.getElementById('mobileSummaryInlinePerSeat');
+        const visibilityTipBox = document.getElementById('visibilityTipBox');
         // Map labels
         const mapPickupLabel = document.getElementById('mapPickupLabel');
         const mapDestinationLabel = document.getElementById('mapDestinationLabel');
         const publishButtons = document.querySelectorAll('[data-trip-publish-button]');
-        const mobilePublishBar = document.querySelector('.tf-mobile-publish-bar');
-        const mobilePublishStep = document.getElementById('mobilePublishStep');
-        const mobilePublishTitle = document.getElementById('mobilePublishTitle');
-        const mobilePublishSummary = document.getElementById('mobilePublishSummary');
         const routeDependentSections = document.querySelectorAll('[data-route-dependent-section]');
+
+        // Wizard step refs (create-only; empty NodeLists on edit, so every
+        // wizard function below is a self-guarded no-op there). Review is a
+        // real 5th .tf-card like the other four, so it needs no special
+        // handling beyond what already drives steps 1-4.
+        const wizardStepCards = document.querySelectorAll('.tf-left-col > .tf-card[data-wizard-step]');
+        const wizardStepperEl = document.getElementById('tripWizardStepper');
+        const wizardStepperButtons = wizardStepperEl ? wizardStepperEl.querySelectorAll('[data-wizard-step-trigger]') : [];
+        const wizardStepCaption = document.getElementById('tripWizardStepCaption');
+        const wizardStepLabels = ['Saved Route', 'Schedule & Capacity', 'Invite Passengers', 'Fare', 'Review & Publish'];
+        let currentStep = 1;
+
+        // Review-step recap elements (mirror live values from earlier steps).
+        const reviewRouteName = document.getElementById('reviewRouteName');
+        const reviewPickup = document.getElementById('reviewPickup');
+        const reviewDestination = document.getElementById('reviewDestination');
+        const reviewPassengers = document.getElementById('reviewPassengers');
+        const reviewNotes = document.getElementById('reviewNotes');
+        const reviewFareTotal = document.getElementById('reviewFareTotal');
+        const reviewSplitCount = document.getElementById('reviewSplitCount');
 
         const fallbackTripType = @json($currentTripType);
         let isSubmittingForm = false;
+        // Set right before showModal() by the in-app nav-link guard below, so
+        // Discard can send the user on to wherever they were actually headed
+        // instead of always landing back on the trips list.
+        let pendingNavigationUrl = null;
 
         if (!form || !routeSelect || !statusInput) return;
-
-        if (mobilePublishBar && mobilePublishBar.parentElement !== document.body) {
-            document.body.appendChild(mobilePublishBar);
-        }
 
         const initialSnapshot = {
             savedRouteId: routeSelect.value,
@@ -697,6 +825,9 @@
             if (totalFareDetailEl) totalFareDetailEl.textContent = totalFmt;
             if (participantCountEl) participantCountEl.textContent = String(count);
             if (farePerPersonDetailEl) farePerPersonDetailEl.textContent = perFmt;
+            // Mirror into the Review step's Fare group
+            if (reviewFareTotal) reviewFareTotal.textContent = totalFmt;
+            if (reviewSplitCount) reviewSplitCount.textContent = String(count);
 
             if (farePreviewHint) {
                 const publicHint = selectedVisibility() === 'public'
@@ -708,7 +839,55 @@
             }
 
             updateSummaryPanel(perFmt);
+            updateWizardReview();
             updateDirectionVisibility();
+        }
+
+        function updateWizardReview() {
+            if (reviewRouteName && routeTriggerText) {
+                reviewRouteName.textContent = routeTriggerText.textContent || '—';
+            }
+            if (reviewPickup && outboundPickupPreview) {
+                reviewPickup.textContent = outboundPickupPreview.textContent || '—';
+            }
+            if (reviewDestination && outboundDestinationPreview) {
+                reviewDestination.textContent = outboundDestinationPreview.textContent || '—';
+            }
+            if (reviewPassengers) {
+                // Built as separate wrapping chips (not a single joined
+                // line) so a long passenger list never forces one row to
+                // stretch or overflow. Named passengers can be pre-set even
+                // on a public trip (it's still also open to Explore join
+                // requests), so the two notes are additive, not either/or.
+                reviewPassengers.innerHTML = '';
+                const addEmptyChip = (text) => {
+                    const chip = document.createElement('span');
+                    chip.className = 'tf-review-chip-empty';
+                    chip.textContent = text;
+                    reviewPassengers.appendChild(chip);
+                };
+                const names = Array.from(checkboxes)
+                    .filter((checkbox) => checkbox.checked)
+                    .map((checkbox) => {
+                        const nameEl = checkbox.closest('.tf-participant-card')?.querySelector('.tf-participant-name');
+                        return nameEl ? nameEl.textContent.trim() : null;
+                    })
+                    .filter(Boolean);
+                names.forEach((name) => {
+                    const chip = document.createElement('span');
+                    chip.className = 'tf-review-chip';
+                    chip.textContent = name;
+                    reviewPassengers.appendChild(chip);
+                });
+                if (selectedVisibility() === 'public') {
+                    addEmptyChip('Open to Explore join requests');
+                } else if (!names.length) {
+                    addEmptyChip('No passengers invited');
+                }
+            }
+            if (reviewNotes) {
+                reviewNotes.textContent = (noteInput && noteInput.value.trim()) || '—';
+            }
         }
 
         function updateSummaryPanel(perFmt) {
@@ -733,58 +912,66 @@
             }
             // Per seat
             if (summaryPerSeat) summaryPerSeat.textContent = perFmt || 'RM 0.00';
-            if (mobileSummaryDate && summaryDate) mobileSummaryDate.textContent = summaryDate.textContent || '-';
-            if (mobileSummaryTripType) mobileSummaryTripType.textContent = selectedTripType() === 'two_way' ? 'Two-way' : 'One-way';
-            if (mobileSummaryVisibility && summaryVisibility) mobileSummaryVisibility.textContent = summaryVisibility.textContent || 'Private';
-            if (mobileSummarySeats && summarySeats) mobileSummarySeats.textContent = summarySeats.textContent || '-';
-            if (mobileSummaryPerSeat) mobileSummaryPerSeat.textContent = perFmt || 'RM 0.00';
-            if (mobileSummaryInlineDate && summaryDate) mobileSummaryInlineDate.textContent = summaryDate.textContent || '-';
-            if (mobileSummaryInlineTripType) mobileSummaryInlineTripType.textContent = selectedTripType() === 'two_way' ? 'Two-way' : 'One-way';
-            if (mobileSummaryInlineVisibility && summaryVisibility) mobileSummaryInlineVisibility.textContent = summaryVisibility.textContent || 'Private';
-            if (mobileSummaryInlineSeats && summarySeats) mobileSummaryInlineSeats.textContent = summarySeats.textContent || '-';
-            if (mobileSummaryInlinePerSeat) mobileSummaryInlinePerSeat.textContent = perFmt || 'RM 0.00';
             updatePublishState(perFmt);
         }
 
+        const blockerChecks = [
+            {
+                wizardStep: 1,
+                step: 'Step 1 of 3',
+                title: 'Choose a saved route',
+                message: 'Select a saved route first.',
+                test: () => !routeSelect.value,
+                element: () => routePicker || routeSelect,
+            },
+            {
+                wizardStep: 2,
+                step: 'Step 2 of 3',
+                title: 'Set date and time',
+                message: 'Choose a departure date and time.',
+                test: () => Boolean(tripDatetime) && !tripDatetime.value,
+                element: () => tripDatetime,
+            },
+            {
+                wizardStep: 2,
+                step: 'Step 2 of 3',
+                title: 'Choose trip direction',
+                message: 'Choose one-way or two-way.',
+                test: () => !selectedTripType(),
+                element: () => tripTypeInputs[0] || form,
+            },
+            {
+                wizardStep: 2,
+                step: 'Step 3 of 3',
+                title: 'Set public seats',
+                message: 'Set passenger seats for a public trip.',
+                test: () => selectedVisibility() === 'public' && Boolean(seatLimitInput) && !(parseInt(seatLimitInput.value || '0', 10) > 0),
+                element: () => seatLimitInput,
+            },
+        ];
+
         function publishBlocker() {
-            if (!routeSelect.value) {
-                return {
-                    element: routePicker || routeSelect,
-                    step: 'Step 1 of 3',
-                    title: 'Choose a saved route',
-                    message: 'Select a saved route first.',
-                };
-            }
-            if (tripDatetime && !tripDatetime.value) {
-                return {
-                    element: tripDatetime,
-                    step: 'Step 2 of 3',
-                    title: 'Set date and time',
-                    message: 'Choose a departure date and time.',
-                };
-            }
-            if (!selectedTripType()) {
-                const firstTripType = tripTypeInputs[0];
-                return {
-                    element: firstTripType || form,
-                    step: 'Step 2 of 3',
-                    title: 'Choose trip direction',
-                    message: 'Choose one-way or two-way.',
-                };
-            }
-            if (selectedVisibility() === 'public' && seatLimitInput && !(parseInt(seatLimitInput.value || '0', 10) > 0)) {
-                return {
-                    element: seatLimitInput,
-                    step: 'Step 3 of 3',
-                    title: 'Set public seats',
-                    message: 'Set passenger seats for a public trip.',
-                };
-            }
-            return null;
+            const match = blockerChecks.find((check) => check.test());
+            if (!match) return null;
+            return {
+                element: match.element(),
+                step: match.step,
+                title: match.title,
+                message: match.message,
+                wizardStep: match.wizardStep,
+            };
+        }
+
+        function stepBlocker(step) {
+            const match = blockerChecks.find((check) => check.wizardStep === step && check.test());
+            return match ? { element: match.element(), message: match.message } : null;
         }
 
         function focusPublishBlocker(blocker) {
             if (!blocker || !blocker.element) return;
+            if (blocker.wizardStep && blocker.wizardStep !== currentStep) {
+                goToStep(blocker.wizardStep, { scroll: false });
+            }
             blocker.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setTimeout(() => {
                 if (blocker.element === routePicker && routeTrigger) {
@@ -800,37 +987,21 @@
 
         function updatePublishState(perFmt = null) {
             updateRouteDependentSections();
+            refreshStepperUI();
             const blocker = publishBlocker();
+            const isPublic = selectedVisibility() === 'public';
             publishButtons.forEach((button) => {
                 button.classList.toggle('is-incomplete', Boolean(blocker));
                 button.setAttribute('aria-disabled', blocker ? 'true' : 'false');
                 button.title = blocker ? blocker.message : '';
-            });
-            if (mobilePublishBar) {
-                mobilePublishBar.classList.toggle('is-incomplete', Boolean(blocker));
-            }
 
-            if (mobilePublishSummary) {
-                if (blocker) {
-                    if (mobilePublishStep) mobilePublishStep.textContent = blocker.step || 'Next step';
-                    if (mobilePublishTitle) mobilePublishTitle.textContent = blocker.title || 'Complete trip details';
-                    mobilePublishSummary.textContent = blocker.message;
-                    return;
-                }
-                if (mobilePublishStep) mobilePublishStep.textContent = 'Trip summary';
-                if (mobilePublishTitle) mobilePublishTitle.textContent = 'Trip summary';
-                const visibility = selectedVisibility();
-                const seatText = summarySeats ? summarySeats.textContent : '';
-                const tripTypeText = selectedTripType() === 'two_way' ? 'Two-way' : 'One-way';
-                const compactSummary = [
-                    tripTypeText,
-                    visibility.charAt(0).toUpperCase() + visibility.slice(1),
-                    seatText,
-                    perFmt || (summaryPerSeat ? summaryPerSeat.textContent : 'RM 0.00'),
-                ].filter(Boolean).join(' · ');
-                mobilePublishSummary.textContent = compactSummary;
-                if (mobileSummaryInlineMeta) mobileSummaryInlineMeta.textContent = compactSummary;
-            }
+                // Public trips are broadcast to Explore ("Publish"); private
+                // trips just get saved for the driver's own records ("Record").
+                const label = button.querySelector('[data-trip-publish-label]');
+                const icon = button.querySelector('[data-trip-publish-icon]');
+                if (label) label.textContent = isPublic ? 'Publish trip' : 'Record trip';
+                if (icon) icon.className = isPublic ? 'fa-solid fa-paper-plane' : 'fa-solid fa-floppy-disk';
+            });
         }
 
         function updateRouteDependentSections() {
@@ -840,7 +1011,10 @@
                 section.classList.toggle('is-route-locked', !hasRoute);
                 section.setAttribute('aria-disabled', hasRoute ? 'false' : 'true');
 
-                section.querySelectorAll('input, select, textarea, button').forEach((control) => {
+                // Wizard Back buttons are excluded so a route-locked card
+                // (route deselected while the user is already past step 1)
+                // never traps them with no way back to step 1.
+                section.querySelectorAll('input, select, textarea, button:not([data-wizard-back]):not([data-wizard-next])').forEach((control) => {
                     control.disabled = !hasRoute;
                 });
 
@@ -864,6 +1038,72 @@
                     link.removeAttribute('aria-disabled');
                 });
             });
+        }
+
+        function goToStep(step, options = {}) {
+            if (!wizardStepCards.length) return;
+            const total = wizardStepCards.length;
+            const target = Math.min(Math.max(parseInt(step, 10) || 1, 1), total);
+            const { scroll = true } = options;
+            currentStep = target;
+
+            wizardStepCards.forEach((card) => {
+                const cardStep = parseInt(card.getAttribute('data-wizard-step'), 10);
+                card.classList.toggle('is-active-step', cardStep === target);
+            });
+
+            refreshStepperUI();
+
+            if (scroll) {
+                const activeCard = wizardStepCards[target - 1];
+                if (activeCard) {
+                    activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const heading = activeCard.querySelector('.tf-section-title');
+                    if (heading) {
+                        heading.setAttribute('tabindex', '-1');
+                        heading.focus({ preventScroll: true });
+                    }
+                }
+            }
+        }
+
+        function refreshStepperUI() {
+            if (!wizardStepperEl) return;
+            wizardStepperButtons.forEach((button) => {
+                const step = parseInt(button.getAttribute('data-wizard-step-trigger'), 10);
+                const li = button.closest('.tf-wizard-step');
+                const dot = button.querySelector('.tf-wizard-step-dot');
+                const isActive = step === currentStep;
+                // A step is only "done" once the wizard has moved past it --
+                // not merely because its fields happen to already satisfy
+                // validation (e.g. Schedule pre-fills a default date/time).
+                // Steps at or after the current one are always numbered.
+                const isComplete = step < currentStep;
+
+                li.classList.toggle('is-active', isActive);
+                li.classList.toggle('is-complete', isComplete);
+                button.setAttribute('aria-current', isActive ? 'step' : 'false');
+
+                // Color alone (green fill vs. yellow vs. muted outline)
+                // carries the state -- the number itself never changes.
+                if (dot) {
+                    dot.textContent = String(step);
+                }
+            });
+
+            if (wizardStepCaption) {
+                wizardStepCaption.textContent = 'Step ' + currentStep + ' of ' + wizardStepCards.length
+                    + ' — ' + (wizardStepLabels[currentStep - 1] || '');
+            }
+        }
+
+        function initialWizardStep() {
+            for (const card of wizardStepCards) {
+                if (card.querySelector('.tf-field-error')) {
+                    return parseInt(card.getAttribute('data-wizard-step'), 10);
+                }
+            }
+            return 1;
         }
 
         function currentSnapshot() {
@@ -924,9 +1164,9 @@
                     ? 'Optional: add trusted passengers first. Preselected passengers use the seat limit, and remaining seats stay open for Explore requests.'
                     : 'Select trusted passengers for a private trip.';
             }
-            // Summary tip box
-            if (summaryTipBox) {
-                summaryTipBox.style.display = isPublic ? 'none' : '';
+            // Visibility tip box
+            if (visibilityTipBox) {
+                visibilityTipBox.style.display = isPublic ? 'none' : '';
             }
         }
 
@@ -1245,6 +1485,9 @@
             tripDatetime.addEventListener('change', () => recalc());
             tripDatetime.addEventListener('input', () => recalc());
         }
+        if (noteInput) {
+            noteInput.addEventListener('input', () => recalc());
+        }
 
         if (routeTrigger) {
             routeTrigger.addEventListener('click', function () {
@@ -1283,14 +1526,56 @@
             showModal();
         });
 
-        if (keepEditingBtn) keepEditingBtn.addEventListener('click', hideModal);
+        if (keepEditingBtn) {
+            keepEditingBtn.addEventListener('click', function () {
+                pendingNavigationUrl = null;
+                hideModal();
+            });
+        }
         if (discardBtn) {
             discardBtn.addEventListener('click', function () {
                 isSubmittingForm = true;
-                window.location.href = "{{ route('trips.index') }}";
+                window.location.href = pendingNavigationUrl || "{{ route('trips.index') }}";
             });
         }
         if (saveDraftBtn) saveDraftBtn.addEventListener('click', submitAsDraft);
+
+        // In-app nav links (sidebar, header, etc.) are real page navigations,
+        // not SPA routing -- clicking one while the form has progress would
+        // otherwise skip straight to the browser's native "Leave site?"
+        // dialog, which can only offer Leave/Cancel. Intercept those clicks
+        // and route them through the same Keep Editing / Discard / Save Draft
+        // modal used for the physical back button, remembering where the
+        // user was actually headed so Discard can still take them there.
+        //
+        // Registered on the CAPTURE phase with stopPropagation(): the shared
+        // layout (layouts/app.blade.php) has its own bubble-phase click
+        // handler that plays a page-transition animation and then navigates
+        // via a delayed `window.location.href = href` -- independent of this
+        // event's default action, so a bubble-phase preventDefault() here
+        // would not stop it. Capture always runs first regardless of script
+        // load order, so stopping propagation there keeps that handler from
+        // ever firing for a click we're intercepting.
+        document.addEventListener('click', function (event) {
+            if (isSubmittingForm || !hasFormProgress()) return;
+            const link = event.target.closest('a[href]');
+            if (!link) return;
+            if (link.target === '_blank' || link.hasAttribute('download')) return;
+            const href = link.getAttribute('href') || '';
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+            let destination;
+            try {
+                destination = new URL(link.href, window.location.href);
+            } catch (e) {
+                return;
+            }
+            if (destination.origin !== window.location.origin) return;
+            if (destination.href === window.location.href) return;
+            event.preventDefault();
+            event.stopPropagation();
+            pendingNavigationUrl = destination.href;
+            showModal();
+        }, true);
 
         publishButtons.forEach((button) => {
             button.addEventListener('click', function (event) {
@@ -1348,11 +1633,57 @@
             }
         });
 
+        // ── Wizard step navigation (create-only; wizardStepCards is empty on edit) ──
+        wizardStepperButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const target = parseInt(button.getAttribute('data-wizard-step-trigger'), 10);
+                if (target <= currentStep) {
+                    goToStep(target);
+                    return;
+                }
+                for (let step = currentStep; step < target; step += 1) {
+                    const blocker = stepBlocker(step);
+                    if (blocker) {
+                        focusPublishBlocker({ ...blocker, wizardStep: step });
+                        return;
+                    }
+                }
+                goToStep(target);
+            });
+        });
+
+        document.querySelectorAll('[data-wizard-next]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const from = parseInt(button.getAttribute('data-wizard-next'), 10);
+                const blocker = stepBlocker(from);
+                if (blocker) {
+                    focusPublishBlocker({ ...blocker, wizardStep: from });
+                    return;
+                }
+                goToStep(from + 1);
+            });
+        });
+
+        document.querySelectorAll('[data-wizard-back]').forEach((button) => {
+            button.addEventListener('click', () => {
+                goToStep(parseInt(button.getAttribute('data-wizard-back'), 10) - 1);
+            });
+        });
+
+        // "Edit" links inside the Review step -- always a backward jump
+        // (Review is the last step), so no validation gate is needed.
+        document.querySelectorAll('[data-wizard-goto]').forEach((button) => {
+            button.addEventListener('click', () => {
+                goToStep(parseInt(button.getAttribute('data-wizard-goto'), 10));
+            });
+        });
+
         updateRouteTriggerText();
         applyPresetPassengers();
         syncDirectionKeys();
         updateDirectionPreview();
         updateVisibilityFields();
         recalc();
+        goToStep(initialWizardStep(), { scroll: false });
     })();
 </script>

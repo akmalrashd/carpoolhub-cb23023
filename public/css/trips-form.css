@@ -14,6 +14,18 @@
     }
 }
 
+/* Wizard (create-only): Review is a real 5th card in the left column, so the
+   right column (edit-only Summary/map) never renders any content for create
+   at all -- collapse to one full-width column throughout. */
+@media (min-width: 1024px) {
+    .tf-page-grid[data-wizard-review] {
+        grid-template-columns: 1fr;
+    }
+    .tf-page-grid[data-wizard-review] .tf-right-col {
+        display: none;
+    }
+}
+
 /* ── Left column ─────────────────────────────────────────────────── */
 .tf-left-col {
     display: grid;
@@ -32,6 +44,126 @@
         top: 80px;
         align-content: start;
     }
+}
+
+
+/* ── Wizard stepper (create-only) ──────────────────────────────────── */
+.tf-wizard-stepper {
+    padding: 20px var(--page-gutter, 28px) 4px;
+}
+
+.tf-wizard-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.tf-wizard-step {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.tf-wizard-step-sep {
+    flex: 1 1 auto;
+    height: 2px;
+    background: var(--hairline-strong);
+    margin: 0 6px;
+    border-radius: 2px;
+    transition: background-color .18s ease;
+}
+
+.tf-wizard-step.is-complete + .tf-wizard-step-sep { background: var(--success); }
+
+.tf-wizard-step-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: transparent;
+    padding: 6px 4px;
+    cursor: pointer;
+    font-family: var(--font-ui), sans-serif;
+}
+
+.tf-wizard-step-dot {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-pill);
+    border: 2px solid var(--hairline-strong);
+    background: var(--surface);
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex: 0 0 auto;
+    transition: border-color .18s ease, background-color .18s ease, color .18s ease;
+}
+
+/* Wave/pulse ring radiating out from the current step's dot. */
+.tf-wizard-step.is-active .tf-wizard-step-dot::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 2px solid var(--ch-yellow-deep);
+    animation: tfWizardStepPulse 1.6s ease-out infinite;
+    pointer-events: none;
+}
+
+@keyframes tfWizardStepPulse {
+    0% { transform: scale(1); opacity: .6; }
+    100% { transform: scale(1.7); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tf-wizard-step.is-active .tf-wizard-step-dot::after { animation: none; }
+}
+
+.tf-wizard-step-label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: color .18s ease;
+}
+
+.tf-wizard-step.is-active .tf-wizard-step-dot {
+    border-color: var(--ch-yellow-deep);
+    background: var(--ch-yellow);
+    color: var(--ink);
+}
+.tf-wizard-step.is-active .tf-wizard-step-label { color: var(--ink); }
+
+.tf-wizard-step.is-complete .tf-wizard-step-dot {
+    border-color: var(--success);
+    background: var(--success);
+    color: #fff;
+}
+.tf-wizard-step.is-complete .tf-wizard-step-label { color: var(--ink-2); }
+
+.tf-wizard-step-btn:focus-visible .tf-wizard-step-dot {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.35);
+}
+
+.tf-wizard-step-caption {
+    display: none;
+    margin: 8px 0 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-2);
+}
+
+@media (max-width: 599px) {
+    .tf-wizard-step-label { display: none; }
+    .tf-wizard-step-dot { width: 26px; height: 26px; font-size: 11px; }
+    .tf-wizard-step-caption { display: block; }
 }
 
 /* ── Section cards ───────────────────────────────────────────────── */
@@ -58,6 +190,30 @@
     pointer-events: none;
     user-select: none;
 }
+
+/* Wizard step visibility (create-only). Gated with :has() so that if JS
+   fails to run before this paints, no card is hidden — the left column
+   just falls back to the old "all 4 cards stacked" layout instead of
+   going blank. Once goToStep() tags one card .is-active-step, the :has()
+   condition becomes true and hide/show activates. */
+.tf-left-col:has(> .tf-card[data-wizard-step].is-active-step) > .tf-card[data-wizard-step] {
+    display: none;
+}
+.tf-left-col:has(> .tf-card[data-wizard-step].is-active-step) > .tf-card[data-wizard-step].is-active-step {
+    display: block;
+}
+
+.tf-wizard-card-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hairline);
+}
+.tf-wizard-card-actions-end { justify-content: flex-end; }
+.tf-wizard-card-actions-start { justify-content: flex-start; }
 
 .tf-section-header {
     display: flex;
@@ -506,14 +662,12 @@
     color: var(--ink);
 }
 
+/* Always stacked, never side-by-side -- pickup/destination names can run
+   long, and a 2-column split left them cramped and prone to wrapping. */
 .direction-points {
     display: grid;
     gap: 8px;
     grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@media (min-width: 500px) {
-    .direction-points { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .direction-point-card {
@@ -806,6 +960,97 @@
 .tf-summary-key { color: var(--muted); font-weight: 600; }
 .tf-summary-val { color: var(--ink); font-weight: 700; text-align: right; }
 
+/* ── Review step: recap grouped by earlier step ──────────────────── */
+.tf-review-grid {
+    display: grid;
+    gap: 12px;
+}
+@media (min-width: 900px) {
+    /* Two columns once there's room to spare -- the Review step is a
+       single full-width card on desktop, so a single-column stack of
+       short key/value groups left a lot of unused space on the right. */
+    .tf-review-grid {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+}
+.tf-review-group {
+    padding: 14px 16px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    background: var(--surface);
+}
+.tf-review-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--hairline);
+}
+.tf-review-group-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+.tf-review-group-title i { color: var(--ink); font-size: 12px; }
+.tf-review-edit-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 11.5px;
+    font-weight: 800;
+    border-radius: var(--r-sm);
+    padding: 5px 12px;
+    cursor: pointer;
+}
+.tf-review-edit-link:hover {
+    border-color: var(--ch-yellow-deep);
+    background: var(--ch-yellow-tint);
+    color: var(--ink);
+}
+
+/* Passenger recap: wrapping chips instead of one comma-joined line, so a
+   long passenger list never forces a single row to overflow or stretch. */
+.tf-review-chip-block {
+    display: grid;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--hairline);
+}
+.tf-review-chip-block:last-child { border-bottom: 0; padding-bottom: 0; }
+.tf-review-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.tf-review-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: var(--r-pill);
+    padding: 4px 10px;
+}
+.tf-review-chip-empty {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
 .tf-tip-box {
     background: var(--ch-yellow-tint);
     border: 1px solid var(--ch-yellow-line);
@@ -878,16 +1123,7 @@
 
 .tf-actions .btn-ghost { margin-right: auto; }
 
-.tf-mobile-publish-bar {
-    display: none;
-}
-
-.tf-mobile-summary-card {
-    display: none;
-}
-
-.trip-publish-btn.is-incomplete,
-.tf-mobile-publish-btn.is-incomplete {
+.trip-publish-btn.is-incomplete {
     background: #e5e7eb !important;
     border-color: #d1d5db !important;
     color: #64748b !important;
@@ -901,224 +1137,6 @@
 
     .tf-right-col {
         display: none;
-    }
-
-    .trip-publish-btn[data-trip-publish-button],
-    .trip-create-cancel-top {
-        display: none;
-    }
-
-    .tf-mobile-publish-bar {
-        position: fixed;
-        left: 6px;
-        right: 6px;
-        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-        z-index: 1885;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
-        border: 1px solid var(--hairline);
-        border-bottom: 0;
-        border-radius: 20px 20px 0 0;
-        background: rgba(255, 255, 255, 0.94);
-        box-shadow: 0 -8px 22px rgba(11,18,32,0.10);
-        padding: 9px 10px 8px;
-        backdrop-filter: blur(14px);
-    }
-
-    .tf-mobile-publish-bar.is-incomplete {
-        display: none;
-    }
-
-    .tf-mobile-publish-summary {
-        min-width: 0;
-        display: grid;
-        gap: 4px;
-    }
-
-    .tf-mobile-publish-bar:not(.is-incomplete) .tf-mobile-publish-summary {
-        display: none;
-    }
-
-    .tf-mobile-publish-bar:not(.is-incomplete) {
-        display: none;
-    }
-
-    .tf-mobile-publish-title {
-        color: var(--ink);
-        font-size: 13px;
-        font-weight: 950;
-        line-height: 1.2;
-    }
-
-    .tf-mobile-publish-meta {
-        color: var(--muted);
-        font-size: 10.5px;
-        font-weight: 750;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .tf-mobile-step-pill {
-        width: fit-content;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        border-radius: 999px;
-        border: 1px solid var(--ch-yellow-line);
-        background: var(--ch-yellow-tint);
-        color: var(--ch-yellow-ink);
-        padding: 3px 8px;
-        font-size: 9.5px;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-
-    .tf-mobile-publish-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px 18px;
-        width: min(100%, 360px);
-        margin-inline: auto;
-    }
-
-    .tf-mobile-publish-item {
-        min-width: 0;
-        display: grid;
-        gap: 1px;
-        justify-items: start;
-        text-align: left;
-    }
-
-    .tf-mobile-publish-item span {
-        color: var(--muted);
-        font-size: 9.5px;
-        font-weight: 850;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-
-    .tf-mobile-publish-item strong {
-        color: var(--ink);
-        font-size: 11.5px;
-        font-weight: 900;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-publish-grid {
-        display: none;
-    }
-
-    .tf-mobile-summary-card {
-        display: block;
-        margin: -6px 28px 108px;
-    }
-
-    .tf-mobile-summary-actions {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-        margin-top: 14px;
-    }
-
-    .tf-mobile-publish-btn {
-        min-height: 42px;
-        border-radius: 13px;
-        padding: 0 14px;
-        white-space: nowrap;
-        width: 100%;
-    }
-
-    .tf-mobile-publish-actions {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .tf-mobile-cancel-btn {
-        min-height: 42px;
-        border-radius: 13px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        font-weight: 850;
-    }
-
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-cancel-btn,
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-publish-btn {
-        min-height: 40px;
-    }
-
-    .tf-mobile-publish-bar.is-incomplete {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-publish-summary {
-        grid-template-columns: auto minmax(0, 1fr);
-        align-items: center;
-        gap: 4px 8px;
-    }
-
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-publish-title {
-        grid-column: 2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-publish-meta {
-        display: none;
-    }
-
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-publish-actions {
-        display: none;
-    }
-
-    .tf-mobile-publish-bar.is-incomplete .tf-mobile-step-pill {
-        grid-row: 1;
-        grid-column: 1;
-        white-space: nowrap;
-    }
-
-    .tf-mobile-publish-bar:not(.is-incomplete) .tf-mobile-step-pill {
-        display: none;
-    }
-}
-
-@media (max-width: 380px) {
-    .tf-mobile-summary-card {
-        margin-inline: 16px;
-        margin-bottom: 112px;
-    }
-
-    .tf-mobile-publish-bar {
-        padding: 8px;
-    }
-
-    .tf-mobile-publish-title {
-        font-size: 12px;
-    }
-
-    .tf-mobile-publish-actions {
-        grid-template-columns: .75fr 1.25fr;
-        gap: 6px;
-    }
-
-    .tf-mobile-cancel-btn,
-    .tf-mobile-publish-btn {
-        font-size: 13px;
-        padding-inline: 8px;
-    }
-}
-
-@media (max-width: 1023px) and (min-height: 760px) {
-    .tf-mobile-publish-bar {
-        bottom: calc(74px + env(safe-area-inset-bottom, 0px));
     }
 }
 
