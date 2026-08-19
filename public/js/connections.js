@@ -127,10 +127,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Server-side AJAX search as user types
     if (searchInput && resultsArea) {
         let debounceTimer;
-        
+        // The typed query is echoed straight back into this loading message. It
+        // can also arrive pre-filled from ?q= on the page (Blade escapes it
+        // there, but reading it back out via .value hands JS the raw text), so
+        // without escaping here a crafted link executes script the moment the
+        // field re-renders — this is the same helper explore-index.js and
+        // trips-requests.js already use for the same reason.
+        const escapeHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.trim();
-            
+
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(async () => {
                 // Show loading state
@@ -138,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="modal-empty-state">
                         <i class="fa-solid fa-spinner fa-spin"></i>
                         <p class="modal-empty-title">Searching...</p>
-                        <p class="modal-empty-sub">Looking for "${query}"...</p>
+                        <p class="modal-empty-sub">Looking for "${escapeHtml(query)}"...</p>
                     </div>
                 `;
                 

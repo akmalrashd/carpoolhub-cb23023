@@ -27,19 +27,7 @@ class ConnectionService
             ->latest()
             ->get();
 
-        $acceptedUserIds = Connection::query()
-            ->where('status', 'accepted')
-            ->where(function ($query) use ($user): void {
-                $query->where('requester_id', $user->id)
-                    ->orWhere('receiver_id', $user->id);
-            })
-            ->selectRaw(
-                'CASE WHEN requester_id = ? THEN receiver_id ELSE requester_id END as connected_user_id',
-                [$user->id]
-            )
-            ->pluck('connected_user_id')
-            ->unique()
-            ->values();
+        $acceptedUserIds = Connection::acceptedUserIdsFor($user);
 
         // The connections page renders name/email/avatar only — never the
         // licence or selfie blobs — so keep the multi-megabyte columns out of

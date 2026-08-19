@@ -17,8 +17,6 @@
         if (next <= 0) {
             badge.style.display = 'none';
         } else {
-            badge.querySelector('i').insertAdjacentText('afterend', ' ' + next + ' Unread');
-            badge.textContent = '';
             badge.innerHTML = '<i class="fa-solid fa-bell"></i> ' + next + ' Unread';
         }
     }

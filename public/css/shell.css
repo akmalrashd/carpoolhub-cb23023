@@ -1188,14 +1188,8 @@
                 min-width: 0;
             }
 
-            .desktop-brand-logo {
-                width: 34px !important;
-                height: 34px !important;
-                object-fit: cover !important;
-                object-position: left center !important;
-                display: block !important;
-                flex-shrink: 0 !important;
-            }
+            /* .desktop-brand-logo already set unconditionally above (same
+               declarations) — this min-width:1024px copy changed nothing. */
             .desktop-brand-wrap::after {
                 content: none !important;
                 display: none !important;

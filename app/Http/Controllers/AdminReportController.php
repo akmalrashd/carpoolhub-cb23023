@@ -6,7 +6,7 @@ use App\Services\ReportService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminReportController extends Controller
 {
@@ -14,44 +14,51 @@ class AdminReportController extends Controller
     {
     }
 
-    public function index(): View
+    /**
+     * The nine ReportService calls every admin report view needs. Was copied
+     * into index(), exportCsv() and exportPdfView() separately — a metric
+     * added to the report page had to be remembered in three places to also
+     * reach the exports. $forExport switches monthlyReports to the export's
+     * longer 24-month window; everything else is identical either way.
+     */
+    private function sharedReportData(bool $forExport = false): array
     {
-        $overview = $this->reportService->overview();
-        $paymentBreakdown = $this->reportService->paymentStatusBreakdown();
-        $monthlyReports = $this->reportService->monthlyTripSummary();
-        $dailyTripRanges = $this->reportService->dailyTripRanges();
-        $topRoutes = $this->reportService->topRoutes();
-        $requestSummary = $this->reportService->requestDecisionSummary();
-        $customRouteSummary = $this->reportService->customRouteSummary();
-        $aiSupportSummary = $this->reportService->aiSupportSummary();
-        $reliabilitySummary = $this->reportService->passengerReliabilitySummary();
-        $thesisAlignment = $this->reportService->thesisAlignmentSummary();
-
-        return view('admin.reports.index', compact(
-            'overview',
-            'paymentBreakdown',
-            'monthlyReports',
-            'dailyTripRanges',
-            'topRoutes',
-            'requestSummary',
-            'customRouteSummary',
-            'aiSupportSummary',
-            'reliabilitySummary',
-            'thesisAlignment'
-        ));
+        return [
+            'overview' => $this->reportService->overview(),
+            'paymentBreakdown' => $this->reportService->paymentStatusBreakdown(),
+            'monthlyReports' => $forExport
+                ? $this->reportService->monthlyTripSummaryForExport()
+                : $this->reportService->monthlyTripSummary(),
+            'topRoutes' => $this->reportService->topRoutes(),
+            'requestSummary' => $this->reportService->requestDecisionSummary(),
+            'customRouteSummary' => $this->reportService->customRouteSummary(),
+            'aiSupportSummary' => $this->reportService->aiSupportSummary(),
+            'reliabilitySummary' => $this->reportService->passengerReliabilitySummary(),
+            'thesisAlignment' => $this->reportService->thesisAlignmentSummary(),
+        ];
     }
 
-    public function exportCsv(): Response
+    public function index(): View
     {
-        $overview = $this->reportService->overview();
-        $paymentBreakdown = $this->reportService->paymentStatusBreakdown();
-        $monthlyReports = $this->reportService->monthlyTripSummaryForExport();
-        $topRoutes = $this->reportService->topRoutes();
-        $requestSummary = $this->reportService->requestDecisionSummary();
-        $customRouteSummary = $this->reportService->customRouteSummary();
-        $aiSupportSummary = $this->reportService->aiSupportSummary();
-        $reliabilitySummary = $this->reportService->passengerReliabilitySummary();
-        $thesisAlignment = $this->reportService->thesisAlignmentSummary();
+        $data = $this->sharedReportData();
+        $data['dailyTripRanges'] = $this->reportService->dailyTripRanges();
+
+        return view('admin.reports.index', $data);
+    }
+
+    public function exportCsv(): StreamedResponse
+    {
+        [
+            'overview' => $overview,
+            'paymentBreakdown' => $paymentBreakdown,
+            'monthlyReports' => $monthlyReports,
+            'topRoutes' => $topRoutes,
+            'requestSummary' => $requestSummary,
+            'customRouteSummary' => $customRouteSummary,
+            'aiSupportSummary' => $aiSupportSummary,
+            'reliabilitySummary' => $reliabilitySummary,
+            'thesisAlignment' => $thesisAlignment,
+        ] = $this->sharedReportData(forExport: true);
         $filename = 'carpoolhub-admin-report-' . now()->format('Ymd-His') . '.csv';
 
         $headers = [
@@ -150,27 +157,7 @@ class AdminReportController extends Controller
 
     public function exportPdfView(): View|Factory|Application
     {
-        $overview = $this->reportService->overview();
-        $paymentBreakdown = $this->reportService->paymentStatusBreakdown();
-        $monthlyReports = $this->reportService->monthlyTripSummaryForExport();
-        $topRoutes = $this->reportService->topRoutes();
-        $requestSummary = $this->reportService->requestDecisionSummary();
-        $customRouteSummary = $this->reportService->customRouteSummary();
-        $aiSupportSummary = $this->reportService->aiSupportSummary();
-        $reliabilitySummary = $this->reportService->passengerReliabilitySummary();
-        $thesisAlignment = $this->reportService->thesisAlignmentSummary();
-
-        return view('admin.reports.pdf', compact(
-            'overview',
-            'paymentBreakdown',
-            'monthlyReports',
-            'topRoutes',
-            'requestSummary',
-            'customRouteSummary',
-            'aiSupportSummary',
-            'reliabilitySummary',
-            'thesisAlignment'
-        ));
+        return view('admin.reports.pdf', $this->sharedReportData(forExport: true));
     }
 
     /**

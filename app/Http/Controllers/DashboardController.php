@@ -36,7 +36,7 @@ class DashboardController extends Controller
         $monthEnd = $now->copy()->endOfMonth();
 
         $tripCounts = Trip::query()
-                        ->where(function ($query) use ($user): void {
+            ->where(function ($query) use ($user): void {
                 $query->where('driver_id', $user->id)
                     ->orWhereHas('participants', fn ($q) => $q->where('user_id', $user->id));
             })
@@ -67,7 +67,7 @@ class DashboardController extends Controller
             ->where('payment_status', 'paid')
             ->whereHas('trip', fn ($query) => $query
                 ->where('driver_id', $user->id)
-                ->whereBetween('trip_datetime', [now()->startOfMonth(), now()->endOfMonth()]))
+                ->whereBetween('trip_datetime', [$monthStart, $monthEnd]))
             ->sum('amount_due'), 2);
 
         $stats['pending_requests'] = (int) TripJoinRequest::query()
@@ -77,7 +77,7 @@ class DashboardController extends Controller
 
         $upcomingCreatedTrips = Trip::query()
             ->with(['savedRoute', 'participants'])
-                        ->where('driver_id', $user->id)
+            ->where('driver_id', $user->id)
             ->whereIn('status', ['scheduled', 'confirmed'])
             ->whereNotNull('trip_datetime')
             ->where('trip_datetime', '>=', now())
@@ -88,7 +88,7 @@ class DashboardController extends Controller
 
         $upcomingJoinedTrips = Trip::query()
             ->with(['savedRoute', 'participants'])
-                        ->whereIn('status', ['scheduled', 'confirmed'])
+            ->whereIn('status', ['scheduled', 'confirmed'])
             ->whereNotNull('trip_datetime')
             ->where('trip_datetime', '>=', now())
             ->whereHas('participants', function ($query) use ($user): void {
@@ -115,7 +115,7 @@ class DashboardController extends Controller
 
         $publicExploreTrips = Trip::query()
             ->with(['savedRoute', 'participants', 'driver' => fn ($q) => $q->withoutHeavyMedia()])
-                        ->whereNull('parent_trip_id')
+            ->whereNull('parent_trip_id')
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)
             ->whereIn('status', ['scheduled', 'confirmed'])

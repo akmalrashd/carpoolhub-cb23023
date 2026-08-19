@@ -1,4 +1,15 @@
 /* Extracted from resources/views/payments/index.blade.php — logic; page values come from window.CH_PAYMENTS. */
+
+// Shared by every innerHTML template literal in this file that interpolates
+// user-controlled text (names, notes) rather than a value the server already
+// constrained (an id, a status enum, a formatted number).
+const escapeHtmlText = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
 const showModalSkeleton = (listEl) => {
     if (!listEl) return;
     listEl.innerHTML = `
@@ -902,7 +913,12 @@ window.isPaymentRowHidden = function (row) {
                         const data = passengerMap[name];
                         const chip = document.createElement('span');
                         chip.className = 'bulk-passenger-chip';
-                        chip.innerHTML = `<i class="fa-solid fa-user" style="font-size:10px; color:#64748b;"></i> ${name} <span class="bulk-passenger-chip-badge">${data.count}x · RM ${data.total.toFixed(2)}</span>`;
+                        // name is the passenger's own display name, read back out of a
+                        // data-* attribute (so already HTML-decoded) — since a display
+                        // name is user-set at registration with no character
+                        // restriction, an unescaped one here is stored XSS against
+                        // every driver who opens this modal.
+                        chip.innerHTML = `<i class="fa-solid fa-user" style="font-size:10px; color:#64748b;"></i> ${escapeHtmlText(name)} <span class="bulk-passenger-chip-badge">${data.count}x · RM ${data.total.toFixed(2)}</span>`;
                         passengersListWrap.appendChild(chip);
                     });
                 }
@@ -1019,7 +1035,7 @@ window.isPaymentRowHidden = function (row) {
                     const data = passengerMap[name];
                     const chip = document.createElement('span');
                     chip.className = 'bulk-passenger-chip';
-                    chip.innerHTML = `<i class="fa-solid fa-user" style="font-size:10px; color:#64748b;"></i> ${name} <span class="bulk-passenger-chip-badge">${data.count}x · RM ${data.total.toFixed(2)}</span>`;
+                    chip.innerHTML = `<i class="fa-solid fa-user" style="font-size:10px; color:#64748b;"></i> ${escapeHtmlText(name)} <span class="bulk-passenger-chip-badge">${data.count}x · RM ${data.total.toFixed(2)}</span>`;
                     listWrap.appendChild(chip);
                 });
             }

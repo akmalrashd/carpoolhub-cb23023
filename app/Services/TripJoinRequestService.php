@@ -9,12 +9,15 @@ use App\Models\TripParticipant;
 use App\Models\TripPayment;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Concerns\FormatsTripLabel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class TripJoinRequestService
 {
+    use FormatsTripLabel;
+
     public function listForTrip(User $actor, Trip $trip)
     {
         $this->ensureCanManageTripRequests($actor, $trip);
@@ -563,22 +566,8 @@ class TripJoinRequestService
         abort(403);
     }
 
-    private function shortenAddress(string $address): string
-    {
-        $first = trim(explode(',', $address)[0]);
-        $source = mb_strlen($first) >= 4 ? $first : $address;
-        return mb_strimwidth($source, 0, 28, '…');
-    }
-
     private function tripLabel(Trip $trip): string
     {
-        if ($trip->pickup_name && $trip->destination_name) {
-            $pickup      = $this->shortenAddress($trip->pickup_name);
-            $destination = $this->shortenAddress($trip->destination_name);
-            $date        = $trip->trip_datetime?->format('d M Y') ?? '';
-            return $date ? "{$pickup} → {$destination} on {$date}" : "{$pickup} → {$destination}";
-        }
-
-        return 'Trip #' . ($trip->trip_ref ?? $trip->id);
+        return $this->formatTripLabel($trip);
     }
 }

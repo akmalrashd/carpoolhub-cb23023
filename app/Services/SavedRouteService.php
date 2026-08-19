@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -27,7 +26,7 @@ class SavedRouteService
     public function selectablePassengersFor(User $user): EloquentCollection
     {
         return User::query()
-            ->whereIn('id', $this->acceptedConnectionIds($user))
+            ->whereIn('id', Connection::acceptedUserIdsFor($user))
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -97,7 +96,7 @@ class SavedRouteService
 
     private function syncPassengerStops(SavedRoute $savedRoute, User $owner, array $stops): void
     {
-        $allowedIds = $this->acceptedConnectionIds($owner)->flip();
+        $allowedIds = Connection::acceptedUserIdsFor($owner)->flip();
         $normalized = collect($stops)
             ->map(fn ($stop) => is_array($stop) ? $stop : [])
             ->filter(fn (array $stop) => (int) ($stop['user_id'] ?? 0) > 0)
@@ -158,23 +157,6 @@ class SavedRouteService
         $savedRoute->passengerStops()->delete();
 
         $normalized->each(fn (array $stop) => $savedRoute->passengerStops()->create($stop));
-    }
-
-    private function acceptedConnectionIds(User $user): Collection
-    {
-        return Connection::query()
-            ->where('status', 'accepted')
-            ->where(function ($query) use ($user): void {
-                $query->where('requester_id', $user->id)
-                    ->orWhere('receiver_id', $user->id);
-            })
-            ->selectRaw(
-                'CASE WHEN requester_id = ? THEN receiver_id ELSE requester_id END as connected_user_id',
-                [$user->id]
-            )
-            ->pluck('connected_user_id')
-            ->unique()
-            ->values();
     }
 
     private function distanceKm(float $latA, float $lngA, float $latB, float $lngB): float

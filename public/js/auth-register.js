@@ -11,34 +11,27 @@
         }
     }
 
-    function handleLicenseUpload(input) {
-        const label    = document.getElementById('license-upload-label');
-        const filename = document.getElementById('license-filename');
-        const icon     = document.getElementById('license-icon');
+    function handleFileUpload(input, prefix, emptyText, emptyIconClass) {
+        const label    = document.getElementById(`${prefix}-upload-label`);
+        const filename = document.getElementById(`${prefix}-filename`);
+        const icon     = document.getElementById(`${prefix}-icon`);
         if (input.files && input.files[0]) {
             label.classList.add('has-file');
             filename.textContent = input.files[0].name;
             icon.className = 'fa-solid fa-circle-check';
         } else {
             label.classList.remove('has-file');
-            filename.textContent = 'Upload front of your driving license';
-            icon.className = 'fa-solid fa-id-card';
+            filename.textContent = emptyText;
+            icon.className = emptyIconClass;
         }
     }
 
+    function handleLicenseUpload(input) {
+        handleFileUpload(input, 'license', 'Upload front of your driving license', 'fa-solid fa-id-card');
+    }
+
     function handleSelfieUpload(input) {
-        const label    = document.getElementById('selfie-upload-label');
-        const filename = document.getElementById('selfie-filename');
-        const icon     = document.getElementById('selfie-icon');
-        if (input.files && input.files[0]) {
-            label.classList.add('has-file');
-            filename.textContent = input.files[0].name;
-            icon.className = 'fa-solid fa-circle-check';
-        } else {
-            label.classList.remove('has-file');
-            filename.textContent = 'Upload selfie holding your license';
-            icon.className = 'fa-solid fa-user-shield';
-        }
+        handleFileUpload(input, 'selfie', 'Upload selfie holding your license', 'fa-solid fa-user-shield');
     }
 
     // Show/hide vehicle section based on role selection

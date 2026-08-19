@@ -29,7 +29,7 @@ class PushService
 
         $existing = PushSubscription::query()
             ->where('user_id', $user->id)
-            ->whereRaw('endpoint = ?', [$endpoint])
+            ->where('endpoint', $endpoint)
             ->first();
 
         if ($existing) {
@@ -54,7 +54,7 @@ class PushService
     {
         PushSubscription::query()
             ->where('user_id', $user->id)
-            ->whereRaw('endpoint = ?', [$endpoint])
+            ->where('endpoint', $endpoint)
             ->delete();
     }
 

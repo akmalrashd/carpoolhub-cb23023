@@ -16,9 +16,10 @@ class TripMatchingService
 
     public function rankTripsForUser(User $user, Collection $trips, array $filters = [], bool $log = false): Collection
     {
-        // The user's saved routes and preferred hour do not change between trips,
-        // so compute them once here instead of once per trip inside the map.
-        $context = $this->featureEngineeringService->recommendationContext($user);
+        // The user's saved routes, preferred hour, connections, join history and
+        // seat counts do not change between trips, so compute them once here
+        // instead of once (or three times) per trip inside the map.
+        $context = $this->featureEngineeringService->recommendationContext($user, $trips);
 
         return $trips
             ->map(function (Trip $trip) use ($user, $log, $context): array {

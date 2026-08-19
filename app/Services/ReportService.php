@@ -25,12 +25,7 @@ class ReportService
                 ->whereIn('payment_status', ['unpaid', 'pending_confirmation'])
                 ->sum('amount_due'),
             'public_trips_total' => Trip::query()->where('visibility', 'public')->count(),
-            'custom_route_requests_total' => DB::table('trip_passenger_route_points')
-                ->where(function ($query): void {
-                    $query->where('uses_default_pickup', false)
-                        ->orWhere('uses_default_dropoff', false);
-                })
-                ->count(),
+            'custom_route_requests_total' => $this->customRoutePoints()->count(),
             'join_requests_total' => DB::table('trip_join_requests')->count(),
         ];
     }
@@ -177,10 +172,7 @@ class ReportService
     public function customRouteSummary(): array
     {
         $query = DB::table('trip_passenger_route_points');
-        $customQuery = (clone $query)->where(function ($inner): void {
-            $inner->where('uses_default_pickup', false)
-                ->orWhere('uses_default_dropoff', false);
-        });
+        $customQuery = $this->customRoutePoints();
 
         $total = (int) (clone $query)->count();
         $custom = (int) (clone $customQuery)->count();
@@ -303,6 +295,21 @@ class ReportService
         ];
     }
 
+    /**
+     * Route points where the passenger asked for a custom pickup or drop-off
+     * instead of the route's default. Was the same where() repeated in
+     * overview(), customRouteSummary() and thesisAlignmentSummary() — one
+     * definition means the "custom" definition can't drift between them.
+     */
+    private function customRoutePoints(): \Illuminate\Database\Query\Builder
+    {
+        return DB::table('trip_passenger_route_points')
+            ->where(function ($query): void {
+                $query->where('uses_default_pickup', false)
+                    ->orWhere('uses_default_dropoff', false);
+            });
+    }
+
     public function thesisAlignmentSummary(): array
     {
         $aiCount = $this->aiSupportSummary()['recommendation_logs'];
@@ -316,12 +323,7 @@ class ReportService
             ],
             [
                 'objective' => 'Custom Route Preference',
-                'evidence' => (int) DB::table('trip_passenger_route_points')
-                    ->where(function ($query): void {
-                        $query->where('uses_default_pickup', false)
-                            ->orWhere('uses_default_dropoff', false);
-                    })
-                    ->count(),
+                'evidence' => (int) $this->customRoutePoints()->count(),
                 'unit' => 'custom pickup/drop-off records',
             ],
             [

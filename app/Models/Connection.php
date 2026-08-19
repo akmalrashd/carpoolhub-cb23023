@@ -52,5 +52,25 @@ class Connection extends Model
                 ->orWhere('receiver_id', $userId);
         });
     }
+
+    /**
+     * The other side of every accepted connection $user has, regardless of
+     * which of the two rows they were on (requester or receiver). Was
+     * duplicated identically in ConnectionService, SavedRouteService and
+     * TripService — kept here as the one place that owns the query.
+     */
+    public static function acceptedUserIdsFor(User $user): \Illuminate\Support\Collection
+    {
+        return static::query()
+            ->accepted()
+            ->forUser($user->id)
+            ->selectRaw(
+                'CASE WHEN requester_id = ? THEN receiver_id ELSE requester_id END as connected_user_id',
+                [$user->id]
+            )
+            ->pluck('connected_user_id')
+            ->unique()
+            ->values();
+    }
 }
 

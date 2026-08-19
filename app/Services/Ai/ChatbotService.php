@@ -7,7 +7,9 @@ use App\Models\SavedRoute;
 use App\Models\User;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ChatbotService
 {
@@ -64,7 +66,7 @@ class ChatbotService
                 // browser, exposing the raw upstream API response. Log it for
                 // diagnosis; show the user the same friendly copy as any other
                 // AI failure.
-                \Illuminate\Support\Facades\Log::warning('AI Chat returned empty content.', [
+                Log::warning('AI Chat returned empty content.', [
                     'body' => substr($bodyStr, 0, 500),
                 ]);
 
@@ -73,9 +75,9 @@ class ChatbotService
 
             return $this->parseResponse($content, $user, $language);
 
-        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-            \Illuminate\Support\Facades\Log::error('AI Chat Error: ' . $e->getMessage(), [
-                'response' => $e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse() ? (string) $e->getResponse()->getBody() : null
+        } catch (GuzzleException $e) {
+            Log::error('AI Chat Error: ' . $e->getMessage(), [
+                'response' => $e instanceof RequestException && $e->hasResponse() ? (string) $e->getResponse()->getBody() : null
             ]);
             // The exception message used to be appended to the Malay copy, which
             // put upstream API errors (and the request URL) in front of the end

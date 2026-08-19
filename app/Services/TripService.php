@@ -10,6 +10,7 @@ use App\Models\TripParticipant;
 use App\Models\TripPayment;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Concerns\FormatsTripLabel;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -19,6 +20,8 @@ use Illuminate\Validation\ValidationException;
 
 class TripService
 {
+    use FormatsTripLabel;
+
     private static bool $lifecycleSynced = false;
 
     public function paginateForUser(User $user, int $perPage = 10, array $filters = []): LengthAwarePaginator
@@ -258,7 +261,7 @@ class TripService
         }
 
         if (($filters['connections'] ?? null) === '1') {
-            $connectionIds = $this->acceptedConnectionIds($user);
+            $connectionIds = Connection::acceptedUserIdsFor($user);
             $query->whereIn('driver_id', $connectionIds->isNotEmpty() ? $connectionIds->all() : [-1]);
         }
 
@@ -298,7 +301,7 @@ class TripService
     public function getSelectableParticipants(User $user): EloquentCollection
     {
         return User::query()
-            ->whereIn('id', $this->acceptedConnectionIds($user))
+            ->whereIn('id', Connection::acceptedUserIdsFor($user))
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -578,7 +581,7 @@ class TripService
             ->values();
 
         if ($participantIds->isNotEmpty()) {
-            $allowedIds = $this->acceptedConnectionIds($driver)->flip();
+            $allowedIds = Connection::acceptedUserIdsFor($driver)->flip();
             $invalid = $participantIds->filter(fn ($id) => ! $allowedIds->has($id));
 
             if ($invalid->isNotEmpty()) {
@@ -599,23 +602,6 @@ class TripService
         }
 
         return $participantIds->values();
-    }
-
-    private function acceptedConnectionIds(User $user): Collection
-    {
-        return Connection::query()
-            ->where('status', 'accepted')
-            ->where(function ($query) use ($user): void {
-                $query->where('requester_id', $user->id)
-                    ->orWhere('receiver_id', $user->id);
-            })
-            ->selectRaw(
-                'CASE WHEN requester_id = ? THEN receiver_id ELSE requester_id END as connected_user_id',
-                [$user->id]
-            )
-            ->pluck('connected_user_id')
-            ->unique()
-            ->values();
     }
 
     private function buildActiveParticipantAmounts(float $fareTotal, int $activeCount, int $splitCount): Collection
@@ -813,23 +799,9 @@ class TripService
         ];
     }
 
-    private function shortenAddress(string $address): string
-    {
-        $first = trim(explode(',', $address)[0]);
-        $source = mb_strlen($first) >= 4 ? $first : $address;
-        return mb_strimwidth($source, 0, 28, '…');
-    }
-
     private function tripLabel(Trip $trip): string
     {
-        if ($trip->pickup_name && $trip->destination_name) {
-            $pickup      = $this->shortenAddress($trip->pickup_name);
-            $destination = $this->shortenAddress($trip->destination_name);
-            $date        = $trip->trip_datetime?->format('d M Y') ?? '';
-            return $date ? "{$pickup} → {$destination} on {$date}" : "{$pickup} → {$destination}";
-        }
-
-        return 'Trip #' . ($trip->trip_ref ?? $trip->id);
+        return $this->formatTripLabel($trip);
     }
 
     private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type): void

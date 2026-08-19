@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TripPayment;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Concerns\FormatsTripLabel;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -14,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 
 class PaymentService
 {
+    use FormatsTripLabel;
+
     private const REMINDER_COOLDOWN_HOURS = 24;
 
     public function paginateForUser(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
@@ -619,7 +622,7 @@ class PaymentService
     private function applyPayableTripScope($tripQuery): void
     {
         $tripQuery
-                        ->where('status', '!=', 'draft')
+            ->where('status', '!=', 'draft')
             ->whereNotNull('trip_datetime');
     }
 
@@ -636,23 +639,10 @@ class PaymentService
         }
     }
 
-    private function shortenAddress(string $address): string
-    {
-        $first = trim(explode(',', $address)[0]);
-        $source = mb_strlen($first) >= 4 ? $first : $address;
-        return mb_strimwidth($source, 0, 28, '…');
-    }
-
     private function tripLabel(TripPayment $payment): string
     {
-        $trip = $payment->trip;
-        if ($trip && $trip->pickup_name && $trip->destination_name) {
-            $pickup      = $this->shortenAddress($trip->pickup_name);
-            $destination = $this->shortenAddress($trip->destination_name);
-            $date        = $trip->trip_datetime?->format('d M Y') ?? '';
-            return $date ? "{$pickup} → {$destination} on {$date}" : "{$pickup} → {$destination}";
-        }
-
-        return 'Trip #' . ($trip?->trip_ref ?? $payment->trip_id);
+        return $payment->trip
+            ? $this->formatTripLabel($payment->trip)
+            : 'Trip #' . $payment->trip_id;
     }
 }

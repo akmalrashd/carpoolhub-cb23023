@@ -166,12 +166,12 @@ class TripController extends Controller
         $user = $request->user();
         $deletedCount = 0;
 
-        foreach ($request->input('ids', []) as $tripId) {
-            $trip = Trip::find($tripId);
-            if (! $trip) {
-                continue;
-            }
+        // One query for the whole batch instead of a Trip::find() per id — the
+        // ownership check stays per-trip so a mix of owned/not-owned ids still
+        // deletes the owned ones and silently skips the rest, same as before.
+        $trips = Trip::query()->whereIn('id', $request->input('ids', []))->get();
 
+        foreach ($trips as $trip) {
             if ($user->role === 'admin' || (int) $user->id === (int) $trip->driver_id) {
                 $this->tripService->delete($user, $trip);
                 $deletedCount++;

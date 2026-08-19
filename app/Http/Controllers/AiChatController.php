@@ -120,18 +120,8 @@ class AiChatController extends Controller
                 ],
             ]);
 
-            $body    = json_decode((string) $response->getBody(), true);
-            
-            $text = '';
-            if (isset($body['content']) && is_array($body['content'])) {
-                foreach ($body['content'] as $block) {
-                    if (($block['type'] ?? '') === 'text') {
-                        $text = $block['text'] ?? '';
-                        break;
-                    }
-                }
-            }
-            $raw = trim((string) $text);
+            $body = json_decode((string) $response->getBody(), true);
+            $raw = $this->extractAnthropicText($body);
 
             $jsonStr = $raw;
             if (preg_match('/\{.*\}/s', $raw, $matches)) {
@@ -201,18 +191,8 @@ class AiChatController extends Controller
                 ],
             ]);
 
-            $body    = json_decode((string) $response->getBody(), true);
-            
-            $text = '';
-            if (isset($body['content']) && is_array($body['content'])) {
-                foreach ($body['content'] as $block) {
-                    if (($block['type'] ?? '') === 'text') {
-                        $text = $block['text'] ?? '';
-                        break;
-                    }
-                }
-            }
-            $raw = trim((string) $text);
+            $body = json_decode((string) $response->getBody(), true);
+            $raw = $this->extractAnthropicText($body);
             $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $raw);
             $cleaned = preg_replace('/\s*```$/', '', $cleaned ?? $raw);
             $decoded = json_decode(trim($cleaned ?? $raw), true);
@@ -305,6 +285,25 @@ class AiChatController extends Controller
                 'content-type'      => 'application/json',
             ],
         ]);
+    }
+
+    /**
+     * The text block from an Anthropic /v1/messages response. Was the same
+     * seven-line extraction copied into fareReason() and fareAdvice().
+     */
+    private function extractAnthropicText(mixed $body): string
+    {
+        $text = '';
+        if (isset($body['content']) && is_array($body['content'])) {
+            foreach ($body['content'] as $block) {
+                if (($block['type'] ?? '') === 'text') {
+                    $text = $block['text'] ?? '';
+                    break;
+                }
+            }
+        }
+
+        return trim((string) $text);
     }
 
     private function validFuelType(mixed $value, string $fallback): string

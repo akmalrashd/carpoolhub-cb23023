@@ -58,9 +58,21 @@ class FeatureEngineeringService
      * old code's "empty" branch); it may legitimately be 0 (midnight), so
      * callers must check `=== null`, not falsiness.
      *
-     * @return array{saved_routes: Collection<int, SavedRoute>, preferred_hour: int|null}
+     * Passing $trips additionally precomputes the three per-trip lookups that
+     * connectionScore()/historyScore()/seatScore() would otherwise run one
+     * query each for: ranking a page of N trips fired 3N extra queries (12
+     * trips = 36, on every explore search/filter). Omitting $trips keeps the
+     * old one-query-per-trip behaviour for scoreTripForUser() called alone.
+     *
+     * @return array{
+     *     saved_routes: Collection<int, SavedRoute>,
+     *     preferred_hour: int|null,
+     *     connected_driver_ids: Collection<int, int>|null,
+     *     joined_driver_ids: Collection<int, int>|null,
+     *     taken_seats_by_trip: Collection<int, int>|null,
+     * }
      */
-    public function recommendationContext(User $user): array
+    public function recommendationContext(User $user, ?Collection $trips = null): array
     {
         $savedRoutes = SavedRoute::query()
             ->where('user_id', $user->id)
@@ -75,10 +87,43 @@ class FeatureEngineeringService
             ->get()
             ->map(fn (TripParticipant $participant) => (int) $participant->trip->trip_datetime->format('H'));
 
-        return [
+        $context = [
             'saved_routes' => $savedRoutes,
             'preferred_hour' => $pastHours->isEmpty() ? null : (int) round($pastHours->avg()),
+            'connected_driver_ids' => null,
+            'joined_driver_ids' => null,
+            'taken_seats_by_trip' => null,
         ];
+
+        if ($trips === null || $trips->isEmpty()) {
+            return $context;
+        }
+
+        $driverIds = $trips->pluck('driver_id')->filter()->unique()->values();
+        $tripIds = $trips->pluck('id')->values();
+
+        // Same accepted-connection set connectionScore() checked one driver at a
+        // time; reused here so "connected to this driver" needs no per-trip query.
+        $context['connected_driver_ids'] = Connection::acceptedUserIdsFor($user)
+            ->intersect($driverIds)
+            ->values();
+
+        $context['joined_driver_ids'] = TripParticipant::query()
+            ->join('trips', 'trips.id', '=', 'trip_participants.trip_id')
+            ->where('trip_participants.user_id', $user->id)
+            ->where('trip_participants.is_driver', false)
+            ->whereIn('trips.driver_id', $driverIds)
+            ->distinct()
+            ->pluck('trips.driver_id');
+
+        $context['taken_seats_by_trip'] = TripParticipant::query()
+            ->whereIn('trip_id', $tripIds)
+            ->where('is_driver', false)
+            ->groupBy('trip_id')
+            ->selectRaw('trip_id, COUNT(*) as taken')
+            ->pluck('taken', 'trip_id');
+
+        return $context;
     }
 
     /**
@@ -184,9 +229,9 @@ class FeatureEngineeringService
 
         $timePreferenceScore = $this->timePreferenceScore($context['preferred_hour'], $trip);
         $routeScore = $this->routeAlignmentScore($savedRoutes, $trip);
-        $connectionScore = $this->connectionScore($user, $trip);
-        $historyScore = $this->historyScore($user, $trip);
-        $seatScore = $this->seatScore($trip);
+        $connectionScore = $this->connectionScore($user, $trip, $context['connected_driver_ids'] ?? null);
+        $historyScore = $this->historyScore($user, $trip, $context['joined_driver_ids'] ?? null);
+        $seatScore = $this->seatScore($trip, $context['taken_seats_by_trip'] ?? null);
         $fareScore = $this->fareScore($trip);
 
         return [
@@ -273,8 +318,17 @@ class FeatureEngineeringService
         return max(0.0, 20.0 - ($hourDiff * 2.5));
     }
 
-    private function connectionScore(User $user, Trip $trip): float
+    /**
+     * $connectedDriverIds, when given (rankTripsForUser's batch path), is the
+     * precomputed accepted-connection set — avoids one exists() query per trip.
+     * Null (scoreTripForUser called alone) falls back to the original query.
+     */
+    private function connectionScore(User $user, Trip $trip, ?Collection $connectedDriverIds = null): float
     {
+        if ($connectedDriverIds !== null) {
+            return $connectedDriverIds->contains($trip->driver_id) ? 10.0 : 0.0;
+        }
+
         $isConnected = Connection::query()
             ->where('status', 'accepted')
             ->where(function ($query) use ($user, $trip): void {
@@ -288,8 +342,12 @@ class FeatureEngineeringService
         return $isConnected ? 10.0 : 0.0;
     }
 
-    private function historyScore(User $user, Trip $trip): float
+    private function historyScore(User $user, Trip $trip, ?Collection $joinedDriverIds = null): float
     {
+        if ($joinedDriverIds !== null) {
+            return $joinedDriverIds->contains($trip->driver_id) ? 10.0 : 3.0;
+        }
+
         $joinedWithDriverBefore = TripParticipant::query()
             ->where('user_id', $user->id)
             ->where('is_driver', false)
@@ -299,16 +357,18 @@ class FeatureEngineeringService
         return $joinedWithDriverBefore ? 10.0 : 3.0;
     }
 
-    private function seatScore(Trip $trip): float
+    private function seatScore(Trip $trip, ?Collection $takenSeatsByTrip = null): float
     {
         if (! $trip->seat_limit) {
             return 5.0;
         }
 
-        $takenSeats = (int) TripParticipant::query()
-            ->where('trip_id', $trip->id)
-            ->where('is_driver', false)
-            ->count();
+        $takenSeats = $takenSeatsByTrip !== null
+            ? (int) ($takenSeatsByTrip->get($trip->id) ?? 0)
+            : (int) TripParticipant::query()
+                ->where('trip_id', $trip->id)
+                ->where('is_driver', false)
+                ->count();
 
         $available = max(0, (int) $trip->seat_limit - $takenSeats);
 

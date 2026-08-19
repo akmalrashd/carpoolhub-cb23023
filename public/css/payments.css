@@ -657,10 +657,6 @@
             color: #94a3b8;
             cursor: not-allowed;
         }
-        .payment-detail-grid {
-            display: grid;
-            gap: 8px;
-        }
         .payment-detail-line {
             display: flex;
             align-items: center;
@@ -2164,7 +2160,6 @@
             transform: translateY(0) !important;
             box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2) !important;
         }
-        }
         .payments-summary-amount-chip strong {
             font-family: var(--font-ui), sans-serif;
             font-size: 10.5px;
@@ -3272,9 +3267,9 @@
             .payments-table tbody tr:last-child td {
                 border-bottom: 0;
             }
-            .payments-table tbody tr:hover td {
-                background: var(--ch-yellow-tint);
-            }
+            /* .payments-table tbody tr:hover td { background: var(--ch-yellow-tint); }
+               already set unconditionally above — this min-width:768px copy changed
+               nothing. */
             .payments-table .payment-route-title {
                 margin: 0;
                 color: var(--ink);
@@ -3738,9 +3733,9 @@
                 scrollbar-width: none;
                 margin-top: 12px;
             }
-            .payments-tab-strip::-webkit-scrollbar {
-                display: none;
-            }
+            /* .payments-tab-strip::-webkit-scrollbar { display: none; } already
+               set unconditionally above — repeating it in this max-width block
+               changes nothing, since the base rule already covers this width. */
             .payments-tab {
                 justify-content: center;
                 padding: 8px 16px;

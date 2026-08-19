@@ -173,7 +173,7 @@ class RefreshController extends Controller
         $myRecordCount = TripPayment::query()
             ->where('user_id', $user->id)
             ->whereHas('trip', fn ($query) => $query
-                                ->whereNotIn('status', ['draft', 'cancelled'])
+                ->whereNotIn('status', ['draft', 'cancelled'])
                 ->where(function ($subQuery): void {
                     $subQuery->whereNull('parent_trip_id')->orWhere('is_return_trip', false);
                 })
@@ -190,7 +190,7 @@ class RefreshController extends Controller
                         ->where('user_id', '!=', $user->id)
                 )
                 ->whereHas('trip', fn ($query) => $query
-                                        ->whereNotIn('status', ['draft', 'cancelled'])
+                    ->whereNotIn('status', ['draft', 'cancelled'])
                     ->where(function ($subQuery): void {
                         $subQuery->whereNull('parent_trip_id')->orWhere('is_return_trip', false);
                     })

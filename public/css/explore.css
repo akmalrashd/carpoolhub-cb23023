@@ -175,9 +175,6 @@
             .xp-body { grid-template-columns: minmax(0, 700px) minmax(300px, 1fr); }
         }
 
-        /* ── Left: trip list ───────────────────────────────────────── */
-        .xp-list { display: grid; gap: 12px; align-content: start; }
-
         /* ── Empty state ───────────────────────────────────────────── */
         .xp-empty {
             border: 1.5px dashed var(--hairline-strong);
@@ -1410,7 +1407,7 @@
                 align-items: center;
                 gap: 8px;
             }
-            .xp-driver-info { min-width: 0; }
+            /* .xp-driver-info already sets min-width:0 unconditionally above. */
             .xp-driver-name {
                 max-width: 100%;
                 overflow: hidden;
@@ -1566,7 +1563,7 @@
                 align-items: center;
                 gap: 12px;
             }
-            .xp-driver-info { min-width: 0; }
+            /* .xp-driver-info already sets min-width:0 unconditionally above. */
             .xp-avatar {
                 width: 38px;
                 height: 38px;

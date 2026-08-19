@@ -17,13 +17,6 @@ class PassengerRiskScoringService
     }
 
     /**
-     * @param  array<string, mixed>|null  $reliability  Pre-computed reliability row for
-     *   this passenger. When a caller already built the reliability map in a single batched
-     *   query (e.g. RefreshController::tripRequests), passing it here avoids re-running
-     *   buildForUsers() once per passenger. The value is identical either way — buildForUsers
-     *   returns the same row for a given id — so scores are unchanged.
-     */
-    /**
      * Score every passenger for a trip using ONE batched features query and the
      * caller's already-built reliability map, instead of ~9 queries per
      * passenger. Scores are identical to scoring each passenger individually —
@@ -31,7 +24,10 @@ class PassengerRiskScoringService
      * query count drops.
      *
      * @param  Collection<int, User>  $passengers
-     * @param  array<int, array<string, mixed>>  $reliabilityMap  keyed by user id
+     * @param  array<int, array<string, mixed>>  $reliabilityMap  keyed by user id.
+     *   When a caller already built this in a single batched query (e.g.
+     *   RefreshController::tripRequests), passing it here avoids re-running
+     *   buildForUsers() once per passenger — the value is identical either way.
      * @return array<int, array<string, mixed>>  scores keyed by user id
      */
     public function scoreUsersForTrip(Collection $passengers, Trip $trip, ?User $driver = null, array $reliabilityMap = []): array

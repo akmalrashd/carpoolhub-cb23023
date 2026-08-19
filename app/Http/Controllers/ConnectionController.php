@@ -8,6 +8,7 @@ use App\Models\Connection;
 use App\Models\User;
 use App\Services\ConnectionService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +30,7 @@ class ConnectionController extends Controller
         return view('connections.index', $data);
     }
 
-    public function store(StoreConnectionRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
+    public function store(StoreConnectionRequest $request): RedirectResponse|JsonResponse
     {
         try {
             $this->connectionService->sendRequest(
