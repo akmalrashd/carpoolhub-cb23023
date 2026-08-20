@@ -277,6 +277,8 @@
                             $takenSeats        = (int) $trip->participants->where('is_driver', false)->count();
                             $availableSeats    = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;
                             $isFull            = $availableSeats !== null && $availableSeats <= 0;
+                            $driverIncludedInSplit = (int) $trip->participant_count > $takenSeats;
+                            $seatLimitDisplay  = $trip->seat_limit ? ((int) $trip->seat_limit + ($driverIncludedInSplit ? 1 : 0)) : null;
                             $isFree            = (float) $trip->fare_per_person <= 0;
                             $myRequest         = $trip->joinRequests->first();
                             $isJoined          = $trip->participants->contains(fn ($p) => (int) $p->user_id === (int) auth()->id());
@@ -306,7 +308,7 @@
                             data-destination-lat="{{ $trip->destination_latitude ?? '' }}"
                             data-destination-lng="{{ $trip->destination_longitude ?? '' }}"
                             data-time="{{ $trip->trip_datetime?->format('d M Y, H:i') ?: '-' }}"
-                            data-seats="{{ $availableSeats !== null ? $availableSeats : '?' }} / {{ (int) $trip->seat_limit }} seats"
+                            data-seats="{{ $availableSeats !== null ? $availableSeats : '?' }} / {{ (int) $seatLimitDisplay }}"
                             data-fare="{{ $isFree ? 'Free' : ('RM ' . number_format((float) $trip->fare_per_person, 2)) }}"
                             data-fare-raw="{{ number_format((float) $trip->fare_per_person, 2, '.', '') }}"
                             data-fare-total="{{ number_format((float) ($trip->fare_total ?? $trip->savedRoute?->default_fare ?? $trip->fare_per_person), 2, '.', '') }}"
@@ -380,6 +382,19 @@
                                         </div>
                                     @endif
 
+                                    {{-- Vehicle (mobile only — desktop shows this in the footer instead) --}}
+                                    <div class="xp-footer-vehicle-mobile">
+                                        <i class="fa-solid fa-car-side"></i>
+                                        @if($vehicleText !== '')
+                                            <span class="xp-vehicle-model">{{ $vehicleModel }}</span>
+                                            @if($vehiclePlate !== '')
+                                                <span class="xp-vehicle-plate">&middot; {{ $vehiclePlate }}</span>
+                                            @endif
+                                        @else
+                                            <span class="xp-vehicle-model">Vehicle not set</span>
+                                        @endif
+                                    </div>
+
                                 {{-- Footer: time · seats | fare + button --}}
                                     <div class="xp-card-footer">
                                     <span class="xp-footer-time">
@@ -394,7 +409,7 @@
                                         <span class="badge badge-danger" style="font-size:11px;">Full</span>
                                     @else
                                         <span class="xp-footer-seats">
-                                            <span class="xp-desktop-label"><i class="fa-regular fa-user"></i>{{ $availableSeats !== null ? $availableSeats : '?' }} / {{ (int) $trip->seat_limit }} seats</span>
+                                            <span class="xp-desktop-label"><i class="fa-regular fa-user"></i>{{ $availableSeats !== null ? $availableSeats : '?' }} / {{ (int) $seatLimitDisplay }} seats</span>
                                             <span class="xp-mobile-label">{{ $availableSeats !== null ? $availableSeats : '?' }} seat{{ ($availableSeats !== 1) ? 's' : '' }}</span>
                                         </span>
                                         @endif
@@ -446,7 +461,6 @@
                                     @else
                                         <p class="xp-fare-price">RM {{ number_format((float) $trip->fare_per_person, 2) }}</p>
                                     @endif
-                                    <p class="xp-fare-note">Splits fuel + tolls equally</p>
                                     <div class="xp-fare-actions">
                                         @if($isJoined)
                                             <span class="btn btn-soft btn-sm" style="color:var(--success-ink);border-color:var(--success-soft);">
@@ -456,18 +470,24 @@
                                             <span class="btn btn-soft btn-sm" style="color:var(--warning-ink);border-color:var(--warning-soft);">
                                                 <i class="fa-regular fa-clock"></i> Pending
                                             </span>
+                                            <a href="{{ route('explore.show', $trip) }}" class="btn btn-ghost btn-sm open-explore-modal">
+                                                View details
+                                            </a>
                                         @elseif($isFull)
                                             <span class="btn btn-soft btn-sm" style="color:var(--muted);cursor:default;">
                                                 Full
                                             </span>
+                                            <a href="{{ route('explore.show', $trip) }}" class="btn btn-ghost btn-sm open-explore-modal">
+                                                View details
+                                            </a>
                                         @else
                                             <a href="{{ route('explore.show', $trip) }}#join-request" class="btn btn-primary btn-sm open-explore-modal">
                                                 Request seat
                                             </a>
+                                            <a href="{{ route('explore.show', $trip) }}" class="btn btn-ghost btn-sm open-explore-modal">
+                                                View details
+                                            </a>
                                         @endif
-                                        <a href="{{ route('explore.show', $trip) }}" class="btn btn-ghost btn-sm open-explore-modal">
-                                            View details
-                                        </a>
                                     </div>
                                 </aside>
                             </div>
@@ -531,7 +551,7 @@
                 <span class="xp-modal-section-label">Trip details</span>
                 <div class="xp-modal-kv">
                     <div class="xp-modal-kv-item"><span>Time</span><strong id="exploreModalTime">-</strong></div>
-                    <div class="xp-modal-kv-item"><span>Seats</span><strong id="exploreModalSeats">-</strong></div>
+                    <div class="xp-modal-kv-item"><span>Seats Available</span><strong id="exploreModalSeats">-</strong></div>
                     <div class="xp-modal-kv-item"><span>Fare</span><strong id="exploreModalFare">-</strong></div>
                 </div>
                 <div class="xp-modal-route">

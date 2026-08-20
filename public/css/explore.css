@@ -417,6 +417,7 @@
             white-space: nowrap;
         }
         .xp-footer-fare.free { color: var(--success-ink); }
+        .xp-footer-vehicle-mobile { display: none; }
         .xp-footer-vehicle {
             min-width: 0;
             overflow: hidden;
@@ -1442,6 +1443,19 @@
             }
             .xp-desktop-label { display: none; }
             .xp-mobile-label { display: inline; }
+            .xp-footer-vehicle-mobile {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--muted);
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .xp-footer-vehicle-mobile i { font-size: 10px; color: var(--muted-2); flex-shrink: 0; }
             .xp-mobile-chip { display: inline-flex; }
             .xp-desktop-chip,
             .xp-sort-label,

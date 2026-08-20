@@ -33,9 +33,6 @@
             ->values();
         $participantPayloadB64 = base64_encode($participantPayload->toJson());
         $passengerCount = (int) $trip->participants->where('is_driver', false)->count();
-        if ($passengerCount === 0 && (int) $trip->participant_count > 0) {
-            $passengerCount = (int) $trip->participant_count;
-        }
         $splitType = ((int) $trip->participant_count > $passengerCount)
             ? 'Driver Included in Fare Split'
             : 'Driver Excluded from Fare Split';

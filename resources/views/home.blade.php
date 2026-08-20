@@ -248,7 +248,9 @@
                                         $pickupLabel = $trip->pickup_name ?: 'Pickup';
                                         $destinationLabel = $trip->destination_name ?: 'Destination';
                                         $seats = $trip->participants->where('is_driver', false)->count();
-                                        $seatLimit = $trip->seat_limit ?? '?';
+                                        $seatDriverIncluded = (int) $trip->participant_count > $seats;
+                                        $seatLimit = $trip->seat_limit !== null ? ((int) $trip->seat_limit + ($seatDriverIncluded ? 1 : 0)) : '?';
+                                        $seats = $seats + ($seatDriverIncluded ? 1 : 0);
                                         $statusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
                                     @endphp
                                     <a href="{{ route('trips.index', ['focus_trip' => $trip->id]) }}" class="hp-trip-row">
@@ -299,7 +301,9 @@
                                         $pickupLabel = $trip->pickup_name ?: 'Pickup';
                                         $destinationLabel = $trip->destination_name ?: 'Destination';
                                         $seats = $trip->participants->where('is_driver', false)->count();
-                                        $seatLimit = $trip->seat_limit ?? '?';
+                                        $seatDriverIncluded = (int) $trip->participant_count > $seats;
+                                        $seatLimit = $trip->seat_limit !== null ? ((int) $trip->seat_limit + ($seatDriverIncluded ? 1 : 0)) : '?';
+                                        $seats = $seats + ($seatDriverIncluded ? 1 : 0);
                                         $statusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
                                     @endphp
                                     <a href="{{ route('trips.index', ['focus_trip' => $trip->id]) }}" class="hp-trip-row">
@@ -352,50 +356,66 @@
                         <a href="{{ route('explore.index') }}" class="btn btn-ghost btn-sm">Explore <i class="fa-solid fa-chevron-right" style="font-size:10px;"></i></a>
                     </div>
                     <div class="hp-section-body">
-                        @php $exploreSlice = ($publicExploreTrips ?? collect())->take(4); @endphp
+                        @php
+                            $exploreSlice = ($publicExploreTrips ?? collect())->take(10);
+                            $explorePages = $exploreSlice->chunk(4)->values();
+                        @endphp
                         @if($exploreSlice->isNotEmpty())
-                            <div class="hp-pub-grid">
-                                @foreach($exploreSlice as $trip)
-                                    @php
-                                        $origin = $trip->pickup_name ?: 'Pickup';
-                                        $dest = $trip->destination_name ?: 'Destination';
-                                        $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
-                                        $availSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : 0;
-                                    @endphp
-                                    <a href="{{ route('explore.show', $trip->id) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
-                                        <div class="hp-pub-driver-row">
-                                            <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
-                                            <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
-                                            <span class="hp-pub-driver-rating"><i class="fa-solid fa-star"></i> {{ number_format($trip->driver?->rating ?? 5.0, 2) }}</span>
+                            <div class="hp-pub-carousel-track" id="hp-pub-desktop-carousel-track">
+                                @foreach($explorePages as $page)
+                                    <div class="hp-pub-carousel-slide">
+                                        <div class="hp-pub-grid">
+                                            @foreach($page as $trip)
+                                                @php
+                                                    $origin = $trip->pickup_name ?: 'Pickup';
+                                                    $dest = $trip->destination_name ?: 'Destination';
+                                                    $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
+                                                    $availSeats = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : 0;
+                                                @endphp
+                                                <a href="{{ route('explore.show', $trip->id) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
+                                                    <div class="hp-pub-driver-row">
+                                                        <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
+                                                        <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
+                                                        <span class="hp-pub-driver-rating"><i class="fa-solid fa-star"></i> {{ number_format($trip->driver?->rating ?? 5.0, 2) }}</span>
+                                                    </div>
+                                                    <div class="hp-pub-divider"></div>
+                                                    <div class="hp-pub-mobile-route">
+                                                        <div class="hp-pub-point">
+                                                            <span class="hp-pub-dot pickup"></span>
+                                                            <span>
+                                                                <span class="hp-pub-point-label">Pickup</span>
+                                                                <span class="hp-pub-point-text">{{ $origin }}</span>
+                                                            </span>
+                                                        </div>
+                                                        <div class="hp-pub-point">
+                                                            <span class="hp-pub-dot destination"></span>
+                                                            <span>
+                                                                <span class="hp-pub-point-label">Destination</span>
+                                                                <span class="hp-pub-point-text">{{ $dest }}</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="hp-pub-divider"></div>
+                                                    <div class="hp-pub-mini-footer">
+                                                        <span class="hp-pub-footer-meta">{{ $trip->trip_datetime?->format('d M Y, H:i') ?? '-' }} &middot; {{ $availSeats }} seat{{ $availSeats === 1 ? '' : 's' }}</span>
+                                                        <span style="display:flex;align-items:center;gap:8px;">
+                                                            <span class="hp-pub-mini-fare">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
+                                                            <span class="btn btn-primary btn-sm">Request</span>
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            @endforeach
                                         </div>
-                                        <div class="hp-pub-divider"></div>
-                                        <div class="hp-pub-mobile-route">
-                                            <div class="hp-pub-point">
-                                                <span class="hp-pub-dot pickup"></span>
-                                                <span>
-                                                    <span class="hp-pub-point-label">Pickup</span>
-                                                    <span class="hp-pub-point-text">{{ $origin }}</span>
-                                                </span>
-                                            </div>
-                                            <div class="hp-pub-point">
-                                                <span class="hp-pub-dot destination"></span>
-                                                <span>
-                                                    <span class="hp-pub-point-label">Destination</span>
-                                                    <span class="hp-pub-point-text">{{ $dest }}</span>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="hp-pub-divider"></div>
-                                        <div class="hp-pub-mini-footer">
-                                            <span class="hp-pub-footer-meta">{{ $trip->trip_datetime?->format('d M Y, H:i') ?? '-' }} &middot; {{ $availSeats }} seat{{ $availSeats === 1 ? '' : 's' }}</span>
-                                            <span style="display:flex;align-items:center;gap:8px;">
-                                                <span class="hp-pub-mini-fare">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
-                                                <span class="btn btn-primary btn-sm">Request</span>
-                                            </span>
-                                        </div>
-                                    </a>
+                                    </div>
                                 @endforeach
                             </div>
+                            @if($explorePages->count() > 1)
+                                <div class="hp-pub-carousel-dots" id="hp-pub-desktop-carousel-dots">
+                                    @for($i = 0; $i < $explorePages->count(); $i++)
+                                        <button type="button" class="hp-pub-carousel-dot {{ $i === 0 ? 'active' : '' }}" aria-label="Go to page {{ $i + 1 }}" onclick="hpGoToCarouselPage('hp-pub-desktop-carousel-track', {{ $i }})"></button>
+                                    @endfor
+                                </div>
+                            @endif
                         @else
                             <x-empty icon="fa-solid fa-car-side" title="No public trips near you" body="No public trips near you right now." />
                         @endif
@@ -686,7 +706,9 @@
                                     $mUpPickup = $trip->pickup_name ?: 'Pickup';
                                     $mUpDest = $trip->destination_name ?: 'Destination';
                                     $mUpSeats = $trip->participants->where('is_driver', false)->count();
-                                    $mUpSeatLimit = $trip->seat_limit ?? '?';
+                                    $mUpDriverIncluded = (int) $trip->participant_count > $mUpSeats;
+                                    $mUpSeatLimit = $trip->seat_limit !== null ? ((int) $trip->seat_limit + ($mUpDriverIncluded ? 1 : 0)) : '?';
+                                    $mUpSeats = $mUpSeats + ($mUpDriverIncluded ? 1 : 0);
                                     $mUpStatusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
                                 @endphp
                                 <a href="{{ route('trips.index', ['focus_trip' => $trip->id]) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
@@ -734,7 +756,9 @@
                                     $mUpPickup = $trip->pickup_name ?: 'Pickup';
                                     $mUpDest = $trip->destination_name ?: 'Destination';
                                     $mUpSeats = $trip->participants->where('is_driver', false)->count();
-                                    $mUpSeatLimit = $trip->seat_limit ?? '?';
+                                    $mUpDriverIncluded = (int) $trip->participant_count > $mUpSeats;
+                                    $mUpSeatLimit = $trip->seat_limit !== null ? ((int) $trip->seat_limit + ($mUpDriverIncluded ? 1 : 0)) : '?';
+                                    $mUpSeats = $mUpSeats + ($mUpDriverIncluded ? 1 : 0);
                                     $mUpStatusClass = $trip->status === 'active' ? 'badge-success' : ($trip->status === 'cancelled' ? 'badge-danger' : 'badge-info');
                                 @endphp
                                 <a href="{{ route('trips.index', ['focus_trip' => $trip->id]) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
@@ -828,9 +852,9 @@
                     </a>
                 </div>
                 <div class="hp-section-body">
-                    @php $mobileExplore = ($publicExploreTrips ?? collect())->take(4); @endphp
+                    @php $mobileExplore = ($publicExploreTrips ?? collect())->take(10); @endphp
                     @if($mobileExplore->isNotEmpty())
-                        <div style="display:grid;gap:10px;">
+                        <div class="hp-pub-carousel-track" id="hp-pub-mobile-carousel-track">
                             @foreach($mobileExplore as $trip)
                                 @php
                                     $origin = $trip->pickup_name ?: 'Pickup';
@@ -838,40 +862,49 @@
                                     $takenSeats = (int) $trip->participants->where('is_driver', false)->count();
                                     $seatCount = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : 0;
                                 @endphp
-                                <a href="{{ route('explore.show', $trip->id) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
-                                    <div class="hp-pub-driver-row">
-                                        <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
-                                        <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
-                                        <span class="hp-pub-driver-rating"><i class="fa-solid fa-star"></i> {{ number_format($trip->driver?->rating ?? 5.0, 2) }}</span>
-                                    </div>
-                                    <div class="hp-pub-divider"></div>
-                                    <div class="hp-pub-mobile-route">
-                                        <div class="hp-pub-point">
-                                            <span class="hp-pub-dot pickup"></span>
-                                            <span>
-                                                <span class="hp-pub-point-label">Pickup</span>
-                                                <span class="hp-pub-point-text">{{ $origin }}</span>
+                                <div class="hp-pub-carousel-slide">
+                                    <a href="{{ route('explore.show', $trip->id) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
+                                        <div class="hp-pub-driver-row">
+                                            <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
+                                            <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
+                                            <span class="hp-pub-driver-rating"><i class="fa-solid fa-star"></i> {{ number_format($trip->driver?->rating ?? 5.0, 2) }}</span>
+                                        </div>
+                                        <div class="hp-pub-divider"></div>
+                                        <div class="hp-pub-mobile-route">
+                                            <div class="hp-pub-point">
+                                                <span class="hp-pub-dot pickup"></span>
+                                                <span>
+                                                    <span class="hp-pub-point-label">Pickup</span>
+                                                    <span class="hp-pub-point-text">{{ $origin }}</span>
+                                                </span>
+                                            </div>
+                                            <div class="hp-pub-point">
+                                                <span class="hp-pub-dot destination"></span>
+                                                <span>
+                                                    <span class="hp-pub-point-label">Destination</span>
+                                                    <span class="hp-pub-point-text">{{ $dest }}</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="hp-pub-divider"></div>
+                                        <div class="hp-pub-mini-footer">
+                                            <span class="hp-pub-footer-meta">{{ $trip->trip_datetime?->format('d M Y, H:i') ?? '-' }} &middot; {{ $seatCount }} seat{{ $seatCount === 1 ? '' : 's' }}</span>
+                                            <span style="display:flex;align-items:center;gap:8px;">
+                                                <span class="hp-pub-mini-fare">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
+                                                <span class="btn btn-primary btn-sm">Request</span>
                                             </span>
                                         </div>
-                                        <div class="hp-pub-point">
-                                            <span class="hp-pub-dot destination"></span>
-                                            <span>
-                                                <span class="hp-pub-point-label">Destination</span>
-                                                <span class="hp-pub-point-text">{{ $dest }}</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="hp-pub-divider"></div>
-                                    <div class="hp-pub-mini-footer">
-                                        <span class="hp-pub-footer-meta">{{ $trip->trip_datetime?->format('d M Y, H:i') ?? '-' }} &middot; {{ $seatCount }} seat{{ $seatCount === 1 ? '' : 's' }}</span>
-                                        <span style="display:flex;align-items:center;gap:8px;">
-                                            <span class="hp-pub-mini-fare">RM {{ number_format((float) $trip->fare_per_person, 2) }}</span>
-                                            <span class="btn btn-primary btn-sm">Request</span>
-                                        </span>
-                                    </div>
-                                </a>
+                                    </a>
+                                </div>
                             @endforeach
                         </div>
+                        @if($mobileExplore->count() > 1)
+                            <div class="hp-pub-carousel-dots" id="hp-pub-mobile-carousel-dots">
+                                @for($i = 0; $i < $mobileExplore->count(); $i++)
+                                    <button type="button" class="hp-pub-carousel-dot {{ $i === 0 ? 'active' : '' }}" aria-label="Go to trip {{ $i + 1 }}" onclick="hpGoToCarouselPage('hp-pub-mobile-carousel-track', {{ $i }})"></button>
+                                @endfor
+                            </div>
+                        @endif
                     @else
                         <x-empty icon="fa-solid fa-car-side" title="No public trips today" body="No public trips available right now." />
                     @endif

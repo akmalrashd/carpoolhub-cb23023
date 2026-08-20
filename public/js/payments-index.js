@@ -399,10 +399,8 @@ window.isPaymentRowHidden = function (row) {
         const tripDetailsPassengerList = document.getElementById('tripDetailsPassengerList');
         const tripDetailsTotalPassengers = document.getElementById('tripDetailsTotalPassengers');
         const tripDetailsSplitType = document.getElementById('tripDetailsSplitType');
-        const tripDetailsPairHint = document.getElementById('tripDetailsPairHint');
         const tripDetailsDatetime = document.getElementById('tripDetailsDatetime');
         const tripDetailsMode = document.getElementById('tripDetailsMode');
-        const tripDetailsStatus = document.getElementById('tripDetailsStatus');
         const tripDetailsAmountDue = document.getElementById('tripDetailsAmountDue');
         const tripDetailsFareBreakdown = document.getElementById('tripDetailsFareBreakdown');
         const tripDetailsExtraFee = document.getElementById('tripDetailsExtraFee');
@@ -414,6 +412,33 @@ window.isPaymentRowHidden = function (row) {
         const tripDetailsMarkedAt = document.getElementById('tripDetailsMarkedAt');
         const tripDetailsWhatsapp = document.getElementById('tripDetailsWhatsapp');
         const tripDetailsEmail = document.getElementById('tripDetailsEmail');
+        const tripDetailsPaymentActionWrap = document.getElementById('tripDetailsPaymentActionWrap');
+        const tripDetailsPaymentActionBtn = document.getElementById('tripDetailsPaymentActionBtn');
+        const tripDetailsContactActions = document.getElementById('tripDetailsContactActions');
+        // Priority order: if a row has more than one action button (e.g. Notify +
+        // Mark Paid), the more decisive one wins so the popup only ever proxies one.
+        const PAYMENT_ACTION_SELECTORS = [
+            '.open-mark-paid-modal',
+            '.open-request-btn',
+            '.open-payment-paynow-btn',
+            '.open-payment-receipt-btn',
+            '.reminder-btn:not(.is-disabled)',
+        ];
+        const PAYMENT_ACTION_COLOR = {
+            'mark paid': 'pay-btn',
+            'pay': 'pay-btn',
+            'review': 'review-btn',
+            'receipt': 'receipt-btn',
+            'notify': 'notify-btn',
+        };
+        const findPaymentActionEl = (row) => {
+            if (!row) return null;
+            for (const selector of PAYMENT_ACTION_SELECTORS) {
+                const el = row.querySelector(selector);
+                if (el) return el;
+            }
+            return null;
+        };
         let tripMiniMap = null;
         let tripMiniRouteLayer = null;
         let tripMiniMarkerLayer = null;
@@ -431,8 +456,19 @@ window.isPaymentRowHidden = function (row) {
             if (!el) return;
             const slug = toSlug(value);
             el.textContent = value || '-';
-            el.className = `request-modal-value trip-status-badge trip-status-${slug || 'draft'}`;
+            el.className = `trip-status-badge trip-status-${slug || 'draft'}`;
         };
+        const warnIfUnavailable = (el, label) => {
+            if (!el) return;
+            el.addEventListener('click', (event) => {
+                if (el.dataset.unavailable === '1') {
+                    event.preventDefault();
+                    if (window.showToast) window.showToast(`${label} not available for this driver.`, 'error');
+                }
+            });
+        };
+        warnIfUnavailable(tripDetailsEmail, 'Email');
+        warnIfUnavailable(tripDetailsWhatsapp, 'WhatsApp');
         const esc = (value) => String(value ?? '')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -640,19 +676,7 @@ window.isPaymentRowHidden = function (row) {
             if (tripDetailsDriverEmail) tripDetailsDriverEmail.textContent = driverEmail || '-';
             if (tripDetailsDatetime) tripDetailsDatetime.textContent = source.dataset.datetime || '-';
             if (tripDetailsMode) tripDetailsMode.textContent = source.dataset.mode || '-';
-            if (tripDetailsPairHint) {
-                const pairedTripId = String(source.dataset.pairedTripId || '').trim();
-                const isTwoWay = String(source.dataset.mode || '').toLowerCase().includes('two way');
-                if (isTwoWay && pairedTripId) {
-                    tripDetailsPairHint.textContent = `Paired return leg: ${tripRef}`;
-                    tripDetailsPairHint.style.display = 'block';
-                } else {
-                    tripDetailsPairHint.textContent = '';
-                    tripDetailsPairHint.style.display = 'none';
-                }
-            }
             renderPassengerList(participantsPayload);
-            setStatusBadge(tripDetailsStatus, source.dataset.status || '-');
             if (tripDetailsAmountDue) tripDetailsAmountDue.textContent = source.dataset.amountDue || '-';
             if (tripDetailsFareBreakdown) {
                 const extraFee = String(source.dataset.extraFee || 'RM 0.00').trim();
@@ -673,23 +697,32 @@ window.isPaymentRowHidden = function (row) {
             if (tripDetailsPaymentRemarks) tripDetailsPaymentRemarks.textContent = source.dataset.paymentRemarks || '-';
             if (tripDetailsMarkedAt) tripDetailsMarkedAt.textContent = source.dataset.markedAt || '-';
             if (tripDetailsEmail) {
-                if (driverEmail) {
-                    tripDetailsEmail.classList.remove('is-disabled');
-                    tripDetailsEmail.setAttribute('href', `mailto:${driverEmail}`);
-                } else {
-                    tripDetailsEmail.classList.add('is-disabled');
-                    tripDetailsEmail.setAttribute('href', '#');
-                }
+                tripDetailsEmail.setAttribute('href', driverEmail ? `mailto:${driverEmail}` : '#');
+                tripDetailsEmail.dataset.unavailable = driverEmail ? '' : '1';
             }
             if (tripDetailsWhatsapp) {
-                if (waUrl) {
-                    tripDetailsWhatsapp.classList.remove('is-disabled');
-                    tripDetailsWhatsapp.setAttribute('href', waUrl);
-                } else {
-                    tripDetailsWhatsapp.classList.add('is-disabled');
-                    tripDetailsWhatsapp.setAttribute('href', '#');
-                }
+                tripDetailsWhatsapp.setAttribute('href', waUrl || '#');
+                tripDetailsWhatsapp.dataset.unavailable = waUrl ? '' : '1';
             }
+
+            const paymentActionRow = source.closest('.open-trip-card') || source;
+            const paymentActionEl = findPaymentActionEl(paymentActionRow);
+            if (paymentActionEl && tripDetailsPaymentActionBtn && tripDetailsPaymentActionWrap && tripDetailsContactActions) {
+                const label = paymentActionEl.textContent.trim();
+                const iconEl = paymentActionEl.querySelector('i');
+                tripDetailsPaymentActionBtn.innerHTML = `${iconEl ? iconEl.outerHTML : ''} ${label}`;
+                tripDetailsPaymentActionBtn.className = `trip-action-btn is-filled ${PAYMENT_ACTION_COLOR[label.toLowerCase()] || 'pay-btn'}`;
+                tripDetailsPaymentActionBtn.onclick = () => {
+                    closeTripDetailsModal();
+                    window.setTimeout(() => paymentActionEl.click(), 200);
+                };
+                tripDetailsPaymentActionWrap.style.display = '';
+                tripDetailsContactActions.style.display = 'none';
+            } else if (tripDetailsPaymentActionWrap && tripDetailsContactActions) {
+                tripDetailsPaymentActionWrap.style.display = 'none';
+                tripDetailsContactActions.style.display = '';
+            }
+
             tripDetailsModal.classList.add('show');
             tripDetailsModal.setAttribute('aria-hidden', 'false');
             document.body.classList.add('modal-open');

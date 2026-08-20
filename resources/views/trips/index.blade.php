@@ -249,11 +249,8 @@
                             $visibilityText      = ucfirst((string) ($trip->visibility ?? 'private')) . ' Trip';
                             $visibilityIcon      = ($trip->visibility ?? 'private') === 'public' ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
                             $combinedFare        = (float) $trip->fare_total + (float) ($trip->returnTrip?->fare_total ?? 0);
-                            $myFare              = (float) ($trip->payments->where('user_id', auth()->id())->first()?->amount_due ?? 0)
-                                                 + (float) ($trip->returnTrip?->payments?->where('user_id', auth()->id())->first()?->amount_due ?? 0);
-                            $showTotalFare       = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
-                            $fareLabel           = 'Fare';
-                            $displayFare         = $showTotalFare ? $combinedFare : $myFare;
+                            $fareLabel           = 'Total Fare';
+                            $displayFare         = $combinedFare;
                             $tripRef             = $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT);
                             $pairedTripId        = $trip->returnTrip?->id;
                             $paymentFocusIds     = array_values(array_filter([
@@ -290,12 +287,13 @@
                                 ->values();
                             $routePointPayloadB64 = base64_encode($routePointPayload->toJson());
                             $passengerCount = (int) $trip->participants->where('is_driver', false)->count();
-                            if ($passengerCount === 0 && (int) $trip->participant_count > 0) {
-                                $passengerCount = (int) $trip->participant_count;
-                            }
                             $seatsTaken      = $passengerCount;
-                            $seatsAvailable  = $trip->seat_limit ?? $trip->available_seats ?? '-';
-                            $splitType = ((int) $trip->participant_count > $passengerCount)
+                            $driverIncludedInSplit = (int) $trip->participant_count > $passengerCount;
+                            $seatsAvailable  = $trip->seat_limit !== null
+                                ? ((int) $trip->seat_limit + ($driverIncludedInSplit ? 1 : 0))
+                                : ($trip->available_seats ?? '-');
+                            $seatsTakenDisplay = $seatsTaken + ($driverIncludedInSplit ? 1 : 0);
+                            $splitType = $driverIncludedInSplit
                                 ? 'Driver Included in Fare Split'
                                 : 'Driver Excluded from Fare Split';
 
@@ -531,6 +529,10 @@
                                         data-split-type="{{ $splitType }}"
                                         data-participants-b64="{{ $participantPayloadB64 }}"
                                         data-route-points-b64="{{ $routePointPayloadB64 }}"
+                                        data-can-manage="{{ ($isAdmin || auth()->id() === $trip->driver_id) ? '1' : '0' }}"
+                                        data-can-delete="{{ ($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true)) ? '1' : '0' }}"
+                                        data-edit-url="{{ route('trips.edit', $trip) }}"
+                                        data-delete-url="{{ route('trips.destroy', $trip) }}"
                                     >
                                         <i class="fa-regular fa-eye"></i>
                                         <span>View Details</span>
@@ -545,7 +547,7 @@
                                     <span class="trip-detail-value">{{ $trip->trip_datetime?->format('d M Y, H:i') ?: '-' }}</span>
                                     <span class="trip-mobile-seat-line">
                                         <i class="fa-solid fa-chair"></i>
-                                        {{ $seatsTaken }}/{{ $seatsAvailable }} seats
+                                        {{ $seatsTakenDisplay }}/{{ $seatsAvailable }} seats
                                     </span>
                                 </div>
                             </div>
@@ -617,10 +619,7 @@
                                 $visibilityText      = ($trip->visibility ?? 'private') === 'public' ? 'Public Trip' : 'Private Trip';
                                 $visibilityIcon      = ($trip->visibility ?? 'private') === 'public' ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
                                 $combinedFare        = (float) $trip->fare_total + (float) ($trip->returnTrip?->fare_total ?? 0);
-                                $myFare              = (float) ($trip->payments->where('user_id', auth()->id())->first()?->amount_due ?? 0)
-                                                     + (float) ($trip->returnTrip?->payments?->where('user_id', auth()->id())->first()?->amount_due ?? 0);
-                                $showTotalFare       = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
-                                $displayFare         = $showTotalFare ? $combinedFare : $myFare;
+                                $displayFare         = $combinedFare;
                                 $tripRef             = $trip->trip_ref ?: 'TRP-' . str_pad($trip->id, 5, '0', STR_PAD_LEFT);
                                 $pairedTripId        = $trip->returnTrip?->id;
                                 $paymentFocusIds     = array_values(array_filter([
@@ -661,12 +660,13 @@
                                     ->values();
                                 $routePointPayloadB64 = base64_encode($routePointPayload->toJson());
                                 $passengerCount = (int) $trip->participants->where('is_driver', false)->count();
-                                if ($passengerCount === 0 && (int) $trip->participant_count > 0) {
-                                    $passengerCount = (int) $trip->participant_count;
-                                }
                                 $seatsTaken      = $passengerCount;
-                                $seatsAvailable  = $trip->seat_limit ?? $trip->available_seats ?? '—';
-                                $splitType = ((int) $trip->participant_count > $passengerCount)
+                                $driverIncludedInSplit = (int) $trip->participant_count > $passengerCount;
+                                $seatsAvailable  = $trip->seat_limit !== null
+                                    ? ((int) $trip->seat_limit + ($driverIncludedInSplit ? 1 : 0))
+                                    : ($trip->available_seats ?? '—');
+                                $seatsTakenDisplay = $seatsTaken + ($driverIncludedInSplit ? 1 : 0);
+                                $splitType = $driverIncludedInSplit
                                     ? 'Driver Included in Fare Split'
                                     : 'Driver Excluded from Fare Split';
 
@@ -887,7 +887,7 @@
                                         data-return-datetime="{{ $trip->returnTrip?->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
                                         data-outbound-route="{{ $directionText }}"
                                         data-return-route="{{ $returnDirectionText }}"
-                                        data-fare-label="Passenger total"
+                                        data-fare-label="Total Fare"
                                         data-fare-display="RM {{ number_format($displayFare, 2) }}"
                                         data-pickup-name="{{ $pickupName }}"
                                         data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
@@ -899,6 +899,10 @@
                                         data-split-type="{{ $splitType }}"
                                         data-participants-b64="{{ $participantPayloadB64 }}"
                                         data-route-points-b64="{{ $routePointPayloadB64 }}"
+                                        data-can-manage="{{ ($isAdmin || auth()->id() === $trip->driver_id) ? '1' : '0' }}"
+                                        data-can-delete="{{ ($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true)) ? '1' : '0' }}"
+                                        data-edit-url="{{ route('trips.edit', $trip) }}"
+                                        data-delete-url="{{ route('trips.destroy', $trip) }}"
                                     >
                                         <i class="fa-regular fa-eye"></i>
                                         <span>View Details</span>
@@ -921,7 +925,7 @@
 
                                 {{-- Seats --}}
                                 <td class="col-seats">
-                                    <span class="trip-table-passengers"><i class="fa-solid fa-chair"></i>{{ $seatsTaken }}/{{ $seatsAvailable }}</span>
+                                    <span class="trip-table-passengers"><i class="fa-solid fa-chair"></i>{{ $seatsTakenDisplay }}/{{ $seatsAvailable }}</span>
                                 </td>
 
                                 {{-- Status --}}
@@ -1049,96 +1053,103 @@
     <div class="trip-modal" id="tripDetailsModal" aria-hidden="true">
         <div class="trip-modal-card">
             <div class="trip-modal-head">
-                <h3 class="trip-modal-title">Trip Details</h3>
+                <div class="trip-modal-head-text">
+                    <h3 class="trip-modal-title">Trip Details</h3>
+                    <span class="trip-status-badge" id="tripModalStatus">-</span>
+                </div>
                 <button type="button" class="trip-modal-close" id="tripDetailsCloseBtn" aria-label="Close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="trip-modal-scroll">
                 <div class="trip-modal-grid">
-                    <div class="trip-details-pairs">
-                        <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
-                            <span class="trip-modal-value" id="tripModalTripIds">-</span>
-                        </div>
-                        <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Date &amp; Time</span>
-                            <span class="trip-modal-value" id="tripModalOutboundTime">-</span>
-                        </div>
+                    <div class="trip-meta-line">
+                        <span class="trip-meta-item"><i class="fa-solid fa-hashtag"></i><span id="tripModalTripIds">-</span></span>
+                        <span class="trip-meta-dot">&middot;</span>
+                        <span class="trip-meta-item"><i class="fa-regular fa-calendar"></i><span id="tripModalOutboundTime">-</span></span>
+                        <span class="trip-meta-dot">&middot;</span>
+                        <span class="trip-meta-item trip-meta-route"><i class="fa-solid fa-road"></i><span class="trip-meta-route-text" id="tripModalRouteName">-</span></span>
                     </div>
-                    <div class="trip-modal-line">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Route Name</span>
-                        <span class="trip-modal-value" id="tripModalRouteName">-</span>
-                    </div>
-                    <div class="trip-point-cards">
-                        <div class="trip-point-card pickup">
-                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
-                            <span class="trip-point-value" id="tripModalPickupPoint">-</span>
-                        </div>
-                        <div class="trip-point-card destination">
-                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
-                            <span class="trip-point-value" id="tripModalDestinationPoint">-</span>
-                        </div>
-                    </div>
-                    <div class="trip-map-card">
-                        <div class="trip-map-head">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-map"></i>Route Preview</span>
-                            <span class="trip-map-hint">Read-only</span>
-                        </div>
+
+                    <div class="trip-route-card">
                         <div class="trip-modal-map" id="tripModalMap"></div>
+                        <div class="trip-route-timeline">
+                            <div class="trip-route-point">
+                                <span class="trip-route-dot pickup"></span>
+                                <span class="trip-route-text">
+                                    <span class="trip-route-label" id="tripModalPointALabel">Pickup Point</span>
+                                    <span class="trip-route-value" id="tripModalPickupPoint">-</span>
+                                </span>
+                            </div>
+                            <div class="trip-route-point">
+                                <span class="trip-route-dot destination"></span>
+                                <span class="trip-route-text">
+                                    <span class="trip-route-label" id="tripModalPointBLabel">Destination Point</span>
+                                    <span class="trip-route-value" id="tripModalDestinationPoint">-</span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="trip-modal-line">
+
+                    <div class="trip-driver-card">
                         <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Driver</span>
-                        <div class="trip-modal-driver">
+                        <span class="trip-driver-row">
                             <span class="trip-modal-driver-avatar" id="tripModalDriverAvatar">D</span>
                             <span class="trip-modal-driver-meta">
                                 <span class="trip-modal-driver-name" id="tripModalDriver">-</span>
                                 <span class="trip-modal-driver-email" id="tripModalDriverEmail">-</span>
                             </span>
-                        </div>
+                        </span>
                     </div>
-                    <div class="trip-modal-line">
+
+                    <div class="trip-passenger-card">
                         <div class="trip-passenger-header">
                             <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Passengers</span>
                             <span class="trip-passenger-count" id="tripModalPassengerCount">0 passengers</span>
                         </div>
                         <div class="trip-passenger-list" id="tripModalPassengerList"></div>
                     </div>
-                    <div class="trip-details-pairs">
-                        <div class="trip-modal-line">
+
+                    <div class="trip-secondary-grid">
+                        <div class="trip-secondary-item">
                             <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Trip Type</span>
                             <span class="trip-modal-value" id="tripModalMode">-</span>
-                            <span class="trip-modal-hint" id="tripModalPairHint" style="display:none;"></span>
                         </div>
-                        <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-regular fa-circle-check"></i>Status</span>
-                            <span class="trip-modal-value trip-status-badge" id="tripModalStatus">-</span>
-                        </div>
-                        <div class="trip-modal-line">
+                        <div class="trip-secondary-item">
                             <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Total Passengers</span>
                             <span class="trip-modal-value" id="tripModalTotalPassengers">-</span>
                         </div>
-                        <div class="trip-modal-line">
+                        <div class="trip-secondary-item">
                             <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Fare Split Type</span>
                             <span class="trip-modal-value" id="tripModalSplitType">-</span>
                         </div>
-                        <div class="trip-modal-line">
-                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Fare</span></span>
-                            <span class="trip-modal-value" id="tripModalFareValue">-</span>
-                        </div>
+                    </div>
+
+                    <div class="trip-fare-highlight">
+                        <span class="trip-fare-highlight-label"><i class="fa-solid fa-wallet"></i><span id="tripModalFareLabel">Fare</span></span>
+                        <span class="trip-fare-highlight-value" id="tripModalFareValue">-</span>
                     </div>
                 </div>
             </div>
             <div class="trip-contact-bar">
-                <p class="trip-contact-text">Having an issue with this trip? Please contact the driver.</p>
-                <div class="trip-contact-actions">
-                    <a href="#" target="_blank" rel="noopener" class="trip-contact-link whatsapp is-disabled" id="tripModalWhatsapp">
-                        <i class="fa-brands fa-whatsapp"></i>
-                        <span>WhatsApp</span>
+                <div class="trip-actions-filled" id="tripModalManageActions" style="display:none;">
+                    <a href="#" class="trip-action-btn is-filled edit-btn" id="tripModalEditBtn">
+                        <i class="fa-regular fa-pen-to-square"></i> Edit
                     </a>
-                    <a href="#" class="trip-contact-link email is-disabled" id="tripModalEmail">
-                        <i class="fa-regular fa-envelope"></i>
-                        <span>Driver Email</span>
+                    <form method="POST" id="tripModalDeleteForm" class="trip-action-form" onsubmit="return confirm('Cancel this trip? This will delete the trip and all related records.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="trip-action-btn is-filled delete-btn">
+                            <i class="fa-regular fa-trash-can"></i> Delete
+                        </button>
+                    </form>
+                </div>
+                <div class="trip-actions-filled" id="tripModalContactActions" style="display:none;">
+                    <a href="#" class="trip-action-btn is-filled email-btn" id="tripModalEmail">
+                        <i class="fa-regular fa-envelope"></i> Email
+                    </a>
+                    <a href="#" target="_blank" rel="noopener" class="trip-action-btn is-filled whatsapp-btn" id="tripModalWhatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
                     </a>
                 </div>
             </div>

@@ -1899,123 +1899,121 @@
     <div class="request-modal" id="tripDetailsModal" aria-hidden="true">
         <div class="request-modal-card trip-details-card">
             <div class="request-modal-head">
-                <h3 class="request-modal-title">Trip Details</h3>
+                <div class="trip-modal-head-text">
+                    <h3 class="request-modal-title">Trip Details</h3>
+                    <span class="trip-status-badge" id="tripDetailsPaymentStatus">-</span>
+                </div>
                 <button type="button" class="modal-close-square" id="tripDetailsCloseTop" aria-label="Close">
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="trip-details-scroll">
-            <div class="request-modal-grid">
-                <div class="trip-details-pairs">
-                    <div class="request-modal-line">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
-                        <span class="request-modal-value" id="tripDetailsId">-</span>
-                    </div>
-                    <div class="request-modal-line">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-regular fa-calendar"></i>Date & Time</span>
-                        <span class="request-modal-value" id="tripDetailsDatetime">-</span>
-                    </div>
+                <div class="trip-meta-line">
+                    <span class="trip-meta-item"><i class="fa-solid fa-hashtag"></i><span id="tripDetailsId">-</span></span>
+                    <span class="trip-meta-dot">&middot;</span>
+                    <span class="trip-meta-item"><i class="fa-regular fa-calendar"></i><span id="tripDetailsDatetime">-</span></span>
+                    <span class="trip-meta-dot">&middot;</span>
+                    <span class="trip-meta-item trip-meta-route"><i class="fa-solid fa-road"></i><span class="trip-meta-route-text" id="tripDetailsRoute">-</span></span>
                 </div>
-                <div class="request-modal-line">
-                    <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Route</span>
-                    <span class="request-modal-value" id="tripDetailsRoute">-</span>
-                </div>
-                <div class="trip-point-cards">
-                    <div class="trip-point-card pickup">
-                        <span class="trip-point-label"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
-                        <span class="trip-point-value" id="tripDetailsPickupPoint">-</span>
-                    </div>
-                    <div class="trip-point-card destination">
-                        <span class="trip-point-label"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
-                        <span class="trip-point-value" id="tripDetailsDestinationPoint">-</span>
-                    </div>
-                </div>
-                <div class="trip-mini-map-card">
-                    <div class="trip-mini-map-head">
-                        <p class="trip-mini-map-title"><i class="fa-regular fa-map"></i>Route Preview</p>
-                        <span class="trip-mini-map-hint">View only</span>
-                    </div>
+
+                <div class="trip-route-card">
                     <div class="trip-mini-map" id="tripDetailsMiniMap"></div>
+                    <div class="trip-route-timeline">
+                        <div class="trip-route-point">
+                            <span class="trip-route-dot pickup"></span>
+                            <span class="trip-route-text">
+                                <span class="trip-route-label">Pickup Point</span>
+                                <span class="trip-route-value" id="tripDetailsPickupPoint">-</span>
+                            </span>
+                        </div>
+                        <div class="trip-route-point">
+                            <span class="trip-route-dot destination"></span>
+                            <span class="trip-route-text">
+                                <span class="trip-route-label">Destination Point</span>
+                                <span class="trip-route-value" id="tripDetailsDestinationPoint">-</span>
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="request-modal-line">
+
+                <div class="trip-driver-card">
                     <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Driver</span>
-                    <div class="trip-driver-content">
+                    <span class="trip-driver-content">
                         <span class="trip-driver-avatar" id="tripDetailsDriverAvatar">D</span>
                         <span class="trip-driver-meta">
                             <span class="trip-driver-name" id="tripDetailsDriver">-</span>
                             <span class="trip-driver-email" id="tripDetailsDriverEmail">-</span>
                         </span>
-                    </div>
+                    </span>
                 </div>
-                <div class="request-modal-line">
+
+                <div class="trip-passenger-card">
                     <div class="trip-passenger-header">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Passengers</span>
                         <span class="trip-passenger-count" id="tripDetailsPassengerCount">0 passengers</span>
                     </div>
                     <div class="trip-passenger-list" id="tripDetailsPassengerList"></div>
                 </div>
-                <div class="trip-details-pairs">
-                    <div class="request-modal-line">
+
+                <div class="trip-secondary-grid">
+                    <div class="trip-secondary-item">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Trip Type</span>
                         <span class="request-modal-value" id="tripDetailsMode">-</span>
-                        <span class="trip-inline-hint" id="tripDetailsPairHint" style="display:none;"></span>
                     </div>
-                    <div class="request-modal-line">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-regular fa-circle-check"></i>Status</span>
-                        <span class="request-modal-value trip-accent-value" id="tripDetailsStatus">-</span>
-                    </div>
-                    <div class="request-modal-line">
+                    <div class="trip-secondary-item">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user-group"></i>Total Passengers</span>
                         <span class="request-modal-value" id="tripDetailsTotalPassengers">-</span>
                     </div>
-                    <div class="request-modal-line">
+                    <div class="trip-secondary-item">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-scale-balanced"></i>Fare Split Type</span>
                         <span class="request-modal-value" id="tripDetailsSplitType">-</span>
                     </div>
-                    <div class="request-modal-line">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-regular fa-credit-card"></i>Payment Status</span>
-                        <span class="request-modal-value trip-accent-value" id="tripDetailsPaymentStatus">-</span>
-                    </div>
-                    <div class="request-modal-line">
+                </div>
+
+                <div class="trip-secondary-grid trip-secondary-grid-2col">
+                    <div class="trip-secondary-item">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-wallet"></i>Payment Method</span>
                         <span class="request-modal-value" id="tripDetailsPaymentMethod">-</span>
                     </div>
-                    <div class="request-modal-line trip-amount-due-card">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-money-bill-wave"></i>Amount Due</span>
-                        <span class="request-modal-value" id="tripDetailsAmountDue">-</span>
-                        <span class="trip-amount-due-hint" id="tripDetailsFareBreakdown">Base split + custom extra, if any.</span>
-                    </div>
-                    <div class="request-modal-line">
+                    <div class="trip-secondary-item">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-route"></i>Custom Stop Extra</span>
                         <span class="request-modal-value" id="tripDetailsExtraFee">-</span>
                         <span class="trip-amount-due-hint" id="tripDetailsCustomStop">Only charged to the passenger using the custom stop.</span>
                     </div>
-                    <div class="request-modal-line">
+                    <div class="trip-secondary-item">
                         <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-sack-dollar"></i>Total Trip Fare</span>
                         <span class="request-modal-value" id="tripDetailsFareTotal">-</span>
                         <span class="trip-amount-due-hint" style="color:#64748b;">This is the full fare for the whole trip.</span>
                     </div>
-                    <div class="request-modal-line">
+                    <div class="trip-secondary-item">
                         <span class="request-modal-label trip-icon-label"><i class="fa-regular fa-clock"></i>Marked At</span>
                         <span class="request-modal-value" id="tripDetailsMarkedAt">-</span>
                     </div>
-                    <div class="request-modal-line">
-                        <span class="request-modal-label trip-icon-label"><i class="fa-regular fa-note-sticky"></i>Payment Remarks</span>
-                        <span class="request-modal-value" id="tripDetailsPaymentRemarks">-</span>
+                </div>
+
+                <div class="trip-fare-highlight">
+                    <div class="trip-fare-highlight-row">
+                        <span class="trip-fare-highlight-label"><i class="fa-solid fa-money-bill-wave"></i>Amount Due</span>
+                        <span class="trip-fare-highlight-value" id="tripDetailsAmountDue">-</span>
                     </div>
+                    <p class="trip-amount-due-hint" id="tripDetailsFareBreakdown">Base split + custom extra, if any.</p>
+                </div>
+
+                <div class="trip-remarks-note">
+                    <span class="request-modal-label trip-icon-label"><i class="fa-regular fa-note-sticky"></i>Payment Remarks</span>
+                    <p class="trip-remarks-text" id="tripDetailsPaymentRemarks">-</p>
                 </div>
             </div>
-            </div>
             <div class="trip-contact-bar">
-                <p class="trip-contact-text">Having issues with this trip? Please contact the driver.</p>
-                <div class="trip-contact-actions">
-                    <a href="#" target="_blank" rel="noopener" class="trip-contact-link whatsapp is-disabled" id="tripDetailsWhatsapp">
-                        <i class="fa-brands fa-whatsapp"></i>
-                        <span>WhatsApp</span>
+                <div class="trip-actions-filled" id="tripDetailsPaymentActionWrap" style="display:none;">
+                    <button type="button" class="trip-action-btn is-filled" id="tripDetailsPaymentActionBtn"></button>
+                </div>
+                <div class="trip-actions-filled" id="tripDetailsContactActions">
+                    <a href="#" class="trip-action-btn is-filled email-btn" id="tripDetailsEmail">
+                        <i class="fa-regular fa-envelope"></i> Email
                     </a>
-                    <a href="#" class="trip-contact-link email is-disabled" id="tripDetailsEmail">
-                        <i class="fa-regular fa-envelope"></i>
-                        <span>Email Driver</span>
+                    <a href="#" target="_blank" rel="noopener" class="trip-action-btn is-filled whatsapp-btn" id="tripDetailsWhatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
                     </a>
                 </div>
             </div>

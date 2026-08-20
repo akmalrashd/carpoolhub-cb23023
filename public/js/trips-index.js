@@ -1469,6 +1469,22 @@
             const mapEl              = document.getElementById('tripModalMap');
             const whatsappEl         = document.getElementById('tripModalWhatsapp');
             const emailEl            = document.getElementById('tripModalEmail');
+            const manageActionsEl    = document.getElementById('tripModalManageActions');
+            const contactActionsEl   = document.getElementById('tripModalContactActions');
+            const editBtnEl          = document.getElementById('tripModalEditBtn');
+            const deleteFormEl       = document.getElementById('tripModalDeleteForm');
+
+            const warnIfUnavailable = (el, label) => {
+                if (!el) return;
+                el.addEventListener('click', (event) => {
+                    if (el.dataset.unavailable === '1') {
+                        event.preventDefault();
+                        if (window.showToast) window.showToast(`${label} not available for this driver.`, 'error');
+                    }
+                });
+            };
+            warnIfUnavailable(emailEl, 'Email');
+            warnIfUnavailable(whatsappEl, 'WhatsApp');
 
             let miniMap    = null;
             let routeLayer = null;
@@ -1642,8 +1658,6 @@
                 if (!btn) return;
                     const tripId            = String(btn.dataset.tripId || '-');
                     const tripRef           = String(btn.dataset.tripRef || '').trim() || (tripId !== '-' ? `TRP-${tripId.padStart(5, '0')}` : '-');
-                    const pairedTripId      = String(btn.dataset.pairedTripId || '').trim();
-                    const isTwoWay          = String(btn.dataset.mode || '').toLowerCase().includes('two-way');
                     const driverId          = Number.parseInt(String(btn.dataset.driverId || ''), 10);
                     const driverEmail       = String(btn.dataset.driverEmail || '').trim();
                     const driverWhatsappUrl = String(btn.dataset.driverWhatsappUrl || '').trim();
@@ -1670,15 +1684,6 @@
 
                     if (tripIdsEl)      tripIdsEl.textContent      = tripRef;
                     if (modeEl)         modeEl.textContent          = btn.dataset.mode || '-';
-                    if (pairHintEl) {
-                        if (isTwoWay && pairedTripId) {
-                            pairHintEl.textContent = `Paired return leg: ${tripRef}`;
-                            pairHintEl.style.display = 'block';
-                        } else {
-                            pairHintEl.textContent   = '';
-                            pairHintEl.style.display = 'none';
-                        }
-                    }
                     if (routeNameEl)    routeNameEl.textContent     = btn.dataset.routeName || '-';
                     if (driverEl)       driverEl.textContent        = btn.dataset.driverName || '-';
                     if (driverAvatarEl) driverAvatarEl.textContent  = ((btn.dataset.driverName || 'D').trim().charAt(0) || 'D').toUpperCase();
@@ -1711,21 +1716,26 @@
                     if (destinationPointEl) destinationPointEl.textContent = btn.dataset.destinationName || '-';
 
                     if (emailEl) {
-                        if (driverEmail) {
-                            emailEl.classList.remove('is-disabled');
-                            emailEl.setAttribute('href', `mailto:${driverEmail}`);
-                        } else {
-                            emailEl.classList.add('is-disabled');
-                            emailEl.setAttribute('href', '#');
-                        }
+                        emailEl.setAttribute('href', driverEmail ? `mailto:${driverEmail}` : '#');
+                        emailEl.dataset.unavailable = driverEmail ? '' : '1';
                     }
                     if (whatsappEl) {
-                        if (waUrl) {
-                            whatsappEl.classList.remove('is-disabled');
-                            whatsappEl.setAttribute('href', waUrl);
-                        } else {
-                            whatsappEl.classList.add('is-disabled');
-                            whatsappEl.setAttribute('href', '#');
+                        whatsappEl.setAttribute('href', waUrl || '#');
+                        whatsappEl.dataset.unavailable = waUrl ? '' : '1';
+                    }
+
+                    // Action row: trip owners (or admins) get manage actions (Edit/Delete),
+                    // matching the same buttons and flow as the Action column in the list;
+                    // everyone else gets contact actions instead.
+                    const canManage = String(btn.dataset.canManage || '0') === '1';
+                    if (manageActionsEl) manageActionsEl.style.display = canManage ? '' : 'none';
+                    if (contactActionsEl) contactActionsEl.style.display = canManage ? 'none' : '';
+                    if (canManage) {
+                        if (editBtnEl) editBtnEl.setAttribute('href', btn.dataset.editUrl || '#');
+                        const canDelete = String(btn.dataset.canDelete || '0') === '1';
+                        if (deleteFormEl) {
+                            deleteFormEl.style.display = canDelete ? '' : 'none';
+                            deleteFormEl.setAttribute('action', btn.dataset.deleteUrl || '#');
                         }
                     }
 

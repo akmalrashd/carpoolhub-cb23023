@@ -399,6 +399,59 @@
         @media (max-width: 600px) {
             .hp-pub-grid { grid-template-columns: 1fr; }
         }
+
+        /* ── Public trips auto-advancing carousel ───────────────── */
+        .hp-pub-carousel-track {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .hp-pub-carousel-track::-webkit-scrollbar { display: none; }
+        .hp-pub-carousel-slide {
+            flex: 0 0 100%;
+            width: 100%;
+            min-width: 0;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+        .hp-pub-carousel-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .hp-pub-carousel-dot {
+            appearance: none;
+            -webkit-appearance: none;
+            border: none;
+            background: transparent;
+            padding: 10px 5px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .hp-pub-carousel-dot::before {
+            content: "";
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--hairline-strong);
+            transition: width 0.25s ease, background-color 0.25s ease;
+        }
+        .hp-pub-carousel-dot.active::before {
+            width: 18px;
+            background: var(--ch-yellow-deep);
+        }
+        .hp-pub-carousel-dot:focus-visible::before {
+            outline: 2px solid var(--ch-yellow-deep);
+            outline-offset: 2px;
+        }
         .hp-pub-mini {
             border: 1px solid var(--hairline);
             border-radius: var(--r-md);
