@@ -213,6 +213,15 @@
                 target.classList.add('trip-focus-highlight');
                 window.setTimeout(() => target.classList.remove('trip-focus-highlight'), 2200);
             });
+
+            // Deep-link: ?focus_trip=<id> (e.g. tapping a trip card on Home) also
+            // opens that trip's details popup directly instead of just scrolling to it.
+            const detailButtons = Array.from(document.querySelectorAll('.open-trip-modal-btn'))
+                .filter((el) => String(el.dataset.tripId || '').trim() === focusTrip);
+            const detailBtn = detailButtons.find((el) => el instanceof HTMLElement && el.offsetParent !== null) || detailButtons[0];
+            if (detailBtn instanceof HTMLElement) {
+                window.setTimeout(() => detailBtn.click(), 300);
+            }
         })();
 
         (() => {

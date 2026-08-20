@@ -722,6 +722,12 @@
                     }
                 });
             }
+            // Deep-link: ?focus_trip=<id> (e.g. tapping a trip card on Home) opens
+            // that trip's details popup directly instead of just scrolling to it.
+            const focusedCard = document.querySelector('[data-explore-focus-card="1"]');
+            if (focusedCard) {
+                window.setTimeout(() => openModal(focusedCard), 300);
+            }
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
             });

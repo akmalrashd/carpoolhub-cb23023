@@ -521,6 +521,38 @@
             font-weight: 800;
             flex-shrink: 0;
         }
+        .hp-pub-driver-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hp-pub-driver-name {
+            flex: 1;
+            min-width: 0;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .hp-pub-driver-rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--warning-ink);
+            flex-shrink: 0;
+        }
+        .hp-pub-divider {
+            border-top: 1px solid var(--hairline);
+        }
+        .hp-pub-footer-meta {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 600;
+        }
 
         /* ── Driver review queue ──────────────────────────────── */
         .hp-review-row {
@@ -841,17 +873,12 @@
                 gap: 10px;
             }
             .hp-mobile-only .hp-pub-mini-footer {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto auto;
-                gap: 10px;
+                display: flex;
                 align-items: center;
+                justify-content: space-between;
+                gap: 10px;
             }
-            .hp-mobile-only .hp-pub-mobile-driver {
-                min-width: 0;
-                gap: 7px;
-                overflow: hidden;
-            }
-            .hp-mobile-only .hp-pub-mobile-driver > span:last-child {
+            .hp-mobile-only .hp-pub-footer-meta {
                 min-width: 0;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -865,10 +892,8 @@
                 background: #fff7d6;
             }
             .hp-mobile-only .hp-pub-mini-fare {
-                justify-self: end;
                 font-size: 15px;
                 white-space: nowrap;
-                margin-right: 2px;
             }
             .hp-mobile-only .hp-pub-mini-footer .btn {
                 min-width: 86px;
