@@ -22,21 +22,6 @@
             </button>
         </div>
 
-        {{-- Status Notifications --}}
-        @if(session('status'))
-            <div class="conn-alert success">
-                <i class="fa-solid fa-circle-check" style="font-size:16px;"></i>
-                <span>{{ session('status') }}</span>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="conn-alert error">
-                <i class="fa-solid fa-triangle-exclamation" style="font-size:16px;"></i>
-                <span>{{ $errors->first() }}</span>
-            </div>
-        @endif
-
         {{-- Segmented Navigation Tabs --}}
         <div class="conn-nav-tabs" role="tablist">
             <button type="button" class="conn-tab-btn {{ $searchQuery ? '' : 'is-active' }}" id="tab-btn-accepted" onclick="switchConnTab('accepted')">
@@ -220,10 +205,9 @@
                                     <p class="conn-user-email">Pending response • Sent {{ $req->created_at?->diffForHumans() }}</p>
                                 </div>
                                 <div class="conn-actions-wrap">
-                                    <form method="POST" action="{{ route('connections.respond', $req->id) }}" style="margin:0;">
+                                    <form method="POST" action="{{ route('connections.cancel', $req->id) }}" style="margin:0;">
                                         @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="action" value="reject">
+                                        @method('DELETE')
                                         <button type="submit" class="btn-action-sm btn-action-decline">
                                             <i class="fa-solid fa-ban"></i> Cancel Request
                                         </button>

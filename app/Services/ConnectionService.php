@@ -170,6 +170,17 @@ class ConnectionService
         });
     }
 
+    public function cancel(User $requester, Connection $connection): void
+    {
+        if ($connection->requester_id !== $requester->id || $connection->status !== 'pending') {
+            throw ValidationException::withMessages([
+                'connection' => 'This request is no longer available.',
+            ]);
+        }
+
+        $connection->delete();
+    }
+
     public function removeAccepted(User $actor, User $target): void
     {
         if ((int) $actor->id === (int) $target->id) {

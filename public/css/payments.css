@@ -3111,6 +3111,7 @@
         .trips-filter-field {
             display: grid;
             gap: 4px;
+            min-width: 0;
         }
         .trips-filter-label {
             font-size: 11px;
@@ -3121,6 +3122,8 @@
         }
         .trips-filter-input {
             width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             height: 40px;
             border: 1px solid var(--hairline-strong);
             border-radius: var(--r-sm);
@@ -3130,6 +3133,10 @@
             font-size: 13px;
             outline: none;
             font-family: var(--font-ui), sans-serif;
+        }
+        input[type="date"].trips-filter-input {
+            appearance: none;
+            -webkit-appearance: none;
         }
         .trips-filter-input:focus {
             border-color: var(--ch-yellow-line);

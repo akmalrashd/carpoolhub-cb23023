@@ -47,6 +47,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/connections', [ConnectionController::class, 'index'])->name('connections.index');
     Route::post('/connections/requests', [ConnectionController::class, 'store'])->name('connections.requests.store');
     Route::patch('/connections/{connection}/respond', [ConnectionController::class, 'respond'])->name('connections.respond');
+    Route::delete('/connections/{connection}/cancel', [ConnectionController::class, 'cancel'])->name('connections.cancel');
     Route::delete('/connections/{user}/remove', [ConnectionController::class, 'remove'])->name('connections.remove');
     Route::resource('saved-routes', SavedRouteController::class)->except(['show']);
     Route::patch('/saved-routes/{savedRoute}/status', [SavedRouteController::class, 'toggleStatus'])->name('saved-routes.toggle-status');

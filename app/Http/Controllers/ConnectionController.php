@@ -78,6 +78,19 @@ class ConnectionController extends Controller
             ->with('status', "Connection request {$statusText}.");
     }
 
+    public function cancel(Request $request, Connection $connection): RedirectResponse
+    {
+        try {
+            $this->connectionService->cancel($request->user(), $connection);
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
+        }
+
+        return redirect()
+            ->route('connections.index')
+            ->with('status', 'Connection request cancelled.');
+    }
+
     public function remove(Request $request, User $user): RedirectResponse
     {
         try {

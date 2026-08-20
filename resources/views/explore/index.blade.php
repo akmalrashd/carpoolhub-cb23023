@@ -274,9 +274,6 @@
                             $pickupShortText   = \Illuminate\Support\Str::limit($pickupText, 52, '...');
                             $destShortText     = \Illuminate\Support\Str::limit($destinationText, 52, '...');
                             $tripTypeText      = ((string) ($trip->trip_mode ?? 'one_way')) === 'two_way' ? 'Two Way' : 'One Way';
-                            $visibilityText    = ucfirst((string) ($trip->visibility ?? 'public')) . ' Trip';
-                            $visibilityShortText = ucfirst((string) ($trip->visibility ?? 'public'));
-                            $visibilityBadge   = ($trip->visibility ?? 'public') === 'public' ? 'badge-info' : 'badge-dark';
                             $takenSeats        = (int) $trip->participants->where('is_driver', false)->count();
                             $availableSeats    = $trip->seat_limit ? max(0, (int) $trip->seat_limit - $takenSeats) : null;
                             $isFull            = $availableSeats !== null && $availableSeats <= 0;
@@ -314,7 +311,8 @@
                             data-fare-raw="{{ number_format((float) $trip->fare_per_person, 2, '.', '') }}"
                             data-fare-total="{{ number_format((float) ($trip->fare_total ?? $trip->savedRoute?->default_fare ?? $trip->fare_per_person), 2, '.', '') }}"
                             data-vehicle="{{ $vehicleText !== '' ? $vehicleText : 'Vehicle not set' }}"
-                            data-visibility="{{ $visibilityText }}"
+                            data-note="{{ $trip->public_note ?? '' }}"
+                            data-trip-ref="{{ $trip->trip_ref ?: 'TRP-' . str_pad((string) $trip->id, 5, '0', STR_PAD_LEFT) }}"
                             tabindex="0"
                             role="button"
                             @if($focusTripId === (int) $trip->id) data-explore-focus-card="1" @endif
@@ -344,10 +342,6 @@
                                             <span class="xp-desktop-label">&middot; {{ $trip->driver?->trips_count ?? 0 }} trips</span>
                                         </span>
                                     </div>
-                                    <span class="badge {{ $visibilityBadge }} xp-driver-badge">
-                                        <span class="xp-desktop-label">{{ $visibilityText }}</span>
-                                        <span class="xp-mobile-label">{{ $visibilityShortText }}</span>
-                                    </span>
                                     </div>
 
                                 {{-- Route timeline --}}
@@ -365,21 +359,6 @@
                                         </span>
                                     </div>
 
-                                    {{-- Optional note stop --}}
-                                    @if($trip->public_note)
-                                        <div class="xp-timeline-row">
-                                            <div class="xp-timeline-track">
-                                                <span class="xp-timeline-dot custom"></span>
-                                                <span class="xp-timeline-line"></span>
-                                            </div>
-                                            <span class="xp-timeline-note">
-                                                <span class="xp-desktop-label">CUSTOM STOP</span>
-                                                <span class="xp-mobile-route-label">Custom stop</span>
-                                                <span class="xp-timeline-value">{{ \Illuminate\Support\Str::limit($trip->public_note, 70, '...') }}</span>
-                                            </span>
-                                        </div>
-                                    @endif
-
                                     {{-- Destination --}}
                                     <div class="xp-timeline-row">
                                         <div class="xp-timeline-track">
@@ -392,6 +371,14 @@
                                         </span>
                                     </div>
                                     </div>
+
+                                    {{-- Driver's note (not a route point — kept out of the timeline) --}}
+                                    @if($trip->public_note)
+                                        <div class="xp-card-note">
+                                            <span class="xp-card-note-label">Notes</span>
+                                            <span class="xp-card-note-text">{{ \Illuminate\Support\Str::limit($trip->public_note, 90, '...') }}</span>
+                                        </div>
+                                    @endif
 
                                 {{-- Footer: time · seats | fare + button --}}
                                     <div class="xp-card-footer">
@@ -540,8 +527,8 @@
                         <strong class="xp-driver-name" id="exploreModalDriver">Driver</strong>
                         <span class="xp-driver-rating"><i class="fa-solid fa-star"></i><span id="exploreModalRating">5.00</span></span>
                     </span>
-                    <span class="badge badge-info" id="exploreModalVisibility" style="margin-left:auto">Public</span>
                 </div>
+                <span class="xp-modal-section-label">Trip details</span>
                 <div class="xp-modal-kv">
                     <div class="xp-modal-kv-item"><span>Time</span><strong id="exploreModalTime">-</strong></div>
                     <div class="xp-modal-kv-item"><span>Seats</span><strong id="exploreModalSeats">-</strong></div>
@@ -560,8 +547,19 @@
                 <div class="xp-modal-kv">
                     <div class="xp-modal-kv-item" style="grid-column:1/-1"><span>Vehicle</span><strong id="exploreModalVehicle">-</strong></div>
                 </div>
-                <div class="xp-modal-pref" id="exploreModalRoutePreference">
-                    <h4 class="xp-modal-pref-title"><i class="fa-solid fa-route"></i> Your route preference</h4>
+                <div class="xp-modal-note-block" id="exploreModalNoteBlock" hidden>
+                    <span class="xp-modal-section-label">Note from driver</span>
+                    <p class="xp-modal-note-text" id="exploreModalNoteText">-</p>
+                </div>
+                <details class="xp-modal-pref" id="exploreModalRoutePreference">
+                    <summary class="xp-modal-pref-title">
+                        <span class="xp-modal-pref-title-text"><i class="fa-solid fa-route"></i> Customize pickup &amp; drop-off</span>
+                        <span class="xp-modal-pref-title-meta">
+                            <span class="xp-modal-pref-title-hint">Optional</span>
+                            <i class="fa-solid fa-chevron-down xp-modal-pref-chevron"></i>
+                        </span>
+                    </summary>
+                    <div class="xp-modal-pref-body">
                     <div class="xp-modal-pref-grid">
                         <div class="xp-modal-pref-group">
                             <span class="xp-modal-pref-label">Pickup point</span>
@@ -640,7 +638,8 @@
                             <p class="request-fare-note" id="farePreviewNote">The normal fare remains the base. Custom pickup/drop-off only adds an extra charge based on distance from the original route.</p>
                         </div>
                     </div>
-                </div>
+                    </div>
+                </details>
                 <div class="xp-modal-join-fields" id="exploreModalJoinFields">
                     <textarea class="xp-modal-note" id="exploreModalNote" name="request_note" form="exploreModalJoinForm" placeholder="Optional note for the driver"></textarea>
                 </div>

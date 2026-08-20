@@ -628,18 +628,21 @@
             };
             const openModal = (card) => {
                 activeCard = card;
-                setText('exploreTripModalTitle', card.dataset.routeName || 'Trip details');
-                setText('exploreTripModalSub', `${card.dataset.driver || 'Driver'} · ${card.dataset.time || '-'}`);
+                setText('exploreTripModalTitle', 'Trip details');
+                setText('exploreTripModalSub', card.dataset.tripRef || '-');
                 setText('exploreModalDriverAvatar', card.dataset.driverInitial || 'DR');
                 setText('exploreModalDriver', card.dataset.driver || 'Driver');
                 setText('exploreModalRating', card.dataset.rating || '5.00');
-                setText('exploreModalVisibility', card.dataset.visibility || 'Public');
                 setText('exploreModalTime', card.dataset.time || '-');
                 setText('exploreModalSeats', card.dataset.seats || '-');
                 setText('exploreModalFare', card.dataset.fare || '-');
                 setText('exploreModalPickup', card.dataset.pickup || '-');
                 setText('exploreModalDestination', card.dataset.destination || '-');
                 setText('exploreModalVehicle', card.dataset.vehicle || '-');
+                const noteBlock = document.getElementById('exploreModalNoteBlock');
+                const noteText = (card.dataset.note || '').trim();
+                if (noteBlock) noteBlock.hidden = noteText === '';
+                setText('exploreModalNoteText', noteText || '-');
                 form.action = card.dataset.joinUrl || card.dataset.tripUrl || '';
                 form.dataset.cardId = card.id || '';
                 form.reset();
@@ -707,6 +710,18 @@
             modal.addEventListener('click', (event) => {
                 if (event.target === modal) closeModal();
             });
+            // The map is created as soon as the modal opens (ensureModalMap runs
+            // unconditionally in syncCustomFields), but its <details> wrapper is
+            // collapsed by default, so Leaflet sizes it against a 0x0 container.
+            // Re-measure once the panel is actually visible.
+            const routePrefDetails = document.getElementById('exploreModalRoutePreference');
+            if (routePrefDetails) {
+                routePrefDetails.addEventListener('toggle', () => {
+                    if (routePrefDetails.open) {
+                        window.setTimeout(() => modalMap?.invalidateSize(), 50);
+                    }
+                });
+            }
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
             });
