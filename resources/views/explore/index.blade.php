@@ -435,11 +435,11 @@
                                     @endif
 
                                     @if($isJoined)
-                                        <span class="btn btn-soft btn-sm" style="color:var(--success-ink);border-color:var(--success-soft);">
+                                        <span class="btn btn-soft btn-sm" style="color:var(--muted);border-color:var(--hairline-strong);">
                                             <i class="fa-solid fa-check"></i> Joined
                                         </span>
                                     @elseif($myRequest && $myRequest->status === 'pending')
-                                        <span class="btn btn-soft btn-sm" style="color:var(--warning-ink);border-color:var(--warning-soft);">
+                                        <span class="btn btn-soft btn-sm" style="color:var(--muted);border-color:var(--hairline-strong);">
                                             <i class="fa-regular fa-clock"></i> Pending
                                         </span>
                                     @elseif($isFull)
@@ -463,11 +463,11 @@
                                     @endif
                                     <div class="xp-fare-actions">
                                         @if($isJoined)
-                                            <span class="btn btn-soft btn-sm" style="color:var(--success-ink);border-color:var(--success-soft);">
+                                            <span class="btn btn-soft btn-sm" style="color:var(--muted);border-color:var(--hairline-strong);">
                                                 <i class="fa-solid fa-check"></i> Joined
                                             </span>
                                         @elseif($myRequest && $myRequest->status === 'pending')
-                                            <span class="btn btn-soft btn-sm" style="color:var(--warning-ink);border-color:var(--warning-soft);">
+                                            <span class="btn btn-soft btn-sm" style="color:var(--muted);border-color:var(--hairline-strong);">
                                                 <i class="fa-regular fa-clock"></i> Pending
                                             </span>
                                             <a href="{{ route('explore.show', $trip) }}" class="btn btn-ghost btn-sm open-explore-modal">
@@ -680,6 +680,13 @@
                 </button>
                 <div class="xp-modal-feedback" id="exploreModalFeedback" hidden></div>
             </form>
+            <div class="xp-modal-success-overlay" id="exploreModalSuccessOverlay" hidden>
+                <div class="xp-modal-success">
+                    <span class="xp-modal-success-icon"><i class="fa-solid fa-check"></i></span>
+                    <span class="xp-modal-success-title">Successful</span>
+                    <span class="xp-modal-success-message" id="exploreModalSuccessMessage"></span>
+                </div>
+            </div>
         </div>
     </div>
 

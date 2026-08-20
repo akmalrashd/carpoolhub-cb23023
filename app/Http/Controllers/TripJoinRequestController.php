@@ -43,20 +43,36 @@ class TripJoinRequestController extends Controller
         return view('trips.requests', compact('trip', 'requests', 'reliabilityMap', 'aiRiskMap'));
     }
 
-    public function respond(RespondTripJoinRequest $request, TripJoinRequest $joinRequest): RedirectResponse
+    public function respond(RespondTripJoinRequest $request, TripJoinRequest $joinRequest): RedirectResponse|JsonResponse
     {
         try {
-            $this->tripJoinRequestService->respond(
+            $joinRequest = $this->tripJoinRequestService->respond(
                 $request->user(),
                 $joinRequest,
                 $request->validated('action'),
                 $request->validated('response_note')
             );
         } catch (ValidationException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first() ?: 'Request could not be updated.',
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
             return back()->withErrors($exception->errors());
         }
 
         $statusText = $request->validated('action') === 'approve' ? 'approved' : 'rejected';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "Join request {$statusText}.",
+                'id' => $joinRequest->id,
+                'status' => $joinRequest->status,
+                'action' => $request->validated('action'),
+            ]);
+        }
 
         return back()->with('status', "Join request {$statusText}.");
     }

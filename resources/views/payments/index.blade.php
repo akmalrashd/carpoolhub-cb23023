@@ -735,7 +735,7 @@
                                         <input class="payments-input" type="text" name="remarks" placeholder="Remarks">
                                         <button
                                             type="button"
-                                            class="payments-btn payments-btn-primary open-payment-paynow-btn"
+                                            class="payments-btn payments-btn-primary open-payment-paynow-btn ch-btn-green"
                                             data-action="{{ route('payments.mark-paid', $payment) }}"
                                             data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
                                             data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"

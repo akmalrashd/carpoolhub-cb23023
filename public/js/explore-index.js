@@ -217,6 +217,9 @@
             const noteInput = document.getElementById('exploreModalNote');
             const joinBtn = document.getElementById('exploreModalJoinButton');
             const feedback = document.getElementById('exploreModalFeedback');
+            const successOverlay = document.getElementById('exploreModalSuccessOverlay');
+            const successMessage = document.getElementById('exploreModalSuccessMessage');
+            const modalBody = modal?.querySelector('.xp-modal-body');
             const mapCard = document.getElementById('exploreModalMapCard');
             const mapStatus = document.getElementById('requestMapStatus');
             const mapTargetButtons = document.querySelectorAll('[data-map-target]');
@@ -661,6 +664,10 @@
                 noteInput.value = '';
                 feedback.hidden = true;
                 feedback.textContent = '';
+                joinBtn.hidden = false;
+                if (successOverlay) successOverlay.hidden = true;
+                if (modalBody) modalBody.style.display = '';
+                form.style.display = '';
                 configureJoinButton(card);
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
@@ -760,9 +767,13 @@
                             button.innerHTML = '<i class="fa-regular fa-clock"></i> Pending';
                         });
                     }
-                    joinBtn.innerHTML = '<i class="fa-solid fa-check"></i>Request sent';
-                    feedback.textContent = payload.message || 'Join request submitted.';
-                    feedback.hidden = false;
+                    if (modalBody) modalBody.style.display = 'none';
+                    form.style.display = 'none';
+                    if (successOverlay && successMessage) {
+                        successMessage.textContent = payload.message || 'Join request submitted.';
+                        successOverlay.hidden = false;
+                    }
+                    window.setTimeout(() => closeModal(), 1800);
                 } catch (error) {
                     joinBtn.disabled = false;
                     joinBtn.innerHTML = original;

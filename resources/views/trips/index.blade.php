@@ -298,6 +298,7 @@
                                 : 'Driver Excluded from Fare Split';
 
                             $statusSlug = strtolower((string) $trip->status);
+                            $pendingRequestCount = (int) ($trip->joinRequests?->where('status', 'pending')->count() ?? 0);
                             $badgeStatus = $statusSlug;
                             $statusLabel = match($statusSlug) {
                                 'scheduled' => 'Scheduled',
@@ -472,7 +473,7 @@
                                 }
                             }
                             $canOpenPaymentReview = $canManageTripPayment && $paymentReviewPayload->isNotEmpty() && $paymentActionLabel === 'Review Payment';
-                            $canManageRequests = $canManageTripPayment && in_array($statusSlug, ['scheduled', 'confirmed'], true) && $requestPayload->isNotEmpty();
+                            $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'confirmed'], true);
                         @endphp
                         <article class="trip-mobile-item open-trip-card" data-trip-anchor="{{ $trip->id }}">
                             <div style="display:flex; gap:10px; align-items:flex-start;">
@@ -559,6 +560,35 @@
                                 </div>
                                 <div class="trip-actions trip-actions-filled">
                                     @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
+                                        @if($canManageRequests)
+                                            <button
+                                                type="button"
+                                                class="trip-action-btn is-filled requests-btn open-trip-requests-review"
+                                                title="Manage requests"
+                                                data-requests-b64="{{ $requestPayloadB64 }}"
+                                                data-route-name="{{ $routeName }}"
+                                                data-trip-id="{{ $trip->id }}"
+                                                data-trip-ref="{{ $tripRef }}"
+                                                data-trip-datetime="{{ $trip->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
+                                                data-open-state="{{ $trip->is_open_for_request ? 'Open' : 'Closed' }}"
+                                                data-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
+                                                data-seats="{{ is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-' }}"
+                                                data-trip-status="{{ $statusLabel }}"
+                                                data-status-slug="{{ $statusSlug }}"
+                                                data-pickup-name="{{ $pickupName }}"
+                                                data-destination-name="{{ $destinationName }}"
+                                                data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
+                                                data-pickup-lng="{{ $trip->pickup_longitude ?? '' }}"
+                                                data-destination-lat="{{ $trip->destination_latitude ?? '' }}"
+                                                data-destination-lng="{{ $trip->destination_longitude ?? '' }}"
+                                                data-toggle-url="{{ route('trips.requests.toggle-open', $trip) }}"
+                                            >
+                                                <i class="fa-solid fa-inbox"></i> Requests
+                                                @if($pendingRequestCount > 0)
+                                                    <span class="trip-request-badge">{{ $pendingRequestCount > 9 ? '9+' : $pendingRequestCount }}</span>
+                                                @endif
+                                            </button>
+                                        @endif
                                         <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn is-filled edit-btn" title="Edit trip">
                                             <i class="fa-regular fa-pen-to-square"></i> Edit
                                         </a>
@@ -850,7 +880,7 @@
                                     }
                                 }
                                 $canOpenPaymentReview = $canManageTripPayment && $paymentReviewPayload->isNotEmpty() && $paymentActionLabel === 'Review Payment';
-                                $canManageRequests = $canManageTripPayment && in_array($statusSlug, ['scheduled', 'confirmed'], true) && $requestPayload->isNotEmpty();
+                                $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'confirmed'], true);
                             @endphp
                             <tr class="open-trip-card" data-trip-anchor="{{ $trip->id }}">
                                 @if($hasCheckboxes)
@@ -942,6 +972,34 @@
                                 <td class="col-action">
                                     <div class="trip-table-actions" style="justify-content:center;">
                                         @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
+                                            @if($canManageRequests)
+                                                <button
+                                                    type="button"
+                                                    class="trip-row-icon-btn is-filled requests-btn open-trip-requests-review"
+                                                    title="Manage requests"
+                                                    aria-label="Manage requests"
+                                                    data-requests-b64="{{ $requestPayloadB64 }}"
+                                                    data-route-name="{{ $routeName }}"
+                                                    data-trip-id="{{ $trip->id }}"
+                                                    data-open-state="{{ $trip->is_open_for_request ? 'Open' : 'Closed' }}"
+                                                    data-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
+                                                    data-seats="{{ is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-' }}"
+                                                    data-trip-status="{{ $statusLabel }}"
+                                                data-status-slug="{{ $statusSlug }}"
+                                                    data-pickup-name="{{ $pickupName }}"
+                                                    data-destination-name="{{ $destinationName }}"
+                                                    data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
+                                                    data-pickup-lng="{{ $trip->pickup_longitude ?? '' }}"
+                                                    data-destination-lat="{{ $trip->destination_latitude ?? '' }}"
+                                                    data-destination-lng="{{ $trip->destination_longitude ?? '' }}"
+                                                    data-toggle-url="{{ route('trips.requests.toggle-open', $trip) }}"
+                                                >
+                                                    <i class="fa-solid fa-inbox"></i>
+                                                    @if($pendingRequestCount > 0)
+                                                        <span class="trip-request-badge">{{ $pendingRequestCount > 9 ? '9+' : $pendingRequestCount }}</span>
+                                                    @endif
+                                                </button>
+                                            @endif
                                             <a href="{{ route('trips.edit', $trip) }}" class="trip-row-icon-btn is-filled edit-btn" title="Edit trip" aria-label="Edit trip">
                                                 <i class="fa-regular fa-pen-to-square"></i>
                                             </a>
@@ -1040,13 +1098,56 @@
             <div class="trip-payment-review-head">
                 <div>
                     <h3 class="trip-payment-review-title" id="tripRequestsReviewTitle">Manage requests</h3>
-                    <p class="trip-payment-review-sub" id="tripRequestsReviewSub">Review passenger requests and custom route preferences.</p>
                 </div>
                 <button type="button" class="trip-payment-review-close" id="tripRequestsReviewClose" aria-label="Close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="trip-payment-review-list" id="tripRequestsReviewList"></div>
+        </div>
+    </div>
+
+    <div class="trip-payment-review-modal" id="tripRejectRequestModal" aria-hidden="true">
+        <div class="trip-payment-review-card trip-reject-request-card" role="dialog" aria-modal="true" aria-labelledby="tripRejectRequestTitle">
+            <div class="trip-payment-review-head">
+                <div>
+                    <h3 class="trip-payment-review-title" id="tripRejectRequestTitle">Reject Request</h3>
+                    <p class="trip-payment-review-sub">State the reason why this join request is rejected.</p>
+                </div>
+                <button type="button" class="trip-payment-review-close" id="tripRejectRequestCloseTop" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="trip-payment-review-list">
+                <div class="trip-secondary-grid" style="grid-template-columns: repeat(2, minmax(0,1fr));">
+                    <div class="trip-secondary-item">
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Passenger</span>
+                        <span class="trip-modal-value" id="tripRejectRequestPassenger">-</span>
+                    </div>
+                    <div class="trip-secondary-item">
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
+                        <span class="trip-modal-value" id="tripRejectRequestTrip">-</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="trip-modal-label trip-icon-label trip-reject-reason-label" for="tripRejectRequestReason">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#eab308;"></i>Rejection Reason
+                    </label>
+                    <textarea
+                        class="trip-request-tool trip-reject-reason-input"
+                        id="tripRejectRequestReason"
+                        rows="4"
+                        placeholder="Explain briefly why this request was rejected..."
+                        required
+                    ></textarea>
+                </div>
+                <div class="trip-reject-request-actions">
+                    <button type="button" class="trip-action-btn" id="tripRejectRequestCancel">Cancel</button>
+                    <button type="button" class="trip-payment-review-btn danger trip-reject-request-confirm" id="tripRejectRequestConfirm">
+                        <i class="fa-solid fa-xmark"></i> Reject Request
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

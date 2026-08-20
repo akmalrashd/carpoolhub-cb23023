@@ -15,7 +15,18 @@ class RespondTripJoinRequest extends FormRequest
     {
         return [
             'action' => ['required', 'in:approve,reject'],
-            'response_note' => ['nullable', 'string', 'max:500'],
+            'response_note' => [
+                $this->input('action') === 'reject' ? 'required' : 'nullable',
+                'string',
+                'max:500',
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'response_note.required' => 'Please state a reason for rejecting this request.',
         ];
     }
 }

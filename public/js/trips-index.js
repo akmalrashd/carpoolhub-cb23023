@@ -960,7 +960,6 @@
         (() => {
             const modal = document.getElementById('tripRequestsReviewModal');
             const list = document.getElementById('tripRequestsReviewList');
-            const sub = document.getElementById('tripRequestsReviewSub');
             const closeBtn = document.getElementById('tripRequestsReviewClose');
             const buttons = document.querySelectorAll('.open-trip-requests-review');
             if (!modal || !list || !closeBtn) return;
@@ -968,6 +967,79 @@
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
+
+            const rejectModal = document.getElementById('tripRejectRequestModal');
+            const rejectCloseTopBtn = document.getElementById('tripRejectRequestCloseTop');
+            const rejectCancelBtn = document.getElementById('tripRejectRequestCancel');
+            const rejectConfirmBtn = document.getElementById('tripRejectRequestConfirm');
+            const rejectPassengerEl = document.getElementById('tripRejectRequestPassenger');
+            const rejectTripEl = document.getElementById('tripRejectRequestTrip');
+            const rejectReasonEl = document.getElementById('tripRejectRequestReason');
+            let activeRejectForm = null;
+            let activeRejectButton = null;
+            if (rejectModal && rejectModal.parentElement !== document.body) {
+                document.body.appendChild(rejectModal);
+            }
+            const openRejectModal = (form, button) => {
+                activeRejectForm = form;
+                activeRejectButton = button;
+                if (rejectPassengerEl) rejectPassengerEl.textContent = button.dataset.passenger || '-';
+                if (rejectTripEl) rejectTripEl.textContent = button.dataset.trip || '-';
+                if (rejectReasonEl) rejectReasonEl.value = '';
+                rejectModal?.classList.add('is-open');
+                rejectModal?.setAttribute('aria-hidden', 'false');
+                setTimeout(() => {
+                    try {
+                        rejectReasonEl?.focus({ preventScroll: true });
+                    } catch (_error) {
+                        rejectReasonEl?.focus();
+                    }
+                }, 30);
+            };
+            const closeRejectModal = () => {
+                activeRejectForm = null;
+                activeRejectButton = null;
+                rejectModal?.classList.remove('is-open');
+                rejectModal?.setAttribute('aria-hidden', 'true');
+                if (rejectReasonEl) rejectReasonEl.value = '';
+            };
+            if (rejectModal) {
+                list.addEventListener('click', (event) => {
+                    const rejectBtn = event.target.closest('.open-trip-reject-reason');
+                    if (!rejectBtn) return;
+                    event.preventDefault();
+                    const form = rejectBtn.closest('form');
+                    if (form) openRejectModal(form, rejectBtn);
+                });
+                rejectCloseTopBtn?.addEventListener('click', closeRejectModal);
+                rejectCancelBtn?.addEventListener('click', closeRejectModal);
+                rejectModal.addEventListener('click', (event) => {
+                    if (event.target === rejectModal) closeRejectModal();
+                });
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && rejectModal.classList.contains('is-open')) closeRejectModal();
+                });
+                rejectConfirmBtn?.addEventListener('click', () => {
+                    const reason = (rejectReasonEl?.value || '').trim();
+                    if (!reason) {
+                        rejectReasonEl?.focus();
+                        return;
+                    }
+                    if (activeRejectForm && activeRejectButton) {
+                        const noteInput = activeRejectForm.querySelector('input[name="response_note"]');
+                        if (noteInput) noteInput.value = reason;
+                        submitJoinRequestResponse(activeRejectForm, activeRejectButton);
+                    }
+                    closeRejectModal();
+                });
+            }
+            list.addEventListener('click', (event) => {
+                const approveBtn = event.target.closest('.open-trip-request-approve');
+                if (!approveBtn) return;
+                event.preventDefault();
+                const form = approveBtn.closest('form');
+                if (form) submitJoinRequestResponse(form, approveBtn);
+            });
 
             const csrf = window.CH_TRIPS.csrf;
             const decodePayload = (encoded) => {
@@ -978,43 +1050,173 @@
                     return [];
                 }
             };
+            const encodePayload = (value) => {
+                try {
+                    const bytes = new TextEncoder().encode(JSON.stringify(value));
+                    let binary = '';
+                    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+                    return btoa(binary);
+                } catch (_error) {
+                    return '';
+                }
+            };
             const escapeHtml = (value) => String(value ?? '')
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
-            const responseForm = (request, action, label, classes, icon) => `
-                <form method="POST" action="${escapeHtml(request.respond_url)}">
-                    <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
-                    <input type="hidden" name="_method" value="PATCH">
-                    <input type="hidden" name="action" value="${escapeHtml(action)}">
-                    <input type="hidden" name="response_note" value="">
-                    <button type="submit" class="trip-payment-review-btn ${classes}">
-                        <i class="${escapeHtml(icon)}"></i>${escapeHtml(label)}
-                    </button>
-                </form>
-            `;
+            const responseForm = (request, action, label, classes, icon) => {
+                if (action === 'reject') {
+                    return `
+                        <form method="POST" action="${escapeHtml(request.respond_url)}">
+                            <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                            <input type="hidden" name="_method" value="PATCH">
+                            <input type="hidden" name="action" value="reject">
+                            <input type="hidden" name="response_note" value="">
+                            <button type="button" class="trip-payment-review-btn ${classes} open-trip-reject-reason" data-request-id="${escapeHtml(request.id)}" data-passenger="${escapeHtml(request.passenger)}" data-trip="${escapeHtml(request.trip)}">
+                                <i class="${escapeHtml(icon)}"></i>${escapeHtml(label)}
+                            </button>
+                        </form>
+                    `;
+                }
+                return `
+                    <form method="POST" action="${escapeHtml(request.respond_url)}">
+                        <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                        <input type="hidden" name="_method" value="PATCH">
+                        <input type="hidden" name="action" value="${escapeHtml(action)}">
+                        <input type="hidden" name="response_note" value="">
+                        <button type="button" class="trip-payment-review-btn ${classes} open-trip-request-approve" data-request-id="${escapeHtml(request.id)}">
+                            <i class="${escapeHtml(icon)}"></i>${escapeHtml(label)}
+                        </button>
+                    </form>
+                `;
+            };
+            const syncRequestTriggerButtons = (tripId, requestsB64, seats, pendingCount) => {
+                document.querySelectorAll(`.open-trip-requests-review[data-trip-id="${CSS.escape(String(tripId))}"]`).forEach((triggerBtn) => {
+                    triggerBtn.dataset.requestsB64 = requestsB64;
+                    if (seats !== null) triggerBtn.dataset.seats = seats;
+
+                    let badge = triggerBtn.querySelector('.trip-request-badge');
+                    if (pendingCount > 0) {
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'trip-request-badge';
+                            triggerBtn.appendChild(badge);
+                        }
+                        badge.textContent = pendingCount > 9 ? '9+' : String(pendingCount);
+                    } else if (badge) {
+                        badge.remove();
+                    }
+                });
+            };
+            const submitJoinRequestResponse = async (form, triggerBtn) => {
+                if (!activeRequestButton) return;
+                const originalHtml = triggerBtn.innerHTML;
+                triggerBtn.disabled = true;
+                triggerBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                try {
+                    // form.action would return the <input name="action"> element
+                    // instead of the URL (form controls shadow same-named
+                    // HTMLFormElement properties) — read the attribute directly.
+                    const response = await fetch(form.getAttribute('action'), {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(payload.message || 'Request could not be updated.');
+                    }
+
+                    const requestId = String(triggerBtn.dataset.requestId || '');
+                    let updatedSeats = null;
+                    if (payload.action === 'approve') {
+                        activeRequestRows = activeRequestRows.map((row) => (
+                            String(row.id) === requestId ? { ...row, status: payload.status || 'approved' } : row
+                        ));
+                        const seatsLeft = Number(activeRequestButton.dataset.seats);
+                        if (Number.isFinite(seatsLeft) && seatsLeft > 0) {
+                            updatedSeats = String(seatsLeft - 1);
+                            activeRequestButton.dataset.seats = updatedSeats;
+                        }
+                    } else {
+                        activeRequestRows = activeRequestRows.filter((row) => String(row.id) !== requestId);
+                    }
+
+                    const requestsB64 = encodePayload(activeRequestRows);
+                    activeRequestButton.dataset.requestsB64 = requestsB64;
+                    const pendingCount = activeRequestRows.filter((row) => row.status === 'pending').length;
+                    syncRequestTriggerButtons(activeRequestButton.dataset.tripId, requestsB64, updatedSeats, pendingCount);
+
+                    if (window.showToast) window.showToast(payload.message || 'Request updated.', 'success');
+                    render(activeRequestRows, activeRequestButton);
+                } catch (error) {
+                    triggerBtn.disabled = false;
+                    triggerBtn.innerHTML = originalHtml;
+                    if (window.showToast) window.showToast(error.message || 'Request could not be updated.', 'error');
+                }
+            };
             const requestToggleForm = (button) => {
                 const isOpen = String(button.dataset.isOpenForRequest || '') === '1';
-                const nextValue = isOpen ? '0' : '1';
-                const label = isOpen ? 'Close requests' : 'Open requests';
-                const icon = isOpen ? 'fa-solid fa-lock' : 'fa-solid fa-lock-open';
-                const classes = isOpen ? 'close' : 'open';
+                const hint = isOpen
+                    ? 'Passengers can currently send join requests for this trip.'
+                    : 'Join requests are closed — passengers cannot request to join right now.';
 
                 return `
                     <form method="POST" action="${escapeHtml(button.dataset.toggleUrl || '')}" class="trip-request-toggle-form" data-request-toggle-form>
                         <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
                         <input type="hidden" name="_method" value="PATCH">
-                        <input type="hidden" name="is_open_for_request" value="${nextValue}">
-                        <button type="submit" class="trip-request-toggle-btn ${classes}">
-                            <i class="${icon}"></i>${label}
-                        </button>
+                        <label class="trip-request-switch-row" data-request-open-state>
+                            <span class="trip-request-switch-text">
+                                <span class="trip-request-switch-title">${isOpen ? 'Open for requests' : 'Closed for requests'}</span>
+                                <span class="trip-request-switch-hint">${hint}</span>
+                            </span>
+                            <span class="trip-request-switch">
+                                <input type="hidden" name="is_open_for_request" value="0">
+                                <input type="checkbox" name="is_open_for_request" value="1" ${isOpen ? 'checked' : ''} data-request-toggle-input>
+                                <span class="trip-request-switch-track"><span class="trip-request-switch-thumb"></span></span>
+                            </span>
+                        </label>
                     </form>
+                `;
+            };
+            const renderHero = (button, pendingCount) => {
+                return `
+                    <div class="trip-meta-line">
+                        <span class="trip-meta-item"><i class="fa-solid fa-hashtag"></i><span>${escapeHtml(button.dataset.tripRef || '-')}</span></span>
+                        <span class="trip-meta-dot">&middot;</span>
+                        <span class="trip-meta-item"><i class="fa-regular fa-calendar"></i><span>${escapeHtml(button.dataset.tripDatetime || '-')}</span></span>
+                        <span class="trip-meta-dot">&middot;</span>
+                        <span class="trip-meta-item trip-meta-route"><i class="fa-solid fa-road"></i><span class="trip-meta-route-text">${escapeHtml(button.dataset.routeName || '-')}</span></span>
+                    </div>
+                    <div class="trip-driver-card">
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-people-arrows"></i>Public Join</span>
+                        ${requestToggleForm(button)}
+                    </div>
+                    <div class="trip-secondary-grid">
+                        <div class="trip-secondary-item">
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-chair"></i>Seats Left</span>
+                            <span class="trip-modal-value">${escapeHtml(button.dataset.seats || '-')}</span>
+                        </div>
+                        <div class="trip-secondary-item">
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user-clock"></i>Pending</span>
+                            <span class="trip-modal-value">${Number(pendingCount) || 0}</span>
+                        </div>
+                        <div class="trip-secondary-item">
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-circle-check"></i>Trip Status</span>
+                            <span class="trip-modal-value">${escapeHtml(button.dataset.tripStatus || '-')}</span>
+                        </div>
+                    </div>
                 `;
             };
             let requestMap = null;
             let activeRequestButton = null;
+            let activeRequestRows = [];
             const num = (value) => {
                 const parsed = Number.parseFloat(String(value ?? '').trim());
                 return Number.isFinite(parsed) ? parsed : null;
@@ -1212,24 +1414,15 @@
             };
             const render = (requests, button) => {
                 const rows = Array.isArray(requests) ? requests : [];
+                activeRequestRows = rows;
                 if (rows.length === 0) {
                     list.innerHTML = `
-                        <section class="trip-request-hero">
-                            <div class="trip-request-hero-head">
-                                <h3 class="trip-request-hero-title">Join Requests</h3>
-                                ${requestToggleForm(button)}
-                            </div>
-                            <div class="trip-request-hero-meta">
-                                <span><i class="fa-solid fa-route"></i>${escapeHtml(button.dataset.routeName || '-')}</span>
-                                <span># Trip #${escapeHtml(button.dataset.tripId || '-')}</span>
-                            </div>
-                            <div class="trip-request-hero-stats">
-                                <span data-request-open-state><i class="fa-solid fa-lock-open"></i>Public Join: ${escapeHtml(button.dataset.openState || '-')}</span>
-                                <span><i class="fa-solid fa-chair"></i>Seats: ${escapeHtml(button.dataset.seats || '-')}</span>
-                                <span><i class="fa-solid fa-circle-check"></i>Status: ${escapeHtml(button.dataset.tripStatus || '-')}</span>
-                            </div>
-                        </section>
-                        <div class="trip-payment-review-empty">No active passenger requests for this trip.</div>
+                        ${renderHero(button, 0)}
+                        <div class="trip-request-empty-state">
+                            <span class="trip-request-empty-icon"><i class="fa-solid fa-inbox"></i></span>
+                            <p class="trip-request-empty-title">No requests yet</p>
+                            <p class="trip-request-empty-sub">Passengers who ask to join this public trip will show up here for you to review and approve.</p>
+                        </div>
                     `;
                     return;
                 }
@@ -1243,21 +1436,7 @@
                 const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(button.dataset.pickupName || '')}&destination=${encodeURIComponent(button.dataset.destinationName || '')}`;
 
                 list.innerHTML = `
-                    <section class="trip-request-hero">
-                        <div class="trip-request-hero-head">
-                            <h3 class="trip-request-hero-title">Join Requests</h3>
-                            ${requestToggleForm(button)}
-                        </div>
-                        <div class="trip-request-hero-meta">
-                            <span><i class="fa-solid fa-route"></i>${escapeHtml(button.dataset.routeName || '-')}</span>
-                            <span># Trip #${escapeHtml(button.dataset.tripId || '-')}</span>
-                        </div>
-                        <div class="trip-request-hero-stats">
-                            <span data-request-open-state><i class="fa-solid fa-lock-open"></i>Public Join: ${escapeHtml(button.dataset.openState || '-')}</span>
-                            <span><i class="fa-solid fa-chair"></i>Seats: ${escapeHtml(button.dataset.seats || '-')}</span>
-                            <span><i class="fa-solid fa-circle-check"></i>Status: ${escapeHtml(button.dataset.tripStatus || '-')}</span>
-                        </div>
-                    </section>
+                    ${renderHero(button, pendingCount)}
                     <section class="trip-request-summary-card">
                         <div>
                             <h3 class="trip-request-section-title">Passenger Route Summary</h3>
@@ -1286,8 +1465,7 @@
                                 <option value="approved">Approved</option>
                             </select>
                         </div>
-                    </section>
-                    ${rows.map((request) => `
+                        ${rows.map((request) => `
                     <article class="trip-payment-review-item">
                         <div class="trip-payment-review-top">
                             <div class="trip-payment-review-person">
@@ -1343,13 +1521,14 @@
                         ` : '<div class="trip-request-note">This request has already been approved.</div>'}
                     </article>
                 `).join('')}
+                    </section>
                 `;
                 drawMap(button, rows);
             };
             const open = (button) => {
                 activeRequestButton = button;
                 const requests = decodePayload(button.dataset.requestsB64 || '');
-                sub.textContent = button.dataset.routeName || 'Review passenger requests and custom route preferences.';
+                activeRequestRows = requests;
                 showModalSkeleton(list);
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
@@ -1378,22 +1557,25 @@
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape' && modal.classList.contains('is-open')) close();
             });
+            list.addEventListener('change', (event) => {
+                const toggleInput = event.target.closest('[data-request-toggle-input]');
+                if (!toggleInput) return;
+                toggleInput.closest('form')?.requestSubmit();
+            });
             list.addEventListener('submit', async (event) => {
                 const toggleForm = event.target.closest('[data-request-toggle-form]');
                 if (!toggleForm || !activeRequestButton) return;
 
                 event.preventDefault();
-                const submitBtn = toggleForm.querySelector('button[type="submit"]');
-                const originalText = submitBtn ? submitBtn.innerHTML : '';
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>Updating';
-                }
+                const toggleInput = toggleForm.querySelector('[data-request-toggle-input]');
+                const previousChecked = toggleInput ? toggleInput.checked : null;
+                const formData = new FormData(toggleForm);
+                if (toggleInput) toggleInput.disabled = true;
 
                 try {
                     const response = await fetch(toggleForm.action, {
                         method: 'POST',
-                        body: new FormData(toggleForm),
+                        body: formData,
                         headers: {
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest',
@@ -1415,11 +1597,11 @@
                     activeRequestButton.dataset.openState = nextState;
                     render(decodePayload(activeRequestButton.dataset.requestsB64 || ''), activeRequestButton);
                 } catch (error) {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.title = error.message || 'Update failed.';
+                    if (toggleInput) {
+                        toggleInput.disabled = false;
+                        toggleInput.checked = previousChecked;
                     }
+                    if (window.showToast) window.showToast(error.message || 'Public join setting could not be updated.', 'error');
                 }
             });
             list.addEventListener('input', (event) => {

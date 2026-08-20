@@ -609,6 +609,23 @@
             border-color: #1a2332;
             box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
         }
+        .payments-btn.ch-btn-green {
+            background-color: #22c55e !important;
+            color: #ffffff !important;
+            border: 1px solid #16a34a !important;
+            box-shadow: 0 1px 3px rgba(34, 197, 94, 0.25) !important;
+        }
+        .payments-btn.ch-btn-green:hover {
+            background-color: #16a34a !important;
+            border-color: #15803d !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
+        }
+        .payments-btn.ch-btn-green:active {
+            background-color: #15803d !important;
+            border-color: #166534 !important;
+            box-shadow: 0 1px 2px rgba(34, 197, 94, 0.2) !important;
+        }
         .payments-btn-success {
             background: #f0fdf4;
             border-color: #86efac;
@@ -789,9 +806,11 @@
         }
         .trip-details-scroll {
             min-height: 0;
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: grid;
             gap: 10px;
+            grid-template-columns: minmax(0, 1fr);
             padding: 0 12px 8px 2px;
         }
         .modal-close-x {
@@ -1272,6 +1291,7 @@
             border-radius: 10px;
             padding: 8px;
             display: grid;
+            grid-template-columns: minmax(0, 1fr);
             gap: 7px;
         }
         .trip-passenger-item {
@@ -1626,6 +1646,7 @@
                 padding: 12px 20px 20px;
                 flex: 1 1 auto;
                 overflow-y: auto;
+                overflow-x: hidden;
             }
             .trip-contact-bar {
                 margin: 0;

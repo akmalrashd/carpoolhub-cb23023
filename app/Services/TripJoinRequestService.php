@@ -176,13 +176,17 @@ class TripJoinRequestService
             ]);
 
             $label = $this->tripLabel($trip);
+            $rejectMessage = "Your request to join the {$label} was not approved this time.";
+            if ($action === 'reject' && filled($responseNote)) {
+                $rejectMessage .= " Reason: {$responseNote}";
+            }
             UserNotification::query()->create([
                 'user_id'      => $joinRequest->user_id,
                 'type'         => 'trip',
                 'title'        => $action === 'approve' ? 'Join Request Approved' : 'Join Request Rejected',
                 'message'      => $action === 'approve'
                     ? "Great news! Your request to join the {$label} has been approved. Check your trip details."
-                    : "Your request to join the {$label} was not approved this time.",
+                    : $rejectMessage,
                 'related_type' => 'trip_join_request',
                 'related_id'   => $joinRequest->id,
                 'is_read'      => false,
