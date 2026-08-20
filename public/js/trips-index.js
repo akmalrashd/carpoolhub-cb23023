@@ -1774,9 +1774,15 @@
                 const cancelBtn = document.getElementById('tripsCancelBatchBtn');
                 const floatingSelectAllBtn = document.getElementById('tripsSelectAllBtn');
 
+                // The trip list renders a desktop table row and a mobile card for every
+                // trip, each with its own .trip-row-checkbox; only one is visible at a
+                // time via CSS. Scope to the visible set so counts/selection aren't doubled.
+                const visibleRowCheckboxes = () => Array.from(document.querySelectorAll('.trip-row-checkbox'))
+                    .filter((cb) => cb.offsetParent !== null);
+
                 const updateFloatingBar = () => {
-                    const checkedCbs = document.querySelectorAll('.trip-row-checkbox:checked');
-                    const totalCbs = document.querySelectorAll('.trip-row-checkbox');
+                    const totalCbs = visibleRowCheckboxes();
+                    const checkedCbs = totalCbs.filter((cb) => cb.checked);
                     const count = checkedCbs.length;
 
                     if (countSpan) countSpan.textContent = count;
@@ -1814,7 +1820,7 @@
                     selectAllCb.onclick = null;
                     selectAllCb.onchange = function() {
                         const isChecked = this.checked;
-                        document.querySelectorAll('.trip-row-checkbox').forEach(cb => {
+                        visibleRowCheckboxes().forEach(cb => {
                             cb.checked = isChecked;
                         });
                         updateFloatingBar();
@@ -1823,8 +1829,8 @@
 
                 if (floatingSelectAllBtn) {
                     floatingSelectAllBtn.onclick = function() {
-                        const totalCbs = document.querySelectorAll('.trip-row-checkbox');
-                        const checkedCbs = document.querySelectorAll('.trip-row-checkbox:checked');
+                        const totalCbs = visibleRowCheckboxes();
+                        const checkedCbs = totalCbs.filter((cb) => cb.checked);
                         const targetState = !(totalCbs.length > 0 && checkedCbs.length === totalCbs.length);
                         totalCbs.forEach(cb => {
                             cb.checked = targetState;
@@ -1839,7 +1845,7 @@
 
                 if (cancelBtn) {
                     cancelBtn.onclick = function() {
-                        document.querySelectorAll('.trip-row-checkbox').forEach(cb => {
+                        visibleRowCheckboxes().forEach(cb => {
                             cb.checked = false;
                         });
                         if (selectAllCb) {
