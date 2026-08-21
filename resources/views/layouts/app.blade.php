@@ -22,9 +22,12 @@
 
     {{-- Shared shell styles, extracted to a cacheable static file. The link sits exactly where the <style> block did so cascade order is unchanged; pwa-head.blade.php (included after </head>) still overrides it. --}}
     <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/bg-pattern.css') }}?v={{ filemtime(public_path('css/bg-pattern.css')) }}">
     @include('layouts.partials.pwa-head')
 </head>
 <body>
+
+@include('layouts.partials.bg-pattern')
 
 @php
     $headerNotifications = collect();

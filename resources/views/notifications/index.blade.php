@@ -17,10 +17,10 @@
                     <i class="fa-solid fa-bell"></i> {{ $unreadCount }} Unread
                 </span>
             @endif
-            <button type="button" class="btn btn-ghost btn-sm notif-clear-read-btn" id="notif-clear-read-btn"
-                    data-url="{{ route('notifications.clear-read') }}"
-                    title="Tidy up — removes notifications you've already read">
-                <i class="fa-solid fa-broom"></i> Tidy up
+            <button type="button" class="btn btn-ghost btn-sm notif-delete-all-btn" id="notif-delete-all-btn"
+                    data-url="{{ route('notifications.delete-all') }}"
+                    title="Delete all notifications — this cannot be undone">
+                <i class="fa-solid fa-trash"></i> Delete All
             </button>
             <form method="POST" action="{{ route('notifications.read-all') }}" style="margin:0;" id="notif-mark-all-form">
                 @csrf
@@ -89,7 +89,11 @@
                 @php $shownReadGroup = true; @endphp
             @endif
 
-            <div class="notif-row {{ $isUnread ? 'is-unread' : 'is-read' }}" data-notif-type="{{ $type }}">
+            <div class="notif-row {{ $isUnread ? 'is-unread' : 'is-read' }}"
+                 data-notif-type="{{ $type }}"
+                 data-open-url="{{ route('notifications.open', $notification) }}"
+                 role="link"
+                 tabindex="0">
 
                 {{-- Icon --}}
                 <div class="notif-icon-box {{ $iconCfg['class'] }}">
@@ -98,12 +102,8 @@
 
                 {{-- Content --}}
                 <div class="notif-content">
-                    <h2 class="notif-content-title">
-                        <a href="{{ route('notifications.open', $notification) }}">{{ $notification->title }}</a>
-                    </h2>
-                    <p class="notif-content-body">
-                        <a href="{{ route('notifications.open', $notification) }}">{{ $notification->message }}</a>
-                    </p>
+                    <h2 class="notif-content-title">{{ $notification->title }}</h2>
+                    <p class="notif-content-body">{{ $notification->message }}</p>
                     <span class="notif-content-time">
                         <i class="fa-regular fa-clock" style="margin-right:3px;"></i>
                         @if($notification->created_at?->isAfter(now()->subDay()))
@@ -114,27 +114,13 @@
                     </span>
                 </div>
 
-                {{-- Actions --}}
+                {{-- Actions — tap the card itself to open; this is delete-only. --}}
                 <div class="notif-row-actions">
-                    <a href="{{ route('notifications.open', $notification) }}" class="btn btn-ghost btn-sm">
-                        Open
-                    </a>
-                    @if($isUnread)
-                        <button type="button"
-                                class="btn btn-ghost btn-sm notif-mark-read-btn"
-                                data-notif-id="{{ $notification->id }}"
-                                data-url="{{ route('notifications.read', $notification) }}"
-                                style="font-size:11px; padding:0 10px; height:28px;"
-                                title="Mark as read">
-                            <i class="fa-solid fa-check"></i>
-                        </button>
-                    @endif
                     <button type="button"
-                            class="btn btn-ghost btn-sm notif-delete-btn"
+                            class="notif-delete-btn"
                             data-notif-id="{{ $notification->id }}"
                             data-was-unread="{{ $isUnread ? '1' : '0' }}"
                             data-url="{{ route('notifications.destroy', $notification) }}"
-                            style="font-size:11px; padding:0 10px; height:28px; color:var(--danger);"
                             title="Delete">
                         <i class="fa-solid fa-trash"></i>
                     </button>

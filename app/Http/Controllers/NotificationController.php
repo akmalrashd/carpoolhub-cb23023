@@ -80,4 +80,15 @@ class NotificationController extends Controller
 
         return back()->with('status', 'Read notifications cleared.');
     }
+
+    public function deleteAll(Request $request): RedirectResponse|JsonResponse
+    {
+        $this->notificationService->deleteAllNotifications($request->user());
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return back()->with('status', 'All notifications deleted.');
+    }
 }

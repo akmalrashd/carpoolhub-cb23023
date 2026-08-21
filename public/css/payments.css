@@ -1503,19 +1503,31 @@
         .driver-payment-qr-dots {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
         }
+        /* The dot itself stays a small 6px visual mark, but a real fingertip
+           can't reliably hit a 6px target — the button's actual tap area is
+           32px, drawn via ::before so the visible dot size doesn't change. */
         .qr-dot {
-            width: 6px;
-            height: 6px;
+            width: 32px;
+            height: 32px;
+            margin: 0 -9px;
             padding: 0;
             border: 0;
+            background: transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qr-dot::before {
+            content: '';
+            width: 6px;
+            height: 6px;
             border-radius: 999px;
             background: #cbd5e1;
-            cursor: pointer;
             transition: background .15s ease, transform .15s ease;
         }
-        .qr-dot.is-active {
+        .qr-dot.is-active::before {
             background: #0f172a;
             transform: scale(1.4);
         }

@@ -98,4 +98,11 @@ class NotificationService
             ->where('is_read', true)
             ->delete();
     }
+
+    public function deleteAllNotifications(User $user): void
+    {
+        UserNotification::query()
+            ->where('user_id', $user->id)
+            ->delete();
+    }
 }

@@ -883,6 +883,8 @@
 
         .app-shell {
             min-height: calc(100vh - var(--mobile-header-h));
+            position: relative;
+            z-index: 1;
         }
 
         .main-content {

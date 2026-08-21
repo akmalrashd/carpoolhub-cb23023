@@ -302,6 +302,56 @@ window.isPaymentRowHidden = function (row) {
                     activeIndex = i;
                     render();
                 }));
+
+                // Swipe support — a dot tap alone isn't how anyone actually
+                // expects to browse a carousel on a phone.
+                const trackWrap = qrCarousel.querySelector('.driver-payment-qr-track-wrap');
+                if (trackWrap) {
+                    let dragging = false;
+                    let startX = 0;
+                    let startY = 0;
+                    let deltaX = 0;
+
+                    trackWrap.addEventListener('touchstart', (e) => {
+                        dragging = true;
+                        startX = e.touches[0].clientX;
+                        startY = e.touches[0].clientY;
+                        deltaX = 0;
+                        track.style.transition = 'none';
+                    }, { passive: true });
+
+                    trackWrap.addEventListener('touchmove', (e) => {
+                        if (!dragging) return;
+                        const touch = e.touches[0];
+                        deltaX = touch.clientX - startX;
+                        const deltaY = touch.clientY - startY;
+                        // A mostly-vertical gesture is a page scroll, not a swipe —
+                        // leave the track alone so scrolling still works.
+                        if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+
+                        let dragPercent = (deltaX / trackWrap.offsetWidth) * stepPercent;
+                        // Rubber-band resistance past the first/last slide instead
+                        // of dragging into empty space beyond the track.
+                        if (activeIndex === 0 && deltaX > 0) dragPercent *= 0.35;
+                        if (activeIndex === slides.length - 1 && deltaX < 0) dragPercent *= 0.35;
+                        track.style.transform = `translateX(${-activeIndex * stepPercent + dragPercent}%)`;
+                    }, { passive: true });
+
+                    const endDrag = () => {
+                        if (!dragging) return;
+                        dragging = false;
+                        track.style.transition = '';
+                        const threshold = trackWrap.offsetWidth * 0.18;
+                        if (deltaX < -threshold && activeIndex < slides.length - 1) {
+                            activeIndex += 1;
+                        } else if (deltaX > threshold && activeIndex > 0) {
+                            activeIndex -= 1;
+                        }
+                        render();
+                    };
+                    trackWrap.addEventListener('touchend', endDrag);
+                    trackWrap.addEventListener('touchcancel', endDrag);
+                }
             }
         }, 240);
     }, true);

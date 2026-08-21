@@ -1,0 +1,47 @@
+/* Extracted from layouts/partials/bg-pattern.blade.php — cacheable. */
+.bg-pattern-fixed {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background: var(--canvas);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 110px);
+    grid-template-rows: repeat(8, 127px);
+    opacity: 0.18;
+    transform: translate(-3%, -4%);
+}
+
+.bg-pattern-shape {
+    width: 110px;
+    height: 127px;
+    -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+.bg-pattern-shape svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Fades the grid into the plain --canvas color at the edges, so a fixed-size
+   grid never reads as "cut off" on very wide screens — it just fades sooner. */
+.bg-pattern-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, transparent 0%, var(--canvas) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-pattern-fixed {
+        display: none;
+    }
+}
