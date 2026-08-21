@@ -1,7 +1,7 @@
 /* Extracted from resources/views/settings/index.blade.php — cacheable. */
         /* ── Centered Container ── */
         .profile-page-container {
-            max-width: 780px;
+            max-width: 960px;
             margin: 0 auto;
             width: 100%;
             display: flex;
@@ -45,8 +45,8 @@
             padding: 20px;
             box-shadow: var(--shadow-1);
             display: flex;
-            align-items: center;
-            gap: 18px;
+            flex-direction: column;
+            gap: 16px;
             position: relative;
             overflow: hidden;
             width: 100%;
@@ -60,6 +60,12 @@
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, var(--ch-yellow), #f59e0b);
+        }
+        .settings-hero-top {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
         }
         .settings-hero-avatar-wrap {
             position: relative;
@@ -120,19 +126,15 @@
             font-size: 18px;
             font-weight: 800;
             color: var(--ink);
-            margin: 0 0 3px;
+            margin: 0 0 6px;
             display: flex;
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
         }
-        .settings-hero-email {
-            font-size: 13px;
-            color: var(--muted);
-            margin: 0 0 8px;
+        .settings-hero-role-line {
             display: flex;
             align-items: center;
-            gap: 6px;
         }
         .role-pill {
             display: inline-flex;
@@ -173,7 +175,99 @@
             gap: 4px;
         }
 
-        /* ── Navigation Tabs ── */
+        /* ── Hero Profile Completeness ── */
+        .settings-hero-completion {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--hairline);
+            flex-wrap: wrap;
+        }
+        .hero-completion-ring {
+            --pct: 0;
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            background: conic-gradient(var(--ch-yellow) calc(var(--pct) * 1%), var(--hairline) 0);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .hero-completion-ring::before {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border-radius: 999px;
+            background: var(--surface);
+        }
+        .hero-completion-ring span {
+            position: relative;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--ink);
+            font-family: var(--font-display), sans-serif;
+        }
+        .hero-completion-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 180px;
+        }
+        .hero-completion-text strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--ink);
+            font-family: var(--font-display), sans-serif;
+        }
+        .hero-completion-text span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .hero-completion-cta {
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+            border: 1px solid var(--ch-yellow-line);
+            border-radius: var(--r-sm);
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            font-family: var(--font-display), sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            box-shadow: var(--shadow-yellow);
+            transition: background .15s ease, transform .12s ease;
+        }
+        .hero-completion-cta:hover {
+            background: var(--ch-yellow-deep);
+            transform: translateY(-1px);
+        }
+        .hero-completion-cta i {
+            font-size: 10px;
+        }
+
+        /* ── Two-column Shell (rail + content on desktop) ── */
+        .settings-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            align-items: flex-start;
+        }
+        @media (min-width: 900px) {
+            .settings-shell {
+                display: grid;
+                grid-template-columns: 236px 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* ── Navigation: horizontal pill strip on mobile, vertical rail on desktop ── */
         .settings-nav {
             display: flex;
             width: 100%;
@@ -227,14 +321,76 @@
             box-shadow: var(--shadow-1);
             font-weight: 800;
         }
-        .settings-nav-btn i {
+        .nav-btn-icon {
+            display: inline-flex;
             font-size: 14px;
             color: inherit;
+            flex-shrink: 0;
+        }
+        .nav-btn-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+        .nav-btn-desc {
+            display: none;
+        }
+
+        @media (min-width: 900px) {
+            .settings-nav {
+                flex-direction: column;
+                gap: 2px;
+                padding: 8px;
+                position: sticky;
+                top: calc(var(--desktop-topbar-h, 52px) + 16px);
+                align-self: flex-start;
+                overflow-x: visible;
+            }
+            .settings-nav-btn {
+                flex: 0 0 auto;
+                width: 100%;
+                justify-content: flex-start;
+                gap: 10px;
+                padding: 10px 12px;
+                text-align: left;
+                border-radius: var(--r-sm);
+            }
+            .settings-nav-btn.is-active {
+                border-left: 3px solid var(--ch-yellow);
+                padding-left: 9px;
+            }
+            .nav-btn-icon {
+                width: 26px;
+                height: 26px;
+                border-radius: 8px;
+                background: var(--surface-2);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+            }
+            .settings-nav-btn.is-active .nav-btn-icon {
+                background: var(--ch-yellow-tint);
+                color: var(--ch-yellow-ink);
+            }
+            .nav-btn-label {
+                font-size: 13px;
+            }
+            .nav-btn-desc {
+                display: block;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: none;
+                letter-spacing: 0;
+                color: var(--muted);
+                margin-top: 1px;
+            }
         }
 
         /* ── Content Panels ── */
         .settings-content {
             width: 100%;
+            min-width: 0;
             box-sizing: border-box;
         }
         .settings-panel-card {
@@ -278,6 +434,27 @@
             margin: 0;
         }
 
+        /* ── Info Banner (inside a panel, above its form) ── */
+        .settings-info-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: var(--info-soft);
+            color: var(--info-ink);
+            border: 1px solid rgba(37,99,235,0.18);
+            border-radius: var(--r-md);
+            padding: 10px 14px;
+            font-size: 12.5px;
+            font-weight: 600;
+            line-height: 1.45;
+            margin-bottom: 18px;
+        }
+        .settings-info-banner i {
+            font-size: 14px;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
         /* ── Form Styling ── */
         .form-grid {
             display: grid;
@@ -295,6 +472,67 @@
             color: var(--ink-2);
             margin: 0;
             font-family: var(--font-ui), sans-serif;
+        }
+
+        /* Section subheading grouping fields within a panel */
+        .form-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-display), sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 4px 0 -4px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--hairline-strong);
+        }
+        .form-grid > .form-section-title:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: 0;
+        }
+        .form-section-title i {
+            font-size: 12px;
+            color: var(--ink-2);
+        }
+
+        /* Inline field feedback */
+        .field-hint {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        .field-error {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--danger-ink);
+        }
+        .input-wrap.has-error {
+            border-color: var(--danger);
+            background: var(--danger-soft);
+        }
+        .input-wrap.has-error:focus-within {
+            box-shadow: 0 0 0 3px rgba(220,38,38,0.15);
+        }
+        .avatar-pending-hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--warning-ink);
+            background: var(--warning-soft);
+            border: 1px solid rgba(180,83,9,0.22);
+            border-radius: var(--r-sm);
+            padding: 8px 12px;
+            margin: -4px 0 4px;
+        }
+        .avatar-pending-hint[hidden] {
+            display: none;
         }
 
         /* Modern Prefix Input Group */
@@ -329,6 +567,11 @@
             font-family: var(--font-ui), sans-serif;
             outline: none;
         }
+        /* This field sits right after the country-code select's divider rather
+           than an .input-icon, so it needs its own breathing room on the left. */
+        #profilePhone {
+            padding-left: 12px;
+        }
         .input-field:disabled, .input-field[readonly] {
             color: var(--muted);
             cursor: not-allowed;
@@ -345,13 +588,71 @@
             cursor: pointer;
         }
 
-        .vis-select {
-            width: 140px;
+        /* Label + select travel together as one unit so they can never be split
+           across a wrap onto different lines (flex-wrap packs one item at a time,
+           so two separate siblings can land on different lines unpredictably). */
+        .vis-select-group {
+            display: flex;
+            align-items: center;
+            flex: 0 1 auto;
+            min-width: 0;
             border-left: 1px solid var(--hairline);
+        }
+        .vis-select-label {
+            padding: 0 0 0 10px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .vis-select {
+            width: 130px;
             font-size: 11px;
             font-weight: 700;
             color: var(--ink-2);
-            padding-left: 10px;
+            padding-left: 6px;
+        }
+
+        /* Same "travel together" grouping as .vis-select-group, so the plate
+           icon can never be stranded on a different line than its input. */
+        .vehicle-plate-group {
+            display: flex;
+            align-items: center;
+            flex: 0 0 140px;
+            min-width: 0;
+            border-left: 1px solid var(--hairline);
+        }
+        .vehicle-plate-group .input-field {
+            flex: 1;
+            min-width: 0;
+            padding-left: 8px;
+        }
+
+        /* On narrow screens a 3-up (or 2-up) input row has no room to breathe —
+           drop the trailing control to its own full-width line instead of
+           squeezing every control until its text truncates. */
+        @media (max-width: 560px) {
+            .input-wrap:has(.vis-select-group),
+            .input-wrap:has(.vehicle-plate-group) {
+                flex-wrap: wrap;
+            }
+            .input-wrap .vis-select-group,
+            .input-wrap .vehicle-plate-group {
+                flex: 1 1 100%;
+                width: 100%;
+                border-left: 0;
+                border-top: 1px solid var(--hairline);
+            }
+            .input-wrap .vis-select-group .vis-select-label {
+                padding-left: 16px;
+            }
+            .input-wrap .vis-select-group .vis-select {
+                flex: 1;
+                width: auto;
+            }
         }
 
         /* Password toggle button */
@@ -365,6 +666,61 @@
             transition: color .15s ease;
         }
         .pass-toggle-btn:hover { color: var(--ink); }
+
+        /* Password strength meter */
+        .pw-strength-meter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+        }
+        .pw-strength-meter[hidden] { display: none; }
+        .pw-strength-bar {
+            flex: 1;
+            height: 5px;
+            border-radius: 999px;
+            background: var(--hairline);
+            overflow: hidden;
+        }
+        .pw-strength-bar span {
+            display: block;
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: var(--danger);
+            transition: width .2s ease, background .2s ease;
+        }
+        .pw-strength-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        .pw-strength-meter.is-weak .pw-strength-bar span { background: var(--danger); }
+        .pw-strength-meter.is-weak .pw-strength-label { color: var(--danger-ink); }
+        .pw-strength-meter.is-fair .pw-strength-bar span { background: var(--warning); }
+        .pw-strength-meter.is-fair .pw-strength-label { color: var(--warning-ink); }
+        .pw-strength-meter.is-good .pw-strength-bar span { background: #2563eb; }
+        .pw-strength-meter.is-good .pw-strength-label { color: #1e3a8a; }
+        .pw-strength-meter.is-strong .pw-strength-bar span { background: var(--success); }
+        .pw-strength-meter.is-strong .pw-strength-label { color: var(--success-ink); }
+
+        /* Live password-match hint under the confirm field */
+        .field-match-hint {
+            font-size: 11.5px;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+        .field-match-hint.is-match {
+            display: flex;
+            color: var(--success-ink);
+        }
+        .field-match-hint.is-mismatch {
+            display: flex;
+            color: var(--danger-ink);
+        }
 
         /* ── Interactive QR Upload Section ── */
         .qr-upload-grid {
@@ -427,6 +783,20 @@
             display: none;
         }
 
+        /* Read-only variant (driver verification docs) — a dashed border and a
+           yellow hover both signal "you can act on this", which isn't true here. */
+        .qr-card-readonly {
+            border-style: solid;
+            cursor: default;
+        }
+        .qr-card-readonly:hover {
+            border-color: var(--hairline-strong);
+            background: var(--surface-2);
+        }
+        .qr-card-readonly .qr-sub {
+            margin-bottom: 0;
+        }
+
         /* ── Submit Row ── */
         .form-actions {
             margin-top: 10px;
@@ -455,6 +825,12 @@
             background: var(--ch-yellow-deep);
             transform: translateY(-1px);
             box-shadow: var(--shadow-yellow), 0 4px 12px rgba(234,179,8,.25);
+        }
+        .btn-submit-yellow:disabled,
+        .btn-submit-yellow.is-loading {
+            opacity: .75;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* ── Alert Toast ── */

@@ -157,7 +157,7 @@ window.isPaymentRowHidden = function (row) {
         const safeUrl = String(url || '').trim();
         return safeUrl
             ? `<img src="${escapeHtml(safeUrl)}" alt="${escapeHtml(label)}">`
-            : '<span class="driver-payment-qr-empty">No QR uploaded</span>';
+            : '<span class="driver-payment-qr-empty"><i class="fa-solid fa-qrcode"></i>No QR uploaded</span>';
     };
 
     document.addEventListener('click', (event) => {
@@ -177,7 +177,7 @@ window.isPaymentRowHidden = function (row) {
         const driverAvatar = driverPhoto
             ? `<img src="${escapeHtml(driverPhoto)}" alt="${escapeHtml(driverName)}">`
             : escapeHtml((driverName.trim().charAt(0) || 'D').toUpperCase());
-        if (sub) sub.textContent = button.dataset.route || 'Mark your trip payment as paid.';
+        if (sub) sub.textContent = button.dataset.trip || 'Mark your trip payment as paid.';
         showModalSkeleton(list);
         document.querySelectorAll('.request-modal.show, .trip-payment-review-modal.is-open').forEach((openModal) => {
             if (openModal !== modal) {
@@ -196,12 +196,8 @@ window.isPaymentRowHidden = function (row) {
                             <div class="trip-payment-review-top">
                                 <div class="trip-payment-review-person">
                                     <span class="trip-payment-review-avatar">${escapeHtml(button.dataset.initials || 'P')}</span>
-                                    <span>
-                                        <span class="trip-payment-review-name">${escapeHtml(button.dataset.passenger || 'Passenger')}</span>
-                                        <span class="trip-payment-review-route">${escapeHtml(button.dataset.trip || 'Trip')} &middot; DuitNow</span>
-                                    </span>
+                                    <span class="trip-payment-review-name">${escapeHtml(button.dataset.passenger || 'Passenger')}</span>
                                 </div>
-                                <span class="trip-payment-review-status">Unpaid</span>
                             </div>
                             <div class="trip-payment-review-amount">
                                 <span>
@@ -218,28 +214,41 @@ window.isPaymentRowHidden = function (row) {
                                         <span class="driver-payment-email">${escapeHtml(driverEmail)}</span>
                                     </span>
                                 </div>
-                                <div class="trip-details-pairs">
-                                    <div class="request-modal-line">
-                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
-                                        <span class="request-modal-value">${escapeHtml(button.dataset.driverBank || '-')}</span>
+                                <div class="payment-paynow-body">
+                                    <div class="trip-details-pairs">
+                                        <div class="request-modal-line">
+                                            <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
+                                            <span class="request-modal-value">${escapeHtml(button.dataset.driverBank || '-')}</span>
+                                        </div>
+                                        <div class="request-modal-line">
+                                            <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
+                                            <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountName || '-')}</span>
+                                        </div>
+                                        <div class="request-modal-line">
+                                            <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
+                                            <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountNumber || '-')}</span>
+                                        </div>
                                     </div>
-                                    <div class="request-modal-line">
-                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
-                                        <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountName || '-')}</span>
-                                    </div>
-                                    <div class="request-modal-line">
-                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
-                                        <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountNumber || '-')}</span>
-                                    </div>
-                                </div>
-                                <div class="driver-payment-qr-grid">
-                                    <div class="driver-payment-qr-card">
-                                        <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>DuitNow QR</span>
-                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
-                                    </div>
-                                    <div class="driver-payment-qr-card">
-                                        <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i>Touch 'n Go QR</span>
-                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverTngQr, "Touch 'n Go QR")}</div>
+                                    <div class="driver-payment-qr-single" data-qr-carousel>
+                                        <div class="driver-payment-qr-carousel-head">
+                                            <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i> <span data-qr-title-text>DuitNow QR</span></span>
+                                            <span class="driver-payment-qr-dots">
+                                                <button type="button" class="qr-dot is-active" data-qr-index="0" aria-label="Show DuitNow QR"></button>
+                                                <button type="button" class="qr-dot" data-qr-index="1" aria-label="Show TnG eWallet QR"></button>
+                                            </span>
+                                        </div>
+                                        <div class="driver-payment-qr-carousel">
+                                            <div class="driver-payment-qr-track-wrap">
+                                                <div class="driver-payment-qr-track" data-qr-track>
+                                                    <div class="driver-payment-qr-slide">
+                                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
+                                                    </div>
+                                                    <div class="driver-payment-qr-slide">
+                                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverTngQr, 'TnG eWallet QR')}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -260,6 +269,40 @@ window.isPaymentRowHidden = function (row) {
                             </form>
                         </article>
                     `;
+
+            const qrCarousel = list.querySelector('[data-qr-carousel]');
+            if (qrCarousel) {
+                const track = qrCarousel.querySelector('[data-qr-track]');
+                const titleText = qrCarousel.querySelector('[data-qr-title-text]');
+                const dots = Array.from(qrCarousel.querySelectorAll('.qr-dot'));
+                const slides = Array.from(track.children);
+                const slideTitles = ['DuitNow QR', 'TnG eWallet QR'];
+                let activeIndex = 0;
+
+                // Default to whichever QR the driver actually uploaded — no point
+                // opening on an empty slide when the other one has an image.
+                const hasQr = (slide) => !!slide.querySelector('img');
+                if (!hasQr(slides[0]) && hasQr(slides[1])) {
+                    activeIndex = 1;
+                }
+
+                // The track is width: slides.length * 100% (of the wrap), so a
+                // transform percentage — resolved against the track's OWN width,
+                // not the wrap's — must be scaled down by slides.length per step,
+                // otherwise each step overshoots by a full extra slide.
+                const stepPercent = 100 / slides.length;
+                const render = () => {
+                    track.style.transform = `translateX(-${activeIndex * stepPercent}%)`;
+                    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === activeIndex));
+                    if (titleText) titleText.textContent = slideTitles[activeIndex] || '';
+                };
+                render();
+
+                dots.forEach((dot, i) => dot.addEventListener('click', () => {
+                    activeIndex = i;
+                    render();
+                }));
+            }
         }, 240);
     }, true);
 
@@ -1196,7 +1239,7 @@ window.isPaymentRowHidden = function (row) {
             if (!wrapEl) return;
             const url = String(qrUrl || '').trim();
             if (!url) {
-                wrapEl.innerHTML = '<span class="driver-payment-qr-empty">No QR uploaded</span>';
+                wrapEl.innerHTML = '<span class="driver-payment-qr-empty"><i class="fa-solid fa-qrcode"></i>No QR uploaded</span>';
                 return;
             }
             // Build the node instead of innerHTML so a QR URL can never
