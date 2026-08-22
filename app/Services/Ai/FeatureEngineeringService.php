@@ -44,7 +44,7 @@ class FeatureEngineeringService
             'outstanding_amount' => round((float) (clone $paymentBase)->whereIn('payment_status', ['unpaid', 'pending_confirmation'])->sum('amount_due'), 2),
             'overdue_case_count' => (int) (clone $paymentBase)
                 ->whereIn('payment_status', ['unpaid', 'pending_confirmation'])
-                ->whereHas('trip', fn ($query) => $query->where('trip_datetime', '<', now()))
+                ->whereHas('trip', fn ($query) => $query->where('trip_datetime', '<', Trip::now()))
                 ->count(),
             'avg_payment_delay_hours' => round((float) ($paymentDelays->avg() ?? 0), 2),
         ];
@@ -149,7 +149,7 @@ class FeatureEngineeringService
             return [];
         }
 
-        $now = now();
+        $now = Trip::now();
 
         $joinRequests = TripJoinRequest::query()
             ->whereIn('user_id', $ids)

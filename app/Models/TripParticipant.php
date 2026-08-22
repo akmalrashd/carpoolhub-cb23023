@@ -21,6 +21,7 @@ class TripParticipant extends Model
         'cancelled_at',
         'attendance_marked_at',
         'attendance_source',
+        'attendance_note',
     ];
 
     protected function casts(): array

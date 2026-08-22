@@ -101,7 +101,11 @@ class TripService
         if ($user->role !== 'admin') {
             $query->where(function ($builder) use ($user): void {
                 $builder->where('driver_id', $user->id)
-                    ->orWhereHas('participants', fn ($participantQuery) => $participantQuery->where('user_id', $user->id));
+                    ->orWhereHas('participants', fn ($participantQuery) => $participantQuery->where('user_id', $user->id))
+                    // A pending join request has no participant row yet (that's
+                    // only created on approval), so without this a trip the user
+                    // just requested to join stays invisible here until approved.
+                    ->orWhereHas('joinRequests', fn ($joinRequestQuery) => $joinRequestQuery->where('user_id', $user->id)->where('status', 'pending'));
             });
         }
 
@@ -147,7 +151,7 @@ class TripService
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)
             ->where('status', 'scheduled')
-            ->where('trip_datetime', '>=', now());
+            ->where('trip_datetime', '>=', Trip::now());
 
         $query->whereRaw(
             '(seat_limit IS NULL OR seat_limit > (SELECT COUNT(*) FROM trip_participants tp WHERE tp.trip_id = trips.id AND tp.is_driver = 0))'
@@ -237,9 +241,9 @@ class TripService
 
         $timeframe = strtolower((string) ($filters['timeframe'] ?? ''));
         if ($timeframe === 'today') {
-            $query->whereBetween('trip_datetime', [now()->copy()->startOfDay(), now()->copy()->endOfDay()]);
+            $query->whereBetween('trip_datetime', [Trip::now()->copy()->startOfDay(), Trip::now()->copy()->endOfDay()]);
         } elseif ($timeframe === 'tomorrow') {
-            $tomorrow = now()->copy()->addDay();
+            $tomorrow = Trip::now()->copy()->addDay();
             $query->whereBetween('trip_datetime', [$tomorrow->copy()->startOfDay(), $tomorrow->copy()->endOfDay()]);
         } elseif ($timeframe === 'weekend') {
             $query->whereIn(\DB::raw('DAYOFWEEK(trip_datetime)'), [1, 7]);
@@ -287,7 +291,7 @@ class TripService
             ->where('trips.is_open_for_request', true)
             ->where('trips.status', 'scheduled')
             ->whereNull('trips.parent_trip_id')
-            ->where('trips.trip_datetime', '>=', now())
+            ->where('trips.trip_datetime', '>=', Trip::now())
             ->whereNotNull('trips.destination_name')
             ->where('trips.destination_name', '!=', '')
             ->select('trips.destination_name')
@@ -842,7 +846,7 @@ class TripService
         }
 
         self::$lifecycleSynced = true;
-        $now = now();
+        $now = Trip::now();
 
         Trip::query()
             ->whereNotIn('status', ['draft', 'cancelled'])

@@ -1226,6 +1226,11 @@
             color: var(--muted);
             cursor: default;
         }
+        .xp-modal-join-btn.danger {
+            border-color: #fecaca;
+            background: var(--danger-soft);
+            color: var(--danger-ink);
+        }
         .xp-modal-feedback {
             color: var(--success-ink);
             font-size: 12px;

@@ -83,7 +83,7 @@ class PassengerReliabilityService
         }
 
         $overdueAt = Carbon::parse($oldestOverdueDateTime);
-        return max(0, $overdueAt->diffInDays($now));
+        return max(0, (int) $overdueAt->diffInDays($now));
     }
 
     private function penaltyForAmount(float $amount): float

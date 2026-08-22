@@ -1041,6 +1041,85 @@
                 if (form) submitJoinRequestResponse(form, approveBtn);
             });
 
+            // ── Remove-participant reason modal — same shape as the reject
+            // modal above, targeting an already-approved passenger instead.
+            const removeModal = document.getElementById('tripRemoveParticipantModal');
+            const removeCloseTopBtn = document.getElementById('tripRemoveParticipantCloseTop');
+            const removeCancelBtn = document.getElementById('tripRemoveParticipantCancel');
+            const removeConfirmBtn = document.getElementById('tripRemoveParticipantConfirm');
+            const removePassengerEl = document.getElementById('tripRemoveParticipantPassenger');
+            const removeTripEl = document.getElementById('tripRemoveParticipantTrip');
+            const removeReasonEl = document.getElementById('tripRemoveParticipantReason');
+            let activeRemoveForm = null;
+            let activeRemoveButton = null;
+            if (removeModal && removeModal.parentElement !== document.body) {
+                document.body.appendChild(removeModal);
+            }
+            const openRemoveModal = (form, button) => {
+                activeRemoveForm = form;
+                activeRemoveButton = button;
+                if (removePassengerEl) removePassengerEl.textContent = button.dataset.passenger || '-';
+                if (removeTripEl) removeTripEl.textContent = button.dataset.trip || '-';
+                if (removeReasonEl) removeReasonEl.value = '';
+                removeModal?.classList.add('is-open');
+                removeModal?.setAttribute('aria-hidden', 'false');
+                setTimeout(() => {
+                    try {
+                        removeReasonEl?.focus({ preventScroll: true });
+                    } catch (_error) {
+                        removeReasonEl?.focus();
+                    }
+                }, 30);
+            };
+            const closeRemoveModal = () => {
+                activeRemoveForm = null;
+                activeRemoveButton = null;
+                removeModal?.classList.remove('is-open');
+                removeModal?.setAttribute('aria-hidden', 'true');
+                if (removeReasonEl) removeReasonEl.value = '';
+            };
+            if (removeModal) {
+                list.addEventListener('click', (event) => {
+                    const removeBtn = event.target.closest('.open-trip-remove-reason');
+                    if (!removeBtn) return;
+                    event.preventDefault();
+                    const form = removeBtn.closest('form');
+                    if (form) openRemoveModal(form, removeBtn);
+                });
+                removeCloseTopBtn?.addEventListener('click', closeRemoveModal);
+                removeCancelBtn?.addEventListener('click', closeRemoveModal);
+                removeModal.addEventListener('click', (event) => {
+                    if (event.target === removeModal) closeRemoveModal();
+                });
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && removeModal.classList.contains('is-open')) closeRemoveModal();
+                });
+                removeConfirmBtn?.addEventListener('click', () => {
+                    const reason = (removeReasonEl?.value || '').trim();
+                    if (!reason) {
+                        removeReasonEl?.focus();
+                        return;
+                    }
+                    if (activeRemoveForm && activeRemoveButton) {
+                        const reasonInput = activeRemoveForm.querySelector('input[name="reason"]');
+                        if (reasonInput) reasonInput.value = reason;
+                        submitAttendanceAction(activeRemoveForm, activeRemoveButton);
+                    }
+                    closeRemoveModal();
+                });
+            }
+
+            // ── Mark-absent — no reason needed, just a confirm() before submit.
+            list.addEventListener('click', (event) => {
+                const absentBtn = event.target.closest('.open-trip-mark-absent');
+                if (!absentBtn) return;
+                event.preventDefault();
+                const passengerName = absentBtn.dataset.passenger || 'this passenger';
+                if (!window.confirm(`Mark ${passengerName} as absent for this trip? This cannot be undone.`)) return;
+                const form = absentBtn.closest('form');
+                if (form) submitAttendanceAction(form, absentBtn);
+            });
+
             const csrf = window.CH_TRIPS.csrf;
             const decodePayload = (encoded) => {
                 try {
@@ -1092,6 +1171,25 @@
                     </form>
                 `;
             };
+            const removeForm = (request) => `
+                <form method="POST" action="${escapeHtml(request.remove_url)}">
+                    <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                    <input type="hidden" name="_method" value="PATCH">
+                    <input type="hidden" name="reason" value="">
+                    <button type="button" class="trip-payment-review-btn danger open-trip-remove-reason" data-request-id="${escapeHtml(request.id)}" data-passenger="${escapeHtml(request.passenger)}" data-trip="${escapeHtml(request.trip)}">
+                        <i class="fa-solid fa-user-xmark"></i>Remove
+                    </button>
+                </form>
+            `;
+            const absenceForm = (request) => `
+                <form method="POST" action="${escapeHtml(request.absence_url)}">
+                    <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                    <input type="hidden" name="_method" value="PATCH">
+                    <button type="button" class="trip-payment-review-btn warn open-trip-mark-absent" data-request-id="${escapeHtml(request.id)}" data-passenger="${escapeHtml(request.passenger)}">
+                        <i class="fa-solid fa-user-clock"></i>Absent
+                    </button>
+                </form>
+            `;
             const syncRequestTriggerButtons = (tripId, requestsB64, seats, pendingCount) => {
                 document.querySelectorAll(`.open-trip-requests-review[data-trip-id="${CSS.escape(String(tripId))}"]`).forEach((triggerBtn) => {
                     triggerBtn.dataset.requestsB64 = requestsB64;
@@ -1154,6 +1252,48 @@
                     syncRequestTriggerButtons(activeRequestButton.dataset.tripId, requestsB64, updatedSeats, pendingCount);
 
                     if (window.showToast) window.showToast(payload.message || 'Request updated.', 'success');
+                    render(activeRequestRows, activeRequestButton);
+                } catch (error) {
+                    triggerBtn.disabled = false;
+                    triggerBtn.innerHTML = originalHtml;
+                    if (window.showToast) window.showToast(error.message || 'Request could not be updated.', 'error');
+                }
+            };
+            // Shared by Remove and Mark-absent — both just flip attendance_status
+            // (plus an optional note) on the existing row, unlike respond() which
+            // can also remove the row entirely (reject) or touch seat counts
+            // (approve). Neither of those apply here, so this stays simpler.
+            const submitAttendanceAction = async (form, triggerBtn) => {
+                if (!activeRequestButton) return;
+                const originalHtml = triggerBtn.innerHTML;
+                triggerBtn.disabled = true;
+                triggerBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                try {
+                    const response = await fetch(form.getAttribute('action'), {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(payload.message || 'Request could not be updated.');
+                    }
+
+                    const requestId = String(triggerBtn.dataset.requestId || '');
+                    activeRequestRows = activeRequestRows.map((row) => (
+                        String(row.id) === requestId
+                            ? { ...row, attendance_status: payload.attendance_status, attendance_note: payload.attendance_note ?? row.attendance_note }
+                            : row
+                    ));
+
+                    const requestsB64 = encodePayload(activeRequestRows);
+                    activeRequestButton.dataset.requestsB64 = requestsB64;
+
+                    if (window.showToast) window.showToast(payload.message || 'Updated.', 'success');
                     render(activeRequestRows, activeRequestButton);
                 } catch (error) {
                     triggerBtn.disabled = false;
@@ -1502,14 +1642,35 @@
                         <div class="trip-request-risk-card">
                             <div class="trip-request-risk-top">
                                 <span class="trip-request-risk-title"><i class="fa-solid fa-shield-halved"></i> AI Passenger Risk</span>
-                                <span class="trip-request-risk-badge ${Number(request.risk_score) >= 80 ? 'risk-low' : Number(request.risk_score) >= 60 ? 'risk-moderate' : 'risk-high'}">${escapeHtml(request.risk_level || 'Moderate Risk')}</span>
+                                <span class="trip-request-risk-badge ${(() => {
+                                    const s = Number(request.risk_score) || 70;
+                                    return s >= 80 ? 'risk-low' : s >= 60 ? 'risk-moderate' : s >= 40 ? 'risk-high' : 'risk-very-high';
+                                })()}">${escapeHtml(request.risk_level || 'Moderate Risk')}</span>
                             </div>
-                            <div class="trip-request-risk-score">${Number(request.risk_score) || 70}<span>/100</span></div>
+                            <div class="trip-request-risk-gauge">
+                                <div class="trip-request-risk-score">${Number(request.risk_score) || 70}<span>/100</span></div>
+                                <div class="trip-request-risk-gauge-track">
+                                    <div class="trip-request-risk-gauge-marker" style="left:${Math.max(0, Math.min(100, Number(request.risk_score) || 70))}%"></div>
+                                </div>
+                                <div class="trip-request-risk-gauge-scale"><span>Higher risk</span><span>Lower risk</span></div>
+                            </div>
                             <div class="trip-request-risk-meta">
-                                <span><i class="fa-solid fa-shield-heart"></i> Reliability: ${Number(request.risk_reliability || 5.0).toFixed(1)}/5.0</span>
-                                <span><i class="fa-solid fa-file-invoice-dollar"></i> Overdue: ${Number(request.risk_unpaid) || 0}</span>
-                                <span><i class="fa-solid fa-clock"></i> Cancelled: ${Number(request.risk_cancelled) || 0}</span>
-                                <span><i class="fa-solid fa-user-clock"></i> Absences: ${Number(request.risk_absent) || 0}</span>
+                                <div class="trip-request-risk-meta-item">
+                                    <span class="trip-request-risk-meta-icon"><i class="fa-solid fa-shield-heart"></i></span>
+                                    <span class="trip-request-risk-meta-text"><strong>${Number(request.risk_reliability || 5.0).toFixed(1)}/5.0</strong><small>Reliability</small></span>
+                                </div>
+                                <div class="trip-request-risk-meta-item">
+                                    <span class="trip-request-risk-meta-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                                    <span class="trip-request-risk-meta-text"><strong>${Number(request.risk_unpaid) || 0}</strong><small>Overdue</small></span>
+                                </div>
+                                <div class="trip-request-risk-meta-item">
+                                    <span class="trip-request-risk-meta-icon"><i class="fa-solid fa-clock"></i></span>
+                                    <span class="trip-request-risk-meta-text"><strong>${Number(request.risk_cancelled) || 0}</strong><small>Cancelled</small></span>
+                                </div>
+                                <div class="trip-request-risk-meta-item">
+                                    <span class="trip-request-risk-meta-icon"><i class="fa-solid fa-user-clock"></i></span>
+                                    <span class="trip-request-risk-meta-text"><strong>${Number(request.risk_absent) || 0}</strong><small>Absences</small></span>
+                                </div>
                             </div>
                         </div>
                         ${request.note ? `<div class="trip-request-note">Passenger note: ${escapeHtml(request.note)}</div>` : ''}
@@ -1518,7 +1679,16 @@
                                 ${responseForm(request, 'reject', 'Reject', 'danger', 'fa-solid fa-xmark')}
                                 ${responseForm(request, 'approve', 'Approve', 'confirm', 'fa-solid fa-check')}
                             </div>
-                        ` : '<div class="trip-request-note">This request has already been approved.</div>'}
+                        ` : request.attendance_status === 'removed' ? `
+                            <div class="trip-request-note trip-request-note-removed"><i class="fa-solid fa-user-xmark"></i> Removed${request.attendance_note ? ' — ' + escapeHtml(request.attendance_note) : ''}</div>
+                        ` : request.attendance_status === 'absent' ? `
+                            <div class="trip-request-note trip-request-note-absent"><i class="fa-solid fa-user-clock"></i> Marked absent</div>
+                        ` : `
+                            <div class="trip-request-actions">
+                                ${removeForm(request)}
+                                ${request.absence_available ? absenceForm(request) : ''}
+                            </div>
+                        `}
                     </article>
                 `).join('')}
                     </section>
@@ -1617,6 +1787,357 @@
                 list.querySelectorAll('.trip-payment-review-item').forEach((item) => {
                     item.classList.toggle('trip-request-card-hidden', status !== 'all' && !item.textContent.toLowerCase().includes(status));
                 });
+            });
+        })();
+
+        // ── "My Request" — the passenger-side counterpart of "Manage requests"
+        // above: one card for the viewer's own request, Cancel instead of
+        // Reject/Approve/Remove/Absent. Also shows trip date/fare/seats and a
+        // lightweight route-preview map (driver pickup/drop-off plus other
+        // approved passengers' custom stops) — visually modelled on Manage
+        // Requests' hero + map, minus the driver-only optimisation tooling
+        // (stop toggles, route-fit search) since a passenger isn't managing
+        // anyone else's stop here.
+        (() => {
+            const modal = document.getElementById('tripMyRequestModal');
+            const list = document.getElementById('tripMyRequestList');
+            const closeBtn = document.getElementById('tripMyRequestClose');
+            const buttons = document.querySelectorAll('.open-my-request-review');
+            if (!modal || !list || !closeBtn || !buttons.length) return;
+
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            // Pending-request card — same trigger button as above, but a request
+            // still awaiting driver approval has nothing to manage, so it opens
+            // this simpler, Explore-styled read-only view instead (see the
+            // status branch in the click handler near the bottom of this IIFE).
+            const pendingModal = document.getElementById('tripPendingRequestModal');
+            const pendingCloseBtn = document.getElementById('tripPendingRequestClose');
+            const pendingCancelBtn = document.getElementById('tripPendingRequestCancelBtn');
+            if (pendingModal && pendingModal.parentElement !== document.body) {
+                document.body.appendChild(pendingModal);
+            }
+            const pendingOpen = () => {
+                pendingModal?.classList.add('is-open');
+                pendingModal?.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            };
+            const pendingClose = () => {
+                pendingModal?.classList.remove('is-open');
+                pendingModal?.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            };
+            const renderPendingCard = (request) => {
+                if (!pendingModal) return;
+                const setText = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = value;
+                };
+                setText('tripPendingRequestDriverAvatar', request.driver_initial || 'DR');
+                setText('tripPendingRequestDriver', request.driver_name || 'Driver');
+                setText('tripPendingRequestRating', request.driver_rating || '5.00');
+                setText('tripPendingRequestTime', request.trip_datetime || '-');
+                setText('tripPendingRequestSeats', request.seats_available ?? '-');
+                setText('tripPendingRequestFare', request.fare_per_person ? `RM ${request.fare_per_person}` : '-');
+                setText('tripPendingRequestPickup', request.pickup_name || '-');
+                setText('tripPendingRequestDestination', request.destination_name || '-');
+                setText('tripPendingRequestVehicle', request.vehicle_text || '-');
+                if (pendingCancelBtn) pendingCancelBtn.dataset.cancelUrl = request.cancel_url || '';
+            };
+            if (pendingModal) {
+                pendingCloseBtn?.addEventListener('click', pendingClose);
+                pendingModal.addEventListener('click', (event) => {
+                    if (event.target === pendingModal) pendingClose();
+                });
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && pendingModal.classList.contains('is-open')) pendingClose();
+                });
+                pendingCancelBtn?.addEventListener('click', async () => {
+                    const cancelUrl = pendingCancelBtn.dataset.cancelUrl;
+                    if (!cancelUrl) return;
+                    if (!window.confirm('Cancel your join request for this trip?')) return;
+
+                    const originalHtml = pendingCancelBtn.innerHTML;
+                    pendingCancelBtn.disabled = true;
+                    pendingCancelBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                    try {
+                        const form = new FormData();
+                        form.append('_token', csrf);
+                        form.append('_method', 'PATCH');
+                        const response = await fetch(cancelUrl, {
+                            method: 'POST',
+                            body: form,
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+                        const payload = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            throw new Error(payload.message || 'Request could not be cancelled.');
+                        }
+                        if (window.showToast) window.showToast(payload.message || 'Request cancelled.', 'success');
+                        pendingClose();
+                        window.setTimeout(() => window.location.reload(), 600);
+                    } catch (error) {
+                        pendingCancelBtn.disabled = false;
+                        pendingCancelBtn.innerHTML = originalHtml;
+                        if (window.showToast) window.showToast(error.message || 'Request could not be cancelled.', 'error');
+                    }
+                });
+            }
+
+            const csrf = window.CH_TRIPS.csrf;
+            const escapeHtml = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const decodePayload = (encoded) => {
+                try {
+                    const bytes = Uint8Array.from(atob(String(encoded || '')), (char) => char.charCodeAt(0));
+                    return JSON.parse(new TextDecoder().decode(bytes));
+                } catch (_error) {
+                    return null;
+                }
+            };
+            const num = (value) => {
+                const parsed = Number.parseFloat(String(value ?? '').trim());
+                return Number.isFinite(parsed) ? parsed : null;
+            };
+
+            let myRequestMap = null;
+            const drawMap = async (request) => {
+                const mapEl = document.getElementById('tripMyRequestMap');
+                if (!mapEl || typeof L === 'undefined') return;
+                if (myRequestMap) {
+                    myRequestMap.remove();
+                    myRequestMap = null;
+                }
+
+                const pickup = L.latLng(num(request.driver_pickup_lat), num(request.driver_pickup_lng));
+                const dropoff = L.latLng(num(request.driver_dropoff_lat), num(request.driver_dropoff_lng));
+                if (!Number.isFinite(pickup.lat) || !Number.isFinite(pickup.lng) || !Number.isFinite(dropoff.lat) || !Number.isFinite(dropoff.lng)) {
+                    mapEl.innerHTML = '<div class="trip-payment-review-empty">No coordinates available for route preview.</div>';
+                    return;
+                }
+
+                myRequestMap = L.map(mapEl, { scrollWheelZoom: false, zoomControl: true, attributionControl: false });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(myRequestMap);
+
+                const numberedIcon = (className, marker, fill = '') => L.divIcon({
+                    className: '',
+                    html: `<span class="summary-pin-icon ${className}" data-summary-marker="${marker}" style="${fill ? `--pin-fill:${fill}` : ''}">${marker}</span>`,
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13],
+                    tooltipAnchor: [0, -14],
+                });
+                const addPoint = (point, className, label, marker, fill = '') => {
+                    L.marker(point, { icon: numberedIcon(className, marker, fill), title: label })
+                        .addTo(myRequestMap)
+                        .bindTooltip(escapeHtml(label), { permanent: false, direction: 'top', offset: [0, -10] });
+                };
+
+                const stops = (Array.isArray(request.approved_stops) ? request.approved_stops : [])
+                    .map((stop) => ({ point: L.latLng(num(stop.lat), num(stop.lng)), label: stop.label || 'Passenger stop' }))
+                    .filter((stop) => Number.isFinite(stop.point.lat) && Number.isFinite(stop.point.lng));
+
+                const points = [pickup, ...stops.map((stop) => stop.point), dropoff];
+
+                // Straight reference line first (instant), swapped for the real
+                // road route once OSRM responds — best-effort, no permutation
+                // search needed since the passenger isn't optimising stop order.
+                let referenceLine = L.polyline(points, { color: '#64748b', weight: 5, opacity: .55, lineCap: 'round', interactive: false }).addTo(myRequestMap);
+                addPoint(pickup, 'driver-pickup', 'Driver Pickup', 'A');
+                stops.forEach((stop, index) => addPoint(stop.point, 'approved', stop.label, String(index + 1), '#22c55e'));
+                addPoint(dropoff, 'driver-dropoff', 'Driver Drop-off', 'B');
+
+                const bounds = L.latLngBounds(points);
+                if (bounds.isValid()) myRequestMap.fitBounds(bounds, { padding: [28, 28] });
+                setTimeout(() => myRequestMap?.invalidateSize(), 100);
+
+                try {
+                    const coordinates = points.map((point) => `${point.lng},${point.lat}`).join(';');
+                    const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson&alternatives=false&steps=false`);
+                    if (!response.ok) return;
+                    const data = await response.json();
+                    const routeCoords = (data?.routes?.[0]?.geometry?.coordinates ?? [])
+                        .map((coord) => L.latLng(Number(coord[1]), Number(coord[0])))
+                        .filter((coord) => Number.isFinite(coord.lat) && Number.isFinite(coord.lng));
+                    if (routeCoords.length > 1 && myRequestMap) {
+                        referenceLine.remove();
+                        L.polyline(routeCoords, { color: '#1d4ed8', weight: 5, opacity: .92, lineCap: 'round', interactive: false }).addTo(myRequestMap);
+                    }
+                } catch (_error) {
+                    // Reference line already drawn — nothing else to do.
+                }
+            };
+
+            const open = () => {
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            };
+            const close = () => {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                if (myRequestMap) {
+                    myRequestMap.remove();
+                    myRequestMap = null;
+                }
+            };
+
+            const render = (request) => {
+                if (!request) {
+                    list.innerHTML = '<div class="trip-request-empty-state"><p class="trip-request-empty-title">Request not found</p></div>';
+                    return;
+                }
+
+                const statusLabel = request.status === 'pending' ? 'Pending' : 'Approved';
+                const approvedStopCount = Array.isArray(request.approved_stops) ? request.approved_stops.length : 0;
+
+                list.innerHTML = `
+                    <div class="trip-meta-line">
+                        <span class="trip-meta-item"><i class="fa-solid fa-hashtag"></i><span>${escapeHtml(request.trip || '-')}</span></span>
+                        <span class="trip-meta-dot">&middot;</span>
+                        <span class="trip-meta-item"><i class="fa-regular fa-calendar"></i><span>${escapeHtml(request.trip_datetime || '-')}</span></span>
+                        <span class="trip-meta-dot">&middot;</span>
+                        <span class="trip-meta-item trip-meta-route"><i class="fa-solid fa-road"></i><span class="trip-meta-route-text">${escapeHtml(request.route_name || '-')}</span></span>
+                    </div>
+                    <div class="trip-secondary-grid">
+                        <div class="trip-secondary-item">
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-chair"></i>Seats Left</span>
+                            <span class="trip-modal-value">${escapeHtml(request.seats_available ?? '-')}</span>
+                        </div>
+                        <div class="trip-secondary-item">
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-users"></i>Approved</span>
+                            <span class="trip-modal-value">${Number(request.approved_count) || 0}</span>
+                        </div>
+                        <div class="trip-secondary-item">
+                            <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-money-bill-wave"></i>Trip Fare</span>
+                            <span class="trip-modal-value">RM ${escapeHtml(request.fare_per_person || '0.00')}</span>
+                        </div>
+                    </div>
+                    <section class="trip-request-summary-card">
+                        <div>
+                            <h3 class="trip-request-section-title">Route Preview</h3>
+                            <p class="trip-request-section-sub">Driver pickup/drop-off and other approved passengers' custom stops.</p>
+                        </div>
+                        <span class="trip-request-count-pill">${approvedStopCount} approved stop${approvedStopCount === 1 ? '' : 's'}</span>
+                        <div class="trip-request-map" id="tripMyRequestMap"></div>
+                        <div class="trip-request-map-legend">
+                            <span><i class="original"></i>Route preview</span>
+                        </div>
+                    </section>
+                    <article class="trip-payment-review-item">
+                        <div class="trip-payment-review-top">
+                            <div class="trip-payment-review-person">
+                                <span class="trip-payment-review-avatar">${escapeHtml(request.initials || 'P')}</span>
+                                <span>
+                                    <span class="trip-payment-review-name">${escapeHtml(request.passenger || 'You')}</span>
+                                </span>
+                            </div>
+                            <span class="trip-payment-review-status">${escapeHtml(statusLabel)}</span>
+                        </div>
+                        <div class="trip-request-route-grid">
+                            <div class="trip-request-route-item">
+                                <span>Pickup</span>
+                                <strong>${escapeHtml(request.pickup)}</strong>
+                                <small>${escapeHtml(request.pickup_meta || '-')}</small>
+                            </div>
+                            <div class="trip-request-route-item">
+                                <span>Drop-off</span>
+                                <strong>${escapeHtml(request.dropoff)}</strong>
+                                <small>${escapeHtml(request.dropoff_meta || '-')}</small>
+                            </div>
+                            <div class="trip-request-route-item">
+                                <span>Extra fee</span>
+                                <strong>${request.fare ? `+ RM ${escapeHtml(request.fare)}` : 'No extra fee'}</strong>
+                                <small>Added only to you</small>
+                            </div>
+                            <div class="trip-request-route-item">
+                                <span>Route fit</span>
+                                <strong>${escapeHtml(request.fit || 'Review')}</strong>
+                                <small>${escapeHtml(request.fit_label || 'Driver review')}</small>
+                            </div>
+                        </div>
+                        ${request.can_cancel ? `
+                            <div class="trip-request-actions">
+                                <button type="button" class="trip-payment-review-btn danger open-my-request-cancel" data-cancel-url="${escapeHtml(request.cancel_url)}">
+                                    <i class="fa-solid fa-ban"></i> Cancel
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="trip-request-note">This trip has already passed — it can no longer be cancelled.</div>
+                        `}
+                    </article>
+                `;
+
+                drawMap(request);
+            };
+
+            buttons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const request = decodePayload(button.dataset.requestB64);
+                    if (request && request.status === 'pending' && pendingModal) {
+                        renderPendingCard(request);
+                        pendingOpen();
+                        return;
+                    }
+                    showModalSkeleton(list);
+                    open();
+                    setTimeout(() => render(request), 240);
+                });
+            });
+
+            closeBtn.addEventListener('click', close);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) close();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) close();
+            });
+
+            list.addEventListener('click', async (event) => {
+                const cancelBtn = event.target.closest('.open-my-request-cancel');
+                if (!cancelBtn) return;
+                if (!window.confirm('Cancel your request for this trip? You will be removed from the trip immediately.')) return;
+
+                const originalHtml = cancelBtn.innerHTML;
+                cancelBtn.disabled = true;
+                cancelBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                try {
+                    const form = new FormData();
+                    form.append('_token', csrf);
+                    form.append('_method', 'PATCH');
+                    const response = await fetch(cancelBtn.dataset.cancelUrl, {
+                        method: 'POST',
+                        body: form,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(payload.message || 'Request could not be cancelled.');
+                    }
+                    if (window.showToast) window.showToast(payload.message || 'Request cancelled.', 'success');
+                    close();
+                    // Seat counts, tab counters, and this trip's own card all need
+                    // a fresh server render — simplest correct option here.
+                    window.setTimeout(() => window.location.reload(), 600);
+                } catch (error) {
+                    cancelBtn.disabled = false;
+                    cancelBtn.innerHTML = originalHtml;
+                    if (window.showToast) window.showToast(error.message || 'Request could not be cancelled.', 'error');
+                }
             });
         })();
 

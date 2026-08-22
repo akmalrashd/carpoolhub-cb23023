@@ -30,8 +30,8 @@ class StoreTripRequest extends FormRequest
 
             if ($this->input('visibility') === 'public' && $this->filled('trip_datetime')) {
                 try {
-                    $tripAt = Carbon::parse((string) $this->input('trip_datetime'));
-                    if ($tripAt->lessThanOrEqualTo(now())) {
+                    $tripAt = Carbon::parse((string) $this->input('trip_datetime'), \App\Models\Trip::TIMEZONE);
+                    if ($tripAt->lessThanOrEqualTo(\App\Models\Trip::now())) {
                         $validator->errors()->add('trip_datetime', 'For public trips, date and time must be later than current time.');
                     }
                 } catch (\Throwable $exception) {

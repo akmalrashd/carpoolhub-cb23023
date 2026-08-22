@@ -2,7 +2,14 @@
 .bg-pattern-fixed {
     position: fixed;
     inset: 0;
-    z-index: 0;
+    /* Negative, not 0 — a positioned z-index:0 sibling still paints ABOVE
+       plain non-positioned page content per the CSS stacking order, which is
+       why .app-shell previously needed its own z-index:1 to climb back above
+       it. That trapped every modal rendered inside .app-shell in a new
+       stacking context, capping it below the header/bottom-nav that live
+       outside .app-shell as plain body children. Negative z-index paints
+       behind ordinary content instead, so .app-shell needs no z-index at all. */
+    z-index: -1;
     overflow: hidden;
     pointer-events: none;
     background: var(--canvas);
@@ -30,6 +37,23 @@
     width: 100%;
     height: 100%;
     display: block;
+}
+
+/* Slow breathing pulse per hexagon layer — animation-duration/-delay are set
+   inline per polygon (blade controls timing/stagger), this just defines the
+   keyframe shape. Plain CSS animation instead of SMIL <animate>, which left
+   these shapes with an empty points list and nothing painted. */
+.bg-pattern-poly {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation-name: bg-pattern-pulse;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+@keyframes bg-pattern-pulse {
+    0%, 100% { opacity: .35; transform: scale(.82); }
+    50% { opacity: 1; transform: scale(1.06); }
 }
 
 /* Fades the grid into the plain --canvas color at the edges, so a fixed-size

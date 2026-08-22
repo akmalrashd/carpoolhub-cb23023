@@ -1131,6 +1131,16 @@
             line-height: 1.45;
             padding: 10px;
         }
+        .trip-request-note-removed {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+        .trip-request-note-absent {
+            background: #fffbeb;
+            border-color: #fde68a;
+            color: #92400e;
+        }
         .trip-request-route-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1200,23 +1210,92 @@
         }
         .trip-request-risk-badge.risk-low { color: var(--success-ink); background: var(--success-soft); border-color: #86efac; }
         .trip-request-risk-badge.risk-moderate { color: var(--warning-ink); background: var(--ch-yellow-tint); border-color: var(--ch-yellow-line); }
-        .trip-request-risk-badge.risk-high { color: var(--danger); background: var(--danger-soft); border-color: #fecaca; }
+        .trip-request-risk-badge.risk-high { color: #9a3412; background: #ffedd5; border-color: #fed7aa; }
+        .trip-request-risk-badge.risk-very-high { color: var(--danger-ink); background: var(--danger-soft); border-color: #fecaca; }
         .trip-request-risk-score {
-            font-size: 20px;
+            font-size: 26px;
             font-weight: 900;
             color: var(--ink);
             line-height: 1;
         }
         .trip-request-risk-score span { font-size: 13px; font-weight: 600; color: var(--muted); }
-        .trip-request-risk-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px 10px;
-            font-size: 11px;
-            color: var(--ink-3);
-            font-weight: 600;
+        /* Score shown as a position on a full red→orange→yellow→green spectrum
+           (not a bare number) — the gradient is continuous on purpose, echoing
+           the underlying scoring being graded rather than a pass/fail cutoff. */
+        .trip-request-risk-gauge {
+            display: grid;
+            gap: 6px;
         }
-        .trip-request-risk-meta i { color: var(--muted); margin-right: 3px; font-size: 10px; }
+        .trip-request-risk-gauge-track {
+            position: relative;
+            height: 8px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #dc2626 0%, #f97316 33%, #eab308 66%, #16a34a 100%);
+        }
+        .trip-request-risk-gauge-marker {
+            position: absolute;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            background: var(--surface);
+            border: 3px solid var(--ink);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, .35);
+            transform: translate(-50%, -50%);
+            transition: left .2s ease;
+        }
+        .trip-request-risk-gauge-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted-2);
+        }
+        .trip-request-risk-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+        }
+        .trip-request-risk-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid var(--hairline);
+            border-radius: 8px;
+            background: var(--surface-2);
+            padding: 6px 8px;
+            min-width: 0;
+        }
+        .trip-request-risk-meta-icon {
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            color: var(--muted);
+            font-size: 10px;
+        }
+        .trip-request-risk-meta-text {
+            display: grid;
+            line-height: 1.2;
+            min-width: 0;
+        }
+        .trip-request-risk-meta-text strong {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--ink);
+        }
+        .trip-request-risk-meta-text small {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
         .trip-request-actions {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1324,9 +1403,11 @@
             line-height: 1.45;
             max-width: 320px;
         }
-        /* Manage-requests popup: keep info boxes white instead of the tinted surface-2 default */
+        /* Manage-requests / My Request popups: keep info boxes white instead of the tinted surface-2 default */
         #tripRequestsReviewList .trip-secondary-grid,
-        #tripRequestsReviewList .trip-request-empty-state {
+        #tripRequestsReviewList .trip-request-empty-state,
+        #tripMyRequestList .trip-secondary-grid,
+        #tripMyRequestList .trip-request-empty-state {
             background: var(--surface);
         }
         .trip-request-summary-card {
@@ -1823,39 +1904,25 @@
             white-space: nowrap;
             line-height: 1;
         }
-        .status-chip.status-upcoming,
-        .status-chip.status-scheduled,
-        .status-chip.status-confirmed {
-            background: var(--success-soft);
-            border-color: #86efac;
-            color: var(--success-ink);
+        .status-chip.status-scheduled {
+            background: var(--info-soft);
+            border-color: #bfdbfe;
+            color: var(--info-ink);
         }
-        .status-chip.status-in_progress,
-        .status-chip.status-in-progress,
+        .status-chip.status-pending {
+            background: var(--warning-soft);
+            border-color: #fcd34d;
+            color: var(--warning-ink);
+        }
         .status-chip.status-recorded {
             background: var(--ch-yellow-tint);
             border-color: var(--ch-yellow-line);
             color: var(--ch-yellow-ink);
         }
-        .status-chip.status-requests {
-            background: #ffedd5;
-            border-color: #fed7aa;
-            color: #9a3412;
-        }
-        .status-chip.status-full {
-            background: var(--info-soft);
-            border-color: #bfdbfe;
-            color: var(--info-ink);
-        }
-        .status-chip.status-completed {
-            background: var(--success-soft);
-            border-color: #86efac;
-            color: var(--success-ink);
-        }
         .status-chip.status-cancelled {
-            background: var(--surface-2);
-            border-color: var(--hairline-strong);
-            color: var(--muted);
+            background: var(--danger-soft);
+            border-color: #fecaca;
+            color: var(--danger-ink);
         }
         .status-chip.status-draft {
             background: var(--surface-2);
@@ -2379,9 +2446,6 @@
                 padding: 5px 10px;
                 font-size: 11px;
                 border-radius: 999px;
-                background: var(--success-soft);
-                border-color: #86efac;
-                color: var(--success-ink);
             }
             .trip-detail-grid {
                 display: grid;
@@ -2711,6 +2775,11 @@
 .is-filled.requests-btn { background: #7c3aed !important; position: relative; }
 .is-filled.requests-btn:hover { background: #6d28d9 !important; }
 
+/* My Request: Blue — the passenger-side counterpart of Requests, deliberately
+   a different color so it never reads as the same (driver-only) action. */
+.is-filled.myrequest-btn { background: #2563eb !important; }
+.is-filled.myrequest-btn:hover { background: #1d4ed8 !important; }
+
 .trip-request-badge {
     position: absolute;
     top: -6px;
@@ -2744,4 +2813,14 @@
     flex: 1;
     display: inline-flex !important;
     margin: 0;
+}
+/* Edit/Delete collapse to icon-only when Requests is also present — three
+   full-label buttons don't fit and were squeezing/overlapping the Trip ID
+   next to them. Fixed-width here (not flex:1) so Requests keeps the room. */
+.trip-actions-filled .trip-action-btn.icon-only {
+    flex: 0 0 38px;
+    width: 38px;
+}
+.trip-actions-filled .trip-action-form:has(.icon-only) {
+    flex: 0 0 38px;
 }

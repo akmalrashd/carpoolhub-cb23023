@@ -102,7 +102,7 @@ class DashboardController extends Controller
             ->where('driver_id', $user->id)
             ->whereIn('status', ['scheduled', 'confirmed'])
             ->whereNotNull('trip_datetime')
-            ->where('trip_datetime', '>=', now())
+            ->where('trip_datetime', '>=', Trip::now())
             ->orderBy('trip_datetime')
             ->orderBy('id')
             ->limit(3)
@@ -112,7 +112,7 @@ class DashboardController extends Controller
             ->with(['savedRoute', 'participants'])
             ->whereIn('status', ['scheduled', 'confirmed'])
             ->whereNotNull('trip_datetime')
-            ->where('trip_datetime', '>=', now())
+            ->where('trip_datetime', '>=', Trip::now())
             ->whereHas('participants', function ($query) use ($user): void {
                 $query->where('user_id', $user->id)
                     ->where('is_driver', false);
@@ -141,7 +141,7 @@ class DashboardController extends Controller
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)
             ->whereIn('status', ['scheduled', 'confirmed'])
-            ->where('trip_datetime', '>=', now())
+            ->where('trip_datetime', '>=', Trip::now())
             ->where('driver_id', '!=', $user->id)
             ->whereRaw(
                 '(seat_limit IS NULL OR seat_limit > (SELECT COUNT(*) FROM trip_participants tp WHERE tp.trip_id = trips.id AND tp.is_driver = 0))'

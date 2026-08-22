@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TripPayment;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Ai\PassengerRiskScoringService;
 use App\Services\Concerns\FormatsTripLabel;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -18,6 +19,11 @@ class PaymentService
     use FormatsTripLabel;
 
     private const REMINDER_COOLDOWN_HOURS = 24;
+
+    public function __construct(
+        private readonly PassengerRiskScoringService $passengerRiskScoringService,
+    ) {
+    }
 
     public function paginateForUser(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
     {
@@ -330,6 +336,8 @@ class PaymentService
                     'is_read'      => false,
                 ]);
 
+                $this->passengerRiskScoringService->refreshRiskProfile($actor);
+
                 return $payment->refresh();
             }
 
@@ -342,6 +350,8 @@ class PaymentService
                 'related_id'   => $payment->id,
                 'is_read'      => false,
             ]);
+
+            $this->passengerRiskScoringService->refreshRiskProfile($actor);
 
             return $payment->refresh();
         });
@@ -394,6 +404,10 @@ class PaymentService
                 'is_read'      => false,
             ]);
 
+            if ($payment->user) {
+                $this->passengerRiskScoringService->refreshRiskProfile($payment->user);
+            }
+
             return $payment->refresh();
         });
     }
@@ -442,6 +456,10 @@ class PaymentService
                 'related_id'   => $payment->id,
                 'is_read'      => false,
             ]);
+
+            if ($payment->user) {
+                $this->passengerRiskScoringService->refreshRiskProfile($payment->user);
+            }
 
             return $payment->refresh();
         });

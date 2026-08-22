@@ -77,6 +77,40 @@
             white-space: nowrap;
         }
 
+        /* ── Small phones: the actions column used to wrap onto its own line
+           with each button sized to its own text, right-aligned against
+           nothing in particular — inconsistent widths, floating oddly under
+           the title. Make it a deliberate full-width row instead. ── */
+        @media (max-width: 600px) {
+            .pg-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .pg-header-actions {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: stretch;
+            }
+            .notif-unread-badge {
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+            .notif-delete-all-btn,
+            #notif-mark-all-form {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+            #notif-mark-all-form {
+                display: flex;
+            }
+            .notif-delete-all-btn,
+            .notif-mark-all-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
         /* ── Tab strip ── */
         .notif-tabs {
             display: inline-flex;
