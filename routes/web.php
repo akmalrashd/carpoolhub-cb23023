@@ -20,6 +20,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/home');
 
+// Public — no auth required, since a prospective user needs to read this
+// before registering (linked from the sign-up form's consent text).
+Route::view('/legal/terms', 'legal.terms')->name('legal.terms');
+
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');

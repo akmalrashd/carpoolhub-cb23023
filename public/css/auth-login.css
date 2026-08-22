@@ -69,16 +69,15 @@
             pointer-events: none;
         }
 
-        /* Decorative arc */
-        .brand-panel::after {
-            content: "";
+        /* Decorative hex ring — a real SVG (not a pseudo-element background/
+           border trick) since a hollow hexagon outline, unlike a circle,
+           needs an actual stroked path rather than border-radius. */
+        .brand-panel-hex-decor {
             position: absolute;
             bottom: -80px;
             right: -80px;
             width: 320px;
             height: 320px;
-            border-radius: 50%;
-            border: 40px solid rgba(250,204,21,0.12);
             pointer-events: none;
         }
 
@@ -87,27 +86,32 @@
             z-index: 1;
         }
 
-        .brand-logo {
-            display: block;
-            width: min(220px, 80%);
-            height: auto;
+        .brand-logo-lockup {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 40px;
         }
 
-        .brand-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: rgba(250,204,21,0.15);
-            border: 1px solid rgba(250,204,21,0.30);
-            border-radius: var(--r-pill);
-            padding: 5px 14px;
-            font-size: 12px;
-            font-weight: 600;
+        .brand-logo-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .brand-logo-text {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .brand-logo-text span {
             color: var(--ch-yellow);
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            margin-bottom: 22px;
         }
 
         .brand-heading {
@@ -174,13 +178,31 @@
         /* Mobile-only logo shown inside form panel */
         .mobile-logo-wrap {
             display: flex;
+            align-items: center;
             justify-content: center;
+            gap: 10px;
             margin-bottom: 28px;
         }
 
-        .mobile-logo-wrap img {
-            width: min(180px, 60%);
-            height: auto;
+        .mobile-logo-icon {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .mobile-logo-text {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+
+        .mobile-logo-text span {
+            color: var(--ch-yellow);
         }
 
         .form-box {
