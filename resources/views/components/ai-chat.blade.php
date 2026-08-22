@@ -178,6 +178,13 @@ const aiChat = (() => {
 
     function open() {
         isOpen = true;
+        // The header's other dropdowns (profile/notifications/bento menu) are
+        // native <details> elements with their own separate mutual-exclusion
+        // logic in app.blade.php — this button isn't one of them, so opening
+        // the AI panel has to close them itself.
+        document.querySelectorAll('.notification-wrap, .profile-wrap, .more-menu, .bento-menu-wrap').forEach(function (detail) {
+            detail.removeAttribute('open');
+        });
         document.querySelectorAll('#ai-fab').forEach(el => el.classList.add('is-open'));
         $('ai-chat-window').classList.add('is-open');
         $('ai-chat-window').setAttribute('aria-hidden','false');

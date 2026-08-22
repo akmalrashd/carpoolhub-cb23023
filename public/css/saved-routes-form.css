@@ -235,6 +235,32 @@
         border-radius: 0; border: none;
         border-top: 1px solid var(--hairline);
     }
+    .rf-map-loading-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+    }
+    .rf-map-loading-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid var(--hairline-strong);
+        border-top-color: #eab308;
+        border-radius: 50%;
+        animation: rfMapSpin 0.8s linear infinite;
+    }
+    @keyframes rfMapSpin {
+        to { transform: rotate(360deg); }
+    }
     @media (max-width: 1023px) {
         #routeMap { height: 300px; }
     }

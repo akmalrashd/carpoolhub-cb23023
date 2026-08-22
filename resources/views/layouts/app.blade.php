@@ -1052,6 +1052,11 @@
             if (e.target && e.target.classList && e.target.classList.contains('bento-menu-wrap')) {
                 document.body.classList.toggle('bento-menu-open', e.target.open);
             }
+            /* The AI panel isn't one of these <details> elements, so opening
+               any of them has to close it explicitly. */
+            if (e.target && e.target.open && e.target.matches && e.target.matches('.notification-wrap, .profile-wrap, .more-menu, .bento-menu-wrap')) {
+                if (typeof aiChat !== 'undefined' && aiChat.close) { aiChat.close(); }
+            }
         }, true);
 
         window.setInterval(pollNotifications, 5000);

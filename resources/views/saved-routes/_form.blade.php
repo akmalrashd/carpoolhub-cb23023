@@ -177,6 +177,10 @@
                 </button>
             </div>
             <div id="routeMap"></div>
+            <div class="rf-map-loading-overlay" id="routeMapLoading" hidden>
+                <div class="rf-map-loading-spinner"></div>
+                <span id="routeMapLoadingText">Finding best routes…</span>
+            </div>
         </div>
 
     </div>{{-- /.rf-map-card --}}
@@ -479,6 +483,18 @@
         var previewCloseBtn = document.getElementById('mapPreviewCloseBtn');
         var routeOptionsEl = document.getElementById('routeOptions');
         var routeRecommendationEl = document.getElementById('routeRecommendation');
+        var routeMapLoadingEl = document.getElementById('routeMapLoading');
+        var routeMapLoadingTextEl = document.getElementById('routeMapLoadingText');
+
+        function showMapLoading(text) {
+            if (!routeMapLoadingEl) return;
+            if (routeMapLoadingTextEl) routeMapLoadingTextEl.textContent = text;
+            routeMapLoadingEl.hidden = false;
+        }
+
+        function hideMapLoading() {
+            if (routeMapLoadingEl) routeMapLoadingEl.hidden = true;
+        }
         var mapStepNumber = document.getElementById('mapStepNumber');
         var mapStepText = document.getElementById('mapStepText');
         var mapStepHint = document.getElementById('mapStepHint');
@@ -1642,7 +1658,7 @@
                 .catch(function () { return []; });
         }
 
-        // A point offset perpendicular to the start->end line, used to force
+        // A point offset perpendicular to a start->end line, used to force
         // OSRM onto a genuinely different corridor. The public OSRM demo
         // server has no `exclude=` support and its own alternatives= search
         // frequently returns just one route for anything past ~150km (a long
@@ -1663,6 +1679,32 @@
                 midLat + (perpLat / perpLen) * offsetDegrees * sideSign,
                 midLng + (perpLng / perpLen) * offsetDegrees * sideSign
             );
+        }
+
+        // With custom passenger stops, `points` has more than 2 entries — all
+        // of them mandatory, in order. The detour point can't replace any of
+        // them, so it goes on whichever consecutive pair is furthest apart
+        // (that's both where OSRM is most likely to have failed to find a
+        // native alternative, and where a detour is actually meaningful
+        // rather than a rounding error on a 500m hop between two stops).
+        function longestSegmentIndex(points) {
+            var maxDistance = -1;
+            var maxIndex = 0;
+            for (var i = 0; i < points.length - 1; i += 1) {
+                var distance = points[i].distanceTo(points[i + 1]);
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    maxIndex = i;
+                }
+            }
+            return { index: maxIndex, distance: maxDistance };
+        }
+
+        function withOffsetInsertedAt(points, segmentIndex, sideSign, fraction) {
+            var offsetPoint = perpendicularOffset(points[segmentIndex], points[segmentIndex + 1], sideSign, fraction);
+            var withOffset = points.slice();
+            withOffset.splice(segmentIndex + 1, 0, offsetPoint);
+            return withOffset;
         }
 
         function routesAreSimilar(a, b) {
@@ -1702,6 +1744,8 @@
             syncPresetStopMarkers();
             var points = routeWaypoints();
 
+            showMapLoading('Finding best routes…');
+
             fetchOsrmRoutes(points).then(function (baseRoutes) {
                 if (!baseRoutes.length) {
                     fetchedRoutes = [];
@@ -1709,17 +1753,22 @@
                     drawStraightLine();
                     routeOptionsEl.innerHTML = '<div class="rf-route-empty">Routing service is unavailable. Showing a straight line only.</div>';
                     if (fareAdvisorStatus) fareAdvisorStatus.textContent = 'Route fallback';
+                    hideMapLoading();
                     return;
                 }
 
-                // Only try the offset-detour trick for plain start->end trips
-                // (no mandatory passenger stops in between) and only when OSRM's
-                // own alternatives search came up short.
-                var needsMoreOptions = baseRoutes.length < 3 && points.length === 2;
-                var extraFetches = needsMoreOptions ? [
-                    fetchOsrmRoutes([points[0], perpendicularOffset(points[0], points[1], 1, 0.18), points[1]]),
-                    fetchOsrmRoutes([points[0], perpendicularOffset(points[0], points[1], -1, 0.18), points[1]]),
+                // Only try the offset-detour trick when OSRM's own alternatives
+                // search came up short, and only on a segment long enough that
+                // a detour would mean something (skip a 500m hop between two
+                // closely-spaced custom stops).
+                var longestSegment = longestSegmentIndex(points);
+                var tryingDetour = baseRoutes.length < 3 && longestSegment.distance >= 3000;
+                var extraFetches = tryingDetour ? [
+                    fetchOsrmRoutes(withOffsetInsertedAt(points, longestSegment.index, 1, 0.18)),
+                    fetchOsrmRoutes(withOffsetInsertedAt(points, longestSegment.index, -1, 0.18)),
                 ] : [];
+
+                if (tryingDetour) showMapLoading('Checking alternate routes…');
 
                 Promise.all(extraFetches).then(function (extraLists) {
                     fetchedRoutes = mergeDistinctRoutes([baseRoutes].concat(extraLists));
@@ -1730,6 +1779,7 @@
                     autoFillLowestSuggestedFare();
                     updateToolbarStats(fetchedRoutes[0]);
                     syncPresetFares(false);
+                    hideMapLoading();
                 });
             });
         }

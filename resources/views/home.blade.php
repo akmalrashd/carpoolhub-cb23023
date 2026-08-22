@@ -74,9 +74,15 @@
             ? ($nextTrip->savedRoute?->route_name ?: (($nextTrip->pickup_name ?? 'Pickup') . ' -> ' . ($nextTrip->destination_name ?? 'Destination')))
             : null;
         $nextTripMinutes = $nextTrip?->trip_datetime ? max(0, now()->diffInMinutes($nextTrip->trip_datetime, false)) : null;
-        $nextTripCountdown = $nextTripMinutes !== null
-            ? (int) floor($nextTripMinutes / 60) . ' h ' . ($nextTripMinutes % 60) . ' min'
-            : null;
+        if ($nextTripMinutes !== null) {
+            $nextTripDays = intdiv($nextTripMinutes, 1440);
+            $nextTripHours = intdiv($nextTripMinutes % 1440, 60);
+            $nextTripMins = $nextTripMinutes % 60;
+            $nextTripCountdown = ($nextTripDays > 0 ? $nextTripDays . ' ' . ($nextTripDays === 1 ? 'day' : 'days') . ' ' : '')
+                . $nextTripHours . ' h ' . $nextTripMins . ' min';
+        } else {
+            $nextTripCountdown = null;
+        }
         $mobileHeroPrimaryUrl = $nextTrip
             ? route('trips.index', ['focus_trip' => $nextTrip->id])
             : route($heroPrimary['route']);
@@ -608,7 +614,7 @@
                 @else
                     <a href="{{ route('payments.index', ['date_from' => $stats['month_start'], 'date_to' => $stats['month_end']]) }}" class="hp-mobile-stat">
                         <span class="hp-mobile-stat-label">Monthly Earnings</span>
-                        <span class="hp-mobile-stat-value" style="font-size:18px;">{{ str_replace('RM ', '', $totalEarnings) }}</span>
+                        <span class="hp-mobile-stat-value" style="font-size:18px;">{{ $totalEarnings }}</span>
                         <span class="hp-mobile-stat-delta">Paid fares</span>
                     </a>
                     <a href="{{ route('payments.index', ['payment_filter' => 'review']) }}" class="hp-mobile-stat">

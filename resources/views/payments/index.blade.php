@@ -718,7 +718,7 @@
                                         </form>
                                         <button
                                             type="button"
-                                            class="payments-btn payments-btn-highlight open-mark-paid-modal"
+                                            class="payments-btn ch-btn-green open-mark-paid-modal"
                                             data-action="{{ route('payments.confirm-paid', $payment) }}"
                                             data-passenger="{{ $counterparty !== 'Self (Paying Driver)' ? $counterparty : ($payment->user?->name ?: 'Passenger') }}"
                                             data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
