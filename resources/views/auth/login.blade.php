@@ -24,16 +24,18 @@
 
     {{-- ── Left brand panel (desktop) ── --}}
     <aside class="brand-panel">
+        <svg class="brand-panel-hex-decor" viewBox="0 0 320 320" aria-hidden="true">
+            <polygon
+                points="160 20, 280 90, 280 230, 160 300, 40 230, 40 90"
+                fill="none"
+                stroke="rgba(250,204,21,0.12)"
+                stroke-width="40"
+            />
+        </svg>
         <div class="brand-panel-inner">
-            <img
-                class="brand-logo"
-                src="{{ asset('assets/branding/logo-horizontal-w.png') }}"
-                alt="CarpoolHub"
-            >
-
-            <div class="brand-pill">
-                <i class="fa-solid fa-car-side"></i>
-                Malaysia's smarter carpool
+            <div class="brand-logo-lockup">
+                <img src="{{ asset('assets/branding/logo-small-b.png') }}" alt="" class="brand-logo-icon">
+                <span class="brand-logo-text">Carpool<span>Hub</span></span>
             </div>
 
             <h2 class="brand-heading">
@@ -42,22 +44,27 @@
             </h2>
 
             <p class="brand-tagline">
-                Connect with colleagues and neighbours going your way.
-                Fewer cars, lower costs, better commutes — every day.
+                Connect with colleagues and neighbours heading your way —
+                split fares fairly, ride with verified drivers, and make
+                your daily commute simpler.
             </p>
 
             <ul class="brand-features">
                 <li>
                     <span class="feat-icon"><i class="fa-solid fa-route"></i></span>
-                    Smart route matching
+                    Smart matching to your route
                 </li>
                 <li>
                     <span class="feat-icon"><i class="fa-solid fa-wallet"></i></span>
-                    Split costs fairly & transparently
+                    Fair, transparent fare splitting
                 </li>
                 <li>
                     <span class="feat-icon"><i class="fa-solid fa-shield-halved"></i></span>
-                    Verified community members
+                    Every driver reviewed & verified
+                </li>
+                <li>
+                    <span class="feat-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                    AI assistant for trip planning & fare pricing
                 </li>
             </ul>
         </div>
@@ -67,15 +74,13 @@
     <main class="form-panel">
         <div class="form-box">
 
-            {{-- Mobile logo (hidden on desktop) --}}
-            <div class="mobile-logo-wrap">
-                <img
-                    src="{{ asset('assets/branding/logo-horizontal-b.png') }}"
-                    alt="CarpoolHub"
-                >
-            </div>
-
             <div class="login-card">
+
+                {{-- Mobile logo (hidden on desktop) --}}
+                <div class="mobile-logo-wrap">
+                    <img src="{{ asset('assets/branding/logo-small-b.png') }}" alt="" class="mobile-logo-icon">
+                    <span class="mobile-logo-text">Carpool<span>Hub</span></span>
+                </div>
 
                 <div class="login-card-header">
                     <h1 class="login-card-title">Welcome back</h1>
