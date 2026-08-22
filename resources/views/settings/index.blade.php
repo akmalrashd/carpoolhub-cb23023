@@ -306,7 +306,12 @@
                                 <label class="form-label">Vehicle Details</label>
                                 <div class="input-wrap @error('vehicle_model') has-error @enderror @error('vehicle_plate') has-error @enderror">
                                     <span class="input-icon"><i class="fa-solid fa-car"></i></span>
-                                    <input type="text" name="vehicle_model" class="input-field" value="{{ old('vehicle_model', $user->vehicle_model) }}" placeholder="Model (e.g. Perodua Myvi 1.5)" style="border-right:1px solid var(--hairline);">
+                                    <input type="text" name="vehicle_model" class="input-field" value="{{ old('vehicle_model', $user->vehicle_model) }}" placeholder="Model (e.g. Perodua Myvi 1.5)" style="border-right:1px solid var(--hairline);" list="vehicle-model-suggestions">
+                                    <datalist id="vehicle-model-suggestions">
+                                        @foreach (config('vehicle_fuel_consumption', []) as $vehicleOption)
+                                            <option value="{{ $vehicleOption['label'] }}"></option>
+                                        @endforeach
+                                    </datalist>
                                     <div class="vehicle-plate-group">
                                         <span class="input-icon"><i class="fa-solid fa-id-card"></i></span>
                                         <input type="text" name="vehicle_plate" class="input-field" value="{{ old('vehicle_plate', $user->vehicle_plate) }}" placeholder="Plate (e.g. VAB 1234)">

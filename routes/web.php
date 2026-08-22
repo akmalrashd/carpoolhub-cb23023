@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExploreController;
+use App\Http\Controllers\FuelPriceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PushController;
 use App\Http\Controllers\PaymentController;
@@ -60,6 +61,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::resource('saved-routes', SavedRouteController::class)->except(['show']);
     Route::patch('/saved-routes/{savedRoute}/status', [SavedRouteController::class, 'toggleStatus'])->name('saved-routes.toggle-status');
     Route::post('/saved-routes/redeem', [SavedRouteController::class, 'redeem'])->name('saved-routes.redeem');
+    Route::get('/fuel-prices/current', [FuelPriceController::class, 'current'])->name('fuel-prices.current');
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::patch('/payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
     Route::patch('/payments/{payment}/confirm-paid', [PaymentController::class, 'confirmPaid'])->name('payments.confirm-paid');
@@ -91,8 +93,8 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::prefix('/ai')->group(function (): void {
         Route::post('/chat', [AiChatController::class, 'chat'])->middleware('throttle:30,1')->name('ai.chat');
         Route::delete('/chat/history', [AiChatController::class, 'clearHistory'])->name('ai.chat.clear');
-        Route::post('/fare-reason', [AiChatController::class, 'fareReason'])->middleware('throttle:30,1')->name('ai.fare-reason');
         Route::post('/fare-advice', [AiChatController::class, 'fareAdvice'])->middleware('throttle:30,1')->name('ai.fare-advice');
+        Route::post('/recommend-route', [AiChatController::class, 'recommendRoute'])->middleware('throttle:30,1')->name('ai.recommend-route');
     });
 
     Route::prefix('/refresh')->group(function (): void {

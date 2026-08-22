@@ -42,6 +42,7 @@ class ChatbotService
                 'json' => [
                     'model'      => trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
                     'max_tokens' => (int) config('ai_chat.max_tokens', 600),
+                    'thinking'   => ['type' => 'disabled'],
                     'system'     => $this->buildSystemPrompt($user, $language, $pendingContext),
                     'messages'   => $messages,
                 ],

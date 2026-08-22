@@ -282,7 +282,13 @@
                                             value="{{ old('vehicle_model') }}"
                                             placeholder="Perodua Myvi"
                                             autocomplete="off"
+                                            list="vehicle-model-suggestions"
                                         >
+                                        <datalist id="vehicle-model-suggestions">
+                                            @foreach (config('vehicle_fuel_consumption', []) as $vehicleOption)
+                                                <option value="{{ $vehicleOption['label'] }}"></option>
+                                            @endforeach
+                                        </datalist>
                                     </div>
                                     @error('vehicle_model')
                                         <span class="field-error">

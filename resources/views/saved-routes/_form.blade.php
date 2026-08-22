@@ -158,6 +158,7 @@
                 </p>
             </div>
 
+            <div class="rf-route-recommendation" id="routeRecommendation" hidden></div>
             <div class="rf-route-options" id="routeOptions">
                 <div class="rf-route-empty">Set both points to view route options.</div>
             </div>
@@ -361,12 +362,12 @@
                             <option value="RON95">RON95</option>
                             <option value="RON97">RON97</option>
                             <option value="Diesel">Diesel</option>
-                            <option value="EV">EV</option>
                         </select>
                     </div>
                     <div class="rf-fare-advisor-field">
                         <label for="fareFuelPrice">Fuel price / L</label>
                         <input id="fareFuelPrice" type="number" step="0.01" min="0" value="1.99">
+                        <span class="rf-fuel-price-asof" id="fuelPriceAsOf" hidden></span>
                     </div>
                     <label class="rf-fare-toggle wide">
                         <input id="fareUseBudi" type="checkbox" checked>
@@ -477,6 +478,7 @@
         var previewUseBtn = document.getElementById('mapPreviewUseBtn');
         var previewCloseBtn = document.getElementById('mapPreviewCloseBtn');
         var routeOptionsEl = document.getElementById('routeOptions');
+        var routeRecommendationEl = document.getElementById('routeRecommendation');
         var mapStepNumber = document.getElementById('mapStepNumber');
         var mapStepText = document.getElementById('mapStepText');
         var mapStepHint = document.getElementById('mapStepHint');
@@ -501,6 +503,7 @@
         var fareFuelType = document.getElementById('fareFuelType');
         var fareUseBudi = document.getElementById('fareUseBudi');
         var fareFuelPrice = document.getElementById('fareFuelPrice');
+        var fuelPriceAsOfEl = document.getElementById('fuelPriceAsOf');
         var fareKmPerLiter = document.getElementById('fareKmPerLiter');
         var fareTollCost = document.getElementById('fareTollCost');
         var fareBufferRate = document.getElementById('fareBufferRate');
@@ -1132,12 +1135,38 @@
             return hours + 'h ' + mins + 'm';
         }
 
+        // Instant placeholder shown before the live fetch below resolves —
+        // overwritten as soon as real data.gov.my prices arrive, kept only
+        // as a network-failure fallback.
         var fuelPricePresets = {
             RON95: { budi: 1.99, market: 2.60 },
             RON97: { market: 3.47 },
-            Diesel: { market: 2.95 },
-            EV: { market: 0 }
+            Diesel: { market: 2.95 }
         };
+
+        function loadLiveFuelPrices() {
+            fetch('{{ route('fuel-prices.current') }}', { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (!data || !data.RON95 || !data.RON97 || !data.Diesel) return;
+                    fuelPricePresets = {
+                        RON95: {
+                            budi: Number(data.RON95.budi) || fuelPricePresets.RON95.budi,
+                            market: Number(data.RON95.market) || fuelPricePresets.RON95.market
+                        },
+                        RON97: { market: Number(data.RON97.market) || fuelPricePresets.RON97.market },
+                        Diesel: { market: Number(data.Diesel.market) || fuelPricePresets.Diesel.market }
+                    };
+                    // false: don't clobber a price the driver already typed by hand
+                    applyFuelPricePreset(false);
+                    refreshFareAdvisorFromInputs(false);
+                    if (fuelPriceAsOfEl && data.as_of) {
+                        fuelPriceAsOfEl.textContent = 'Live price as of ' + data.as_of;
+                        fuelPriceAsOfEl.hidden = false;
+                    }
+                })
+                .catch(function () {});
+        }
 
         function money(value) {
             return 'RM ' + (Number.isFinite(Number(value)) ? Number(value).toFixed(2) : '0.00');
@@ -1168,9 +1197,6 @@
             if (/diesel|hilux|triton|d-max|dmax|navara|fortuner|transit|van|lorry|truck|pickup/.test(vehicle)) {
                 return { fuel_type: 'Diesel', estimated_km_per_liter: 9.5, estimated_toll_cost: 0, confidence: 'low', reason: 'Fallback estimate based on vehicle keywords.' };
             }
-            if (/ev|electric|tesla|byd|ora|ioniq|leaf|model 3|model y/.test(vehicle)) {
-                return { fuel_type: 'EV', estimated_km_per_liter: 0, estimated_toll_cost: 0, confidence: 'low', reason: 'EV route detected; petrol fuel cost is not used.' };
-            }
             if (/myvi|axia|bezza|iriz|saga|persona|city|vios|almera|jazz|yaris/.test(vehicle)) {
                 return { fuel_type: 'RON95', estimated_km_per_liter: 13, estimated_toll_cost: 0, confidence: 'low', reason: 'Fallback estimate based on compact car fuel economy.' };
             }
@@ -1182,14 +1208,13 @@
                 return { total: 0, perSplit: 0, liters: 0, fuelCost: 0, toll: 0, buffer: 0, split: 1 };
             }
             var advice = adviceOverride || {};
-            var fuelType = advice.fuel_type || (fareFuelType ? fareFuelType.value : 'RON95');
             var kmPerLiter = Number(advice.estimated_km_per_liter ?? advisorNumber(fareKmPerLiter, 11.5));
             var toll = Number(advice.estimated_toll_cost ?? advisorNumber(fareTollCost, 0));
             var fuelPrice = advisorNumber(fareFuelPrice, 0);
             var bufferRate = advisorNumber(fareBufferRate, 15) / 100;
             var split = Math.max(1, Math.round(advisorNumber(fareSplitCount, 1)));
             var distanceKm = Math.max(0, (route.distance || 0) / 1000);
-            var liters = fuelType === 'EV' || kmPerLiter <= 0 ? 0 : distanceKm / kmPerLiter;
+            var liters = kmPerLiter <= 0 ? 0 : distanceKm / kmPerLiter;
             var fuelCost = liters * fuelPrice;
             var buffer = fuelCost * Math.max(0, bufferRate);
             var total = roundedFare(fuelCost + Math.max(0, toll) + buffer);
@@ -1209,8 +1234,8 @@
             return calculateCostFare({ distance: distanceMeters || 0, duration: durationSeconds || 0 }).total;
         }
 
-        function applyFareAdviceToControls(advice) {
-            if (!advice || fareAdvisorEdited) return;
+        function applyFareAdviceToControls(advice, force) {
+            if (!advice || (fareAdvisorEdited && !force)) return;
             if (fareFuelType && advice.fuel_type) fareFuelType.value = advice.fuel_type;
             if (fareKmPerLiter && Number.isFinite(Number(advice.estimated_km_per_liter))) {
                 fareKmPerLiter.value = Number(advice.estimated_km_per_liter).toFixed(1);
@@ -1286,6 +1311,7 @@
         }
 
         var fareReasonUrl     = '{{ route('ai.fare-advice') }}';
+        var recommendRouteUrl = '{{ route('ai.recommend-route') }}';
         var fareReasonCsrf    = '{{ csrf_token() }}';
         var fareReasonVehicle = '{{ addslashes(auth()->user()->vehicle_model ?? '') }}';
 
@@ -1296,13 +1322,13 @@
             return 'Fare based on ' + distanceKm.toFixed(1) + ' km distance and ~' + minutes + ' min travel time.';
         }
 
-        function fetchAiReason(routeIndex, distanceKm, durationMin, baseFare, roads) {
+        function fetchAiReason(routeIndex, distanceKm, durationMin, baseFare, roads, forcedFuelType) {
             // Check element exists before firing request
-            if (!document.querySelector('[data-ai-reason="' + routeIndex + '"]')) return;
+            if (!document.querySelector('[data-ai-reason="' + routeIndex + '"]')) return Promise.resolve();
             if (fareAdvisorStatus && routeIndex === selectedRouteIndex) fareAdvisorStatus.textContent = 'AI checking';
             if (fareAiReason && routeIndex === selectedRouteIndex) fareAiReason.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-beat-fade" style="color: #eab308; margin-right: 6px;"></i>AI is analyzing route... (may take up to 20s)';
 
-            fetch(fareReasonUrl, {
+            return fetch(fareReasonUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1314,6 +1340,7 @@
                     duration_min: durationMin,
                     roads:        roads,
                     vehicle:      fareReasonVehicle || null,
+                    fuel_type:    forcedFuelType || null,
                 }),
             })
             .then(function (r) { return r.json(); })
@@ -1332,7 +1359,10 @@
                 }
 
                 if (routeIndex === selectedRouteIndex) {
-                    applyFareAdviceToControls(data);
+                    // A confirmed fuel type is the driver's own choice, not an AI
+                    // guess — km/L and toll must still refresh for it even though
+                    // fareAdvisorEdited is already true from picking the dropdown.
+                    applyFareAdviceToControls(data, Boolean(forcedFuelType));
                     updateFareBreakdown(route, !fareEditedByUser);
                     updateToolbarStats(route);
                     if (fareAdvisorStatus) fareAdvisorStatus.textContent = (data.confidence || 'medium') + ' confidence';
@@ -1357,6 +1387,63 @@
             });
         }
 
+        // Compares the now-complete options (real fuel+toll numbers, not just
+        // distance/time) and picks which one to pre-select, with a reason —
+        // a genuine multi-factor trade-off call, not a fixed "always cheapest"
+        // or "always fastest" rule.
+        function requestRouteRecommendation() {
+            if (!routeRecommendationEl || fetchedRoutes.length < 2) return;
+
+            var options = fetchedRoutes.map(function (route, idx) {
+                var calc = calculateCostFare(route, fareAdviceByRoute[idx]);
+                return {
+                    distance_km: (route.distance || 0) / 1000,
+                    duration_min: Math.round((route.duration || 0) / 60),
+                    toll_cost: calc.toll,
+                    total_cost: calc.total,
+                };
+            });
+
+            routeRecommendationEl.hidden = false;
+            routeRecommendationEl.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-beat-fade"></i> AI comparing ' + options.length + ' options...';
+
+            fetch(recommendRouteUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': fareReasonCsrf,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ options: options }),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var index = Number.isInteger(data.recommended_index) && fetchedRoutes[data.recommended_index]
+                    ? data.recommended_index
+                    : 0;
+
+                selectedRouteIndex = index;
+                Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.rf-route-option-btn'), function (btn) {
+                    btn.classList.toggle('active', parseInt(btn.getAttribute('data-route-index'), 10) === index);
+                });
+                applyFareAdviceToControls(fareAdviceByRoute[index], true);
+                fillFareFromRoute(fetchedRoutes[index]);
+                updateToolbarStats(fetchedRoutes[index]);
+                if (fareAiReason && fareAdviceByRoute[index]) {
+                    fareAiReason.textContent = fareAdviceByRoute[index].reason || '';
+                }
+                if (fareAdvisorStatus && fareAdviceByRoute[index]) {
+                    fareAdvisorStatus.textContent = (fareAdviceByRoute[index].confidence || 'medium') + ' confidence';
+                }
+                drawSelectedRoute();
+
+                routeRecommendationEl.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> <span><strong>AI recommends Option ' + (index + 1) + '.</strong> ' + escapeText(data.reason || '') + '</span>';
+            })
+            .catch(function () {
+                routeRecommendationEl.hidden = true;
+            });
+        }
+
         function summarizeRoads(route) {
             if (!route || !route.legs || !route.legs.length || !route.legs[0].steps) return 'Main route';
             var names = [];
@@ -1365,6 +1452,24 @@
                 if (name && names.indexOf(name) === -1) names.push(name);
             });
             return names.slice(0, 3).join(' • ') || 'Main route';
+        }
+
+        // Full distinct road-name list (not the 3-name display summary above) —
+        // this is what toll detection needs. A long trip's toll highway (e.g.
+        // "Lebuhraya DUKE") often only shows up well past the first 3 named
+        // streets leaving the pickup point, so sending the truncated summary
+        // to the fare advisor made it blind to real tolls on longer routes.
+        function allRoadNames(route) {
+            if (!route || !route.legs) return '';
+            var names = [];
+            route.legs.forEach(function (leg) {
+                (leg.steps || []).forEach(function (step) {
+                    var name = (step.name || '').trim();
+                    if (name && names.indexOf(name) === -1) names.push(name);
+                });
+            });
+            var joined = names.slice(0, 25).join(' • ');
+            return joined.length > 480 ? joined.slice(0, 480) : joined;
         }
 
         function drawSelectedRoute() {
@@ -1403,14 +1508,22 @@
                     + '</button>';
             }).join('');
 
-            // Async: fetch AI-generated reasons after DOM renders
-            fetchedRoutes.forEach(function (route, index) {
+            // Async: fetch AI-generated reasons after DOM renders. Collected so
+            // the cross-option recommendation (below) only runs once every
+            // option's real fuel/toll numbers are actually in.
+            var aiReasonPromises = fetchedRoutes.map(function (route, index) {
                 var distKm  = (route.distance || 0) / 1000;
                 var durMin  = Math.round((route.duration || 0) / 60);
                 var fare    = suggestedFare(route.distance, route.duration);
-                var roads   = summarizeRoads(route);
-                fetchAiReason(index, distKm, durMin, fare, roads);
+                var roads   = allRoadNames(route);
+                return fetchAiReason(index, distKm, durMin, fare, roads);
             });
+
+            if (fetchedRoutes.length > 1) {
+                Promise.all(aiReasonPromises).then(requestRouteRecommendation);
+            } else if (routeRecommendationEl) {
+                routeRecommendationEl.hidden = true;
+            }
             Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.rf-route-option-btn'), function (btn) {
                 btn.addEventListener('click', function () {
                     selectedRouteIndex = parseInt(btn.getAttribute('data-route-index'), 10) || 0;
@@ -1514,6 +1627,72 @@
             return [start].concat(middle, [end]);
         }
 
+        function osrmUrl(points) {
+            return 'https://router.project-osrm.org/route/v1/driving/'
+                + points.map(function (point) {
+                    return encodeURIComponent(point.lng) + ',' + encodeURIComponent(point.lat);
+                }).join(';')
+                + '?overview=full&geometries=geojson&steps=true&alternatives=true';
+        }
+
+        function fetchOsrmRoutes(points) {
+            return fetch(osrmUrl(points), { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) { return (data && data.routes) ? data.routes : []; })
+                .catch(function () { return []; });
+        }
+
+        // A point offset perpendicular to the start->end line, used to force
+        // OSRM onto a genuinely different corridor. The public OSRM demo
+        // server has no `exclude=` support and its own alternatives= search
+        // frequently returns just one route for anything past ~150km (a long
+        // intercity trip on one dominant highway corridor has nothing to find
+        // an alternative against) — routing a candidate via this point is
+        // what actually produces a second, third option to compare.
+        function perpendicularOffset(start, end, sideSign, fraction) {
+            var midLat = (start.lat + end.lat) / 2;
+            var midLng = (start.lng + end.lng) / 2;
+            var dLat = end.lat - start.lat;
+            var dLng = end.lng - start.lng;
+            var perpLat = -dLng;
+            var perpLng = dLat;
+            var perpLen = Math.sqrt(perpLat * perpLat + perpLng * perpLng) || 1;
+            var straightLineDegrees = Math.sqrt(dLat * dLat + dLng * dLng);
+            var offsetDegrees = straightLineDegrees * fraction;
+            return L.latLng(
+                midLat + (perpLat / perpLen) * offsetDegrees * sideSign,
+                midLng + (perpLng / perpLen) * offsetDegrees * sideSign
+            );
+        }
+
+        function routesAreSimilar(a, b) {
+            var distDiff = Math.abs(a.distance - b.distance) / Math.max(a.distance, b.distance, 1);
+            var durDiff = Math.abs(a.duration - b.duration) / Math.max(a.duration, b.duration, 1);
+            return distDiff < 0.03 && durDiff < 0.03;
+        }
+
+        function mergeDistinctRoutes(routeLists) {
+            var merged = [];
+            routeLists.forEach(function (list) {
+                list.forEach(function (route) {
+                    var isDuplicate = merged.some(function (existing) { return routesAreSimilar(existing, route); });
+                    if (!isDuplicate) merged.push(route);
+                });
+            });
+            merged.sort(function (a, b) { return a.duration - b.duration; });
+
+            // The offset-detour trick sometimes routes through a genuinely bad
+            // via-point (nothing there, wrong direction) and OSRM dutifully
+            // returns a technically-valid but absurd multi-hour-worse path.
+            // A "different route" still has to be a plausible real choice.
+            var fastest = merged.length ? merged[0].duration : 0;
+            var reasonable = merged.filter(function (route, index) {
+                return index === 0 || route.duration <= fastest * 1.6;
+            });
+
+            return reasonable.slice(0, 5);
+        }
+
         function fetchRouteOptions() {
             if (!pickupMarker || !destinationMarker) {
                 clearRouteOptions('Set both points to view route options.');
@@ -1522,23 +1701,28 @@
             syncPresetRadius();
             syncPresetStopMarkers();
             var points = routeWaypoints();
-            var url = 'https://router.project-osrm.org/route/v1/driving/'
-                + points.map(function (point) {
-                    return encodeURIComponent(point.lng) + ',' + encodeURIComponent(point.lat);
-                }).join(';')
-                + '?overview=full&geometries=geojson&steps=true&alternatives=true';
-            fetch(url, { headers: { 'Accept': 'application/json' } })
-                .then(function (r) { return r.ok ? r.json() : null; })
-                .then(function (data) {
-                    if (!data || !data.routes || !data.routes.length) {
-                        fetchedRoutes = [];
-                        fareAdviceByRoute = {};
-                        drawStraightLine();
-                        routeOptionsEl.innerHTML = '<div class="rf-route-empty">Routing service is unavailable. Showing a straight line only.</div>';
-                        if (fareAdvisorStatus) fareAdvisorStatus.textContent = 'Route fallback';
-                        return;
-                    }
-                    fetchedRoutes = data.routes.slice(0, 3);
+
+            fetchOsrmRoutes(points).then(function (baseRoutes) {
+                if (!baseRoutes.length) {
+                    fetchedRoutes = [];
+                    fareAdviceByRoute = {};
+                    drawStraightLine();
+                    routeOptionsEl.innerHTML = '<div class="rf-route-empty">Routing service is unavailable. Showing a straight line only.</div>';
+                    if (fareAdvisorStatus) fareAdvisorStatus.textContent = 'Route fallback';
+                    return;
+                }
+
+                // Only try the offset-detour trick for plain start->end trips
+                // (no mandatory passenger stops in between) and only when OSRM's
+                // own alternatives search came up short.
+                var needsMoreOptions = baseRoutes.length < 3 && points.length === 2;
+                var extraFetches = needsMoreOptions ? [
+                    fetchOsrmRoutes([points[0], perpendicularOffset(points[0], points[1], 1, 0.18), points[1]]),
+                    fetchOsrmRoutes([points[0], perpendicularOffset(points[0], points[1], -1, 0.18), points[1]]),
+                ] : [];
+
+                Promise.all(extraFetches).then(function (extraLists) {
+                    fetchedRoutes = mergeDistinctRoutes([baseRoutes].concat(extraLists));
                     fareAdviceByRoute = {};
                     selectedRouteIndex = 0;
                     renderRouteOptions();
@@ -1546,14 +1730,8 @@
                     autoFillLowestSuggestedFare();
                     updateToolbarStats(fetchedRoutes[0]);
                     syncPresetFares(false);
-                })
-                .catch(function () {
-                    fetchedRoutes = [];
-                    fareAdviceByRoute = {};
-                    drawStraightLine();
-                    routeOptionsEl.innerHTML = '<div class="rf-route-empty">Could not fetch route options. Showing a straight line only.</div>';
-                    if (fareAdvisorStatus) fareAdvisorStatus.textContent = 'Route fallback';
                 });
+            });
         }
 
         function clearMarker(target) {
@@ -1865,13 +2043,26 @@
         applyFareAdviceToControls(estimateFromVehicleFallback());
         applyFuelPricePreset(true);
         updateFareBreakdown(null, false);
+        loadLiveFuelPrices();
 
         if (fareFuelType) {
             fareFuelType.addEventListener('change', function () {
                 fareAdvisorEdited = true;
                 if (fareUseBudi) fareUseBudi.disabled = fareFuelType.value !== 'RON95';
                 applyFuelPricePreset(true);
-                refreshFareAdvisorFromInputs(false);
+
+                // The driver just confirmed the actual fuel type — ask the AI to
+                // re-estimate km/L and toll for THAT fuel type instead of reusing
+                // whatever numbers were guessed for the previous one.
+                var selectedRoute = fetchedRoutes[selectedRouteIndex] || fetchedRoutes[0] || null;
+                if (selectedRoute) {
+                    var distKm = (selectedRoute.distance || 0) / 1000;
+                    var durMin = Math.round((selectedRoute.duration || 0) / 60);
+                    var roads  = allRoadNames(selectedRoute);
+                    fetchAiReason(selectedRouteIndex, distKm, durMin, suggestedFare(selectedRoute.distance, selectedRoute.duration), roads, fareFuelType.value);
+                } else {
+                    refreshFareAdvisorFromInputs(false);
+                }
             });
         }
         if (fareUseBudi) {
