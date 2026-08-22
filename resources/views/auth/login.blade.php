@@ -13,9 +13,12 @@
     <link rel="apple-touch-icon" href="{{ asset('assets/branding/icon.png') }}">
     {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
     <link rel="stylesheet" href="{{ asset('css/auth-login.css') }}?v={{ filemtime(public_path('css/auth-login.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/bg-pattern.css') }}?v={{ filemtime(public_path('css/bg-pattern.css')) }}">
     @include('layouts.partials.pwa-head')
 </head>
 <body>
+
+@include('layouts.partials.bg-pattern')
 
 <div class="login-shell">
 
