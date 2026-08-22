@@ -40,6 +40,8 @@
         .login-shell {
             display: flex;
             min-height: 100vh;
+            position: relative;
+            z-index: 1;
         }
 
         /* ── Left brand panel (desktop only) ── */
@@ -164,7 +166,9 @@
             align-items: center;
             justify-content: center;
             padding: 32px 20px;
-            background: var(--canvas);
+            /* transparent so the ambient bg-pattern layer shows through — the
+               dark .brand-panel next to it keeps its own opaque background */
+            background: transparent;
         }
 
         /* Mobile-only logo shown inside form panel */
