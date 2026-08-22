@@ -9,6 +9,7 @@ use App\Models\TripParticipant;
 use App\Models\TripPayment;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Ai\PassengerRiskScoringService;
 use App\Services\Concerns\FormatsTripLabel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,18 @@ use Illuminate\Validation\ValidationException;
 class TripJoinRequestService
 {
     use FormatsTripLabel;
+
+    /**
+     * How long before departure the "mark absent" action becomes available.
+     * Shared with the trips index view, which uses the same threshold to
+     * decide whether to render the button at all.
+     */
+    public const ABSENCE_WINDOW_MINUTES = 30;
+
+    public function __construct(
+        private readonly PassengerRiskScoringService $passengerRiskScoringService,
+    ) {
+    }
 
     public function listForTrip(User $actor, Trip $trip)
     {
@@ -83,44 +96,125 @@ class TripJoinRequestService
                 'is_read'      => false,
             ]);
 
+            $this->passengerRiskScoringService->refreshRiskProfile($passenger);
+
             return $request;
         });
     }
 
-    public function cancelRequest(User $passenger, TripJoinRequest $joinRequest): TripJoinRequest
+    /**
+     * Self-cancel a join request the passenger made themselves — pending
+     * (never responded to) or approved (already riding). Only allowed before
+     * the trip departs; an approved cancellation also drops the passenger's
+     * own seat/payment records so the seat frees up immediately for others.
+     * Gating is purely "is this your own request", not account role — a
+     * driver riding as a passenger on someone else's trip uses this too.
+     *
+     * A PENDING cancellation was never a commitment (the driver hadn't acted
+     * on it yet), so it's hard-deleted rather than kept as a 'cancelled' row
+     * — nothing worth feeding to passenger-risk analytics. An APPROVED
+     * cancellation is a real backed-out commitment, so it stays recorded
+     * (feeds cancelled_request_count) exactly as before.
+     */
+    public function cancelRequest(User $passenger, TripJoinRequest $joinRequest): void
     {
         if ($joinRequest->user_id !== $passenger->id) {
             abort(403);
         }
 
-        if ($joinRequest->status !== 'pending') {
+        if (! in_array($joinRequest->status, ['pending', 'approved'], true)) {
             throw ValidationException::withMessages([
-                'request' => 'Only pending request can be cancelled.',
+                'request' => 'Only a pending or approved request can be cancelled.',
             ]);
         }
 
         $joinRequest->loadMissing('trip');
-        $joinRequest->update([
-            'status' => 'cancelled',
-            'responded_by' => $passenger->id,
-            'responded_at' => now(),
-        ]);
-        $joinRequest->routePoint?->update(['status' => 'cancelled']);
+        $trip = $joinRequest->trip ? $this->resolveBaseTrip($joinRequest->trip) : null;
 
-        if ($joinRequest->trip) {
-            $label = $this->tripLabel($joinRequest->trip);
+        if ($trip && $trip->trip_datetime && $trip->trip_datetime->isPast()) {
+            throw ValidationException::withMessages([
+                'request' => 'This trip has already passed and can no longer be cancelled.',
+            ]);
+        }
+
+        $wasApproved = $joinRequest->status === 'approved';
+        $joinRequestId = $joinRequest->id;
+
+        if ($wasApproved && $trip) {
+            $this->detachPassengerFromTripGroup($trip, $passenger->id);
+        }
+
+        if ($wasApproved) {
+            $joinRequest->update([
+                'status' => 'cancelled',
+                'responded_by' => $passenger->id,
+                'responded_at' => now(),
+            ]);
+            $joinRequest->routePoint?->update(['status' => 'cancelled']);
+        } else {
+            $joinRequest->routePoint()->delete();
+            $joinRequest->delete();
+        }
+
+        if ($trip) {
+            $label = $this->tripLabel($trip);
             UserNotification::query()->create([
-                'user_id'      => $joinRequest->trip->driver_id,
+                'user_id'      => $trip->driver_id,
                 'type'         => 'trip',
-                'title'        => 'Join Request Cancelled',
-                'message'      => "{$passenger->name} cancelled their join request for the {$label}.",
+                'title'        => $wasApproved ? 'Passenger Cancelled' : 'Join Request Cancelled',
+                'message'      => $wasApproved
+                    ? "{$passenger->name} cancelled their seat on the {$label}."
+                    : "{$passenger->name} cancelled their join request for the {$label}.",
                 'related_type' => 'trip_join_request',
-                'related_id'   => $joinRequest->id,
+                'related_id'   => $joinRequestId,
                 'is_read'      => false,
             ]);
         }
 
-        return $joinRequest->refresh();
+        $this->passengerRiskScoringService->refreshRiskProfile($passenger);
+    }
+
+    /**
+     * Self-leave for a passenger who has a TripParticipant row (pre-selected by
+     * the driver at trip creation) but no TripJoinRequest at all — cancelRequest()
+     * above can't handle these since there's no join request to transition to
+     * 'cancelled'. Same seat-freeing/payment-safety behaviour as cancelRequest's
+     * approved-cancellation branch, reusing the same detach helper.
+     */
+    public function leaveTrip(User $passenger, Trip $trip): void
+    {
+        $baseTrip = $this->resolveBaseTrip($trip);
+
+        $participant = TripParticipant::query()
+            ->where('trip_id', $baseTrip->id)
+            ->where('user_id', $passenger->id)
+            ->where('is_driver', false)
+            ->first();
+
+        if (! $participant) {
+            throw ValidationException::withMessages([
+                'request' => 'You are not a passenger on this trip.',
+            ]);
+        }
+
+        if ($baseTrip->trip_datetime && $baseTrip->trip_datetime->isPast()) {
+            throw ValidationException::withMessages([
+                'request' => 'This trip has already passed and can no longer be left.',
+            ]);
+        }
+
+        $this->detachPassengerFromTripGroup($baseTrip, $passenger->id);
+
+        $label = $this->tripLabel($baseTrip);
+        UserNotification::query()->create([
+            'user_id'      => $baseTrip->driver_id,
+            'type'         => 'trip',
+            'title'        => 'Passenger Left Trip',
+            'message'      => "{$passenger->name} left the {$label}.",
+            'related_type' => 'trip',
+            'related_id'   => $baseTrip->id,
+            'is_read'      => false,
+        ]);
     }
 
     public function respond(User $actor, TripJoinRequest $joinRequest, string $action, ?string $responseNote = null): TripJoinRequest
@@ -192,8 +286,129 @@ class TripJoinRequestService
                 'is_read'      => false,
             ]);
 
+            if ($joinRequest->user) {
+                $this->passengerRiskScoringService->refreshRiskProfile($joinRequest->user);
+            }
+
             return $joinRequest->refresh();
         });
+    }
+
+    /**
+     * Remove an already-approved passenger from the trip for any driver-stated
+     * reason. Deliberately scoped to just the attendance record — it does not
+     * free the seat or resync the fare split (that cascade already exists for
+     * new approvals via attachPassengerToTripGroup/resyncTripSplit, but taking
+     * it on here as well is a separate decision, not part of this feature).
+     */
+    public function removeParticipant(User $actor, TripJoinRequest $joinRequest, string $reason): TripParticipant
+    {
+        $joinRequest->loadMissing('trip', 'user');
+        $trip = $this->resolveBaseTrip($joinRequest->trip);
+        $this->ensureCanManageTripRequests($actor, $trip);
+
+        if ($joinRequest->status !== 'approved') {
+            throw ValidationException::withMessages([
+                'request' => 'Only an approved passenger can be removed.',
+            ]);
+        }
+
+        $participant = $this->approvedParticipantOrFail($trip, $joinRequest->user_id);
+
+        $participant->update([
+            'attendance_status' => 'removed',
+            'attendance_marked_at' => now(),
+            'attendance_source' => 'driver_removed',
+            'attendance_note' => $reason,
+        ]);
+
+        $label = $this->tripLabel($trip);
+        UserNotification::query()->create([
+            'user_id'      => $joinRequest->user_id,
+            'type'         => 'trip',
+            'title'        => 'Removed from Trip',
+            'message'      => "You were removed from the {$label}. Reason: {$reason}",
+            'related_type' => 'trip_join_request',
+            'related_id'   => $joinRequest->id,
+            'is_read'      => false,
+        ]);
+
+        if ($joinRequest->user) {
+            $this->passengerRiskScoringService->refreshRiskProfile($joinRequest->user);
+        }
+
+        return $participant->fresh();
+    }
+
+    /**
+     * Mark an already-approved passenger absent. Only becomes available from
+     * ABSENCE_WINDOW_MINUTES before departure onward — enforced here too, not
+     * just in the view, since the view's gate is just what renders the button.
+     */
+    public function markAbsent(User $actor, TripJoinRequest $joinRequest): TripParticipant
+    {
+        $joinRequest->loadMissing('trip', 'user');
+        $trip = $this->resolveBaseTrip($joinRequest->trip);
+        $this->ensureCanManageTripRequests($actor, $trip);
+
+        if ($joinRequest->status !== 'approved') {
+            throw ValidationException::withMessages([
+                'request' => 'Only an approved passenger can be marked absent.',
+            ]);
+        }
+
+        if ($trip->trip_datetime && now()->lt($trip->trip_datetime->clone()->subMinutes(self::ABSENCE_WINDOW_MINUTES))) {
+            throw ValidationException::withMessages([
+                'request' => 'Absence can only be marked from '.self::ABSENCE_WINDOW_MINUTES.' minutes before departure.',
+            ]);
+        }
+
+        $participant = $this->approvedParticipantOrFail($trip, $joinRequest->user_id);
+
+        $participant->update([
+            'attendance_status' => 'absent',
+            'attendance_marked_at' => now(),
+            'attendance_source' => 'driver_absence',
+        ]);
+
+        $label = $this->tripLabel($trip);
+        UserNotification::query()->create([
+            'user_id'      => $joinRequest->user_id,
+            'type'         => 'trip',
+            'title'        => 'Marked Absent',
+            'message'      => "You were marked absent for the {$label}.",
+            'related_type' => 'trip_join_request',
+            'related_id'   => $joinRequest->id,
+            'is_read'      => false,
+        ]);
+
+        if ($joinRequest->user) {
+            $this->passengerRiskScoringService->refreshRiskProfile($joinRequest->user);
+        }
+
+        return $participant->fresh();
+    }
+
+    private function approvedParticipantOrFail(Trip $trip, int $userId): TripParticipant
+    {
+        $participant = TripParticipant::query()
+            ->where('trip_id', $trip->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (! $participant) {
+            throw ValidationException::withMessages([
+                'request' => 'Passenger record not found for this trip.',
+            ]);
+        }
+
+        if ($participant->attendance_status !== 'joined') {
+            throw ValidationException::withMessages([
+                'request' => 'This passenger has already been removed or marked absent.',
+            ]);
+        }
+
+        return $participant;
     }
 
     public function setOpenState(User $actor, Trip $trip, bool $open): Trip
@@ -316,6 +531,55 @@ class TripJoinRequestService
                     ->where('id', $baseTrip->id)
                     ->orWhere('parent_trip_id', $baseTrip->id)
                     ->update(['is_open_for_request' => false]);
+            }
+        }
+    }
+
+    /**
+     * The inverse of attachPassengerToTripGroup, but deliberately NOT built on
+     * resyncTripSplit — that method deletes and recreates every participant's
+     * TripPayment row for the trip, which would wipe other passengers'
+     * already-paid/pending-confirmation records just because one passenger
+     * left. This only ever touches the departing passenger's own rows, so
+     * nobody else's fare or payment status can be affected by someone else
+     * cancelling. Fare is deliberately NOT re-split among the remaining
+     * passengers either, for the same reason — that's a separate decision.
+     */
+    private function detachPassengerFromTripGroup(Trip $baseTrip, int $passengerId): void
+    {
+        $tripGroup = Trip::query()
+            ->where('id', $baseTrip->id)
+            ->orWhere('parent_trip_id', $baseTrip->id)
+            ->get();
+
+        foreach ($tripGroup as $trip) {
+            $hasProcessedPayment = TripPayment::query()
+                ->where('trip_id', $trip->id)
+                ->where('user_id', $passengerId)
+                ->whereIn('payment_status', ['pending_confirmation', 'paid'])
+                ->exists();
+
+            if ($hasProcessedPayment) {
+                throw ValidationException::withMessages([
+                    'request' => 'Cannot cancel — a payment for this trip has already been processed. Contact the driver directly.',
+                ]);
+            }
+        }
+
+        foreach ($tripGroup as $trip) {
+            TripParticipant::query()->where('trip_id', $trip->id)->where('user_id', $passengerId)->delete();
+            TripPayment::query()->where('trip_id', $trip->id)->where('user_id', $passengerId)->delete();
+
+            $trip->update(['participant_count' => (int) TripParticipant::query()->where('trip_id', $trip->id)->count()]);
+
+            // A cancellation frees a seat — reopen the trip for new requests if
+            // it had auto-closed for being full (mirrors the auto-close in
+            // attachPassengerToTripGroup when the last seat gets taken).
+            if (! $trip->is_open_for_request && $trip->visibility === 'public' && $trip->seat_limit) {
+                $taken = (int) TripParticipant::query()->where('trip_id', $trip->id)->where('is_driver', false)->count();
+                if ($taken < (int) $trip->seat_limit) {
+                    $trip->update(['is_open_for_request' => true]);
+                }
             }
         }
     }

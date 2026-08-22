@@ -44,6 +44,10 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/trips/{trip}/requests', [TripJoinRequestController::class, 'index'])->name('trips.requests.index');
     Route::patch('/trips/{trip}/request-open', [TripJoinRequestController::class, 'toggleOpen'])->name('trips.requests.toggle-open');
     Route::patch('/trip-join-requests/{joinRequest}/respond', [TripJoinRequestController::class, 'respond'])->name('trips.join-requests.respond');
+    Route::patch('/trip-join-requests/{joinRequest}/remove', [TripJoinRequestController::class, 'remove'])->name('trips.join-requests.remove');
+    Route::patch('/trip-join-requests/{joinRequest}/mark-absent', [TripJoinRequestController::class, 'markAbsent'])->name('trips.join-requests.mark-absent');
+    Route::patch('/trip-join-requests/{joinRequest}/cancel', [TripJoinRequestController::class, 'cancel'])->name('trips.join-requests.cancel');
+    Route::patch('/trips/{trip}/leave', [TripJoinRequestController::class, 'leave'])->name('trips.leave');
     Route::get('/connections', [ConnectionController::class, 'index'])->name('connections.index');
     Route::post('/connections/requests', [ConnectionController::class, 'store'])->name('connections.requests.store');
     Route::patch('/connections/{connection}/respond', [ConnectionController::class, 'respond'])->name('connections.respond');

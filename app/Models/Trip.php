@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +13,17 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Trip extends Model
 {
     use HasFactory;
+
+    /**
+     * This app has no multi-timezone support — every trip_datetime is
+     * entered and displayed as Malaysia local time, but APP_TIMEZONE stays
+     * UTC for everything else (created_at, payments, notifications, etc.
+     * are already correct in UTC). Casting just this one column explicitly
+     * avoids an 8-hour skew without touching any other timestamp's meaning.
+     * Raw query-builder comparisons against this column (which bypass the
+     * accessor below) must use self::now() instead of the bare now() helper.
+     */
+    public const TIMEZONE = 'Asia/Kuala_Lumpur';
 
     protected $fillable = [
         'driver_id',
@@ -40,7 +53,6 @@ class Trip extends Model
     protected function casts(): array
     {
         return [
-            'trip_datetime' => 'datetime',
             'pickup_latitude' => 'decimal:7',
             'pickup_longitude' => 'decimal:7',
             'destination_latitude' => 'decimal:7',
@@ -52,6 +64,25 @@ class Trip extends Model
             'participant_count' => 'integer',
             'seat_limit' => 'integer',
         ];
+    }
+
+    protected function tripDatetime(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value ? Carbon::parse($value, self::TIMEZONE) : null,
+            set: fn ($value) => $value instanceof \DateTimeInterface
+                ? Carbon::instance($value)->clone()->setTimezone(self::TIMEZONE)->format('Y-m-d H:i:s')
+                : $value,
+        );
+    }
+
+    /** Current time in the same timezone trip_datetime values are stored in
+     *  — use this instead of the bare now() helper when comparing against
+     *  trip_datetime in a raw query-builder clause (those bypass the
+     *  accessor above and compare directly against the raw DB string). */
+    public static function now(): Carbon
+    {
+        return Carbon::now(self::TIMEZONE);
     }
 
     public function driver(): BelongsTo

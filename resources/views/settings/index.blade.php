@@ -119,14 +119,8 @@
             <p class="pg-sub">Manage your personal information, payment methods, and account security.</p>
         </div>
 
-        {{-- Status Notifications --}}
-        @if(session('status'))
-            <div class="settings-alert success" role="status" aria-live="polite">
-                <i class="fa-solid fa-circle-check" style="font-size:16px;"></i>
-                <span>{{ session('status') }}</span>
-            </div>
-        @endif
-
+        {{-- Success is already announced by the global toast in layouts/app.blade.php —
+             a second static banner here just repeated the same message. --}}
         @if($errors->any())
             <div class="settings-alert error" role="alert" aria-live="assertive">
                 <i class="fa-solid fa-triangle-exclamation" style="font-size:16px;"></i>

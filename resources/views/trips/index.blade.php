@@ -4,6 +4,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
+    {{-- explore.css supplies the shared .xp-modal-* "Trip details" card styling,
+         reused here for the pending-request read-only view instead of duplicating
+         those ~150 lines of CSS — loaded first so trips.css still wins on any overlap. --}}
+    <link rel="stylesheet" href="{{ asset('css/explore.css') }}?v={{ filemtime(public_path('css/explore.css')) }}">
     {{-- Page styles, extracted to a cacheable static file; link kept at the same position as the <style> block so cascade order is unchanged. --}}
     <link rel="stylesheet" href="{{ asset('css/trips.css') }}?v={{ filemtime(public_path('css/trips.css')) }}">
 
@@ -309,6 +313,17 @@
                                 'draft' => 'Draft',
                                 default => \Illuminate\Support\Str::headline((string) $trip->status),
                             };
+                            // From a requesting passenger's own view (not the driver/admin
+                            // managing the trip), a still-pending join request matters more
+                            // than the trip's own scheduled/recorded status — overlay it.
+                            $isOwnerView = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
+                            $myPendingJoinRequest = ! $isOwnerView
+                                ? $trip->joinRequests->first(fn ($jr) => (int) $jr->user_id === (int) auth()->id() && $jr->status === 'pending')
+                                : null;
+                            if ($myPendingJoinRequest) {
+                                $badgeStatus = 'pending';
+                                $statusLabel = 'Pending';
+                            }
                             $paymentUrl = route('payments.index', $paymentFocusQuery ? ['trip_ids' => $paymentFocusQuery] : ['trip_id' => $trip->id]);
                             $paymentStatuses = $trip->payments->pluck('payment_status');
                             if ($trip->returnTrip?->payments) {
@@ -375,6 +390,7 @@
                                 ->filter(fn ($joinRequest) => in_array((string) $joinRequest->status, ['pending', 'approved'], true))
                                 ->map(function ($joinRequest) use ($trip) {
                                     $routePoint = $joinRequest->routePoint;
+                                    $participant = $trip->participants->firstWhere('user_id', $joinRequest->user_id);
 
                                     return [
                                         'id' => $joinRequest->id,
@@ -426,10 +442,95 @@
                                         'risk_cancelled' => $joinRequest->user?->riskProfile?->cancelled_request_count ?? 0,
                                         'risk_absent' => $joinRequest->user?->riskProfile?->attendance_absent_count ?? 0,
                                         'risk_unpaid' => $joinRequest->user?->riskProfile?->overdue_case_count ?? 0,
+                                        'attendance_status' => $participant?->attendance_status,
+                                        'attendance_note' => $participant?->attendance_note,
+                                        'remove_url' => route('trips.join-requests.remove', $joinRequest),
+                                        'absence_url' => route('trips.join-requests.mark-absent', $joinRequest),
+                                        'absence_available' => (bool) ($trip->trip_datetime && now()->gte($trip->trip_datetime->clone()->subMinutes(\App\Services\TripJoinRequestService::ABSENCE_WINDOW_MINUTES))),
                                     ];
                                 })
                                 ->values();
                             $requestPayloadB64 = base64_encode($requestPayload->toJson());
+                            // The current viewer's own join request on THIS trip, if they're
+                            // riding as a passenger (works for a driver-role account too, since
+                            // this only checks "did I request this trip", not account role).
+                            $myJoinRequest = $trip->joinRequests->firstWhere('user_id', auth()->id());
+                            $myRequestRow = ($myJoinRequest && in_array((string) $myJoinRequest->status, ['pending', 'approved'], true))
+                                ? $requestPayload->firstWhere('id', $myJoinRequest->id)
+                                : null;
+                            if ($myRequestRow) {
+                                $myRequestRow = array_merge($myRequestRow, [
+                                    'cancel_url' => route('trips.join-requests.cancel', $myJoinRequest),
+                                    'can_cancel' => ! $trip->trip_datetime || ! $trip->trip_datetime->isPast(),
+                                ]);
+                            }
+                            // Pre-selected participants (added directly by the driver at trip
+                            // creation) have a TripParticipant + TripPayment row but no
+                            // TripJoinRequest at all, so the lookup above misses them entirely.
+                            // Only applies to public trips — private trips are direct invites,
+                            // not "requests", so there's nothing to show here for those.
+                            if (! $myRequestRow && ($trip->visibility ?? 'private') === 'public') {
+                                $myParticipant = $trip->participants->first(fn ($p) => (int) $p->user_id === (int) auth()->id() && ! $p->is_driver);
+                                if ($myParticipant) {
+                                    $myRequestRow = [
+                                        'id' => 'participant-' . $myParticipant->id,
+                                        'passenger' => auth()->user()->name,
+                                        'initials' => collect(explode(' ', auth()->user()->name ?: 'P'))->filter()->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode(''),
+                                        'status' => 'approved',
+                                        'requested_at' => $myParticipant->created_at?->diffForHumans() ?: '-',
+                                        'note' => '',
+                                        'pickup' => 'Default pickup',
+                                        'dropoff' => 'Default drop-off',
+                                        'pickup_meta' => "Uses driver's route starting point",
+                                        'dropoff_meta' => "Uses driver's route ending point",
+                                        'fare' => null,
+                                        'fit' => null,
+                                        'fit_label' => null,
+                                        'trip' => $tripRef,
+                                        'cancel_url' => route('trips.leave', $trip),
+                                        'can_cancel' => ! $trip->trip_datetime || ! $trip->trip_datetime->isPast(),
+                                    ];
+                                }
+                            }
+                            // Once the trip has departed, "My Request" no longer has anything
+                            // actionable to offer (Cancel is already gated off by can_cancel,
+                            // but the trigger button itself should stop showing too).
+                            if ($myRequestRow && $trip->trip_datetime && $trip->trip_datetime->isPast()) {
+                                $myRequestRow = null;
+                            }
+                            // Trip-level context for the "My Request" popup (date, route,
+                            // fare, seats, other approved passengers' stops for the map
+                            // preview) — same regardless of which branch above built the row.
+                            if ($myRequestRow) {
+                                $approvedStopsForMap = $requestPayload
+                                    ->where('status', 'approved')
+                                    ->flatMap(fn ($row) => collect([$row['pickup_point'], $row['dropoff_point']])
+                                        ->filter(fn ($point) => $point && $point['lat'] !== null && $point['lng'] !== null))
+                                    ->values();
+                                $myVehicleModel = trim((string) ($trip->driver?->vehicle_model ?? ''));
+                                $myVehiclePlate = trim((string) ($trip->driver?->vehicle_plate ?? ''));
+                                $myRequestRow = array_merge($myRequestRow, [
+                                    'trip_datetime' => $trip->trip_datetime?->format('d M Y, H:i') ?: '-',
+                                    'route_name' => $routeName,
+                                    'driver_pickup_lat' => $trip->pickup_latitude !== null ? (float) $trip->pickup_latitude : null,
+                                    'driver_pickup_lng' => $trip->pickup_longitude !== null ? (float) $trip->pickup_longitude : null,
+                                    'driver_dropoff_lat' => $trip->destination_latitude !== null ? (float) $trip->destination_latitude : null,
+                                    'driver_dropoff_lng' => $trip->destination_longitude !== null ? (float) $trip->destination_longitude : null,
+                                    'fare_per_person' => number_format((float) $trip->fare_per_person, 2),
+                                    'seats_available' => is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-',
+                                    'approved_count' => $passengerCount,
+                                    'approved_stops' => $approvedStopsForMap->toArray(),
+                                    // Pending-request card (Explore-style read-only view) only
+                                    // needs these — kept here so both cards share one payload.
+                                    'driver_name' => $trip->driver?->name ?: 'Driver',
+                                    'driver_initial' => strtoupper(substr($trip->driver?->name ?? '?', 0, 2)),
+                                    'driver_rating' => number_format($trip->driver?->rating ?? 5.0, 2),
+                                    'pickup_name' => $pickupName,
+                                    'destination_name' => $destinationName,
+                                    'vehicle_text' => trim($myVehicleModel . ($myVehicleModel && $myVehiclePlate ? ' · ' : '') . $myVehiclePlate) ?: '-',
+                                ]);
+                            }
+                            $myRequestPayloadB64 = $myRequestRow ? base64_encode(json_encode($myRequestRow)) : null;
                             $currentUserPaymentPayload = $paymentReviewPayload
                                 ->filter(fn ($payment) => $currentUserPayments->pluck('id')->contains($payment['id']))
                                 ->values();
@@ -473,7 +574,7 @@
                                 }
                             }
                             $canOpenPaymentReview = $canManageTripPayment && $paymentReviewPayload->isNotEmpty() && $paymentActionLabel === 'Review Payment';
-                            $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'confirmed'], true);
+                            $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'recorded'], true);
                         @endphp
                         <article class="trip-mobile-item open-trip-card" data-trip-anchor="{{ $trip->id }}">
                             <div style="display:flex; gap:10px; align-items:flex-start;">
@@ -589,24 +690,29 @@
                                                 @endif
                                             </button>
                                         @endif
-                                        <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn is-filled edit-btn" title="Edit trip">
-                                            <i class="fa-regular fa-pen-to-square"></i> Edit
+                                        <a href="{{ route('trips.edit', $trip) }}" class="trip-action-btn is-filled edit-btn @if($canManageRequests) icon-only @endif" title="Edit trip" aria-label="Edit trip">
+                                            <i class="fa-regular fa-pen-to-square"></i> @if(!$canManageRequests) Edit @endif
                                         </a>
                                         @if($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true))
                                             <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Cancel this trip? This will delete the trip and all related records.');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="trip-action-btn is-filled delete-btn" title="Delete trip">
-                                                    <i class="fa-regular fa-trash-can"></i> Delete
+                                                <button type="submit" class="trip-action-btn is-filled delete-btn @if($canManageRequests) icon-only @endif" title="Delete trip" aria-label="Delete trip">
+                                                    <i class="fa-regular fa-trash-can"></i> @if(!$canManageRequests) Delete @endif
                                                 </button>
                                             </form>
                                         @endif
                                     @else
-                                        <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-action-btn is-filled email-btn" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
-                                            <i class="fa-regular fa-envelope"></i> Email
+                                        @if($myRequestRow)
+                                            <button type="button" class="trip-action-btn is-filled myrequest-btn open-my-request-review" data-request-b64="{{ $myRequestPayloadB64 }}" title="View my request" aria-label="View my request">
+                                                <i class="fa-solid fa-inbox"></i> My Request
+                                            </button>
+                                        @endif
+                                        <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-action-btn is-filled email-btn @if($myRequestRow) icon-only @endif" title="Email driver" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
+                                            <i class="fa-regular fa-envelope"></i> @if(!$myRequestRow) Email @endif
                                         </a>
-                                        <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-action-btn is-filled whatsapp-btn" target="_blank" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
-                                            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                        <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-action-btn is-filled whatsapp-btn @if($myRequestRow) icon-only @endif" target="_blank" title="Contact WhatsApp" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
+                                            <i class="fa-brands fa-whatsapp"></i> @if(!$myRequestRow) WhatsApp @endif
                                         </a>
                                     @endif
                                 </div>
@@ -713,6 +819,17 @@
                                     'draft' => 'Draft',
                                     default => \Illuminate\Support\Str::headline((string) $trip->status),
                                 };
+                                // From a requesting passenger's own view (not the driver/admin
+                                // managing the trip), a still-pending join request matters more
+                                // than the trip's own scheduled/recorded status — overlay it.
+                                $isOwnerView = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
+                                $myPendingJoinRequest = ! $isOwnerView
+                                    ? $trip->joinRequests->first(fn ($jr) => (int) $jr->user_id === (int) auth()->id() && $jr->status === 'pending')
+                                    : null;
+                                if ($myPendingJoinRequest) {
+                                    $badgeStatus = 'pending';
+                                    $statusLabel = 'Pending';
+                                }
                                 $whenLabel = $trip->trip_datetime?->isToday()
                                     ? $trip->trip_datetime?->format('d M Y')
                                     : ($trip->trip_datetime?->format('d M Y') ?: '-');
@@ -782,6 +899,7 @@
                                     ->filter(fn ($joinRequest) => in_array((string) $joinRequest->status, ['pending', 'approved'], true))
                                     ->map(function ($joinRequest) use ($trip) {
                                         $routePoint = $joinRequest->routePoint;
+                                        $participant = $trip->participants->firstWhere('user_id', $joinRequest->user_id);
 
                                         return [
                                             'id' => $joinRequest->id,
@@ -833,10 +951,92 @@
                                             'risk_cancelled' => $joinRequest->user?->riskProfile?->cancelled_request_count ?? 0,
                                             'risk_absent' => $joinRequest->user?->riskProfile?->attendance_absent_count ?? 0,
                                             'risk_unpaid' => $joinRequest->user?->riskProfile?->overdue_case_count ?? 0,
+                                            'attendance_status' => $participant?->attendance_status,
+                                            'attendance_note' => $participant?->attendance_note,
+                                            'remove_url' => route('trips.join-requests.remove', $joinRequest),
+                                            'absence_url' => route('trips.join-requests.mark-absent', $joinRequest),
+                                            'absence_available' => (bool) ($trip->trip_datetime && now()->gte($trip->trip_datetime->clone()->subMinutes(\App\Services\TripJoinRequestService::ABSENCE_WINDOW_MINUTES))),
                                         ];
                                     })
                                     ->values();
                                 $requestPayloadB64 = base64_encode($requestPayload->toJson());
+                                $myJoinRequest = $trip->joinRequests->firstWhere('user_id', auth()->id());
+                                $myRequestRow = ($myJoinRequest && in_array((string) $myJoinRequest->status, ['pending', 'approved'], true))
+                                    ? $requestPayload->firstWhere('id', $myJoinRequest->id)
+                                    : null;
+                                if ($myRequestRow) {
+                                    $myRequestRow = array_merge($myRequestRow, [
+                                        'cancel_url' => route('trips.join-requests.cancel', $myJoinRequest),
+                                        'can_cancel' => ! $trip->trip_datetime || ! $trip->trip_datetime->isPast(),
+                                    ]);
+                                }
+                                // Pre-selected participants (added directly by the driver at
+                                // trip creation) have a TripParticipant + TripPayment row but
+                                // no TripJoinRequest at all, so the lookup above misses them.
+                                // Only applies to public trips — private trips are direct
+                                // invites, not "requests", so there's nothing to show here.
+                                if (! $myRequestRow && ($trip->visibility ?? 'private') === 'public') {
+                                    $myParticipant = $trip->participants->first(fn ($p) => (int) $p->user_id === (int) auth()->id() && ! $p->is_driver);
+                                    if ($myParticipant) {
+                                        $myRequestRow = [
+                                            'id' => 'participant-' . $myParticipant->id,
+                                            'passenger' => auth()->user()->name,
+                                            'initials' => collect(explode(' ', auth()->user()->name ?: 'P'))->filter()->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode(''),
+                                            'status' => 'approved',
+                                            'requested_at' => $myParticipant->created_at?->diffForHumans() ?: '-',
+                                            'note' => '',
+                                            'pickup' => 'Default pickup',
+                                            'dropoff' => 'Default drop-off',
+                                            'pickup_meta' => "Uses driver's route starting point",
+                                            'dropoff_meta' => "Uses driver's route ending point",
+                                            'fare' => null,
+                                            'fit' => null,
+                                            'fit_label' => null,
+                                            'trip' => $tripRef,
+                                            'cancel_url' => route('trips.leave', $trip),
+                                            'can_cancel' => ! $trip->trip_datetime || ! $trip->trip_datetime->isPast(),
+                                        ];
+                                    }
+                                }
+                                // Once the trip has departed, "My Request" no longer has anything
+                                // actionable to offer (Cancel is already gated off by can_cancel,
+                                // but the trigger button itself should stop showing too).
+                                if ($myRequestRow && $trip->trip_datetime && $trip->trip_datetime->isPast()) {
+                                    $myRequestRow = null;
+                                }
+                                // Trip-level context for the "My Request" popup (date, route,
+                                // fare, seats, other approved passengers' stops for the map
+                                // preview) — same regardless of which branch above built the row.
+                                if ($myRequestRow) {
+                                    $approvedStopsForMap = $requestPayload
+                                        ->where('status', 'approved')
+                                        ->flatMap(fn ($row) => collect([$row['pickup_point'], $row['dropoff_point']])
+                                            ->filter(fn ($point) => $point && $point['lat'] !== null && $point['lng'] !== null))
+                                        ->values();
+                                    $myVehicleModel = trim((string) ($trip->driver?->vehicle_model ?? ''));
+                                    $myVehiclePlate = trim((string) ($trip->driver?->vehicle_plate ?? ''));
+                                    $myRequestRow = array_merge($myRequestRow, [
+                                        'trip_datetime' => $trip->trip_datetime?->format('d M Y, H:i') ?: '-',
+                                        'route_name' => $routeName,
+                                        'driver_pickup_lat' => $trip->pickup_latitude !== null ? (float) $trip->pickup_latitude : null,
+                                        'driver_pickup_lng' => $trip->pickup_longitude !== null ? (float) $trip->pickup_longitude : null,
+                                        'driver_dropoff_lat' => $trip->destination_latitude !== null ? (float) $trip->destination_latitude : null,
+                                        'driver_dropoff_lng' => $trip->destination_longitude !== null ? (float) $trip->destination_longitude : null,
+                                        'fare_per_person' => number_format((float) $trip->fare_per_person, 2),
+                                        'seats_available' => is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-',
+                                        'approved_count' => $passengerCount,
+                                        'approved_stops' => $approvedStopsForMap->toArray(),
+                                        // Pending-request card (Explore-style read-only view) only
+                                        // needs these — kept here so both cards share one payload.
+                                        'driver_name' => $trip->driver?->name ?: 'Driver',
+                                        'driver_initial' => strtoupper(substr($trip->driver?->name ?? '?', 0, 2)),
+                                        'driver_rating' => number_format($trip->driver?->rating ?? 5.0, 2),
+                                        'pickup_name' => $pickupName,
+                                        'destination_name' => $destinationName,
+                                        'vehicle_text' => trim($myVehicleModel . ($myVehicleModel && $myVehiclePlate ? ' · ' : '') . $myVehiclePlate) ?: '-',
+                                    ]);
+                                }
+                                $myRequestPayloadB64 = $myRequestRow ? base64_encode(json_encode($myRequestRow)) : null;
                                 $currentUserPaymentPayload = $paymentReviewPayload
                                     ->filter(fn ($payment) => $currentUserPayments->pluck('id')->contains($payment['id']))
                                     ->values();
@@ -880,7 +1080,7 @@
                                     }
                                 }
                                 $canOpenPaymentReview = $canManageTripPayment && $paymentReviewPayload->isNotEmpty() && $paymentActionLabel === 'Review Payment';
-                                $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'confirmed'], true);
+                                $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'recorded'], true);
                             @endphp
                             <tr class="open-trip-card" data-trip-anchor="{{ $trip->id }}">
                                 @if($hasCheckboxes)
@@ -960,7 +1160,7 @@
 
                                 {{-- Status --}}
                                 <td class="col-status">
-                                    <span class="status-chip status-{{ $badgeStatus }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>{{ $statusLabel }}</span>
+                                    <span class="status-chip status-{{ $badgeStatus }}">{{ $statusLabel }}</span>
                                 </td>
 
                                 {{-- Fare --}}
@@ -1013,6 +1213,11 @@
                                                 </form>
                                             @endif
                                         @else
+                                            @if($myRequestRow)
+                                                <button type="button" class="trip-row-icon-btn is-filled myrequest-btn open-my-request-review" data-request-b64="{{ $myRequestPayloadB64 }}" title="View my request" aria-label="View my request">
+                                                    <i class="fa-solid fa-inbox"></i>
+                                                </button>
+                                            @endif
                                             <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-row-icon-btn is-filled email-btn" title="Email driver" aria-label="Email" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
                                                 <i class="fa-regular fa-envelope"></i>
                                             </a>
@@ -1147,6 +1352,120 @@
                         <i class="fa-solid fa-xmark"></i> Reject Request
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Remove-participant reason modal — mirrors the reject-request modal above,
+         but targets an already-approved passenger instead of a pending request. --}}
+    <div class="trip-payment-review-modal" id="tripRemoveParticipantModal" aria-hidden="true">
+        <div class="trip-payment-review-card trip-reject-request-card" role="dialog" aria-modal="true" aria-labelledby="tripRemoveParticipantTitle">
+            <div class="trip-payment-review-head">
+                <div>
+                    <h3 class="trip-payment-review-title" id="tripRemoveParticipantTitle">Remove Passenger</h3>
+                    <p class="trip-payment-review-sub">State the reason why this passenger is being removed from the trip.</p>
+                </div>
+                <button type="button" class="trip-payment-review-close" id="tripRemoveParticipantCloseTop" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="trip-payment-review-list">
+                <div class="trip-secondary-grid" style="grid-template-columns: repeat(2, minmax(0,1fr));">
+                    <div class="trip-secondary-item">
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Passenger</span>
+                        <span class="trip-modal-value" id="tripRemoveParticipantPassenger">-</span>
+                    </div>
+                    <div class="trip-secondary-item">
+                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
+                        <span class="trip-modal-value" id="tripRemoveParticipantTrip">-</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="trip-modal-label trip-icon-label trip-reject-reason-label" for="tripRemoveParticipantReason">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#eab308;"></i>Removal Reason
+                    </label>
+                    <textarea
+                        class="trip-request-tool trip-reject-reason-input"
+                        id="tripRemoveParticipantReason"
+                        rows="4"
+                        placeholder="Explain briefly why this passenger is being removed..."
+                        required
+                    ></textarea>
+                </div>
+                <div class="trip-reject-request-actions">
+                    <button type="button" class="trip-action-btn" id="tripRemoveParticipantCancel">Cancel</button>
+                    <button type="button" class="trip-payment-review-btn danger trip-reject-request-confirm" id="tripRemoveParticipantConfirm">
+                        <i class="fa-solid fa-user-xmark"></i> Remove Passenger
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- "My Request" — the passenger-side counterpart of "Manage requests" above.
+         Shows just the viewer's own request on a public trip they don't drive,
+         with a Cancel action instead of Reject/Approve/Remove/Absent. --}}
+    <div class="trip-payment-review-modal" id="tripMyRequestModal" aria-hidden="true">
+        <div class="trip-payment-review-card" role="dialog" aria-modal="true" aria-labelledby="tripMyRequestTitle">
+            <div class="trip-payment-review-head">
+                <div>
+                    <h3 class="trip-payment-review-title" id="tripMyRequestTitle">My Request</h3>
+                </div>
+                <button type="button" class="trip-payment-review-close" id="tripMyRequestClose" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="trip-payment-review-list" id="tripMyRequestList"></div>
+        </div>
+    </div>
+
+    {{-- Pending-request read-only view — same "Trip details" card style as the
+         Explore page's request modal (reusing its .xp-modal-* CSS), since a
+         still-pending request has nothing to manage, just a Cancel action. --}}
+    <div class="xp-modal" id="tripPendingRequestModal" aria-hidden="true">
+        <div class="xp-modal-card" role="dialog" aria-modal="true" aria-labelledby="tripPendingRequestTitle">
+            <div class="xp-modal-head">
+                <div>
+                    <h3 class="xp-modal-title" id="tripPendingRequestTitle">Trip details</h3>
+                    <span class="xp-modal-sub">Waiting for the driver to approve your request.</span>
+                </div>
+                <button type="button" class="xp-modal-close" id="tripPendingRequestClose" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="xp-modal-body">
+                <div class="xp-modal-driver">
+                    <span class="xp-modal-avatar" id="tripPendingRequestDriverAvatar">DR</span>
+                    <span>
+                        <strong class="xp-driver-name" id="tripPendingRequestDriver">Driver</strong>
+                        <span class="xp-driver-rating"><i class="fa-solid fa-star"></i><span id="tripPendingRequestRating">5.00</span></span>
+                    </span>
+                </div>
+                <span class="xp-modal-section-label">Trip details</span>
+                <div class="xp-modal-kv">
+                    <div class="xp-modal-kv-item"><span>Time</span><strong id="tripPendingRequestTime">-</strong></div>
+                    <div class="xp-modal-kv-item"><span>Seats Available</span><strong id="tripPendingRequestSeats">-</strong></div>
+                    <div class="xp-modal-kv-item"><span>Fare</span><strong id="tripPendingRequestFare">-</strong></div>
+                </div>
+                <div class="xp-modal-route">
+                    <div class="xp-modal-point">
+                        <span class="xp-modal-point-dot"></span>
+                        <span><span>Pickup</span><strong id="tripPendingRequestPickup">-</strong></span>
+                    </div>
+                    <div class="xp-modal-point">
+                        <span class="xp-modal-point-dot dest"></span>
+                        <span><span>Destination</span><strong id="tripPendingRequestDestination">-</strong></span>
+                    </div>
+                </div>
+                <div class="xp-modal-kv">
+                    <div class="xp-modal-kv-item" style="grid-column:1/-1"><span>Vehicle</span><strong id="tripPendingRequestVehicle">-</strong></div>
+                </div>
+            </div>
+            <div class="xp-modal-foot">
+                <button type="button" class="xp-modal-join-btn danger" id="tripPendingRequestCancelBtn">
+                    <i class="fa-solid fa-ban"></i>
+                    Cancel Request
+                </button>
             </div>
         </div>
     </div>

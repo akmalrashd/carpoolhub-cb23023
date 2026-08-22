@@ -73,6 +73,14 @@
             padding: 0;
             font-family: var(--font-ui);
             color: var(--ink);
+        }
+        /* html-only (not body) so its background propagates up to serve as
+           the page canvas per the CSS root-background rule — leaving body's
+           own box transparent, the same way auth-login.css already does.
+           When both html and body carry this background explicitly, body's
+           copy paints as ordinary in-flow content, above the ambient
+           background pattern's z-index:-1 layer, hiding it completely. */
+        html {
             background: var(--canvas);
         }
         body.modal-open {
@@ -883,8 +891,6 @@
 
         .app-shell {
             min-height: calc(100vh - var(--mobile-header-h));
-            position: relative;
-            z-index: 1;
         }
 
         .main-content {
