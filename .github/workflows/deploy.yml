@@ -64,17 +64,37 @@ jobs:
 
       - name: Run deploy script
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          # The repo is private, so both the one-time bootstrap clone and every
+          # routine fetch need a credential. GITHUB_TOKEN is minted fresh per
+          # run and expires with the job, so it's supplied to just the fetch
+          # command via -c http.extraheader rather than stored in the remote
+          # URL or any file on the server.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
+          envs: GH_TOKEN
           # The source update must happen here, not inside deploy.sh — pulling
           # from within that script would rewrite it mid-execution and bash
           # would keep running the stale version. Update first, then invoke it.
+          #
+          # ~/carpoolhub may not be a git working copy yet (e.g. it was seeded
+          # by a non-git upload) — self-heal by initializing one in place
+          # instead of failing. git init/remote add never touch existing
+          # files, and reset --hard only overwrites files this repo tracks,
+          # so .env, storage/, and any other untracked server-only files are
+          # left alone either way.
           script: |
             cd ~/carpoolhub
-            git fetch origin master
+            if [ ! -d .git ]; then
+              echo "No git repo found in ~/carpoolhub — initializing one in place"
+              git init
+              git remote add origin https://github.com/akmalrashd/CarpoolHub.git
+            fi
+            git -c http.extraheader="AUTHORIZATION: bearer ${GH_TOKEN}" fetch origin master
             git reset --hard origin/master
             bash deploy.sh
