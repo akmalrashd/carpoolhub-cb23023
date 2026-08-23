@@ -1,6 +1,42 @@
 <?php
 
 return [
+    /**
+     * Once a passenger marks a payment paid, the trip driver has this many
+     * days to confirm or reject it before the overdue-days clock below stops
+     * counting that trip against the passenger — a slow driver shouldn't be
+     * able to keep tanking a passenger's score just by sitting on a review.
+     * Matches the delay before SendPendingPaymentApprovalReminder first nags
+     * the driver, so "driver had a fair chance to act" means the same thing
+     * in both places.
+     *
+     * This isn't a free pass for a passenger who marks paid dishonestly: the
+     * clock freezes wherever it already was, it doesn't reset to zero, so
+     * lying gains nothing while still unpaid at the point of marking. And if
+     * the driver later rejects the request, marked_paid_at is cleared and the
+     * trip goes back to counting against real elapsed time from scratch.
+     */
+    'driver_review_grace_days' => 3,
+
+    /**
+     * Most real users pay in one lump sum after seeing what they owe, not
+     * per-trip right after each ride — that's exactly why the monthly
+     * summary exists. Counting overdue days from trip_datetime punished that
+     * completely normal behavior: a trip from early in the month could
+     * already be deep into a penalty tier before the summary reporting it
+     * had even been sent.
+     *
+     * Instead, the overdue clock for a trip now starts from summary_day_of_
+     * month of the month AFTER the trip (the day the summary reporting that
+     * trip goes out — matches SendMonthlyPaymentSummary's monthlyOn(3, ...)),
+     * plus days_after_summary as a settle-up window. Only delay past that
+     * point counts against the passenger.
+     */
+    'overdue_grace' => [
+        'summary_day_of_month' => 3,
+        'days_after_summary' => 14,
+    ],
+
     'score' => [
         'base' => 5.0,
         'min' => 1.0,

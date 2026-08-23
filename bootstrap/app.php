@@ -29,6 +29,26 @@ return Application::configure(basePath: dirname(__DIR__))
         // reporting a balance someone already cleared.
         $schedule->command('notifications:monthly-payment-summary')
             ->monthlyOn(3, '09:00');
+
+        // Weekly is enough for a cleanup task — no need for a daily run.
+        // Monday, off-hours, so it never lands on the same run as the
+        // reminders above.
+        $schedule->command('notifications:prune')
+            ->weeklyOn(1, '04:00');
+
+        // Daily, not weekly like the prune job above — the grace window
+        // before a driver first gets nagged is only a few days, so a weekly
+        // check would badly lag behind it for anyone who crosses the
+        // threshold early in the week.
+        $schedule->command('notifications:pending-payment-reminder')
+            ->dailyAt('10:00');
+
+        // Also daily (the deadline it watches for shifts with month length,
+        // so a fixed day-of-month wouldn't line up) — runs before the driver
+        // reminder above so a passenger who acts on it same-day never crosses
+        // paths with a same-day driver nag for the same trip.
+        $schedule->command('notifications:payment-grace-reminder')
+            ->dailyAt('09:00');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

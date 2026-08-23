@@ -57,7 +57,9 @@ class UserNotification extends Model
             'trip' => $relatedId > 0
                 ? route('trips.index', ['focus_trip' => $relatedId])
                 : route('trips.index'),
-            'trip_payment' => route('payments.index') . '#queue-summary',
+            'trip_payment' => $this->resolveTripPaymentUrl($relatedId),
+            'pending_payment_approval_reminder' => route('payments.index') . '#queue-summary',
+            'payment_grace_deadline_warning' => route('payments.index') . '#my-payments-list',
             'outstanding_summary' => route('payments.outstanding'),
             'trip_entry_reminder' => route('trips.create'),
             'connection' => route('connections.index'),
@@ -65,6 +67,30 @@ class UserNotification extends Model
             'trip_join_request' => $this->resolveJoinRequestUrl($relatedId),
             default => route('notifications.index'),
         };
+    }
+
+    /**
+     * 'trip_payment' is used for both directions — a driver being told a
+     * passenger just submitted payment, and a passenger being told their
+     * payment was recorded/confirmed/rejected, or reminded to pay. Only the
+     * passenger has a "My Payments" section; everyone else (the driver, or
+     * admin) belongs on the driver's review queue instead.
+     */
+    private function resolveTripPaymentUrl(int $paymentId): string
+    {
+        if ($paymentId <= 0) {
+            return route('payments.index');
+        }
+
+        $payment = TripPayment::query()->select('id', 'user_id')->find($paymentId);
+
+        if (! $payment) {
+            return route('payments.index');
+        }
+
+        return (int) $payment->user_id === (int) $this->user_id
+            ? route('payments.index') . '#my-payments-list'
+            : route('payments.index') . '#queue-summary';
     }
 
     private function resolveJoinRequestUrl(int $joinRequestId): string

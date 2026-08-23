@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -20,19 +19,43 @@ class PassengerReliabilityService
             return [];
         }
 
-        $now = now();
+        $graceDays = (int) config('passenger_reliability.driver_review_grace_days', 3);
 
+        // The clock doesn't start at trip_datetime — it starts at the point
+        // a passenger could reasonably be expected to have settled it: the
+        // day the monthly summary reporting that trip is sent, plus a
+        // settle-up window (see config/passenger_reliability.php). LAST_DAY
+        // + offset lands on "summary_day_of_month of the following month"
+        // regardless of which day in its own month the trip fell on, since
+        // every trip in a given month is reported by the same summary run.
+        $overdueGraceOffsetDays = (int) config('passenger_reliability.overdue_grace.summary_day_of_month', 3)
+            + (int) config('passenger_reliability.overdue_grace.days_after_summary', 14);
+
+        // A plain "unpaid" row counts overdue days from that grace point
+        // against real NOW — the passenger is the one blocking. A
+        // "pending_confirmation" row instead counts against
+        // LEAST(NOW(), marked_paid_at + driver review grace): while the
+        // driver is still inside their own review window that's the same as
+        // NOW, but once the driver blows past it, the clock freezes there
+        // instead of continuing to grow — from that point on, further delay
+        // is on the driver, not the passenger. See config/passenger_reliability.php
+        // for why neither of these can be gamed by marking paid dishonestly.
         $rows = DB::table('trip_payments as tp')
             ->join('trips as t', 't.id', '=', 'tp.trip_id')
             ->whereIn('tp.user_id', $ids)
             ->whereIn('tp.payment_status', ['unpaid', 'pending_confirmation'])
             ->whereNotIn('t.status', ['draft', 'scheduled'])
             ->groupBy('tp.user_id')
-            ->select(
-                'tp.user_id',
-                DB::raw('COUNT(tp.id) as unpaid_cases'),
-                DB::raw('COALESCE(SUM(tp.amount_due), 0) as outstanding_amount'),
-                DB::raw("MIN(CASE WHEN t.trip_datetime < NOW() THEN t.trip_datetime ELSE NULL END) as oldest_overdue_trip_datetime")
+            ->selectRaw(
+                'tp.user_id, ' .
+                'COUNT(tp.id) as unpaid_cases, ' .
+                'COALESCE(SUM(tp.amount_due), 0) as outstanding_amount, ' .
+                'MAX(CASE
+                    WHEN tp.payment_status = "pending_confirmation" AND tp.marked_paid_at IS NOT NULL
+                        THEN GREATEST(0, TIMESTAMPDIFF(DAY, DATE_ADD(LAST_DAY(t.trip_datetime), INTERVAL ? DAY), LEAST(NOW(), DATE_ADD(tp.marked_paid_at, INTERVAL ? DAY))))
+                    ELSE GREATEST(0, TIMESTAMPDIFF(DAY, DATE_ADD(LAST_DAY(t.trip_datetime), INTERVAL ? DAY), NOW()))
+                END) as oldest_overdue_days',
+                [$overdueGraceOffsetDays, $graceDays, $overdueGraceOffsetDays]
             )
             ->get();
 
@@ -43,8 +66,8 @@ class PassengerReliabilityService
             $row = $aggregates->get($userId);
             $unpaidCases = $row ? (int) $row->unpaid_cases : 0;
             $outstandingAmount = $row ? (float) $row->outstanding_amount : 0.0;
-            $hasOverdue = $row && ! empty($row->oldest_overdue_trip_datetime);
-            $oldestOverdueDays = $this->resolveOldestOverdueDays($row?->oldest_overdue_trip_datetime, $now);
+            $oldestOverdueDays = $row ? max(0, (int) $row->oldest_overdue_days) : 0;
+            $hasOverdue = $oldestOverdueDays > 0;
 
             $amountPenalty = $this->penaltyForAmount($outstandingAmount);
             $overduePenalty = $this->penaltyForOverdue($oldestOverdueDays, $hasOverdue);
@@ -74,16 +97,6 @@ class PassengerReliabilityService
         }
 
         return $result;
-    }
-
-    private function resolveOldestOverdueDays(mixed $oldestOverdueDateTime, Carbon $now): int
-    {
-        if (! $oldestOverdueDateTime) {
-            return 0;
-        }
-
-        $overdueAt = Carbon::parse($oldestOverdueDateTime);
-        return max(0, (int) $overdueAt->diffInDays($now));
     }
 
     private function penaltyForAmount(float $amount): float
