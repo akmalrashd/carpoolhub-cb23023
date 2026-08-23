@@ -229,11 +229,13 @@ class ChatbotService
 - Jangan SEKALI-KALI reka atau teka nama tempat. Ambil terus dari senarai.
 - outbound_pickup_key & outbound_destination_key mesti berbeza (point_a/point_b).
 - participant_ids: isi HANYA kalau user sebut nama penumpang.
-- visibility: baca ISYARAT dalam ayat user, jangan cari perkataan "public"/"private" literal sahaja:
-  - User sebut nama penumpang tertentu (untuk isi participant_names) → default "private" (kumpulan tertutup yang dia dah kenal).
-  - User bagi bilangan seat UNTUK orang lain yang tak dikenali/terbuka (contoh: "untuk sesiapa yang nak tumpang", "sesiapa boleh join", "bukak seat") dan TAK nama sesiapa → default "public" (seat_limit tu memang untuk isi tempat kosong kat Explore, bukan kumpulan tertutup).
-  - Betul-betul tiada isyarat (contoh user sekadar sebut "3 seat" tanpa konteks) → default "private" macam biasa.
-  - Apa-apa default yang diambil, JANGAN jadikan soalan wajib yang tahan draft — sebut assumption tu dalam reply (contoh: "Saya anggap trip ni public sebab awak buka untuk sesiapa nak tumpang — bagitahu kalau nak tukar private.").'
+- visibility: seat_limit ialah KONSEP PUBLIC SAHAJA dalam sistem ni — untuk trip private, seat_limit terus dibuang oleh backend tak kira apa nilai dihantar (kapasiti private datang semata-mata dari nama dalam participant_names, bukan angka). Jadi:
+  - User sebut NAMA je, TANPA sebarang angka seat → default "private". Isi participant_names, biar seat_limit null.
+  - User sebut ANGKA seat (sama ada sorang-sorang, atau sekali dengan nama) → default "public". Angka tu jadi seat_limit — jumlah TOTAL kapasiti, TERMASUK sesiapa yang dinamakan:
+    - User cakap "perlukan LAGI/tambahan X seat" (lepas nama seseorang, contoh "nak trip dengan Adib, perlukan lagi 3 seat") → seat_limit = bilangan nama + X (dalam contoh ni, 1 + 3 = 4).
+    - User sekadar sebut angka flat tanpa "lagi"/"tambahan" (contoh "3 seat, ajak Ali") → angka tu terus jadi seat_limit TOTAL (3), Ali termasuk dalam 3 tu, baki terbuka untuk Explore.
+  - Tiada nama DAN tiada angka langsung → default "private" (kes jarang berlaku sebab field lain pun biasanya masih kosong, jadi ini akan kena tanya juga ikut peraturan info-tak-cukup).
+  - Apa-apa default yang diambil, JANGAN jadikan soalan wajib yang tahan draft — sebut assumption tu dalam reply (contoh: "Saya anggap trip ni public dengan 3 seat termasuk Ali — bagitahu kalau nak tukar private.").'
             : 'ROUTE MATCHING (MUST FOLLOW):
 - Check saved routes above. Try to match user\'s destination/pickup with point_a or point_b in the list.
 - If clear match found → use that route, fill saved_route_id, route_name, pickup_name, destination_name.
@@ -242,11 +244,13 @@ class ChatbotService
 - NEVER invent or guess place names. Take exact values from the list.
 - outbound_pickup_key & outbound_destination_key must differ (point_a/point_b).
 - participant_ids: fill ONLY if user mentions passenger names.
-- visibility: read the SIGNAL in the user\'s phrasing, don\'t just pattern-match a literal "public"/"private" word:
-  - User names specific passengers (fills participant_names) → default "private" (a closed group they already know).
-  - User gives a seat count for anyone/strangers to fill (e.g. "for whoever wants to join", "open to anyone", "spare seats") and names no one → default "public" (seat_limit exists specifically to fill open seats via Explore, not a closed group).
-  - Genuinely no signal either way (e.g. user just says "3 seats" with no other context) → default "private" as usual.
-  - Whichever default you take, never make it a blocking question — mention the assumption in the reply (e.g. "Assuming this is public since it\'s open to anyone — let me know if you want it private instead.").'
+- visibility: seat_limit is a PUBLIC-ONLY concept in this system — for a private trip, seat_limit gets dropped server-side no matter what value is sent (private capacity comes purely from named people in participant_names, never from a number). So:
+  - User names people ONLY, with NO seat number at all → default "private". Fill participant_names, leave seat_limit null.
+  - User gives a seat NUMBER (alone, or together with names) → default "public". That number becomes seat_limit — the TOTAL capacity, INCLUDING anyone named:
+    - User says "need X MORE seats" (on top of a named person, e.g. "trip with Adib, need 3 more seats") → seat_limit = name count + X (here, 1 + 3 = 4).
+    - User just states a flat number with no "more"/"additional" wording (e.g. "3 seats, bring Ali") → that number IS the total seat_limit (3), Ali included within it, remaining spots open via Explore.
+  - No names AND no number at all → default "private" (a rare case — other fields are usually still missing too, so this gets asked about anyway under the general insufficient-info rule).
+  - Whichever default you take, never make it a blocking question — mention the assumption in the reply (e.g. "Assuming this is public with 3 seats including Ali — let me know if you want it private instead.").'
         ) : '';
 
         $tripDraftSchema = $isDriver ? '
