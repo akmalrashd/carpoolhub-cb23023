@@ -476,6 +476,14 @@
 .tf-select,
 .tf-textarea {
     width: 100%;
+    /* .tf-field is a grid container, and grid items default to
+       min-width:auto (not 0) — so a native control with its own intrinsic
+       minimum width (datetime-local's calendar icon + segmented picker,
+       especially on mobile) can overflow straight past width:100% instead
+       of shrinking to fit. Plain text inputs never hit this since they have
+       no such intrinsic minimum. */
+    min-width: 0;
+    max-width: 100%;
     border-radius: var(--r-sm);
     border: 1px solid var(--hairline-strong);
     background: var(--surface);
