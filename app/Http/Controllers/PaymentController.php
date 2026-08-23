@@ -113,6 +113,21 @@ class PaymentController extends Controller
         );
     }
 
+    /**
+     * Full month-by-counterparty breakdown behind the monthly summary
+     * notification's "Tap to see the full breakdown" — see
+     * SendMonthlyPaymentSummary and PaymentService::summarizeOutstandingBreakdown().
+     */
+    public function outstanding(Request $request): View
+    {
+        $user = $request->user();
+
+        return view('payments.outstanding', [
+            'owedByMe' => $this->paymentService->summarizeOutstandingBreakdown($user, 'owed_by_me'),
+            'owedToMe' => $this->paymentService->summarizeOutstandingBreakdown($user, 'owed_to_me'),
+        ]);
+    }
+
     public function markPaid(MarkPaidRequest $request, TripPayment $payment): RedirectResponse|JsonResponse
     {
         try {

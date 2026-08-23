@@ -253,6 +253,63 @@ class PaymentService
     }
 
     /**
+     * Outstanding (unpaid + pending_confirmation) balance, grouped by the
+     * month the trip happened in and by counterparty — the building block for
+     * the monthly payment summary notification (and its "Outstanding Summary"
+     * page). Two directions, since payment only ever flows passenger→driver
+     * (confirmed — a driver never owes a passenger in this app):
+     *   - 'owed_by_me': $user is the passenger, owed to each driver.
+     *   - 'owed_to_me': $user is the driver, owed by each passenger.
+     */
+    public function summarizeOutstandingBreakdown(User $user, string $direction): array
+    {
+        $query = TripPayment::query()
+            ->select([
+                DB::raw("DATE_FORMAT(trips.trip_datetime, '%Y-%m') as month_key"),
+                'counterparty.id as counterparty_id',
+                'counterparty.name as counterparty_name',
+                DB::raw('COUNT(trip_payments.id) as records'),
+                DB::raw('SUM(trip_payments.amount_due) as total_amount'),
+            ])
+            ->join('trips', 'trips.id', '=', 'trip_payments.trip_id')
+            ->whereIn('trip_payments.payment_status', TripPayment::STATUSES_OUTSTANDING)
+            ->where('trips.status', '!=', 'draft')
+            ->whereNotNull('trips.trip_datetime');
+
+        if ($direction === 'owed_to_me') {
+            $query->join('users as counterparty', 'counterparty.id', '=', 'trip_payments.user_id')
+                ->where('trips.driver_id', $user->id)
+                ->where('trip_payments.user_id', '!=', $user->id);
+        } else {
+            $query->join('users as counterparty', 'counterparty.id', '=', 'trips.driver_id')
+                ->where('trip_payments.user_id', $user->id);
+        }
+
+        $rows = $query
+            ->groupBy('month_key', 'counterparty.id', 'counterparty.name')
+            ->orderByDesc('month_key')
+            ->orderByDesc('total_amount')
+            ->get();
+
+        $months = $rows->groupBy('month_key')->map(fn ($group, $monthKey) => [
+            'month_key' => (string) $monthKey,
+            'month_label' => Carbon::createFromFormat('Y-m', $monthKey)->format('F Y'),
+            'total' => (float) $group->sum('total_amount'),
+            'rows' => $group->map(fn ($row) => [
+                'counterparty_id' => (int) $row->counterparty_id,
+                'counterparty_name' => (string) $row->counterparty_name,
+                'records' => (int) $row->records,
+                'amount' => (float) $row->total_amount,
+            ])->values()->all(),
+        ])->values();
+
+        return [
+            'total_amount' => (float) $rows->sum('total_amount'),
+            'months' => $months->all(),
+        ];
+    }
+
+    /**
      * The full set the ledger renders. It honours the filter form (dates,
      * visibility, search) but deliberately not payment_filter/direction — those
      * are the tab strip, which switches client-side without a reload, so the

@@ -39,13 +39,22 @@ class TelegramService
             return;
         }
 
-        $emoji = self::TYPE_EMOJI[$notification->type] ?? '🔔';
-        $text = sprintf(
-            "%s <b>%s</b>\n\n%s",
-            $emoji,
-            e($notification->title),
-            e($notification->message)
-        );
+        // telegram_message, when set, IS the complete text (own header,
+        // formatting, line breaks) — for notifications where the in-app copy
+        // has to stay short (views collapse newlines / hard-truncate to 2
+        // lines) but Telegram can render something richer. Falls back to the
+        // generic emoji+title+message shape used by every other notification.
+        if (! empty($notification->telegram_message)) {
+            $text = $notification->telegram_message;
+        } else {
+            $emoji = self::TYPE_EMOJI[$notification->type] ?? '🔔';
+            $text = sprintf(
+                "%s <b>%s</b>\n\n%s",
+                $emoji,
+                e($notification->title),
+                e($notification->message)
+            );
+        }
 
         try {
             $response = $this->client()->post('sendMessage', [

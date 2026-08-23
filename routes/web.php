@@ -71,6 +71,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/saved-routes/redeem', [SavedRouteController::class, 'redeem'])->name('saved-routes.redeem');
     Route::get('/fuel-prices/current', [FuelPriceController::class, 'current'])->name('fuel-prices.current');
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments/outstanding', [PaymentController::class, 'outstanding'])->name('payments.outstanding');
     Route::patch('/payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');
     Route::patch('/payments/{payment}/confirm-paid', [PaymentController::class, 'confirmPaid'])->name('payments.confirm-paid');
     Route::patch('/payments/bulk-confirm', [PaymentController::class, 'bulkConfirm'])->name('payments.bulk-confirm');
