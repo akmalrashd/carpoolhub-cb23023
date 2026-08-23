@@ -1526,6 +1526,13 @@
             showModal();
         });
 
+        // Fired by trips-create.js once a Hexa trip draft has finished
+        // filling every field — land straight on Review instead of making
+        // the driver click through steps they didn't just fill in themselves.
+        window.addEventListener('carpoolhub:ai-trip-draft-filled', function () {
+            if (wizardStepCards.length) goToStep(wizardStepCards.length, { scroll: false });
+        });
+
         if (keepEditingBtn) {
             keepEditingBtn.addEventListener('click', function () {
                 pendingNavigationUrl = null;

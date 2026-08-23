@@ -9,12 +9,11 @@
     sessionStorage.removeItem('ch_ai_trip_draft');
     if (!draft || typeof draft !== 'object') return;
 
-    // Show banner
-    const banner = document.createElement('div');
-    banner.style.cssText = 'margin:0 28px 12px;padding:10px 14px;border-radius:10px;background:var(--ch-yellow-tint);border:1px solid var(--ch-yellow-line);color:var(--ch-yellow-ink);font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;';
-    banner.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Form pre-filled by AI — please review before publishing.';
-    const form = document.getElementById('tripCreateForm');
-    if (form) form.insertAdjacentElement('afterbegin', banner);
+    // Reveal the banner pre-rendered in create.blade.php (reuses the real
+    // <x-mascot> component rather than duplicating its SVG as an innerHTML
+    // string here).
+    const banner = document.getElementById('aiPrefillBanner');
+    if (banner) banner.hidden = false;
 
     function fillNonRouteFields() {
         // Direction keys (hidden inputs)
@@ -68,6 +67,10 @@
                 if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change', { bubbles: true })); }
             });
         }
+
+        // Every field Hexa gave us is filled in now — let the wizard script
+        // (resources/views/trips/_form.blade.php) jump to the Review step.
+        window.dispatchEvent(new CustomEvent('carpoolhub:ai-trip-draft-filled'));
     }
 
     function trySelectRoute(routeId) {
