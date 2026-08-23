@@ -626,7 +626,7 @@
                                 @if($user->telegram_chat_id)
                                     Sending alerts to {{ $user->telegram_username ? '@'.$user->telegram_username : 'your linked Telegram account' }}. Works on any device — no app install needed.
                                 @elseif($telegramConfigured)
-                                    Connect your Telegram account for reliable, instant alerts on any device — phone, desktop, anywhere.
+                                    Connect your Telegram account for reliable, instant alerts on any device — phone, desktop, anywhere. Bonus: once connected, you can open the app straight from the bot as a Mini App with no login needed — works on any phone, as long as Telegram is installed.
                                 @else
                                     Telegram isn't set up on this server yet.
                                 @endif
