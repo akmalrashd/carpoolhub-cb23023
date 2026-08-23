@@ -988,15 +988,13 @@
             });
         }
 
+        // Previously only polled while the dropdown was open or the user was on
+        // /notifications — the badge count (and dropdown list, once opened) sat
+        // stale everywhere else until a full page reload. Now it polls the
+        // whole time the tab is visible, same 5s interval, so the badge stays
+        // live no matter what page you're on.
         function shouldPollNotifications() {
-            if (document.visibilityState !== 'visible') {
-                return false;
-            }
-            var openDropdown = document.querySelector('.notification-wrap[open]');
-            if (openDropdown) {
-                return true;
-            }
-            return window.location.pathname === @json(route('notifications.index', [], false));
+            return document.visibilityState === 'visible';
         }
 
         var notifFirstLoad = true;

@@ -12,11 +12,6 @@
             <p class="pg-sub">All your trip, payment and connection updates.</p>
         </div>
         <div class="pg-header-actions">
-            @if($unreadCount > 0)
-                <span class="notif-unread-badge">
-                    <i class="fa-solid fa-bell"></i> {{ $unreadCount }} Unread
-                </span>
-            @endif
             <button type="button" class="btn btn-ghost btn-sm notif-delete-all-btn" id="notif-delete-all-btn"
                     data-url="{{ route('notifications.delete-all') }}"
                     title="Delete all notifications — this cannot be undone">
