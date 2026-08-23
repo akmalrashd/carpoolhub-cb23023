@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Ai\AiUsageLogger;
 use App\Services\Ai\ChatbotService;
 use App\Services\Ai\FareReferenceDataService;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,7 @@ class AiChatController extends Controller
     public function __construct(
         private readonly ChatbotService $chatbotService,
         private readonly FareReferenceDataService $fareData,
+        private readonly AiUsageLogger $usage,
     ) {
     }
 
@@ -139,6 +141,15 @@ class AiChatController extends Controller
             $cleaned = preg_replace('/\s*```$/', '', $cleaned ?? $raw);
             $decoded = json_decode(trim($cleaned ?? $raw), true);
 
+            $this->usage->record(
+                $request->user(),
+                'recommend-route',
+                trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
+                $body['usage']['input_tokens'] ?? null,
+                $body['usage']['output_tokens'] ?? null,
+                success: is_array($decoded) && isset($decoded['recommended_index']),
+            );
+
             if (! is_array($decoded) || ! isset($decoded['recommended_index'])) {
                 return response()->json($fallback);
             }
@@ -153,6 +164,16 @@ class AiChatController extends Controller
                 'reason' => trim((string) ($decoded['reason'] ?? '')) ?: $fallback['reason'],
             ]);
         } catch (\Throwable) {
+            $this->usage->record(
+                $request->user(),
+                'recommend-route',
+                trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
+                null,
+                null,
+                success: false,
+                errorType: 'http_error',
+            );
+
             return response()->json($fallback);
         }
     }
@@ -249,6 +270,15 @@ class AiChatController extends Controller
             $cleaned = preg_replace('/\s*```$/', '', $cleaned ?? $raw);
             $decoded = json_decode(trim($cleaned ?? $raw), true);
 
+            $this->usage->record(
+                $request->user(),
+                'fare-advice',
+                trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
+                $body['usage']['input_tokens'] ?? null,
+                $body['usage']['output_tokens'] ?? null,
+                success: is_array($decoded),
+            );
+
             if (! is_array($decoded)) {
                 return response()->json($fallback);
             }
@@ -266,6 +296,16 @@ class AiChatController extends Controller
                 'reason' => trim((string) ($decoded['reason'] ?? $fallback['reason'])) ?: $fallback['reason'],
             ]);
         } catch (\Throwable) {
+            $this->usage->record(
+                $request->user(),
+                'fare-advice',
+                trim(config('ai_chat.model', 'claude-haiku-4-5-20251001')),
+                null,
+                null,
+                success: false,
+                errorType: 'http_error',
+            );
+
             return response()->json($fallback);
         }
     }

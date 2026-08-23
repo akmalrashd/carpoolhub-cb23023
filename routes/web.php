@@ -87,14 +87,16 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->middleware('throttle:6,1')->name('settings.password.update');
 
     // Every route below except clearHistory bills a real Anthropic API call, so
-    // they are throttled per authenticated user. 30/min is far above interactive
-    // use (the chat box is one request per typed message) but caps a scripted
-    // loop from draining the API budget.
+    // they share the 'ai-spend' limiter (registered in AppServiceProvider) —
+    // one bucket per user across all three routes, not one bucket each, plus
+    // a daily cap. 30/min is far above interactive use (the chat box is one
+    // request per typed message) but caps a scripted loop from draining the
+    // API budget.
     Route::prefix('/ai')->group(function (): void {
-        Route::post('/chat', [AiChatController::class, 'chat'])->middleware('throttle:30,1')->name('ai.chat');
+        Route::post('/chat', [AiChatController::class, 'chat'])->middleware('throttle:ai-spend')->name('ai.chat');
         Route::delete('/chat/history', [AiChatController::class, 'clearHistory'])->name('ai.chat.clear');
-        Route::post('/fare-advice', [AiChatController::class, 'fareAdvice'])->middleware('throttle:30,1')->name('ai.fare-advice');
-        Route::post('/recommend-route', [AiChatController::class, 'recommendRoute'])->middleware('throttle:30,1')->name('ai.recommend-route');
+        Route::post('/fare-advice', [AiChatController::class, 'fareAdvice'])->middleware('throttle:ai-spend')->name('ai.fare-advice');
+        Route::post('/recommend-route', [AiChatController::class, 'recommendRoute'])->middleware('throttle:ai-spend')->name('ai.recommend-route');
     });
 
     Route::prefix('/refresh')->group(function (): void {

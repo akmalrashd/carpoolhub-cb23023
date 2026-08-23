@@ -13,4 +13,10 @@ return [
 
     // Max conversation turns kept in session (each turn = 1 user + 1 assistant msg)
     'history_turns' => 4,
+
+    // Per-user daily cap shared across /ai/chat, /ai/fare-advice and
+    // /ai/recommend-route (see the 'ai-spend' rate limiter) — every one of
+    // these bills a real Anthropic call, so this is a spend ceiling, not
+    // just an abuse guard.
+    'daily_limit' => (int) env('AI_CHAT_DAILY_LIMIT', 150),
 ];
