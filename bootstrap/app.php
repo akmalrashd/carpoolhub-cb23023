@@ -15,14 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule): void {
-        // This is the app's first scheduled task — it does nothing on its
-        // own. Laravel's scheduler only runs when something calls
-        // `php artisan schedule:run`, which needs a real cPanel cron entry
-        // on Hostinger (there is none yet): a single line running every
-        // minute, e.g. `* * * * * php /home/.../artisan schedule:run
-        // >> /dev/null 2>&1`. Without that cron entry this command below
-        // will never fire no matter how correct this definition is.
+        // Requires the cPanel cron entry on Hostinger calling
+        // `php artisan schedule:run` every minute — already set up.
         //
+        // 25th — about 9 days before the payment summary below, so a driver
+        // who forgot to log a trip mid-month has real time to add it before
+        // that summary treats whatever's in the system as final.
+        $schedule->command('notifications:trip-entry-reminder')
+            ->monthlyOn(25, '19:00');
+
         // 3rd of the month, not the 1st — a few days' buffer so payments
         // confirmed right at the month boundary have settled, instead of
         // reporting a balance someone already cleared.
