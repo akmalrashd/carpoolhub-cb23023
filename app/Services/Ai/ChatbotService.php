@@ -269,6 +269,7 @@ RESPOND IN VALID JSON ONLY. This applies even when your reply is a multi-point c
      connections.index: q (free text name search)
      notifications.index: filter ("all"|"unread"|"trip"|"payment"|"connection"|"system"|"route")
      trips.create, saved-routes.index, settings.index: no params — omit "params" for these.
+   - Word "reply" so it tells the user to tap the button below to get there — never just describe the destination as if it's already shown. If any filter was applied, name it in the same sentence.
 
 3. GENERAL: {"intent":"general","reply":"<answer>"}
 

@@ -328,7 +328,7 @@ const aiChat = (() => {
             } else if (entry.type === 'navigate' && entry.url) {
                 const extrasWrap = document.createElement('div');
                 extrasWrap.className = 'ai-extras';
-                extrasWrap.appendChild(buildNavCard(entry.url));
+                extrasWrap.appendChild(buildNavCard(entry.url, entry.route));
                 m.appendChild(extrasWrap);
             }
         });
@@ -520,8 +520,21 @@ const aiChat = (() => {
         return card;
     }
 
-    function buildNavCard(url) {
-        const label = (lang ?? DEFAULT_LANG) === 'ms' ? 'Pergi ke sana' : 'Take me there';
+    const NAV_LABELS = {
+        'trips.index':         { ms: 'Lihat Senarai Trip', en: 'View My Trips' },
+        'trips.create':        { ms: 'Buka Borang Trip',   en: 'Open Trip Form' },
+        'payments.index':      { ms: 'Lihat Bayaran',      en: 'View Payments' },
+        'explore.index':       { ms: 'Cari Trip',          en: 'Find a Ride' },
+        'connections.index':   { ms: 'Lihat Connections',  en: 'View Connections' },
+        'saved-routes.index':  { ms: 'Lihat Saved Route',  en: 'View Saved Routes' },
+        'settings.index':      { ms: 'Buka Settings',      en: 'Open Settings' },
+        'notifications.index': { ms: 'Lihat Notification', en: 'View Notifications' },
+    };
+
+    function buildNavCard(url, route) {
+        const isMalay = (lang ?? DEFAULT_LANG) === 'ms';
+        const fallback = isMalay ? 'Pergi ke sana' : 'Take me there';
+        const label = (NAV_LABELS[route] && NAV_LABELS[route][isMalay ? 'ms' : 'en']) || fallback;
         const a = document.createElement('a');
         a.className = 'ai-nav-btn';
         a.href = url;
@@ -641,7 +654,7 @@ const aiChat = (() => {
             } else if (data.intent === 'no_route' && data.route_url) {
                 addBubble(data.reply, 'bot', buildNoRouteCard(data.route_url), { type: 'no_route', url: data.route_url, reply: data.reply });
             } else if (data.intent === 'navigate' && data.url) {
-                addBubble(data.reply, 'bot', buildNavCard(data.url), { type: 'navigate', url: data.url });
+                addBubble(data.reply, 'bot', buildNavCard(data.url, data.route), { type: 'navigate', url: data.url, route: data.route });
             } else {
                 addBubble(data.reply || ((lang ?? DEFAULT_LANG) === 'ms' ? 'Maaf, cuba lagi.' : 'Sorry, try again.'), 'bot');
             }
