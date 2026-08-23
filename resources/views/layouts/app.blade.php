@@ -1024,7 +1024,13 @@
                 credentials: 'same-origin',
             })
                 .then(function (response) {
-                    if (!response.ok) return null;
+                    if (!response.ok) {
+                        // Was silently dropped — a 302 (session/login issue),
+                        // 419 (CSRF/session expired), or 500 looked identical
+                        // to "nothing new" from the badge's point of view.
+                        console.error('Notification poll failed: HTTP ' + response.status);
+                        return null;
+                    }
                     return response.json();
                 })
                 .then(function (payload) {
@@ -1036,7 +1042,8 @@
                         }
                     }
                 })
-                .catch(function () {
+                .catch(function (err) {
+                    console.error('Notification poll failed', err);
                     if (notifFirstLoad) { hideNotifSkeleton(); notifFirstLoad = false; }
                 })
                 .finally(function () {
