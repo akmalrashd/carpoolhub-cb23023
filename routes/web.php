@@ -37,6 +37,7 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:6,1')->name('register.store');
+    Route::post('/telegram/miniapp-auth', [TelegramController::class, 'miniAppAuth'])->middleware('throttle:20,1')->name('telegram.miniapp-auth');
 });
 
 Route::middleware(['auth', 'active'])->group(function (): void {

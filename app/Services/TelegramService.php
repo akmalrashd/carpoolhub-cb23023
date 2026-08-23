@@ -55,7 +55,13 @@ class TelegramService
                     'parse_mode' => 'HTML',
                     'reply_markup' => [
                         'inline_keyboard' => [[
-                            ['text' => 'Open in App', 'url' => $notification->target_url],
+                            // web_app (not a plain url button) opens this inside
+                            // Telegram's own webview on every platform — the
+                            // login page there auto-signs the user in via
+                            // TelegramController::miniAppAuth() using initData,
+                            // instead of leaving them on a login form in a
+                            // webview that never had a CarpoolHub session.
+                            ['text' => 'Open in App', 'web_app' => ['url' => $notification->target_url]],
                         ]],
                     ],
                 ],

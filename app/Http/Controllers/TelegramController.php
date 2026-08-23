@@ -7,6 +7,7 @@ use App\Services\TelegramService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -76,6 +77,97 @@ class TelegramController extends Controller
         // Telegram expects a fast 200 regardless of outcome, or it will
         // keep retrying this same update.
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Auto-login for a Telegram Mini App launch (e.g. the "Open in App"
+     * button on a notification, opened as a web_app instead of an external
+     * browser). Telegram's own webview has no CarpoolHub session cookie —
+     * without this, every Mini App open would dead-end on the login form.
+     *
+     * initData is signed by Telegram using a key derived from the bot
+     * token, so a verified initData.user.id is exactly as trustworthy as
+     * the /start deep-link flow that originally linked it — the difference
+     * is this path only ever recognises an ALREADY-linked account. Someone
+     * who has never connected Telegram still links the normal way, from an
+     * authenticated browser session (Settings > Notifications), because
+     * that's the one place a fresh chat id can be tied to a user at all.
+     */
+    public function miniAppAuth(Request $request): JsonResponse
+    {
+        $data = $this->validateInitData((string) $request->input('initData', ''));
+
+        if ($data === null) {
+            return response()->json(['success' => false, 'message' => 'Invalid or expired Telegram session.'], 422);
+        }
+
+        $telegramUser = json_decode((string) ($data['user'] ?? '{}'), true);
+        $telegramUserId = (string) ($telegramUser['id'] ?? '');
+
+        if ($telegramUserId === '') {
+            return response()->json(['success' => false, 'message' => 'Invalid Telegram user data.'], 422);
+        }
+
+        $user = User::query()->where('telegram_chat_id', $telegramUserId)->first();
+
+        if (! $user) {
+            return response()->json(['success' => false, 'message' => 'not_linked'], 404);
+        }
+
+        if (! $user->is_active) {
+            return response()->json(['success' => false, 'message' => 'account_inactive'], 403);
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return response()->json([
+            'success' => true,
+            'redirect' => $request->session()->pull('url.intended', route('home')),
+        ]);
+    }
+
+    /**
+     * Verifies initData per Telegram's documented algorithm: secret_key =
+     * HMAC-SHA256(bot_token, key="WebAppData"), then the check-string (every
+     * field but hash, sorted, joined "key=value" with \n) is HMAC-SHA256'd
+     * with that secret and compared to the received hash. Returns the
+     * parsed fields on success, null on any failure — including stale data
+     * (auth_date older than 24h), which blocks replaying a captured
+     * initData indefinitely.
+     */
+    private function validateInitData(string $initData): ?array
+    {
+        if ($initData === '' || empty(config('services.telegram.bot_token'))) {
+            return null;
+        }
+
+        parse_str($initData, $data);
+
+        if (empty($data['hash']) || ! is_array($data)) {
+            return null;
+        }
+
+        $hash = (string) $data['hash'];
+        unset($data['hash']);
+
+        ksort($data);
+        $checkString = collect($data)
+            ->map(fn ($value, $key) => "{$key}={$value}")
+            ->implode("\n");
+
+        $secretKey = hash_hmac('sha256', config('services.telegram.bot_token'), 'WebAppData', true);
+        $computedHash = hash_hmac('sha256', $checkString, $secretKey);
+
+        if (! hash_equals($computedHash, $hash)) {
+            return null;
+        }
+
+        if (empty($data['auth_date']) || (time() - (int) $data['auth_date']) > 86400) {
+            return null;
+        }
+
+        return $data;
     }
 
     private function handleStart(string $token, string $chatId, ?string $username): void
