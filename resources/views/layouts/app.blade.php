@@ -85,7 +85,7 @@
                                 <div class="bento-menu-section" data-bento-section>
                                     <h3 class="bento-section-title">Navigation</h3>
                                     <div class="bento-grid">
-                                        <a href="{{ route('home') }}" class="bento-item" data-bento-item>
+                                        <a href="{{ route('home') }}" class="bento-item" data-bento-item data-keywords="home overview stats statistics summary main start">
                                             <span class="bento-icon-bg" style="background: rgba(37,99,235,0.1); color: #2563eb;">
                                                 <i class="fa-solid fa-house"></i>
                                             </span>
@@ -94,7 +94,7 @@
                                                 <span class="bento-desc">Go to home view, see trip statistics and summaries.</span>
                                             </div>
                                         </a>
-                                        <a href="{{ route('explore.index') }}" class="bento-item" data-bento-item>
+                                        <a href="{{ route('explore.index') }}" class="bento-item" data-bento-item data-keywords="find search browse ride join available nearby carpool passenger seat">
                                             <span class="bento-icon-bg" style="background: rgba(147,51,234,0.1); color: #9333ea;">
                                                 <i class="fa-solid fa-compass"></i>
                                             </span>
@@ -103,13 +103,13 @@
                                                 <span class="bento-desc">Browse, search and filter active carpool trips.</span>
                                             </div>
                                         </a>
-                                        <a href="{{ route('trips.index') }}" class="bento-item" data-bento-item>
+                                        <a href="{{ route('trips.index') }}" class="bento-item" data-bento-item data-keywords="history bookings schedule upcoming past draft cancelled completed rides journeys">
                                             <span class="bento-icon-bg" style="background: rgba(22,163,74,0.1); color: #16a34a;">
                                                 <i class="fa-solid fa-car-side"></i>
                                             </span>
                                             <div class="bento-info">
                                                 <strong class="bento-name">My Trips</strong>
-                                                <span class="bento-desc">View and manage your upcoming, past, and draft journeys.</span>
+                                                <span class="bento-desc">{{ auth()->user()?->role === 'admin' ? 'Oversee every trip on the platform — upcoming, past, and draft.' : 'View and manage your upcoming, past, and draft journeys.' }}</span>
                                             </div>
                                         </a>
                                     </div>
@@ -118,7 +118,7 @@
                                 <div class="bento-menu-section" data-bento-section>
                                     <h3 class="bento-section-title">Workspace</h3>
                                     <div class="bento-grid">
-                                        <a href="{{ route('saved-routes.index') }}" class="bento-item" data-bento-item>
+                                        <a href="{{ route('saved-routes.index') }}" class="bento-item" data-bento-item data-keywords="route template pickup dropoff frequent commute favorite favourite locations address">
                                             <span class="bento-icon-bg" style="background: rgba(220,38,38,0.1); color: #dc2626;">
                                                 <i class="fa-solid fa-route"></i>
                                             </span>
@@ -127,7 +127,7 @@
                                                 <span class="bento-desc">Quickly define recurrent starting and destination points.</span>
                                             </div>
                                         </a>
-                                        <a href="{{ route('connections.index') }}" class="bento-item" data-bento-item>
+                                        <a href="{{ route('connections.index') }}" class="bento-item" data-bento-item data-keywords="friends contacts add invite network requests people">
                                             <span class="bento-icon-bg" style="background: rgba(2,132,199,0.1); color: #0284c7;">
                                                 <i class="fa-solid fa-users"></i>
                                             </span>
@@ -136,22 +136,22 @@
                                                 <span class="bento-desc">Network with drivers and riders in your circle.</span>
                                             </div>
                                         </a>
-                                        <a href="{{ route('payments.index') }}" class="bento-item" data-bento-item>
+                                        <a href="{{ route('payments.index') }}" class="bento-item" data-bento-item data-keywords="money fare cost owe collect receipt bill wallet cash duitnow bank transfer split unpaid pending">
                                             <span class="bento-icon-bg" style="background: rgba(234,179,8,0.15); color: #ca8a04;">
                                                 <i class="fa-solid fa-wallet"></i>
                                             </span>
                                             <div class="bento-info">
                                                 <strong class="bento-name">Payments Ledger</strong>
-                                                <span class="bento-desc">Track and review trip fees and driver collection receipts.</span>
+                                                <span class="bento-desc">{{ match(auth()->user()?->role) { 'admin' => 'Oversee every trip payment across the platform.', 'driver' => 'Track fares you owe and collect from your passengers.', default => 'Track what you owe and your payment history.' } }}</span>
                                             </div>
                                         </a>
-                                        <a href="{{ route('settings.index') }}" class="bento-item" data-bento-item>
+                                        <a href="{{ route('settings.index') }}" class="bento-item" data-bento-item data-keywords="profile password bank account duitnow qr vehicle license photo verification logout security">
                                             <span class="bento-icon-bg" style="background: rgba(100,116,139,0.1); color: #64748b;">
                                                 <i class="fa-solid fa-gears"></i>
                                             </span>
                                             <div class="bento-info">
                                                 <strong class="bento-name">Account Settings</strong>
-                                                <span class="bento-desc">Manage your profile, vehicle, and payment accounts.</span>
+                                                <span class="bento-desc">{{ in_array(auth()->user()?->role, ['driver', 'admin'], true) ? 'Manage your profile, vehicle, and payment accounts.' : 'Manage your profile and payment accounts.' }}</span>
                                             </div>
                                         </a>
                                     </div>
@@ -159,11 +159,11 @@
                             </div>
                         </div>
                         <!-- Right Panel (Create) -->
-                        <div class="bento-menu-side">
+                        <div class="bento-menu-side" data-bento-section>
                             <h3 class="bento-side-title">Create</h3>
                             <div class="bento-side-list">
                                 @if(auth()->user()?->role === 'admin')
-                                    <a href="{{ route('admin.users.index') }}" class="bento-side-item">
+                                    <a href="{{ route('admin.users.index') }}" class="bento-side-item" data-bento-item data-keywords="add register approve verify driver license user account">
                                         <span class="bento-side-icon-circle">
                                             <i class="fa-solid fa-user-plus"></i>
                                         </span>
@@ -172,7 +172,7 @@
                                             <span class="bento-side-desc">Register or update user accounts.</span>
                                         </div>
                                     </a>
-                                    <a href="{{ route('admin.reports.index') }}" class="bento-side-item">
+                                    <a href="{{ route('admin.reports.index') }}" class="bento-side-item" data-bento-item data-keywords="analytics stats export csv download data insights metrics">
                                         <span class="bento-side-icon-circle">
                                             <i class="fa-solid fa-chart-pie"></i>
                                         </span>
@@ -182,7 +182,7 @@
                                         </div>
                                     </a>
                                 @elseif(auth()->user()?->role === 'passenger')
-                                    <a href="{{ route('explore.index') }}" class="bento-side-item">
+                                    <a href="{{ route('explore.index') }}" class="bento-side-item" data-bento-item data-keywords="book find ride join trip driver seat search">
                                         <span class="bento-side-icon-circle">
                                             <i class="fa-solid fa-magnifying-glass"></i>
                                         </span>
@@ -191,7 +191,7 @@
                                             <span class="bento-side-desc">Search active rides and request joins.</span>
                                         </div>
                                     </a>
-                                    <a href="{{ route('connections.index') }}" class="bento-side-item">
+                                    <a href="{{ route('connections.index') }}" class="bento-side-item" data-bento-item data-keywords="friend network invite trusted circle add">
                                         <span class="bento-side-icon-circle">
                                             <i class="fa-solid fa-user-group"></i>
                                         </span>
@@ -202,7 +202,7 @@
                                     </a>
                                 @else
                                     {{-- Default / Driver --}}
-                                    <a href="{{ route('trips.create') }}" class="bento-side-item">
+                                    <a href="{{ route('trips.create') }}" class="bento-side-item" data-bento-item data-keywords="create new publish ride offer schedule post seats">
                                         <span class="bento-side-icon-circle">
                                             <i class="fa-solid fa-plus"></i>
                                         </span>
@@ -211,7 +211,7 @@
                                             <span class="bento-side-desc">Offer empty seats to passengers.</span>
                                         </div>
                                     </a>
-                                    <a href="{{ route('saved-routes.index') }}" class="bento-side-item">
+                                    <a href="{{ route('saved-routes.index') }}" class="bento-side-item" data-bento-item data-keywords="saved route template pickup destination create new">
                                         <span class="bento-side-icon-circle">
                                             <i class="fa-solid fa-map-location-dot"></i>
                                         </span>
@@ -220,7 +220,7 @@
                                             <span class="bento-side-desc">Pre-define a route template.</span>
                                         </div>
                                     </a>
-                                    <a href="{{ route('settings.index') }}" class="bento-side-item">
+                                    <a href="{{ route('settings.index') }}" class="bento-side-item" data-bento-item data-keywords="payment account bank duitnow qr receive money wallet setup">
                                         <span class="bento-side-icon-circle">
                                             <i class="fa-solid fa-qrcode"></i>
                                         </span>
@@ -1077,7 +1077,11 @@
             var sections = dropdown.querySelectorAll('[data-bento-section]');
 
             items.forEach(function(item) {
-                var text = item.textContent.toLowerCase();
+                // data-keywords carries search-only synonyms that never
+                // render on screen, so the visible name/description can
+                // stay short and clean while search still catches related
+                // terms (e.g. "wallet"/"bank" finding Payments Ledger).
+                var text = (item.textContent + ' ' + (item.dataset.keywords || '')).toLowerCase();
                 if (text.includes(query)) {
                     item.style.display = 'flex';
                 } else {
