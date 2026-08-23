@@ -571,6 +571,10 @@
                         <span class="tf-summary-val" id="reviewFareTotal">RM 0.00</span>
                     </div>
                     <div class="tf-summary-row">
+                        <span class="tf-summary-key">Driver Included</span>
+                        <span class="tf-summary-val" id="reviewIncludeDriver">Yes</span>
+                    </div>
+                    <div class="tf-summary-row">
                         <span class="tf-summary-key">Split Count</span>
                         <span class="tf-summary-val" id="reviewSplitCount">1</span>
                     </div>
@@ -748,6 +752,7 @@
         const reviewPassengers = document.getElementById('reviewPassengers');
         const reviewNotes = document.getElementById('reviewNotes');
         const reviewFareTotal = document.getElementById('reviewFareTotal');
+        const reviewIncludeDriver = document.getElementById('reviewIncludeDriver');
         const reviewSplitCount = document.getElementById('reviewSplitCount');
 
         const fallbackTripType = @json($currentTripType);
@@ -827,6 +832,7 @@
             if (farePerPersonDetailEl) farePerPersonDetailEl.textContent = perFmt;
             // Mirror into the Review step's Fare group
             if (reviewFareTotal) reviewFareTotal.textContent = totalFmt;
+            if (reviewIncludeDriver) reviewIncludeDriver.textContent = (includeDriverCheckbox && includeDriverCheckbox.checked) ? 'Yes' : 'No';
             if (reviewSplitCount) reviewSplitCount.textContent = String(count);
 
             if (farePreviewHint) {
