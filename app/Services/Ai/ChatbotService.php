@@ -13,6 +13,23 @@ use Illuminate\Support\Facades\Log;
 
 class ChatbotService
 {
+    /**
+     * Query params Hexa is allowed to pre-fill when navigating, per route —
+     * mirrors exactly what each controller's own $request->validate() already
+     * accepts (TripController, PaymentController, ExploreController,
+     * ConnectionController, NotificationController), so an unlisted key is
+     * just dropped here and any bad value is still caught by that controller.
+     * Routes absent from this map (trips.create, saved-routes.index,
+     * settings.index) take no params.
+     */
+    private const NAVIGATE_PARAM_WHITELIST = [
+        'trips.index' => ['date_from', 'date_to', 'visibility', 'status_filter', 'trip_search'],
+        'payments.index' => ['payment_filter', 'direction', 'date_from', 'date_to', 'visibility', 'payment_search'],
+        'explore.index' => ['destination', 'pickup', 'driver', 'date', 'sort', 'timeframe', 'seats', 'fare_max'],
+        'connections.index' => ['q'],
+        'notifications.index' => ['filter'],
+    ];
+
     private Client $http;
 
     public function __construct(private readonly AiUsageLogger $usage)
@@ -242,7 +259,16 @@ Now: {$now} | User: {$user->name} | {$roleContext}
 
 RESPOND IN VALID JSON ONLY. This applies even when your reply is a multi-point clarifying question (e.g. asking for date, pickup, destination, seats) — put the ENTIRE message, numbered list included, as one JSON string value in "reply". Never send plain markdown/prose outside the JSON envelope, and never wrap the JSON itself in a \`\`\` code fence.{$tripDraftSchema}
 
-2. NAVIGATE: {"intent":"navigate","reply":"<msg>","route":"<trips.index|trips.create|payments.index|explore.index|connections.index|saved-routes.index|settings.index|notifications.index>"}
+2. NAVIGATE: {"intent":"navigate","reply":"<msg>","route":"<trips.index|trips.create|payments.index|explore.index|connections.index|saved-routes.index|settings.index|notifications.index>","params":{<optional, see below>}}
+   - "params" is OPTIONAL — only include a key when the user actually stated that preference in this message. Never invent/default a filter they didn't ask for; omit "params" entirely (or leave it {}) when they just asked to see the page.
+   - Resolve any date the user gives (e.g. "bulan ni", "minggu depan", "esok") into real YYYY-MM-DD values yourself using "Now" above, same as you already do for trip_datetime.
+   - Allowed keys per route (anything else is dropped, so don't invent other keys):
+     trips.index: date_from, date_to (YYYY-MM-DD), visibility ("public"|"private"), status_filter ("all"|"upcoming"|"completed"|"draft"|"cancelled"), trip_search (free text)
+     payments.index: payment_filter ("all"|"unpaid"|"review"|"confirmed"), direction ("all"|"pay"|"collect"), date_from, date_to, visibility ("public"|"private"), payment_search (free text)
+     explore.index: destination, pickup, driver (free text each), date (YYYY-MM-DD), timeframe ("today"|"tomorrow"|"weekend"), seats ("1"|"2plus"), fare_max (number as string), sort ("nearest"|"latest")
+     connections.index: q (free text name search)
+     notifications.index: filter ("all"|"unread"|"trip"|"payment"|"connection"|"system"|"route")
+     trips.create, saved-routes.index, settings.index: no params — omit "params" for these.
 
 3. GENERAL: {"intent":"general","reply":"<answer>"}
 
@@ -328,6 +354,28 @@ PROMPT;
         return (\is_array($decoded) && ! empty($decoded['intent'])) ? $decoded : null;
     }
 
+    /**
+     * Keeps only whitelisted, scalar query params for the given route —
+     * the controller's own validation is still the real safety net, this
+     * just stops Hexa from inventing keys or leaking huge/nested values
+     * into the URL.
+     */
+    private function filterNavigateParams(string $route, array $params): array
+    {
+        $allowedKeys = self::NAVIGATE_PARAM_WHITELIST[$route] ?? [];
+        $filtered = [];
+
+        foreach ($allowedKeys as $key) {
+            $value = $params[$key] ?? null;
+            if ($value === null || $value === '' || ! \is_scalar($value)) {
+                continue;
+            }
+            $filtered[$key] = mb_substr((string) $value, 0, 255);
+        }
+
+        return $filtered;
+    }
+
     private function buildResult(array $decoded, User $user, string $language): array
     {
         $intent = (string) $decoded['intent'];
@@ -392,7 +440,12 @@ PROMPT;
             $route = (string) ($decoded['route'] ?? '');
 
             if (\in_array($route, $allowed, true)) {
-                return ['intent' => 'navigate', 'reply' => $reply, 'route' => $route];
+                return [
+                    'intent' => 'navigate',
+                    'reply'  => $reply,
+                    'route'  => $route,
+                    'params' => $this->filterNavigateParams($route, (array) ($decoded['params'] ?? [])),
+                ];
             }
 
             return ['intent' => 'general', 'reply' => $reply];

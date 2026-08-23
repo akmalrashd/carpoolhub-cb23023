@@ -62,12 +62,13 @@ class AiChatController extends Controller
 
         if (($result['intent'] ?? '') === 'navigate' && ! empty($result['route'])) {
             try {
-                $result['url'] = route($result['route']);
+                $result['url'] = route($result['route'], $result['params'] ?? []);
             } catch (\Throwable) {
                 $result['intent'] = 'general';
                 unset($result['route'], $result['url']);
             }
         }
+        unset($result['params']);
 
         return response()->json($result);
     }
