@@ -9,12 +9,30 @@
     const desc = document.getElementById('pushStatusDesc');
     if (!enableBtn || !disableBtn || !pill) return;
 
+    const defaultDesc = desc ? desc.textContent : '';
     const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
     function setPill(text, on) {
         pill.textContent = text;
         pill.classList.toggle('on', on);
         pill.classList.toggle('off', !on);
+    }
+
+    // Surfaced in the UI, not just the console — a silent console.error is
+    // invisible to anyone who isn't a developer, which made a real failure
+    // here look identical to "nothing happened" from the user's side.
+    function showError(message) {
+        if (desc) {
+            desc.textContent = message;
+            desc.style.color = 'var(--danger, #b91c1c)';
+        }
+    }
+
+    function clearError() {
+        if (desc) {
+            desc.textContent = defaultDesc;
+            desc.style.color = '';
+        }
     }
 
     function urlBase64ToUint8Array(base64String) {
@@ -26,13 +44,27 @@
         return output;
     }
 
+    // Throws with the server's own message on failure instead of just
+    // returning a boolean the caller has to remember to check — a rejected
+    // subscribe (e.g. endpoint host not on the allowlist) used to fail
+    // completely silently server-side.
     async function postJson(url, body) {
         const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.__csrfToken, 'Accept': 'application/json' },
             body: JSON.stringify(body || {}),
         });
-        return res.ok;
+
+        if (!res.ok) {
+            let message = 'Server rejected the request (' + res.status + ').';
+            try {
+                const data = await res.json();
+                if (data && data.message) message = data.message;
+            } catch (e) { /* non-JSON error body — keep the generic message */ }
+            throw new Error(message);
+        }
+
+        return res.json().catch(() => ({}));
     }
 
     async function refreshUi() {
@@ -68,7 +100,12 @@
 
     enableBtn.addEventListener('click', async () => {
         enableBtn.disabled = true;
+        clearError();
         try {
+            if (!window.__vapidPublicKey) {
+                throw new Error('Push isn’t configured on this server yet (missing VAPID key). Contact support.');
+            }
+
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
                 await refreshUi();
@@ -84,6 +121,7 @@
             await postJson('/push/subscribe', sub.toJSON());
         } catch (e) {
             console.error('Push subscribe failed', e);
+            showError((e && e.message) ? e.message : 'Could not enable push notifications. Please try again.');
         } finally {
             enableBtn.disabled = false;
             await refreshUi();
@@ -92,15 +130,25 @@
 
     disableBtn.addEventListener('click', async () => {
         disableBtn.disabled = true;
+        clearError();
         try {
             const reg = await navigator.serviceWorker.ready;
             const sub = await reg.pushManager.getSubscription();
             if (sub) {
-                await postJson('/push/unsubscribe', { endpoint: sub.endpoint });
+                // Telling the server first, then always unsubscribing
+                // client-side regardless of whether that call succeeded —
+                // otherwise a server-side hiccup would leave a subscription
+                // the UI can never turn back off.
+                try {
+                    await postJson('/push/unsubscribe', { endpoint: sub.endpoint });
+                } catch (serverError) {
+                    console.error('Push unsubscribe (server) failed', serverError);
+                }
                 await sub.unsubscribe();
             }
         } catch (e) {
             console.error('Push unsubscribe failed', e);
+            showError((e && e.message) ? e.message : 'Could not disable push notifications. Please try again.');
         } finally {
             disableBtn.disabled = false;
             await refreshUi();
