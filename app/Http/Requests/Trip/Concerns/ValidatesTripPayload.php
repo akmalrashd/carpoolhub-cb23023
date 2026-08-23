@@ -35,6 +35,28 @@ trait ValidatesTripPayload
             $validator->errors()->add('seat_limit', 'Seat limit is required for public trips.');
         }
 
+        if ($this->input('visibility') === 'public' && $this->filled('trip_datetime')) {
+            try {
+                $tripAt = \Illuminate\Support\Carbon::parse((string) $this->input('trip_datetime'), \App\Models\Trip::TIMEZONE);
+
+                // On update, only re-check this once visibility or the date
+                // actually changed — otherwise saving an untouched field
+                // (e.g. a note) on an already-completed public trip would
+                // fail against a past date nobody just chose.
+                $existingTrip = $this->route('trip');
+                $visibilityChanged = ! $existingTrip || $existingTrip->visibility !== 'public';
+                $datetimeChanged = ! $existingTrip
+                    || ! $existingTrip->trip_datetime
+                    || $existingTrip->trip_datetime->format('Y-m-d H:i') !== $tripAt->format('Y-m-d H:i');
+
+                if (($visibilityChanged || $datetimeChanged) && $tripAt->lessThanOrEqualTo(\App\Models\Trip::now())) {
+                    $validator->errors()->add('trip_datetime', 'For public trips, date and time must be later than current time.');
+                }
+            } catch (\Throwable $exception) {
+                // Base date validation rule handles invalid datetime format.
+            }
+        }
+
         if ($this->input('outbound_pickup_key') === $this->input('outbound_destination_key')) {
             $validator->errors()->add('outbound_destination_key', 'Pickup and destination must use different saved points.');
         }

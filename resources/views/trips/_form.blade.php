@@ -797,6 +797,15 @@
             return chosen ? chosen.value : 'private';
         }
 
+        // Public trips are open to Explore join requests, so a departure
+        // time that's already passed (or right now) can't accept anyone —
+        // mirrors the server-side rule in StoreTripRequest/ValidatesTripPayload.
+        function isFutureDatetime(value) {
+            if (!value) return false;
+            const parsed = new Date(value);
+            return !isNaN(parsed.getTime()) && parsed.getTime() > Date.now();
+        }
+
         function tripMultiplier() {
             return selectedTripType() === 'two_way' ? 2 : 1;
         }
@@ -954,6 +963,14 @@
                 message: 'Set passenger seats for a public trip.',
                 test: () => selectedVisibility() === 'public' && Boolean(seatLimitInput) && !(parseInt(seatLimitInput.value || '0', 10) > 0),
                 element: () => seatLimitInput,
+            },
+            {
+                wizardStep: 2,
+                step: 'Step 2 of 3',
+                title: 'Fix departure time',
+                message: 'Public trips need a departure date and time later than now.',
+                test: () => selectedVisibility() === 'public' && Boolean(tripDatetime) && !isFutureDatetime(tripDatetime.value),
+                element: () => tripDatetime,
             },
         ];
 
@@ -1484,12 +1501,37 @@
             updateVisibilityFields();
             recalc();
         }));
+
+        // Picking Public with no valid future date would just fail server
+        // validation on submit — block it at the click itself (preventDefault
+        // on a radio's click cancels the check) and say why immediately,
+        // instead of letting the user click through to a rejected submit.
+        const visibilityPublicInput = document.getElementById('visibility_public');
+        if (visibilityPublicInput && tripDatetime) {
+            visibilityPublicInput.addEventListener('click', (event) => {
+                if (isFutureDatetime(tripDatetime.value)) return;
+                event.preventDefault();
+                window.showToast('Public trips need a departure date and time later than now. Set the date first, or keep this trip Private.', 'error');
+                tripDatetime.focus();
+            });
+        }
+
         if (seatLimitInput) {
             seatLimitInput.addEventListener('input', recalc);
             seatLimitInput.addEventListener('change', recalc);
         }
         if (tripDatetime) {
-            tripDatetime.addEventListener('change', () => recalc());
+            let lastValidTripDatetime = tripDatetime.value;
+            tripDatetime.addEventListener('change', () => {
+                if (selectedVisibility() === 'public' && !isFutureDatetime(tripDatetime.value)) {
+                    tripDatetime.value = lastValidTripDatetime;
+                    window.showToast('This trip is Public, so its departure date and time must stay later than now. Switch to Private first if you need an earlier date.', 'error');
+                    recalc();
+                    return;
+                }
+                lastValidTripDatetime = tripDatetime.value;
+                recalc();
+            });
             tripDatetime.addEventListener('input', () => recalc());
         }
         if (noteInput) {
