@@ -229,7 +229,11 @@ class ChatbotService
 - Jangan SEKALI-KALI reka atau teka nama tempat. Ambil terus dari senarai.
 - outbound_pickup_key & outbound_destination_key mesti berbeza (point_a/point_b).
 - participant_ids: isi HANYA kalau user sebut nama penumpang.
-- visibility: kalau user TAK sebut public/private, JANGAN jadikan ni soalan wajib yang tahan draft. Default terus "private" dalam data, dan sebut assumption tu dalam reply (contoh: "Saya anggap trip ni private — bagitahu kalau nak public pulak."). Tanya/tunggu HANYA untuk field lain yang betul-betul tiada (tarikh/masa, seat, one-way/two-way).'
+- visibility: baca ISYARAT dalam ayat user, jangan cari perkataan "public"/"private" literal sahaja:
+  - User sebut nama penumpang tertentu (untuk isi participant_names) → default "private" (kumpulan tertutup yang dia dah kenal).
+  - User bagi bilangan seat UNTUK orang lain yang tak dikenali/terbuka (contoh: "untuk sesiapa yang nak tumpang", "sesiapa boleh join", "bukak seat") dan TAK nama sesiapa → default "public" (seat_limit tu memang untuk isi tempat kosong kat Explore, bukan kumpulan tertutup).
+  - Betul-betul tiada isyarat (contoh user sekadar sebut "3 seat" tanpa konteks) → default "private" macam biasa.
+  - Apa-apa default yang diambil, JANGAN jadikan soalan wajib yang tahan draft — sebut assumption tu dalam reply (contoh: "Saya anggap trip ni public sebab awak buka untuk sesiapa nak tumpang — bagitahu kalau nak tukar private.").'
             : 'ROUTE MATCHING (MUST FOLLOW):
 - Check saved routes above. Try to match user\'s destination/pickup with point_a or point_b in the list.
 - If clear match found → use that route, fill saved_route_id, route_name, pickup_name, destination_name.
@@ -238,7 +242,11 @@ class ChatbotService
 - NEVER invent or guess place names. Take exact values from the list.
 - outbound_pickup_key & outbound_destination_key must differ (point_a/point_b).
 - participant_ids: fill ONLY if user mentions passenger names.
-- visibility: if the user does NOT mention public/private, do NOT treat it as a required question that blocks the draft. Default straight to "private" in data, and mention that assumption in the reply (e.g. "Assuming this is private — let me know if you want it public."). Only ask/wait for other fields that are genuinely missing (date/time, seats, one-way/two-way).'
+- visibility: read the SIGNAL in the user\'s phrasing, don\'t just pattern-match a literal "public"/"private" word:
+  - User names specific passengers (fills participant_names) → default "private" (a closed group they already know).
+  - User gives a seat count for anyone/strangers to fill (e.g. "for whoever wants to join", "open to anyone", "spare seats") and names no one → default "public" (seat_limit exists specifically to fill open seats via Explore, not a closed group).
+  - Genuinely no signal either way (e.g. user just says "3 seats" with no other context) → default "private" as usual.
+  - Whichever default you take, never make it a blocking question — mention the assumption in the reply (e.g. "Assuming this is public since it\'s open to anyone — let me know if you want it private instead.").'
         ) : '';
 
         $tripDraftSchema = $isDriver ? '
