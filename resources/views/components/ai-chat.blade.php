@@ -40,7 +40,7 @@
     <div id="ai-loading-bar" class="ai-loading-bar"></div>
 
     {{-- Messages --}}
-    <div id="ai-messages" class="ai-messages"></div>
+    <div id="ai-messages" class="ai-messages" style="display:none"></div>
 
     {{-- Language Picker --}}
     <div id="ai-lang-picker" class="ai-lang-picker">
@@ -222,6 +222,11 @@ const aiChat = (() => {
         // Hide picker, show input + chips
         const picker = $('ai-lang-picker');
         if (picker) picker.style.display = 'none';
+
+        // Messages panel starts hidden so its flex:1 doesn't reserve empty
+        // space above the picker before a language is chosen.
+        const messagesPanel = $('ai-messages');
+        if (messagesPanel) messagesPanel.style.display = '';
 
         $('ai-form').style.display           = '';
         $('ai-clear-btn').style.display      = '';
