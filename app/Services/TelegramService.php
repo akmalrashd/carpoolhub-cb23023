@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\User;
+use App\Models\UserNotification;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Facades\Log;
+
+class TelegramService
+{
+    private const TYPE_EMOJI = [
+        'trip' => '🚗',
+        'payment' => '💰',
+        'connection' => '🤝',
+        'route' => '📍',
+        'system' => '🔔',
+    ];
+
+    private function client(): Client
+    {
+        return new Client([
+            'base_uri' => 'https://api.telegram.org/bot' . config('services.telegram.bot_token') . '/',
+            'timeout' => 10,
+        ]);
+    }
+
+    /**
+     * Mirrors PushService::sendToUser() — same silent-skip-if-not-linked
+     * shape, same "never break the caller" contract (the observer that
+     * calls this already wraps it in try/catch, but a dead Telegram link
+     * shouldn't keep failing forever either, so a blocked/kicked bot
+     * self-heals by clearing the stored chat id below).
+     */
+    public function sendToUser(User $user, UserNotification $notification): void
+    {
+        if (empty($user->telegram_chat_id) || empty(config('services.telegram.bot_token'))) {
+            return;
+        }
+
+        $emoji = self::TYPE_EMOJI[$notification->type] ?? '🔔';
+        $text = sprintf(
+            "%s <b>%s</b>\n\n%s",
+            $emoji,
+            e($notification->title),
+            e($notification->message)
+        );
+
+        try {
+            $response = $this->client()->post('sendMessage', [
+                'json' => [
+                    'chat_id' => $user->telegram_chat_id,
+                    'text' => $text,
+                    'parse_mode' => 'HTML',
+                    'reply_markup' => [
+                        'inline_keyboard' => [[
+                            ['text' => 'Open in App', 'url' => $notification->target_url],
+                        ]],
+                    ],
+                ],
+            ]);
+
+            $body = json_decode((string) $response->getBody(), true);
+
+            if (! ($body['ok'] ?? false) && $this->isDeadLink((string) ($body['description'] ?? ''))) {
+                $this->unlink($user);
+            }
+        } catch (GuzzleException $e) {
+            $status = $e->getCode();
+            if ($status === 403) {
+                $this->unlink($user);
+            }
+            Log::warning('Telegram send failed: ' . $e->getMessage(), ['user_id' => $user->id]);
+        }
+    }
+
+    /**
+     * Sends a plain message to a raw chat id — used by the webhook handler
+     * for the "linked!" confirmation, before any User row is necessarily
+     * resolved. sendToUser() above is for real notifications tied to a
+     * UserNotification; this is the bare primitive it's built on.
+     */
+    public function sendRaw(string $chatId, string $text): void
+    {
+        if (empty(config('services.telegram.bot_token'))) {
+            return;
+        }
+
+        try {
+            $this->client()->post('sendMessage', [
+                'json' => [
+                    'chat_id' => $chatId,
+                    'text' => $text,
+                    'parse_mode' => 'HTML',
+                ],
+            ]);
+        } catch (GuzzleException $e) {
+            Log::warning('Telegram raw send failed: ' . $e->getMessage());
+        }
+    }
+
+    private function isDeadLink(string $description): bool
+    {
+        $description = strtolower($description);
+
+        return str_contains($description, 'blocked') || str_contains($description, 'chat not found') || str_contains($description, 'deactivated');
+    }
+
+    private function unlink(User $user): void
+    {
+        $user->forceFill(['telegram_chat_id' => null, 'telegram_username' => null])->save();
+    }
+}

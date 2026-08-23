@@ -15,6 +15,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RefreshController;
 use App\Http\Controllers\SavedRouteController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\TripJoinRequestController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,12 @@ Route::redirect('/', '/home');
 // Public — no auth required, since a prospective user needs to read this
 // before registering (linked from the sign-up form's consent text).
 Route::view('/legal/terms', 'legal.terms')->name('legal.terms');
+
+// Public — called by Telegram's servers, not the browser. No session to
+// authenticate against; the X-Telegram-Bot-Api-Secret-Token header (checked
+// inside the controller) is what verifies the caller instead. Excluded from
+// CSRF verification in bootstrap/app.php for the same reason.
+Route::post('/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegram.webhook');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -81,6 +88,8 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/push/vapid-key', [PushController::class, 'vapidPublicKey'])->name('push.vapid-key');
     Route::post('/push/subscribe', [PushController::class, 'subscribe'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [PushController::class, 'unsubscribe'])->name('push.unsubscribe');
+    Route::post('/telegram/link', [TelegramController::class, 'link'])->name('telegram.link');
+    Route::post('/telegram/unlink', [TelegramController::class, 'unlink'])->name('telegram.unlink');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/profile', [SettingsController::class, 'index'])->name('profile.index');
     Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');

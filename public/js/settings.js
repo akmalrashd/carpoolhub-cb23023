@@ -1,7 +1,7 @@
 /* Extracted from resources/views/settings/index.blade.php — cacheable. */
         // ── Tab Switcher Logic ───────────────────────────────────────────
         function switchSettingsTab(tabName) {
-            const tabs = ['profile', 'payment', 'security'];
+            const tabs = ['profile', 'payment', 'security', 'notifications'];
             if (!tabs.includes(tabName)) return;
 
             tabs.forEach(t => {
@@ -171,7 +171,7 @@
         // Priority: a validation error (blade-computed) > URL hash > the tab the
         // user was last saving from (sessionStorage, set on submit above).
         function resolveInitialSettingsTab() {
-            const tabs = ['profile', 'payment', 'security'];
+            const tabs = ['profile', 'payment', 'security', 'notifications'];
             const container = document.querySelector('.profile-page-container');
             const errorTab = container ? container.getAttribute('data-error-tab') : '';
             if (errorTab && tabs.includes(errorTab)) {

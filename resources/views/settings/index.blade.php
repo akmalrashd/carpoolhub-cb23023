@@ -209,6 +209,13 @@
                         <span class="nav-btn-desc">Login password & sessions</span>
                     </span>
                 </button>
+                <button type="button" class="settings-nav-btn" id="nav-btn-notifications" role="tab" aria-selected="false" aria-controls="panel-notifications" onclick="switchSettingsTab('notifications')">
+                    <span class="nav-btn-icon"><i class="fa-solid fa-bell"></i></span>
+                    <span class="nav-btn-text">
+                        <span class="nav-btn-label">Notifications</span>
+                        <span class="nav-btn-desc">Push & Telegram alerts</span>
+                    </span>
+                </button>
             </div>
 
         {{-- Panels Container --}}
@@ -572,9 +579,87 @@
                 </form>
             </div>
 
+            {{-- ─────────────────────────────────────────────────────────────
+                 TAB 4: NOTIFICATIONS (Web Push + Telegram)
+            ─────────────────────────────────────────────────────────────── --}}
+            <div class="settings-panel-card" id="panel-notifications" data-tab="notifications">
+                <div class="panel-head">
+                    <h3 class="panel-title"><i class="fa-solid fa-bell"></i> Notifications</h3>
+                    <p class="panel-desc">CarpoolHub always keeps a record in your in-app notification list. Turn on a channel below to get alerted the moment something happens — trip updates, join requests, payments — even when you're not looking at the app.</p>
+                </div>
+
+                <div class="channel-row">
+                    <div class="channel-row-info">
+                        <span class="channel-row-icon push"><i class="fa-solid fa-desktop"></i></span>
+                        <div class="channel-row-text">
+                            <div class="channel-row-title">
+                                Browser Push
+                                <span class="channel-status-pill off" id="pushStatusPill">Checking&hellip;</span>
+                            </div>
+                            <div class="channel-row-desc" id="pushStatusDesc">Alerts appear on this device, even with CarpoolHub closed — as long as this browser stays installed/signed in.</div>
+                        </div>
+                    </div>
+                    <div class="channel-row-action">
+                        <button type="button" class="btn-submit-yellow" id="pushEnableBtn" hidden>
+                            <i class="fa-solid fa-bell"></i> Enable
+                        </button>
+                        <button type="button" class="btn-submit-ghost" id="pushDisableBtn" hidden>
+                            <i class="fa-solid fa-bell-slash"></i> Disable
+                        </button>
+                    </div>
+                </div>
+
+                <div class="channel-row">
+                    <div class="channel-row-info">
+                        <span class="channel-row-icon telegram"><i class="fa-brands fa-telegram"></i></span>
+                        <div class="channel-row-text">
+                            <div class="channel-row-title">
+                                Telegram
+                                @if($user->telegram_chat_id)
+                                    <span class="channel-status-pill on">Connected</span>
+                                @else
+                                    <span class="channel-status-pill off">Not connected</span>
+                                @endif
+                            </div>
+                            <div class="channel-row-desc">
+                                @if($user->telegram_chat_id)
+                                    Sending alerts to {{ $user->telegram_username ? '@'.$user->telegram_username : 'your linked Telegram account' }}. Works on any device — no app install needed.
+                                @elseif($telegramConfigured)
+                                    Connect your Telegram account for reliable, instant alerts on any device — phone, desktop, anywhere.
+                                @else
+                                    Telegram isn't set up on this server yet.
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="channel-row-action">
+                        @if($user->telegram_chat_id)
+                            <form method="POST" action="{{ route('telegram.unlink') }}">
+                                @csrf
+                                <button type="submit" class="btn-submit-ghost">
+                                    <i class="fa-solid fa-link-slash"></i> Disconnect
+                                </button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('telegram.link') }}">
+                                @csrf
+                                <button type="submit" class="btn-submit-yellow" @if(!$telegramConfigured) disabled @endif>
+                                    <i class="fa-brands fa-telegram"></i> Connect Telegram
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
             </div>
         </div>
     </div>
 
     <script src="{{ asset('js/settings.js') }}?v={{ filemtime(public_path('js/settings.js')) }}"></script>
+    <script>
+        window.__vapidPublicKey = @json(config('app.vapid_public_key'));
+        window.__csrfToken = @json(csrf_token());
+    </script>
+    <script src="{{ asset('js/push-notifications.js') }}?v={{ filemtime(public_path('js/push-notifications.js')) }}"></script>
 @endsection

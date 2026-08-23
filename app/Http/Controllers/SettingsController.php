@@ -23,6 +23,7 @@ class SettingsController extends Controller
     {
         return view('settings.index', [
             'user' => $request->user(),
+            'telegramConfigured' => ! empty(config('services.telegram.bot_token')),
         ]);
     }
 

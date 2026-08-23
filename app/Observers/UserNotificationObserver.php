@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\UserNotification;
 use App\Services\PushService;
+use App\Services\TelegramService;
 use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 
 /**
@@ -23,7 +24,10 @@ use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
  */
 class UserNotificationObserver implements ShouldHandleEventsAfterCommit
 {
-    public function __construct(private readonly PushService $pushService) {}
+    public function __construct(
+        private readonly PushService $pushService,
+        private readonly TelegramService $telegramService,
+    ) {}
 
     public function created(UserNotification $notification): void
     {
@@ -36,6 +40,12 @@ class UserNotificationObserver implements ShouldHandleEventsAfterCommit
             $this->pushService->sendToUser($user, $notification);
         } catch (\Throwable) {
             // Never break the main request if push fails
+        }
+
+        try {
+            $this->telegramService->sendToUser($user, $notification);
+        } catch (\Throwable) {
+            // Never break the main request if Telegram delivery fails
         }
     }
 }
