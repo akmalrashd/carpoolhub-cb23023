@@ -109,7 +109,11 @@ Route::middleware(['auth', 'active'])->group(function (): void {
         Route::post('/recommend-route', [AiChatController::class, 'recommendRoute'])->middleware('throttle:ai-spend')->name('ai.recommend-route');
     });
 
-    Route::prefix('/refresh')->group(function (): void {
+    // Live-polled JSON — must never be cached by the browser or an
+    // intermediary (Hostinger's CDN sits in front of this app), or every
+    // client polling one of these keeps getting the same stale snapshot
+    // regardless of how often it actually re-requests it.
+    Route::prefix('/refresh')->middleware('no-cache')->group(function (): void {
         Route::get('/notifications/latest', [RefreshController::class, 'notificationsLatest'])->name('refresh.notifications.latest');
         Route::get('/trips/{trip}/requests', [RefreshController::class, 'tripRequests'])->name('refresh.trips.requests');
         Route::get('/trips/{trip}/status', [RefreshController::class, 'tripStatus'])->name('refresh.trips.status');
