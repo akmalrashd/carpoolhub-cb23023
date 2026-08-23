@@ -39,7 +39,7 @@ class ChatbotService
 
         $system = $this->buildSystemPrompt($user, $language, $pendingContext);
 
-        $completion = $this->requestCompletion($messages, $system, $user, $language, isRetry: false);
+        $completion = $this->requestCompletion($messages, $system, $user, isRetry: false);
 
         if ($completion === null) {
             return ['intent' => 'error', 'reply' => $this->unavailableMessage($language)];
@@ -60,7 +60,7 @@ class ChatbotService
                 ? 'Your last reply was not valid JSON. Reply again using ONLY the JSON format from the system instructions — no other text, no explanation.'
                 : 'Balasan tadi bukan JSON yang sah. Ulang balasan HANYA dalam format JSON dari arahan sistem — tiada teks lain, tiada penjelasan.'];
 
-            $retryCompletion = $this->requestCompletion($retryMessages, $system, $user, $language, isRetry: true);
+            $retryCompletion = $this->requestCompletion($retryMessages, $system, $user, isRetry: true);
             $decoded = $retryCompletion !== null ? $this->tryDecode($retryCompletion) : null;
 
             if ($decoded === null) {
@@ -86,7 +86,7 @@ class ChatbotService
      * Sends one /v1/messages request and returns the extracted text, or null
      * on any failure (already logged, both to storage/logs and ai_usage_logs).
      */
-    private function requestCompletion(array $messages, string $system, User $user, string $language, bool $isRetry): ?string
+    private function requestCompletion(array $messages, string $system, User $user, bool $isRetry): ?string
     {
         $model = trim(config('ai_chat.model', 'claude-haiku-4-5-20251001'));
 
@@ -211,7 +211,8 @@ class ChatbotService
 - KALAU TIADA PADANAN LANGSUNG → JANGAN return trip_draft. Return intent "no_route" dengan mesej BM yang beritahu user tempat tu tiada dalam saved routes mereka, dan minta mereka tambah route dulu atau pilih route yang sedia ada.
 - Jangan SEKALI-KALI reka atau teka nama tempat. Ambil terus dari senarai.
 - outbound_pickup_key & outbound_destination_key mesti berbeza (point_a/point_b).
-- participant_ids: isi HANYA kalau user sebut nama penumpang.'
+- participant_ids: isi HANYA kalau user sebut nama penumpang.
+- visibility: kalau user TAK sebut public/private, JANGAN jadikan ni soalan wajib yang tahan draft. Default terus "private" dalam data, dan sebut assumption tu dalam reply (contoh: "Saya anggap trip ni private — bagitahu kalau nak public pulak."). Tanya/tunggu HANYA untuk field lain yang betul-betul tiada (tarikh/masa, seat, one-way/two-way).'
             : 'ROUTE MATCHING (MUST FOLLOW):
 - Check saved routes above. Try to match user\'s destination/pickup with point_a or point_b in the list.
 - If clear match found → use that route, fill saved_route_id, route_name, pickup_name, destination_name.
@@ -219,7 +220,8 @@ class ChatbotService
 - IF NO MATCH AT ALL → DO NOT return trip_draft. Return intent "no_route" with a message telling user that place is not in their saved routes, and ask them to add a route first or pick an existing one.
 - NEVER invent or guess place names. Take exact values from the list.
 - outbound_pickup_key & outbound_destination_key must differ (point_a/point_b).
-- participant_ids: fill ONLY if user mentions passenger names.'
+- participant_ids: fill ONLY if user mentions passenger names.
+- visibility: if the user does NOT mention public/private, do NOT treat it as a required question that blocks the draft. Default straight to "private" in data, and mention that assumption in the reply (e.g. "Assuming this is private — let me know if you want it public."). Only ask/wait for other fields that are genuinely missing (date/time, seats, one-way/two-way).'
         ) : '';
 
         $tripDraftSchema = $isDriver ? '
