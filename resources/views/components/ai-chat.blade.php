@@ -16,11 +16,11 @@
     <div class="ai-head">
         <div class="ai-head-left">
             <div class="ai-head-avatar">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <x-mascot size="34" variant="yellow" state="idle" id="ai-chat-mascot" />
             </div>
             <div>
                 <div class="ai-head-title">CarpoolHub AI</div>
-                <div class="ai-head-sub" id="ai-head-sub">Your smart assistant</div>
+                <div class="ai-head-sub" id="ai-head-sub">Hexa · your smart assistant</div>
             </div>
         </div>
         <div class="ai-head-actions">
@@ -88,13 +88,19 @@
         </button>
     </form>
 
+    <div class="ai-disclaimer" id="ai-disclaimer" style="display:none"></div>
+
 </div>
 
 {{-- ── Styles ───────────────────────────────────────────────────────── --}}
 {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+{{-- mascot.css is loaded from layouts/app.blade.php's <head> instead — the
+     mascot renders in the header too, above this component in the DOM, so it
+     must be styled before that markup paints. --}}
 <link rel="stylesheet" href="{{ asset('css/ai-chat.css') }}?v={{ filemtime(public_path('css/ai-chat.css')) }}">
 
 {{-- ── Script ──────────────────────────────────────────────────────── --}}
+<script src="{{ asset('js/mascot.js') }}?v={{ filemtime(public_path('js/mascot.js')) }}"></script>
 <script>
 const aiChat = (() => {
     const CHAT_URL   = @json($chatUrl);
@@ -157,12 +163,16 @@ const aiChat = (() => {
     // Escaped because WELCOME is handed to addBubbleHtml(), which assigns it via
     // innerHTML — a display name containing markup would otherwise execute.
     const WELCOME = {
-        ms: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 Apa yang boleh saya bantu hari ni?`,
-        en: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 What can I help you with today?`,
+        ms: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 Saya Hexa — apa yang boleh saya bantu hari ni?`,
+        en: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 I'm Hexa — what can I help you with today?`,
     };
 
     const PLACEHOLDER = { ms: 'Taip mesej...', en: 'Type a message...' };
-    const HEADER_SUB  = { en: 'Your smart assistant', ms: 'Pembantu pintar anda' };
+    const HEADER_SUB  = { en: 'Hexa · your smart assistant', ms: 'Hexa · pembantu pintar anda' };
+    const DISCLAIMER  = {
+        en: 'Hexa is AI and can make mistakes. Please double-check responses.',
+        ms: 'Hexa kadang-kadang boleh tersilap. Sila semak balik maklumat penting.',
+    };
 
     // ── State ────────────────────────────────────────────────────────
     let isOpen     = false;
@@ -172,6 +182,12 @@ const aiChat = (() => {
 
     // ── DOM helpers ──────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
+
+    // Header AI button renders once per header variant (desktop topbar +
+    // mobile header), both present in the DOM at once — drive both mascots
+    // together so whichever is visible reacts.
+    const FAB_MASCOT_IDS = ['ai-fab-mascot-desktop', 'ai-fab-mascot-mobile'];
+    function fabMascot(fn, ...args) { FAB_MASCOT_IDS.forEach(id => Mascot?.[fn]?.(id, ...args)); }
 
     function toggle(e)   { if (e) e.stopPropagation(); isOpen ? close() : open(); }
     function close()    { isOpen = false; document.querySelectorAll('#ai-fab').forEach(el => el.classList.remove('is-open')); $('ai-chat-window').classList.remove('is-open'); $('ai-chat-window').setAttribute('aria-hidden','true'); }
@@ -188,6 +204,8 @@ const aiChat = (() => {
         document.querySelectorAll('#ai-fab').forEach(el => el.classList.add('is-open'));
         $('ai-chat-window').classList.add('is-open');
         $('ai-chat-window').setAttribute('aria-hidden','false');
+        Mascot?.play('ai-chat-mascot', 'wink', { duration: 900 });
+        fabMascot('play', 'wink', { duration: 900 });
         scrollBottom();
         if (lang) setTimeout(() => $('ai-input').focus(), 220);
     }
@@ -207,6 +225,11 @@ const aiChat = (() => {
         $('ai-form').style.display           = '';
         $('ai-clear-btn').style.display      = '';
         $('ai-lang-reset-btn').style.display = '';
+        const disclaimer = $('ai-disclaimer');
+        if (disclaimer) {
+            disclaimer.textContent = DISCLAIMER[lang] ?? DISCLAIMER.ms;
+            disclaimer.style.display = '';
+        }
 
         // Update flag image to reflect current language
         const flagImg = document.getElementById('ai-lang-flag-img');
@@ -596,6 +619,8 @@ const aiChat = (() => {
         addBubble(message, 'user');
         addTyping();
         barStart();
+        Mascot?.setState('ai-chat-mascot', 'thinking');
+        fabMascot('setState', 'thinking');
 
         try {
             const res  = await fetch(CHAT_URL, {
@@ -606,6 +631,8 @@ const aiChat = (() => {
             const data = await res.json();
             removeTyping();
             barStop();
+            Mascot?.play('ai-chat-mascot', 'wink', { duration: 700 });
+            fabMascot('play', 'wink', { duration: 700 });
 
             if (data.intent === 'trip_draft' && data.data) {
                 addBubble(data.reply, 'bot', buildTripCard(data.data), { type: 'trip_draft', data: data.data });
@@ -622,6 +649,8 @@ const aiChat = (() => {
             removeTyping();
             removeTyping();
             barStop();
+            Mascot?.play('ai-chat-mascot', 'alert', { duration: 1800 });
+            fabMascot('play', 'alert', { duration: 1800 });
             addBubble((lang ?? DEFAULT_LANG) === 'ms' ? 'Ralat rangkaian. Sila cuba lagi.' : 'Network error. Please try again.', 'bot');
         }
 
@@ -672,10 +701,11 @@ const aiChat = (() => {
         $('ai-form').style.display = 'none';
         $('ai-clear-btn').style.display = 'none';
         $('ai-lang-reset-btn').style.display = 'none';
+        $('ai-disclaimer').style.display = 'none';
         const picker = $('ai-lang-picker');
         if (picker) picker.style.display = '';
         const sub = $('ai-head-sub');
-        if (sub) sub.textContent = 'Your smart assistant';
+        if (sub) sub.textContent = 'Hexa · your smart assistant';
     }
 
     function openTripForm(data) {
@@ -801,6 +831,16 @@ const aiChat = (() => {
             micBtn.title = lang === 'ms' ? 'Input Suara (Speech-to-Text)' : 'Voice Input (Speech-to-Text)';
         }
     }
+
+    // ── Gaze: look down at the input while it's focused ────────────────
+    $('ai-input')?.addEventListener('focus', () => {
+        const m = $('ai-chat-mascot');
+        if (m && m.dataset.state !== 'thinking') Mascot?.setState('ai-chat-mascot', 'typing');
+    });
+    $('ai-input')?.addEventListener('blur', () => {
+        const m = $('ai-chat-mascot');
+        if (m && m.dataset.state === 'typing') Mascot?.setState('ai-chat-mascot', 'idle');
+    });
 
     // ── Init ─────────────────────────────────────────────────────────
     if (lang) activateLang();

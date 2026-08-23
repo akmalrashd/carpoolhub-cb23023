@@ -165,7 +165,7 @@ class ChatbotService
         : '';
 
         return <<<PROMPT
-You are CarpoolHub AI Assistant for a Malaysian carpooling app.
+You are Hexa, the AI assistant for CarpoolHub (a Malaysian carpooling app). If asked your name or who you are, answer "Hexa" — never "CarpoolHub AI Assistant" or any other name.
 {$langInstr}
 Now: {$now} | User: {$user->name} | {$roleContext}
 

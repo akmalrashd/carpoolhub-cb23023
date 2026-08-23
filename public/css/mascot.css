@@ -1,0 +1,226 @@
+/* CarpoolHub AI mascot — animated hexagon avatar.
+   Body/eye SVG geometry adapted from the MIT-licensed
+   https://github.com/jeremy-prt/bloub project; states below are a hand-built
+   CSS/JS approximation of its animation set (see public/js/mascot.js),
+   not a 1:1 port of its Vue/spherical-projection engine. */
+
+.mascot {
+    --mascot-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mascot-size);
+    height: var(--mascot-size);
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.mascot-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+}
+
+/* Utility for a mascot sitting inline next to text (e.g. "AI is analyzing
+   route..." lines) — replaces the old <i class="fa-wand-magic-sparkles">
+   pattern used for the same spots. */
+.ai-inline-mascot {
+    vertical-align: -3px;
+    margin-right: 6px;
+}
+
+/* ── Color variants ──────────────────────────────────────────────
+   No badge/circle behind the mascot — it sits directly on the header/panel
+   surface, so --yellow (solid yellow body, ink eyes) is the one actually
+   used everywhere today. --dark (ink body, yellow eyes) is kept for any
+   future spot that needs the mascot on a light/yellow surface instead. */
+.mascot--yellow {
+    --mascot-fill-body: var(--ch-yellow, #FACC15);
+    --mascot-fill-eye: var(--ch-yellow-ink, #2A1E04);
+}
+.mascot--dark {
+    --mascot-fill-body: var(--ch-yellow-ink, #2A1E04);
+    --mascot-fill-eye: var(--ch-yellow, #FACC15);
+}
+
+.mascot-body {
+    fill: var(--mascot-fill-body);
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: fill .2s ease;
+    animation: mascot-breathe 3.2s ease-in-out infinite;
+}
+@keyframes mascot-breathe {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50%      { transform: scale(1.06) rotate(-2deg); }
+}
+
+/* ── Eyes ─────────────────────────────────────────────────────────
+   One pill path reused for both eyes. Position/tilt/size are read from CSS
+   custom properties set per data-state on the .mascot root, so every state
+   below is just a different set of numbers rather than a different rule. */
+.mascot-eye {
+    fill: var(--mascot-fill-eye);
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform .18s ease, opacity .18s ease;
+    opacity: var(--eye-op, 1);
+}
+.mascot-eye-l {
+    transform: translate(calc(var(--eye-tx, 25px) * -1), var(--eye-ty, -9px))
+               rotate(calc(var(--eye-rot, 10deg) * -1))
+               scale(var(--eye-sx, 0.8), var(--eye-sy, 1.15));
+}
+.mascot-eye-r {
+    transform: translate(var(--eye-tx, 25px), var(--eye-ty, -9px))
+               rotate(var(--eye-rot, 10deg))
+               scale(var(--eye-sx, 0.8), var(--eye-sy, 1.15));
+}
+
+/* Blink: same translate/rotate as the current state, eyelid squashed. */
+.mascot.is-blinking .mascot-eye-l {
+    transform: translate(calc(var(--eye-tx, 25px) * -1), var(--eye-ty, -9px))
+               rotate(calc(var(--eye-rot, 10deg) * -1))
+               scale(var(--eye-sx, 0.8), 0.08);
+}
+.mascot.is-blinking .mascot-eye-r {
+    transform: translate(var(--eye-tx, 25px), var(--eye-ty, -9px))
+               rotate(var(--eye-rot, 10deg))
+               scale(var(--eye-sx, 0.8), 0.08);
+}
+
+/* ── Decor: thinking dots / alert bang / notify dot — hidden by default ── */
+.mascot-dots, .mascot-bang, .mascot-notif-dot {
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+.mascot-dot { fill: var(--mascot-fill-eye); transform-box: fill-box; transform-origin: center; }
+.mascot-dot-2 { animation-delay: .15s; }
+.mascot-dot-3 { animation-delay: .3s; }
+.mascot-bang-bar, .mascot-bang-dot { fill: var(--mascot-fill-eye); }
+.mascot-notif-dot { fill: var(--info, #2563EB); transform-box: fill-box; transform-origin: center; }
+
+/* ══ States ═══════════════════════════════════════════════════════ */
+
+/* idle — resting pose uses Bloub's "excited" expression (bigger, tilted,
+   mirrored eyes, gaze up) as the mascot's main/default look. */
+.mascot[data-state="idle"] {
+    --eye-tx: 25px; --eye-ty: -10px; --eye-rot: 10deg; --eye-sx: .8; --eye-sy: 1.18;
+}
+
+.mascot[data-state="thinking"] {
+    --eye-op: 0;
+}
+.mascot[data-state="thinking"] .mascot-body { animation: mascot-think-squash 1.1s ease-in-out infinite; }
+.mascot[data-state="thinking"] .mascot-dots { opacity: 1; }
+.mascot[data-state="thinking"] .mascot-dot { animation: mascot-dot-pulse 1.2s ease-in-out infinite; }
+@keyframes mascot-think-squash {
+    0%, 100% { transform: scale(1, 1); }
+    50%      { transform: scale(.94, 1.06); }
+}
+@keyframes mascot-dot-pulse {
+    0%, 60%, 100% { transform: scale(.55); opacity: .5; }
+    30%           { transform: scale(1); opacity: 1; }
+}
+
+.mascot[data-state="wink"] {
+    --eye-tx: 25px; --eye-ty: -10px; --eye-rot: 10deg; --eye-sx: .8; --eye-sy: 1.18;
+}
+.mascot[data-state="wink"] .mascot-eye-r {
+    transform: translate(25px, -8px) rotate(-4deg) scale(1.05, .16);
+}
+
+/* typing — straight, lowered eyes: gazing down at the input while it's
+   focused (not tilted like idle/wide — a level downward look). */
+.mascot[data-state="typing"] {
+    --eye-tx: 24px; --eye-ty: 0px; --eye-rot: 0deg; --eye-sx: 1; --eye-sy: 1.25;
+}
+
+.mascot[data-state="wide"] {
+    --eye-sx: 1.05; --eye-sy: 1.3; --eye-ty: -8px; --eye-rot: 4deg;
+}
+
+.mascot[data-state="alert"] {
+    --eye-op: 0;
+}
+.mascot[data-state="alert"] .mascot-body { animation: mascot-shake .45s ease-in-out; }
+.mascot[data-state="alert"] .mascot-bang,
+.mascot[data-state="exclaim"] .mascot-bang {
+    opacity: 1;
+}
+@keyframes mascot-shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-4px); }
+    75%      { transform: translateX(4px); }
+}
+
+.mascot[data-state="exclaim"] {
+    --eye-op: 0;
+}
+
+.mascot[data-state="notify"] {
+    --eye-tx: 27px; --eye-ty: -12px;
+}
+.mascot[data-state="notify"] .mascot-notif-dot {
+    opacity: 1;
+    animation: mascot-notif-pop .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+@keyframes mascot-notif-pop {
+    0%   { transform: scale(0); }
+    60%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+.mascot[data-state="sleep"] {
+    --eye-sy: .14; --eye-ty: -6px;
+}
+.mascot[data-state="sleep"] .mascot-svg { animation: mascot-bob 2.6s ease-in-out infinite; opacity: .8; }
+@keyframes mascot-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(4px); }
+}
+
+/* egg / hexagon — static "pose" placeholders for Bloub's body-shape morphs;
+   approximated as a squeeze rather than a real silhouette morph. */
+.mascot[data-state="egg"] {
+    --eye-tx: 16px; --eye-ty: -3px; --eye-sx: .55; --eye-sy: .85;
+}
+.mascot[data-state="egg"] .mascot-body { animation: none; transform: scale(.86, 1.12); }
+
+.mascot[data-state="hexagon"] {
+    --eye-tx: 18px; --eye-ty: -3px; --eye-sx: .55; --eye-sy: .85;
+}
+.mascot[data-state="hexagon"] .mascot-body { animation: none; transform: scale(.92, .92) rotate(4deg); }
+
+.mascot[data-state="play"] {
+    --eye-sx: .5; --eye-sy: .8;
+}
+.mascot[data-state="play"] .mascot-body { animation: mascot-spin 1.8s linear infinite; }
+
+.mascot[data-state="orbit"] {
+    --eye-sx: .5; --eye-sy: .8;
+}
+.mascot[data-state="orbit"] .mascot-body { animation: mascot-spin .9s linear infinite; }
+.mascot[data-state="orbit"] .mascot-eyes { animation: mascot-spin 2.2s linear infinite reverse; transform-box: fill-box; transform-origin: center; }
+@keyframes mascot-spin { to { transform: rotate(360deg); } }
+
+.mascot[data-state="burst"] {
+    --eye-op: 0;
+}
+.mascot[data-state="burst"] .mascot-body { animation: mascot-burst .5s ease-out; }
+@keyframes mascot-burst {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(.55); }
+    60%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.mascot[data-state="comet"] {
+    --eye-op: 0;
+}
+.mascot[data-state="comet"] .mascot-body { animation: mascot-comet .6s ease-in-out; }
+@keyframes mascot-comet {
+    0%   { transform: scale(.3) translateX(-20px); opacity: .4; }
+    100% { transform: scale(1) translateX(0); opacity: 1; }
+}

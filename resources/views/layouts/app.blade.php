@@ -23,6 +23,10 @@
     {{-- Shared shell styles, extracted to a cacheable static file. The link sits exactly where the <style> block did so cascade order is unchanged; pwa-head.blade.php (included after </head>) still overrides it. --}}
     <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/bg-pattern.css') }}?v={{ filemtime(public_path('css/bg-pattern.css')) }}">
+    {{-- Mascot renders in the header (above), so its styles must load before
+         the header paints — not down where <x-ai-chat> lives, or the raw
+         unstyled SVG flashes on load. --}}
+    <link rel="stylesheet" href="{{ asset('css/mascot.css') }}?v={{ filemtime(public_path('css/mascot.css')) }}">
     @include('layouts.partials.pwa-head')
 </head>
 <body>
@@ -232,7 +236,7 @@
                 </div>
             </details>
             <button id="ai-fab" class="header-ai-fab" onclick="aiChat.toggle(event)" aria-label="CarpoolHub AI" title="CarpoolHub AI">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <x-mascot size="22" variant="yellow" state="idle" id="ai-fab-mascot-desktop" />
                 <span class="ai-fab-label">AI</span>
             </button>
             <details class="notification-wrap">

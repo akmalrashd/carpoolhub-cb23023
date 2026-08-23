@@ -353,7 +353,7 @@
             <div class="rf-fare-advisor">
                 <div class="rf-fare-advisor-head">
                     <div>
-                        <p class="rf-fare-advisor-title"><i class="fa-solid fa-wand-magic-sparkles"></i>AI cost-based fare</p>
+                        <p class="rf-fare-advisor-title"><x-mascot size="16" variant="yellow" state="idle" />AI cost-based fare</p>
                         <p class="rf-fare-advisor-sub">Fuel efficiency and toll are estimated from vehicle and selected route. You can edit every value.</p>
                     </div>
                     <span class="rf-fare-advisor-badge" id="fareAdvisorStatus">Waiting route</span>
@@ -1342,7 +1342,10 @@
             // Check element exists before firing request
             if (!document.querySelector('[data-ai-reason="' + routeIndex + '"]')) return Promise.resolve();
             if (fareAdvisorStatus && routeIndex === selectedRouteIndex) fareAdvisorStatus.textContent = 'AI checking';
-            if (fareAiReason && routeIndex === selectedRouteIndex) fareAiReason.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-beat-fade" style="color: #eab308; margin-right: 6px;"></i>AI is analyzing route... (may take up to 20s)';
+            if (fareAiReason && routeIndex === selectedRouteIndex) {
+                fareAiReason.innerHTML = Mascot.html({ size: 14, state: 'thinking', className: 'ai-inline-mascot' }) + 'AI is analyzing route... (may take up to 20s)';
+                Mascot.initAll();
+            }
 
             return fetch(fareReasonUrl, {
                 method: 'POST',
@@ -1391,9 +1394,10 @@
                     ? ' AI: ' + (data.fuel_type || 'fuel') + ', ' + Number(data.estimated_km_per_liter || 0).toFixed(1) + ' km/L, toll ' + money(Number(data.estimated_toll_cost || 0)) + '.'
                     : '';
                 var aiLine = data.reason
-                    ? '<br><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--warning);font-size:10px;margin-right:4px"></i>' + escapeText(costLine + tollRoads + ' ' + data.reason)
+                    ? '<br>' + Mascot.html({ size: 12, state: 'idle', className: 'ai-inline-mascot' }) + escapeText(costLine + tollRoads + ' ' + data.reason)
                     : '';
                 reasonEl.innerHTML = baseReason + aiLine;
+                Mascot.initAll();
             })
             .catch(function () {
                 var reasonEl = document.querySelector('[data-ai-reason="' + routeIndex + '"]');
@@ -1421,7 +1425,8 @@
             });
 
             routeRecommendationEl.hidden = false;
-            routeRecommendationEl.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-beat-fade"></i> AI comparing ' + options.length + ' options...';
+            routeRecommendationEl.innerHTML = Mascot.html({ size: 16, state: 'thinking', className: 'ai-inline-mascot' }) + ' AI comparing ' + options.length + ' options...';
+            Mascot.initAll();
 
             fetch(recommendRouteUrl, {
                 method: 'POST',
@@ -1453,7 +1458,9 @@
                 }
                 drawSelectedRoute();
 
-                routeRecommendationEl.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> <span><strong>AI recommends Option ' + (index + 1) + '.</strong> ' + escapeText(data.reason || '') + '</span>';
+                routeRecommendationEl.innerHTML = Mascot.html({ size: 16, state: 'idle', id: 'routeRecommendationMascot', className: 'ai-inline-mascot' }) + ' <span><strong>AI recommends Option ' + (index + 1) + '.</strong> ' + escapeText(data.reason || '') + '</span>';
+                Mascot.initAll();
+                Mascot.play('routeRecommendationMascot', 'wink', { duration: 800 });
             })
             .catch(function () {
                 routeRecommendationEl.hidden = true;
@@ -1519,10 +1526,11 @@
                     + '<div class="rf-route-option-road">' + roadSummary + '</div>'
                     + '<div class="rf-route-option-fare" data-ai-fare="' + index + '">Suggested Fare RM ' + fare.toFixed(2) + '</div>'
                     + '<div class="rf-route-option-reason" data-ai-reason="' + index + '" data-base-reason="' + suggestionReason(route) + '">'
-                    + '<div class="rf-ai-loading" style="color: #64748b; font-size: 13px; margin-top: 4px;"><i class="fa-solid fa-wand-magic-sparkles fa-beat-fade" style="color: #eab308; margin-right: 6px;"></i>AI is analyzing route... (may take up to 20s)</div>'
+                    + '<div class="rf-ai-loading" style="color: #64748b; font-size: 13px; margin-top: 4px;">' + Mascot.html({ size: 14, state: 'thinking', className: 'ai-inline-mascot' }) + 'AI is analyzing route... (may take up to 20s)</div>'
                     + '</div>'
                     + '</button>';
             }).join('');
+            Mascot.initAll();
 
             // Async: fetch AI-generated reasons after DOM renders. Collected so
             // the cross-option recommendation (below) only runs once every
