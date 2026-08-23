@@ -6,7 +6,9 @@
         $connectionIdSet = array_flip($connectedUserIds ?? []);
     @endphp
 
+    @push('styles')
     <link rel="stylesheet" href="{{ asset('css/connections.css') }}?v={{ filemtime(public_path('css/connections.css')) }}">
+    @endpush
 
     <div class="connections-page-container">
         {{-- Header Bar with Find Carpoolers Action Button --}}

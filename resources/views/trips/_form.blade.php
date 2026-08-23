@@ -1,5 +1,6 @@
-{{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+@push('styles')
 <link rel="stylesheet" href="{{ asset('css/trips-form.css') }}?v={{ filemtime(public_path('css/trips-form.css')) }}">
+@endpush
 
 @php
     $isCreate = !isset($trip) || !$trip;

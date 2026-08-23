@@ -109,8 +109,9 @@
 
     @endphp
 
-    {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+    @push('styles')
     <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">
+    @endpush
 
     {{-- ════════════════════════════════════════════════════════════════════════
          DESKTOP LAYOUT  (≥ 1024px)

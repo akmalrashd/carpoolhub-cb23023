@@ -12,8 +12,9 @@
             : 'Review and confirm payments for trips you drive.';
     @endphp
 
-    {{-- Page styles, extracted to a cacheable static file; link kept at the same position as the <style> block so cascade order is unchanged. --}}
+    @push('styles')
     <link rel="stylesheet" href="{{ asset('css/payments.css') }}?v={{ filemtime(public_path('css/payments.css')) }}">
+    @endpush
 
 
     @php

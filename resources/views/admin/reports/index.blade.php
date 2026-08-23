@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-{{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+@push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-reports.css') }}?v={{ filemtime(public_path('css/admin-reports.css')) }}">
+@endpush
 
 <div class="reports-page-container">
 

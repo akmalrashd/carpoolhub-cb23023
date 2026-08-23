@@ -92,12 +92,13 @@
 
 </div>
 
-{{-- ── Styles ───────────────────────────────────────────────────────── --}}
-{{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
-{{-- mascot.css is loaded from layouts/app.blade.php's <head> instead — the
-     mascot renders in the header too, above this component in the DOM, so it
-     must be styled before that markup paints. --}}
-<link rel="stylesheet" href="{{ asset('css/ai-chat.css') }}?v={{ filemtime(public_path('css/ai-chat.css')) }}">
+{{-- ai-chat.css is loaded directly in layouts/app.blade.php's <head> instead —
+     this component is rendered from that same layout's own body, later in the
+     SAME top-to-bottom execution, so a @push('styles') called from here would
+     run after <head>'s @stack('styles') has already been output. Too late to
+     matter, unlike a page's own @push (that works — see any page view — because
+     @extends fully evaluates the child view into a buffer before the layout
+     renders at all). --}}
 
 {{-- ── Script ──────────────────────────────────────────────────────── --}}
 <script src="{{ asset('js/mascot.js') }}?v={{ filemtime(public_path('js/mascot.js')) }}"></script>

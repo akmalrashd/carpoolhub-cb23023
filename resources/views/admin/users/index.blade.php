@@ -12,8 +12,9 @@
     $pendingCount   = $pendingDrivers->count();
 @endphp
 
-{{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+@push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-users.css') }}?v={{ filemtime(public_path('css/admin-users.css')) }}">
+@endpush
 
 <div class="au-page">
 

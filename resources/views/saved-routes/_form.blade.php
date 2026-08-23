@@ -17,8 +17,9 @@
     $presetStops = collect(old('passenger_stops', $storedPresetStops))->values();
 @endphp
 
-{{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+@push('styles')
 <link rel="stylesheet" href="{{ asset('css/saved-routes-form.css') }}?v={{ filemtime(public_path('css/saved-routes-form.css')) }}">
+@endpush
 
 <div class="rf-shell">
 

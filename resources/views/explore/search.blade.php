@@ -4,8 +4,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-    {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+    @push('styles')
     <link rel="stylesheet" href="{{ asset('css/explore-search.css') }}?v={{ filemtime(public_path('css/explore-search.css')) }}">
+    @endpush
 
     <div class="xs-page">
 

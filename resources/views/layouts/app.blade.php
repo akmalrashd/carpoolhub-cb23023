@@ -27,6 +27,22 @@
          the header paints — not down where <x-ai-chat> lives, or the raw
          unstyled SVG flashes on load. --}}
     <link rel="stylesheet" href="{{ asset('css/mascot.css') }}?v={{ filemtime(public_path('css/mascot.css')) }}">
+    {{-- <x-ai-chat /> below is rendered from THIS layout's own body (line ~489),
+         not from a child view — @push('styles') called from inside it would run
+         after @stack('styles') has already been output right here, too late to
+         matter. This layout is only ever used behind auth (guest-facing pages
+         like legal/terms and auth/login have their own separate <head>s), so
+         <x-ai-chat> always renders — safe to load its CSS unconditionally,
+         same as mascot.css above. --}}
+    <link rel="stylesheet" href="{{ asset('css/ai-chat.css') }}?v={{ filemtime(public_path('css/ai-chat.css')) }}">
+    {{-- Every other page's own stylesheet pushes its <link> here
+         instead of sitting inline in @section('content'). A <link> discovered
+         mid-body has no render-blocking guarantee, so the browser can paint
+         that page's markup before its own CSS has even been requested —
+         raw content flashing before it snaps into its styled form, on every
+         navigation, cache or no cache. This is the same reasoning as the
+         mascot.css comment above, generalised to every page. --}}
+    @stack('styles')
     @include('layouts.partials.pwa-head')
 </head>
 <body>

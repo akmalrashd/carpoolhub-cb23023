@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 {{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
 <link rel="stylesheet" href="{{ asset('css/saved-routes.css') }}?v={{ filemtime(public_path('css/saved-routes.css')) }}">
+@endpush
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 {{-- Page header --}}
 <div style="padding:20px var(--page-gutter, 28px) 0">

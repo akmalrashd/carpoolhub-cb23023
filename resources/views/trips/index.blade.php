@@ -1,15 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
+    @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
     {{-- explore.css supplies the shared .xp-modal-* "Trip details" card styling,
          reused here for the pending-request read-only view instead of duplicating
          those ~150 lines of CSS — loaded first so trips.css still wins on any overlap. --}}
     <link rel="stylesheet" href="{{ asset('css/explore.css') }}?v={{ filemtime(public_path('css/explore.css')) }}">
     {{-- Page styles, extracted to a cacheable static file; link kept at the same position as the <style> block so cascade order is unchanged. --}}
     <link rel="stylesheet" href="{{ asset('css/trips.css') }}?v={{ filemtime(public_path('css/trips.css')) }}">
+    @endpush
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 
     @php

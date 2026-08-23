@@ -24,8 +24,9 @@
     $splitType = $includeDriverInSplit ? 'Driver Included in Fare Split' : 'Driver Excluded from Fare Split';
 @endphp
 
-{{-- Styles extracted to a cacheable static file; link kept at the same position for identical cascade order. --}}
+@push('styles')
 <link rel="stylesheet" href="{{ asset('css/trips-show.css') }}?v={{ filemtime(public_path('css/trips-show.css')) }}">
+@endpush
 
 <div class="ts-page">
 
