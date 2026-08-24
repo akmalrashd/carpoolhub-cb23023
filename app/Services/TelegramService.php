@@ -96,20 +96,24 @@ class TelegramService
      * resolved. sendToUser() above is for real notifications tied to a
      * UserNotification; this is the bare primitive it's built on.
      */
-    public function sendRaw(string $chatId, string $text): void
+    public function sendRaw(string $chatId, string $text, ?array $replyMarkup = null): void
     {
         if (empty(config('services.telegram.bot_token'))) {
             return;
         }
 
+        $payload = [
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'HTML',
+        ];
+
+        if ($replyMarkup !== null) {
+            $payload['reply_markup'] = $replyMarkup;
+        }
+
         try {
-            $this->client()->post('sendMessage', [
-                'json' => [
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                    'parse_mode' => 'HTML',
-                ],
-            ]);
+            $this->client()->post('sendMessage', ['json' => $payload]);
         } catch (GuzzleException $e) {
             Log::warning('Telegram raw send failed: ' . $e->getMessage());
         }

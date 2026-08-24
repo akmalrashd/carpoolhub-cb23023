@@ -71,7 +71,15 @@ class TelegramController extends Controller
         if ($chatId && str_starts_with($text, '/start ')) {
             $this->handleStart(substr($text, 7), (string) $chatId, $username ? (string) $username : null);
         } elseif ($chatId && trim($text) === '/start') {
-            $this->telegram->sendRaw((string) $chatId, "Untuk sambungkan akaun CarpoolHub anda, klik butang \"Connect Telegram\" dalam <b>Settings &gt; Notifications</b> pada app — bukan taip di sini.");
+            $this->telegram->sendRaw(
+                (string) $chatId,
+                "Welcome to CarpoolHub! To connect your account, log in (or sign up) on the website first, then tap <b>Connect Telegram</b> in <b>Settings &gt; Notifications</b> — that's what actually links this chat to your account.",
+                [
+                    'inline_keyboard' => [[
+                        ['text' => 'Log in / Sign up', 'url' => route('login')],
+                    ]],
+                ]
+            );
         }
 
         // Telegram expects a fast 200 regardless of outcome, or it will
