@@ -723,7 +723,9 @@
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                 @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
                                     <div style="display:flex; gap:8px;">
-                                        @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
+                                        @php
+                                            $reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft);
+                                        @endphp
                                         <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
                                             @csrf
                                             <button
@@ -1090,7 +1092,9 @@
                                             ><i class="fa-solid fa-clipboard-check"></i> Review</button>
                                         </div>
                                     @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
-                                        @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
+                                        @php
+                                            $reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft);
+                                        @endphp
                                         <div style="display:flex; flex-direction:column; gap:4px; align-items:stretch; justify-content:center; width:100%; max-width:140px; margin-left:auto;">
                                             <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row" style="margin:0; width:100%;">
                                                 @csrf
@@ -1573,7 +1577,9 @@
                                 @endif
 
                                 @if($payment->payment_status === 'unpaid')
-                                    @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
+                                    @php
+                                        $reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft);
+                                    @endphp
                                     <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
                                         @csrf
                                         <button
@@ -1740,7 +1746,9 @@
                                             </button>
                                         @endif
                                         @if($payment->payment_status === 'unpaid')
-                                            @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
+                                            @php
+                                                $reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft);
+                                            @endphp
                                             <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 <button
