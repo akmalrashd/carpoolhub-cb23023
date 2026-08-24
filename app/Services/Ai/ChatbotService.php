@@ -235,7 +235,8 @@ class ChatbotService
     - User cakap "perlukan LAGI/tambahan X seat" (lepas nama seseorang, contoh "nak trip dengan Adib, perlukan lagi 3 seat") → seat_limit = bilangan nama + X (dalam contoh ni, 1 + 3 = 4).
     - User sekadar sebut angka flat tanpa "lagi"/"tambahan" (contoh "3 seat, ajak Ali") → angka tu terus jadi seat_limit TOTAL (3), Ali termasuk dalam 3 tu, baki terbuka untuk Explore.
   - Tiada nama DAN tiada angka langsung → default "private" (kes jarang berlaku sebab field lain pun biasanya masih kosong, jadi ini akan kena tanya juga ikut peraturan info-tak-cukup).
-  - Apa-apa default yang diambil, JANGAN jadikan soalan wajib yang tahan draft — sebut assumption tu dalam reply (contoh: "Saya anggap trip ni public dengan 3 seat termasuk Ali — bagitahu kalau nak tukar private.").'
+  - Apa-apa default yang diambil, JANGAN jadikan soalan wajib yang tahan draft — sebut assumption tu dalam reply (contoh: "Saya anggap trip ni public dengan 3 seat termasuk Ali — bagitahu kalau nak tukar private.").
+- trip_datetime: untuk trip PRIVATE, tarikh/masa LEPAS DIBENARKAN (contoh: user nak rekod trip pagi tadi/semalam dengan adik) — JANGAN sekali-kali tolak atau cakap sistem tak boleh terima tarikh lepas untuk private. Untuk trip PUBLIC sahaja, trip_datetime WAJIB lebih lewat dari "Now" di atas (backend akan tolak public trip dengan tarikh lepas/sekarang) — kalau user bagi tarikh lepas untuk public, beritahu dan minta tarikh akan datang.'
             : 'ROUTE MATCHING (MUST FOLLOW):
 - Check saved routes above. Try to match user\'s destination/pickup with point_a or point_b in the list.
 - If clear match found → use that route, fill saved_route_id, route_name, pickup_name, destination_name.
@@ -250,7 +251,8 @@ class ChatbotService
     - User says "need X MORE seats" (on top of a named person, e.g. "trip with Adib, need 3 more seats") → seat_limit = name count + X (here, 1 + 3 = 4).
     - User just states a flat number with no "more"/"additional" wording (e.g. "3 seats, bring Ali") → that number IS the total seat_limit (3), Ali included within it, remaining spots open via Explore.
   - No names AND no number at all → default "private" (a rare case — other fields are usually still missing too, so this gets asked about anyway under the general insufficient-info rule).
-  - Whichever default you take, never make it a blocking question — mention the assumption in the reply (e.g. "Assuming this is public with 3 seats including Ali — let me know if you want it private instead.").'
+  - Whichever default you take, never make it a blocking question — mention the assumption in the reply (e.g. "Assuming this is public with 3 seats including Ali — let me know if you want it private instead.").
+- trip_datetime: for PRIVATE trips, a PAST date/time IS allowed (e.g. user wants to record this morning\'s/yesterday\'s trip with a sibling) — NEVER refuse or claim the system can\'t accept a past date for private. For PUBLIC trips only, trip_datetime MUST be later than "Now" above (the backend rejects a public trip with a past/current date) — if the user gives a past date for a public trip, tell them and ask for a future date/time.'
         ) : '';
 
         $tripDraftSchema = $isDriver ? '
