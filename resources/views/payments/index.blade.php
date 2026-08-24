@@ -2146,16 +2146,16 @@
         <div class="bulk-action-content">
             <span id="bulkActionCount">0 selected</span>
             <div style="margin:0; display:flex; gap:6px; align-items:center;">
-                <button type="button" class="btn btn-ghost" id="bulkCancelBtn" style="height:38px; padding:0 14px; font-size:13.5px; font-weight:800; border-radius:10px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">Cancel</button>
-                <button type="button" class="btn btn-ghost" id="floatingSelectAllBtn" style="height:38px; padding:0 14px; font-size:13.5px; font-weight:800; border-radius:10px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">Select All</button>
+                <button type="button" class="btn btn-ghost bulk-icon-btn" id="bulkCancelBtn" title="Cancel selection" aria-label="Cancel selection"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" class="btn btn-ghost bulk-icon-btn" id="floatingSelectAllBtn" title="Select all" aria-label="Select all"><i class="fa-solid fa-check-double"></i></button>
                 <button type="button" class="btn btn-success" id="bulkMarkPaidOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px;">
-                    <i class="fa-solid fa-check-double"></i> Mark Selected as Paid
+                    <i class="fa-solid fa-check-double"></i> Mark Paid
                 </button>
                 <button type="button" class="btn-solid-approve" id="bulkApproveOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px; display:none;">
-                    <i class="fa-solid fa-check"></i> Approve Selected
+                    <i class="fa-solid fa-check"></i> Approve
                 </button>
                 <button type="button" class="btn-solid-reject" id="bulkRejectOpenBtn" style="height:38px; font-size:13.5px; border-radius:10px; display:none;">
-                    <i class="fa-solid fa-xmark"></i> Reject Selected
+                    <i class="fa-solid fa-xmark"></i> Reject
                 </button>
             </div>
         </div>

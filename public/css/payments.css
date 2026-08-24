@@ -4246,6 +4246,14 @@
         #bulkActionCount::before {
             display: none !important;
         }
+        .bulk-icon-btn {
+            width: 38px !important;
+            min-width: 38px !important;
+            height: 38px !important;
+            padding: 0 !important;
+            font-size: 14px !important;
+            flex: 0 0 auto !important;
+        }
         @media (max-width: 576px) {
             .bulk-action-bar {
                 bottom: calc(var(--bottom-nav-h, 83px) + 10px + env(safe-area-inset-bottom, 0px)) !important;
@@ -4259,14 +4267,14 @@
                 font-size: 12px !important;
                 padding: 0 !important;
             }
-            #floatingSelectAllBtn,
-            #bulkCancelBtn {
-                padding: 0 8px !important;
-                font-size: 11.5px !important;
+            .bulk-icon-btn {
+                width: 34px !important;
+                min-width: 34px !important;
                 height: 34px !important;
-                white-space: nowrap !important;
             }
-            #bulkMarkPaidOpenBtn {
+            #bulkMarkPaidOpenBtn,
+            #bulkApproveOpenBtn,
+            #bulkRejectOpenBtn {
                 padding: 0 10px !important;
                 font-size: 11.5px !important;
                 height: 34px !important;

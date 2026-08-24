@@ -2521,11 +2521,13 @@
                     }
 
                     if (floatingSelectAllBtn) {
-                        if (totalCbs.length > 0 && count === totalCbs.length) {
-                            floatingSelectAllBtn.textContent = 'Deselect All';
-                        } else {
-                            floatingSelectAllBtn.textContent = 'Select All';
-                        }
+                        const allSelected = totalCbs.length > 0 && count === totalCbs.length;
+                        floatingSelectAllBtn.innerHTML = allSelected
+                            ? '<i class="fa-solid fa-square-minus"></i>'
+                            : '<i class="fa-solid fa-check-double"></i>';
+                        const label = allSelected ? 'Deselect all' : 'Select all';
+                        floatingSelectAllBtn.title = label;
+                        floatingSelectAllBtn.setAttribute('aria-label', label);
                     }
                 };
 

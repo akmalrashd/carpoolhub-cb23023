@@ -2673,6 +2673,19 @@
                 border-radius: 16px !important;
                 gap: 8px;
             }
+            .trips-batch-icon-btn {
+                width: 34px !important;
+                min-width: 34px !important;
+                height: 34px !important;
+            }
+        }
+        .trips-batch-icon-btn {
+            width: 38px !important;
+            min-width: 38px !important;
+            height: 38px !important;
+            padding: 0 !important;
+            font-size: 14px !important;
+            flex: 0 0 auto !important;
         }
         .trips-batch-count {
             font-size: 14px;

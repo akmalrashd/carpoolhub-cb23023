@@ -1587,11 +1587,11 @@
                     <span id="tripsSelectedCount">0</span> selected
                 </span>
                 <div style="margin: 0; display: flex; gap: 6px; align-items: center;">
-                    <button type="button" id="tripsCancelBatchBtn" class="btn btn-ghost" style="height: 38px; padding: 0 14px; font-size: 13.5px; font-weight: 700; border-radius: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
-                        Cancel
+                    <button type="button" id="tripsCancelBatchBtn" class="btn btn-ghost trips-batch-icon-btn" title="Cancel selection" aria-label="Cancel selection" style="border-radius: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
-                    <button type="button" id="tripsSelectAllBtn" class="btn btn-ghost" style="height: 38px; padding: 0 14px; font-size: 13.5px; font-weight: 700; border-radius: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
-                        Select All
+                    <button type="button" id="tripsSelectAllBtn" class="btn btn-ghost trips-batch-icon-btn" title="Select all" aria-label="Select all" style="border-radius: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-check-double"></i>
                     </button>
                     <button type="submit" class="btn btn-danger" style="height: 38px; padding: 0 16px; font-size: 13.5px; font-weight: 800; border-radius: 10px; background: #e11d48; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="return confirm('Are you sure you want to delete all selected trips?');">
                         <i class="fa-solid fa-trash-can"></i> Delete All
