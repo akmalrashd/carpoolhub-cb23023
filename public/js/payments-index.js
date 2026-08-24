@@ -1436,13 +1436,21 @@ window.isPaymentRowHidden = function (row) {
 
     const reminderButtons = Array.from(document.querySelectorAll('.reminder-btn[data-seconds-left]'));
 
-
-    const pad = (value) => String(value).padStart(2, '0');
-    const toHms = (seconds) => {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    // 24h cooldown, so second-level precision isn't meaningful to the user —
+    // show a rounded magnitude instead and only touch the DOM when it changes.
+    const toCompact = (seconds) => {
+        if (seconds <= 0) return '';
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        if (hours >= 1) return `${hours}h`;
+        if (minutes >= 1) return `${minutes}m`;
+        return '<1m';
+    };
+    const availableAtTitle = (seconds) => {
+        const target = new Date(Date.now() + seconds * 1000);
+        const datePart = target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timePart = target.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return `Available again at ${datePart}, ${timePart}`;
     };
 
     const states = {};
@@ -1457,19 +1465,36 @@ window.isPaymentRowHidden = function (row) {
         reminderButtons.forEach((button) => {
             const paymentId = button.dataset.paymentId;
             const secondsLeft = paymentId && states[paymentId] ? states[paymentId] : 0;
+            const compact = toCompact(secondsLeft);
+
+            // Each button tracks its own last-rendered value — several
+            // buttons (mobile card + desktop table row) can share the same
+            // payment id but render in different styles.
+            if (button.dataset.lastCompact === compact) return;
+            button.dataset.lastCompact = compact;
+
+            const isIconOnly = button.dataset.readyStyle === 'icon';
 
             if (secondsLeft <= 0) {
                 button.disabled = false;
                 button.classList.remove('is-disabled');
-                button.innerHTML = '<i class="fa-regular fa-bell btn-icon"></i>Notify';
+                button.classList.toggle('is-icon-only', isIconOnly);
+                button.title = 'Send a payment reminder';
+                button.innerHTML = isIconOnly
+                    ? '<i class="fa-regular fa-bell"></i>'
+                    : '<i class="fa-regular fa-bell btn-icon"></i>Notify';
                 button.dataset.secondsLeft = '0';
                 return;
             }
 
             button.disabled = true;
             button.classList.add('is-disabled');
+            button.classList.remove('is-icon-only');
+            button.title = availableAtTitle(secondsLeft);
             button.dataset.secondsLeft = String(secondsLeft);
-            button.innerHTML = `<i class="fa-regular fa-clock btn-icon"></i>${toHms(secondsLeft)}`;
+            button.innerHTML = isIconOnly
+                ? `<i class="fa-regular fa-clock"></i> ${compact}`
+                : `<i class="fa-regular fa-clock btn-icon"></i>${compact}`;
         });
     };
 

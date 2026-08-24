@@ -91,6 +91,25 @@
                 'custom_stop' => $customStop,
             ];
         };
+        $reminderButtonUi = function (bool $canSendReminder, int $secondsLeft): array {
+            if ($canSendReminder) {
+                return [
+                    'icon' => 'fa-regular fa-bell',
+                    'label' => '',
+                    'title' => 'Send a payment reminder',
+                ];
+            }
+
+            $hours = intdiv($secondsLeft, 3600);
+            $minutes = intdiv($secondsLeft % 3600, 60);
+            $compact = $hours >= 1 ? $hours . 'h' : ($minutes >= 1 ? $minutes . 'm' : '<1m');
+
+            return [
+                'icon' => 'fa-regular fa-clock',
+                'label' => $compact,
+                'title' => 'Available again at ' . \Illuminate\Support\Carbon::now()->addSeconds($secondsLeft)->format('d M Y, H:i'),
+            ];
+        };
         $driverUnpaidAmount = (float) ($summary['driver']['unpaid']['amount'] ?? 0);
         $driverPendingAmount = (float) ($summary['driver']['pending_confirmation']['amount'] ?? 0);
         $driverPaidAmount = (float) ($summary['driver']['paid']['amount'] ?? 0);
@@ -704,18 +723,18 @@
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                 @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
                                     <div style="display:flex; gap:8px;">
+                                        @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
                                         <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
                                             @csrf
                                             <button
                                                 type="submit"
-                                                class="payments-btn payments-btn-soft {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
+                                                class="payments-btn payments-btn-soft {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn {{ $canSendReminder ? 'is-icon-only' : '' }}"
                                                 {{ $canSendReminder ? '' : 'disabled' }}
                                                 data-payment-id="{{ $payment->id }}"
                                                 data-seconds-left="{{ $secondsLeft }}"
-                                            >
-                                                <i class="{{ $paymentActionIcon }}"></i>
-                                                {!! $canSendReminder ? $paymentActionLabel : gmdate('H:i:s', $secondsLeft) !!}
-                                            </button>
+                                                data-ready-style="icon"
+                                                title="{{ $reminderUi['title'] }}"
+                                            ><i class="{{ $reminderUi['icon'] }}"></i>{{ $reminderUi['label'] ? ' ' . $reminderUi['label'] : '' }}</button>
                                         </form>
                                         <button
                                             type="button"
@@ -1071,6 +1090,7 @@
                                             ><i class="fa-solid fa-clipboard-check"></i> Review</button>
                                         </div>
                                     @elseif($isDriverQueueRecord && $payment->payment_status === 'unpaid')
+                                        @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
                                         <div style="display:flex; flex-direction:column; gap:4px; align-items:stretch; justify-content:center; width:100%; max-width:140px; margin-left:auto;">
                                             <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row" style="margin:0; width:100%;">
                                                 @csrf
@@ -1080,12 +1100,13 @@
                                                     {{ $canSendReminder ? '' : 'disabled' }}
                                                     data-payment-id="{{ $payment->id }}"
                                                     data-seconds-left="{{ $secondsLeft }}"
+                                                    title="{{ $reminderUi['title'] }}"
                                                     style="width:100%; height:36px !important; min-height:36px !important; max-height:36px !important; flex:none !important; padding:0 10px;"
                                                 >
                                                     @if($canSendReminder)
                                                         <i class="fa-regular fa-bell"></i> Notify
                                                     @else
-                                                        {{ gmdate('H:i:s', $secondsLeft) }}
+                                                        <i class="fa-regular fa-clock"></i> {{ $reminderUi['label'] }}
                                                     @endif
                                                 </button>
                                             </form>
@@ -1552,19 +1573,18 @@
                                 @endif
 
                                 @if($payment->payment_status === 'unpaid')
+                                    @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
                                     <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
                                         @csrf
                                         <button
                                             type="submit"
-                                            class="payments-btn {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn"
+                                            class="payments-btn {{ $canSendReminder ? '' : 'is-disabled' }} reminder-btn {{ $canSendReminder ? 'is-icon-only' : '' }}"
                                             {{ $canSendReminder ? '' : 'disabled' }}
                                             data-payment-id="{{ $payment->id }}"
                                             data-seconds-left="{{ $secondsLeft }}"
-                                        >
-                                            {!! $canSendReminder
-                                                ? '<i class="fa-regular fa-bell btn-icon"></i>Peringatan'
-                                                : '<i class="fa-regular fa-clock btn-icon"></i>' . gmdate('H:i:s', $secondsLeft) !!}
-                                        </button>
+                                            data-ready-style="icon"
+                                            title="{{ $reminderUi['title'] }}"
+                                        ><i class="{{ $reminderUi['icon'] }} btn-icon"></i>{{ $reminderUi['label'] }}</button>
                                     </form>
                                 @endif
 
@@ -1720,6 +1740,7 @@
                                             </button>
                                         @endif
                                         @if($payment->payment_status === 'unpaid')
+                                            @php($reminderUi = $reminderButtonUi($canSendReminder, $secondsLeft))
                                             <form method="POST" action="{{ route('payments.send-reminder', $payment) }}" class="payments-action-row">
                                                 @csrf
                                                 <button
@@ -1728,10 +1749,11 @@
                                                     {{ $canSendReminder ? '' : 'disabled' }}
                                                     data-payment-id="{{ $payment->id }}"
                                                     data-seconds-left="{{ $secondsLeft }}"
+                                                    title="{{ $reminderUi['title'] }}"
                                                 >
                                                     {!! $canSendReminder
                                                         ? '<i class="fa-regular fa-bell btn-icon"></i>Notify'
-                                                        : '<i class="fa-regular fa-clock btn-icon"></i>' . gmdate('H:i:s', $secondsLeft) !!}
+                                                        : '<i class="fa-regular fa-clock btn-icon"></i>' . $reminderUi['label'] !!}
                                                 </button>
                                             </form>
                                         @endif

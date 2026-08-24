@@ -598,6 +598,15 @@
         .reminder-btn {
             min-width: 100px;
         }
+        .reminder-btn.is-icon-only {
+            width: 38px !important;
+            min-width: 38px !important;
+            flex: 0 0 auto !important;
+            padding: 0 !important;
+        }
+        .reminder-btn.is-icon-only .btn-icon {
+            margin-right: 0;
+        }
         .payments-btn-primary {
             background: #0f172a;
             border-color: #0f172a;
