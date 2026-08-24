@@ -176,7 +176,7 @@ class TelegramController extends Controller
         $userId = Cache::get($cacheKey);
 
         if (! $userId) {
-            $this->telegram->sendRaw($chatId, 'Link ni dah tamat tempoh atau tak sah. Sila cuba sambung semula dari <b>Settings &gt; Notifications</b> dalam app CarpoolHub.');
+            $this->telegram->sendRaw($chatId, 'This link has expired or is invalid. Please reconnect from <b>Settings &gt; Notifications</b> in the CarpoolHub app.');
             return;
         }
 
@@ -198,6 +198,11 @@ class TelegramController extends Controller
 
         Cache::forget($cacheKey);
 
-        $this->telegram->sendRaw($chatId, '✅ Akaun CarpoolHub anda (<b>' . e($user->name) . '</b>) dah disambungkan! Notifikasi trip, payment, dan connection akan terus sampai sini.');
+        $this->telegram->sendRaw(
+            $chatId,
+            "✅ Your CarpoolHub account (<b>" . e($user->name) . "</b>) is now connected!\n\n"
+                . "Trip, payment, and connection updates will now be sent here on Telegram, on top of your in-app notifications.\n\n"
+                . "Tip: tap <b>Open</b> below anytime to jump straight into the CarpoolHub Mini App — you're already logged in automatically since it's linked to this Telegram account."
+        );
     }
 }
