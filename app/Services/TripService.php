@@ -366,6 +366,7 @@ class TripService
 
             $this->syncParticipantsAndPayments($trip, $driver->id, $participantIds, $amounts, $savedRoute);
             $this->notifyParticipants($trip, $driver->name, 'Trip Created', 'trip');
+            $this->notifyDriver($trip, $driver->id, 'Trip Created', "You've created the {$this->tripLabel($trip)}.");
 
             if ($tripType === 'two_way') {
                 $returnAmounts = $this->buildActiveParticipantAmounts((float) $savedRoute->default_fare, $participantIds->count(), $splitCount);
@@ -468,9 +469,9 @@ class TripService
             $removedIds = $previousPassengerIds->diff($participantIds)->values();
             if ($removedIds->isNotEmpty()) {
                 $label = $this->tripLabel($trip);
-                $now = now();
-                UserNotification::insert(
-                    $removedIds->map(fn ($userId) => [
+                // ::create() per row, not insert() — see notifyParticipants() docblock.
+                foreach ($removedIds as $userId) {
+                    UserNotification::query()->create([
                         'user_id'      => $userId,
                         'type'         => 'trip',
                         'title'        => 'Removed from Trip',
@@ -478,10 +479,8 @@ class TripService
                         'related_type' => 'system',
                         'related_id'   => null,
                         'is_read'      => false,
-                        'created_at'   => $now,
-                        'updated_at'   => $now,
-                    ])->all()
-                );
+                    ]);
+                }
             }
 
             $this->notifyParticipants($trip, $actor->name, 'Trip Updated', 'trip');
@@ -519,9 +518,9 @@ class TripService
             Trip::query()->whereIn('id', $tripIds)->delete();
 
             if ($passengerIds->isNotEmpty()) {
-                $now = now();
-                UserNotification::insert(
-                    $passengerIds->map(fn ($userId) => [
+                // ::create() per row, not insert() — see notifyParticipants() docblock.
+                foreach ($passengerIds as $userId) {
+                    UserNotification::query()->create([
                         'user_id'      => $userId,
                         'type'         => 'trip',
                         'title'        => 'Trip Cancelled',
@@ -529,10 +528,8 @@ class TripService
                         'related_type' => 'system',
                         'related_id'   => null,
                         'is_read'      => false,
-                        'created_at'   => $now,
-                        'updated_at'   => $now,
-                    ])->all()
-                );
+                    ]);
+                }
             }
         });
     }
@@ -808,16 +805,24 @@ class TripService
         return $this->formatTripLabel($trip);
     }
 
+    /**
+     * Uses ::create() per row (not a bulk insert) on purpose — UserNotificationObserver
+     * only fires on the Eloquent "created" event, which is what actually sends the
+     * push/Telegram notification. A bulk insert() skips that silently, leaving only
+     * the in-app row behind with no delivery at all.
+     */
     private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type): void
     {
         $trip->loadMissing('participants');
         $label = $this->tripLabel($trip);
 
-        $now = now();
-        $rows = $trip->participants
+        $recipientIds = $trip->participants
             ->filter(fn ($p) => $p->user_id !== $trip->driver_id)
-            ->map(fn ($p) => [
-                'user_id'      => $p->user_id,
+            ->pluck('user_id');
+
+        foreach ($recipientIds as $userId) {
+            UserNotification::query()->create([
+                'user_id'      => $userId,
                 'type'         => $type,
                 'title'        => $title,
                 'message'      => match ($title) {
@@ -828,15 +833,21 @@ class TripService
                 'related_type' => 'trip',
                 'related_id'   => $trip->id,
                 'is_read'      => false,
-                'created_at'   => $now,
-                'updated_at'   => $now,
-            ])
-            ->values()
-            ->all();
-
-        if ($rows) {
-            UserNotification::insert($rows);
+            ]);
         }
+    }
+
+    private function notifyDriver(Trip $trip, int $driverId, string $title, string $message): void
+    {
+        UserNotification::query()->create([
+            'user_id'      => $driverId,
+            'type'         => 'trip',
+            'title'        => $title,
+            'message'      => $message,
+            'related_type' => 'trip',
+            'related_id'   => $trip->id,
+            'is_read'      => false,
+        ]);
     }
 
     public function syncLifecycleStatuses(): void
