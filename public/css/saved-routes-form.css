@@ -72,8 +72,10 @@
     .rf-map-search-wrap input:focus { border-color: var(--muted); }
 
     .rf-map-search-suggest {
+        /* Leaflet's own panes (tiles/overlay/marker/popup) run z-index
+           ~200-700, so 40 rendered this dropdown behind the map itself. */
         position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-        z-index: 40; border: 1px solid var(--hairline-strong);
+        z-index: 1000; border: 1px solid var(--hairline-strong);
         border-radius: var(--r-sm); background: var(--surface);
         box-shadow: var(--shadow-2); max-height: 300px; overflow-y: auto;
         display: none;
