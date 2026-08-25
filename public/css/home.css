@@ -614,11 +614,15 @@
             gap: 10px;
             padding: 10px 0;
             transition: background-color 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
         }
         .hp-review-row + .hp-review-row { border-top: 1px solid var(--hairline); }
         a.hp-review-row:hover {
             background: var(--surface-2);
             cursor: pointer;
+        }
+        a.hp-review-row:active {
+            background: var(--ch-yellow-tint);
         }
         .hp-review-avatar {
             width: 36px;

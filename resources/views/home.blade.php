@@ -62,7 +62,10 @@
             default => 'Publish rides, review requests, and keep your route workflow running smoothly.',
         };
 
-        $hour = (int) now()->format('G');
+        // A "good afternoon" greeting is about the user's local time of day,
+        // not APP_TIMEZONE (UTC) — same reasoning as Trip::TIMEZONE, since
+        // this app has no multi-timezone support and everyone's in Malaysia.
+        $hour = (int) now(\App\Models\Trip::TIMEZONE)->format('G');
         $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
 
         // Stat values
