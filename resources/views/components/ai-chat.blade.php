@@ -208,7 +208,6 @@ const aiChat = (() => {
         Mascot?.play('ai-chat-mascot', 'wink', { duration: 900 });
         fabMascot('play', 'wink', { duration: 900 });
         scrollBottom();
-        if (lang) setTimeout(() => $('ai-input').focus(), 220);
     }
 
     // ── Language selection ───────────────────────────────────────────
@@ -265,7 +264,6 @@ const aiChat = (() => {
         renderChips();
 
         scrollBottom();
-        setTimeout(() => $('ai-input')?.focus(), 100);
     }
 
     function renderChips() {

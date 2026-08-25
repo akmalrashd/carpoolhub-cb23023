@@ -72,7 +72,13 @@
     bottom: auto !important;
     z-index: 2990 !important;
     width: min(420px, calc(100vw - 24px)) !important;
+    /* 100vh doesn't shrink when the mobile keyboard opens, so the panel kept
+       thinking it had room it no longer had — squishing its content and
+       leaving a gap above the keyboard. 100dvh tracks the real visible
+       viewport; the vh line stays first as a fallback for browsers that
+       don't support dvh yet (its declaration is simply ignored there). */
     max-height: min(540px, calc(100vh - 150px)) !important;
+    max-height: min(540px, calc(100dvh - 150px)) !important;
     background: var(--surface) !important;
     border: 1px solid var(--hairline) !important;
     border-radius: 20px !important;
