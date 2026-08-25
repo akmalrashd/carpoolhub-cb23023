@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Services\TelegramService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -40,10 +41,37 @@ class TelegramController extends Controller
 
     public function unlink(Request $request): RedirectResponse
     {
-        $request->user()->forceFill([
+        $user = $request->user();
+        $oldChatId = $user->telegram_chat_id;
+
+        // Sent with the still-live chat id, before it's cleared below — this
+        // is the last message this account will ever get here, so it has to
+        // go out first or there'd be no chat id left to send it to.
+        if ($oldChatId) {
+            $this->telegram->sendRaw(
+                $oldChatId,
+                "👋 Your Telegram has been disconnected from CarpoolHub. You won't get trip, payment, or connection alerts here anymore.\n\n"
+                    . "Changed your mind? You can reconnect anytime from <b>Settings &gt; Notifications</b> in the app."
+            );
+        }
+
+        $user->forceFill([
             'telegram_chat_id' => null,
             'telegram_username' => null,
         ])->save();
+
+        // chat_id is already cleared above, so the observer's own Telegram
+        // send for this notification finds nothing to send to and skips it
+        // — the farewell message above already covered that channel.
+        UserNotification::query()->create([
+            'user_id'      => $user->id,
+            'type'         => 'system',
+            'title'        => 'Telegram Disconnected',
+            'message'      => "Your Telegram has been disconnected. You'll still get in-app alerts, and browser push if it's enabled.",
+            'related_type' => 'settings',
+            'related_id'   => null,
+            'is_read'      => false,
+        ]);
 
         return back()->with('status', 'Telegram disconnected.');
     }
@@ -198,6 +226,20 @@ class TelegramController extends Controller
         // rather than left dangling on the old one — one Telegram chat can
         // only ever notify one CarpoolHub user at a time.
         User::query()->where('telegram_chat_id', $chatId)->update(['telegram_chat_id' => null, 'telegram_username' => null]);
+
+        // Created while chat_id is still null on this user, so the observer's
+        // own Telegram send for it finds nothing to send to and skips it —
+        // the richer custom "connected" message below covers that channel
+        // instead of doubling up on it.
+        UserNotification::query()->create([
+            'user_id'      => $user->id,
+            'type'         => 'system',
+            'title'        => 'Telegram Connected',
+            'message'      => 'Your Telegram is now connected to CarpoolHub — trip, payment, and connection alerts will be sent there too.',
+            'related_type' => 'settings',
+            'related_id'   => null,
+            'is_read'      => false,
+        ]);
 
         $user->forceFill([
             'telegram_chat_id' => $chatId,

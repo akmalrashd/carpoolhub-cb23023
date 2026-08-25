@@ -64,6 +64,7 @@ class UserNotification extends Model
             'trip_entry_reminder' => route('trips.create'),
             'connection' => route('connections.index'),
             'route' => route('saved-routes.index'),
+            'settings' => route('settings.index'),
             'trip_join_request' => $this->resolveJoinRequestUrl($relatedId),
             default => route('notifications.index'),
         };
