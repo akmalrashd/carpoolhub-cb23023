@@ -1,249 +1,466 @@
 /* Extracted from resources/views/explore/search.blade.php — cacheable. */
-        /* ── Explore Search Page ────────────────────────────────────────── */
-        .xs-page { display: grid; gap: 16px; }
+        /* ── Explore Search Page (Grab-style: two-field search + list + map picker) ── */
+        .xs2-page {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 12px var(--page-gutter, 16px) calc(84px + env(safe-area-inset-bottom, 0px));
+            display: grid;
+            gap: 16px;
+            position: relative;
+        }
 
-        /* Section card */
-        .xs-card {
+        /* This page is a focused, full-screen search flow — the persistent
+           bottom nav would just compete with it for space. */
+        .mobile-bottom-nav { display: none !important; }
+
+        /* ── Top bar ───────────────────────────────────────────────── */
+        .xs2-topbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .xs2-topbar-title {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--ink);
+        }
+        .xs2-icon-btn {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--hairline);
+            background: var(--surface);
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            box-shadow: var(--shadow-1);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .xs2-icon-btn:hover { border-color: var(--ch-yellow-line); background: var(--ch-yellow-tint); }
+        .xs2-icon-btn:active { background: var(--surface-2); }
+
+        /* ── Search form card ─────────────────────────────────────── */
+        .xs2-form {
             background: var(--surface);
             border: 1px solid var(--hairline);
             border-radius: var(--r-lg);
-            padding: 18px 16px;
+            padding: 14px;
             box-shadow: var(--shadow-2);
-        }
-
-        /* Page heading */
-        .xs-title {
-            margin: 0;
-            font-family: var(--font-display);
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--ink);
-            line-height: 1.1;
-        }
-        .xs-subtitle {
-            margin: 4px 0 0;
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        /* Primary destination box */
-        .xs-dest-box {
-            margin-top: 14px;
-            border: 1.5px solid var(--ch-yellow-line);
-            border-radius: var(--r-md);
-            background: var(--ch-yellow-tint);
-            padding: 12px;
             display: grid;
-            gap: 8px;
+            gap: 12px;
         }
-        .xs-dest-label {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: var(--warning-ink);
-        }
-        .xs-dest-input {
-            width: 100%;
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-sm);
-            background: var(--surface);
-            color: var(--ink);
-            padding: 11px 13px;
-            font-size: 15px;
-            font-family: var(--font-ui);
-            outline: none;
-        }
-        .xs-dest-input:focus { border-color: var(--ch-yellow-deep); }
 
-        /* Secondary field grid */
-        .xs-grid {
-            display: grid;
+        /* Two stacked location pills with a route connector, like Grab's
+           Pick up / Where to fields. */
+        .xs2-fields { display: grid; gap: 0; position: relative; }
+        .xs2-field-pill {
+            display: flex;
+            align-items: center;
             gap: 10px;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            margin-top: 12px;
-        }
-        .xs-field { display: grid; gap: 4px; }
-        .xs-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: var(--muted);
-        }
-        .xs-input {
-            width: 100%;
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-sm);
+            border: 1.5px solid var(--hairline-strong);
             background: var(--surface-2);
-            color: var(--ink);
-            padding: 9px 11px;
-            font-size: 13px;
-            font-family: var(--font-ui);
-            outline: none;
+            border-radius: var(--r-md);
+            padding: 11px 13px;
+            min-height: 44px;
         }
-        .xs-input:focus { border-color: var(--ch-yellow-deep); background: var(--surface); }
-
-        /* Autocomplete dropdown */
-        .xs-auto-wrap { position: relative; }
-        .xs-suggest-list {
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            z-index: 30;
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-sm);
+        .xs2-field-pill:focus-within,
+        .xs2-field-pill.is-active-target {
+            border-color: var(--ch-yellow-deep);
             background: var(--surface);
-            box-shadow: var(--shadow-3);
-            max-height: 220px;
-            overflow: auto;
-            display: none;
         }
-        .xs-suggest-list.show { display: block; }
-        .xs-suggest-btn {
+        .xs2-fields .xs2-field-pill:first-child { border-radius: var(--r-md) var(--r-md) 6px 6px; }
+        .xs2-fields .xs2-field-pill:last-child  { border-radius: 6px 6px var(--r-md) var(--r-md); }
+        .xs2-field-dot {
+            flex-shrink: 0;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1.5px currentColor;
+        }
+        .xs2-field-dot-pickup { background: #16a34a; color: #16a34a; }
+        .xs2-field-dot-dest {
+            background: #dc2626;
+            border-radius: 2px;
+            border: 1.5px solid #fff;
+            box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.45);
+        }
+        .xs2-field-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            height: 8px;
+            margin-left: 18px;
+            position: relative;
+            z-index: 1;
+        }
+        .xs2-field-connector span {
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: var(--hairline-strong);
+        }
+        .xs2-field-input {
+            flex: 1;
+            min-width: 0;
             width: 100%;
             border: 0;
-            border-bottom: 1px solid var(--hairline);
-            background: var(--surface);
+            background: transparent;
             color: var(--ink);
-            padding: 9px 12px;
-            text-align: left;
-            font-size: 12px;
-            font-family: var(--font-ui);
-            cursor: pointer;
-            display: grid;
-            gap: 2px;
-        }
-        .xs-suggest-btn:last-child { border-bottom: 0; }
-        .xs-suggest-btn:hover { background: var(--surface-2); }
-        .xs-suggest-main { font-weight: 700; color: var(--ink); }
-        .xs-suggest-sub  { color: var(--muted); font-size: 11px; line-height: 1.25; }
-
-        /* Map card */
-        .xs-map-card {
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
-            background: var(--surface-2);
-            padding: 12px;
-            display: grid;
-            gap: 10px;
-            margin-top: 12px;
-        }
-        .xs-map-head {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .xs-map-title {
-            margin: 0;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--ink);
-        }
-        .xs-map-hint {
-            margin: 2px 0 0;
-            font-size: 12px;
-            color: var(--muted);
-        }
-        .xs-map-targets { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-        .xs-map-target-btn {
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-pill);
-            background: var(--surface);
-            color: var(--ink-3);
-            padding: 5px 12px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: var(--font-ui);
-            transition: border-color .15s ease, background .15s ease, color .15s ease;
-        }
-        .xs-map-target-btn.active {
-            border-color: var(--ch-yellow-line);
-            background: var(--ch-yellow-tint);
-            color: var(--warning-ink);
-        }
-        .xs-map-status {
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-sm);
-            background: var(--surface);
-            color: var(--ink-3);
-            font-size: 12px;
-            padding: 8px 11px;
-            line-height: 1.4;
-        }
-        #exploreSearchMap {
-            width: 100%;
-            height: 260px;
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
-            overflow: hidden;
-            background: var(--surface);
-        }
-
-        /* Form actions */
-        .xs-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 14px;
-        }
-
-        /* Recent / suggested sections */
-        .xs-section-title {
-            margin: 0 0 10px;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--ink);
-        }
-        .xs-tag-list { display: flex; gap: 7px; flex-wrap: wrap; }
-        .xs-tag {
-            border: 1px solid var(--hairline-strong);
-            border-radius: var(--r-pill);
-            background: var(--surface-2);
-            color: var(--ink-3);
-            text-decoration: none;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 600;
-            padding: 5px 12px;
-            transition: border-color .15s, background .15s, color .15s;
+            font-family: var(--font-ui);
+            outline: none;
+            padding: 0;
         }
-        .xs-tag:hover {
-            border-color: var(--ch-yellow-line);
-            background: var(--ch-yellow-tint);
-            color: var(--warning-ink);
+        .xs2-field-input::placeholder { color: var(--muted); font-weight: 500; }
+
+        /* Quick filter pills */
+        .xs2-quick-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-        .xs-suggested-list { display: grid; gap: 8px; margin: 0; }
-        .xs-suggested-item {
-            border: 1px solid var(--hairline);
+        .xs2-pill-field {
+            flex: 1 1 auto;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid var(--hairline-strong);
             border-radius: var(--r-md);
-            background: var(--surface);
+            background: var(--surface-2);
             color: var(--ink-3);
+            padding: 8px 12px;
+            font-size: 12.5px;
+            font-weight: 700;
+            font-family: var(--font-ui);
+        }
+        .xs2-pill-field i { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+        .xs2-pill-field input,
+        .xs2-pill-field select {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            background: transparent;
+            color: var(--ink);
+            font-size: 12.5px;
+            font-weight: 700;
+            font-family: var(--font-ui);
+            outline: none;
+        }
+
+        .xs2-submit-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            min-height: 46px;
+            border: 0;
+            border-radius: var(--r-md);
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+            font-size: 14px;
+            font-weight: 800;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            box-shadow: var(--shadow-yellow);
+        }
+        .xs2-submit-btn:hover { background: var(--ch-yellow-deep); }
+        .xs2-submit-btn:active { transform: translateY(1px); }
+
+        /* ── Recent / Suggested list card ─────────────────────────── */
+        .xs2-list-card {
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-2);
+            padding: 0 14px 8px;
+            overflow: hidden;
+        }
+        .xs2-tabs {
+            display: flex;
+            gap: 6px;
+            margin: 0 -14px;
+            padding: 0 14px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .xs2-tab {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
             font-size: 13px;
             font-weight: 700;
-            line-height: 1.35;
-            padding: 11px 13px;
+            font-family: var(--font-ui);
+            padding: 10px 4px;
+            cursor: pointer;
+            position: relative;
+            min-height: 44px;
+        }
+        .xs2-tab.active { color: var(--warning-ink); }
+        .xs2-tab.active::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 2.5px;
+            border-radius: 2px;
+            background: var(--ch-yellow);
+        }
+
+        /* ── Results list ──────────────────────────────────────────── */
+        .xs2-results { display: grid; gap: 4px; padding-top: 6px; }
+        .xs2-results[hidden] { display: none; }
+        .xs2-result-row {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 6px;
+            border: 0;
+            border-radius: var(--r-md);
+            background: transparent;
             text-decoration: none;
-            box-shadow: var(--shadow-1);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            text-align: left;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .xs2-result-row:hover { background: var(--surface-2); }
+        .xs2-result-row:active { background: var(--ch-yellow-tint); }
+        .xs2-result-icon {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-pill);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .xs2-result-icon-recent { background: var(--surface-2); color: var(--muted); }
+        .xs2-result-icon-suggested { background: var(--ch-yellow-tint); color: var(--warning-ink); }
+        .xs2-result-icon-current { background: var(--surface-2); color: var(--muted); }
+        .xs2-result-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+        .xs2-result-text strong {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            transition: border-color .15s, background .15s, color .15s;
         }
-        .xs-suggested-item:hover {
-            border-color: var(--ch-yellow-line);
+        .xs2-result-text small { font-size: 11.5px; color: var(--muted); }
+        .xs2-result-chevron { flex-shrink: 0; color: var(--muted-2); font-size: 11px; }
+
+        .xs2-empty-state {
+            display: grid;
+            justify-items: center;
+            gap: 8px;
+            padding: 36px 20px;
+            color: var(--muted-2);
+            text-align: center;
+        }
+        .xs2-empty-state i { font-size: 26px; }
+        .xs2-empty-state p { margin: 0; font-size: 12.5px; max-width: 260px; line-height: 1.5; }
+        .xs2-loading-state i { color: var(--warning-ink); }
+
+        /* ── Floating "Choose on map" pill ────────────────────────────
+           bottom is a plain px value (not calc()) so the keyboard-avoidance
+           JS can override it inline with a matching unit — see explore-search.js */
+        .xs2-fab {
+            position: fixed;
+            left: 50%;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            transform: translateX(-50%);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 0;
+            border-radius: var(--r-pill);
+            background: var(--ink);
+            color: var(--ch-yellow);
+            padding: 12px 20px;
+            font-size: 13.5px;
+            font-weight: 800;
+            font-family: var(--font-ui);
+            white-space: nowrap;
+            box-shadow: var(--shadow-3);
+            cursor: pointer;
+            z-index: 400;
+            transition: background .15s ease;
+        }
+        .xs2-fab i { font-size: 14px; }
+        .xs2-fab:hover { background: var(--ink-2); }
+        .xs2-fab:active { transform: translateX(-50%) scale(0.97); }
+
+        @media (min-width: 1024px) {
+            .xs2-fab { bottom: 24px; }
+        }
+
+        /* ── Full-screen map picker overlay ───────────────────────── */
+        .xs2-map-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2400;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+        }
+        .xs2-map-overlay[hidden] { display: none; }
+        .xs2-map-overlay-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 12px;
+            background: var(--surface);
+            box-shadow: var(--shadow-1);
+            z-index: 2;
+        }
+        .xs2-map-search-bar {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-pill);
+            background: var(--surface-2);
+            color: var(--ink);
+            padding: 10px 16px;
+            font-size: 13.5px;
+            font-weight: 700;
+            font-family: var(--font-ui);
+            text-align: left;
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .xs2-map-search-bar:hover { border-color: var(--ch-yellow-line); background: var(--surface); }
+        .xs2-map-search-bar #mapSearchBarLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xs2-map-search-bar .xs2-field-dot { flex-shrink: 0; }
+
+        .xs2-map-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+        #exploreSearchMap { position: absolute; inset: 0; }
+        .xs2-center-pin {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -100%);
+            font-size: 34px;
+            color: #dc2626;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,.25));
+            pointer-events: none;
+            z-index: 1;
+            transition: transform .12s ease;
+        }
+        .xs2-center-pin.is-dragging { transform: translate(-50%, -110%) scale(1.08); }
+        .xs2-locate-btn {
+            position: absolute;
+            right: 12px;
+            bottom: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--r-pill);
+            border: 0;
+            background: var(--surface);
+            color: var(--ink);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-3);
+            cursor: pointer;
+            z-index: 1;
+        }
+        .xs2-locate-btn:hover { background: var(--surface-2); }
+        .xs2-locate-btn:active { transform: scale(0.94); }
+        .xs2-locate-btn.is-locating i { animation: xs2-locate-spin 1s linear infinite; }
+        @keyframes xs2-locate-spin { to { transform: rotate(360deg); } }
+
+        .xs2-map-sheet {
+            background: var(--surface);
+            border-radius: var(--r-xl) var(--r-xl) 0 0;
+            box-shadow: 0 -8px 24px rgba(11,18,32,0.12);
+            padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+            display: grid;
+            gap: 12px;
+            z-index: 2;
+        }
+        .xs2-map-sheet-handle {
+            width: 40px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--hairline-strong);
+            justify-self: center;
+        }
+        .xs2-map-sheet-label {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-2);
+            line-height: 1.4;
+            min-height: 36px;
+        }
+        .xs2-sheet-options {
+            display: grid;
+            gap: 2px;
+            max-height: 38vh;
+            overflow-y: auto;
+        }
+        .xs2-sheet-options[hidden] { display: none; }
+        .xs2-sheet-option-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            border: 0;
+            border-radius: var(--r-md);
+            background: transparent;
+            color: var(--ink-2);
+            padding: 10px;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: var(--font-ui);
+            text-align: left;
+            line-height: 1.35;
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .xs2-sheet-option-row i { flex-shrink: 0; color: var(--muted); font-size: 13px; }
+        .xs2-sheet-option-row.is-selected {
             background: var(--ch-yellow-tint);
             color: var(--warning-ink);
+            font-weight: 700;
         }
-        .xs-empty { color: var(--muted-2); font-size: 13px; margin: 0; }
+        .xs2-sheet-option-row.is-selected i { color: var(--warning-ink); }
+        .xs2-map-confirm-btn {
+            width: 100%;
+            min-height: 46px;
+            border: 0;
+            border-radius: var(--r-md);
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+            font-size: 14px;
+            font-weight: 800;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            box-shadow: var(--shadow-yellow);
+        }
+        .xs2-map-confirm-btn:hover { background: var(--ch-yellow-deep); }
+        .xs2-map-confirm-btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 
         @media (min-width: 768px) {
-            .xs-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-            .xs-suggested-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .xs2-quick-row .xs2-pill-field { flex: 1 1 0; }
         }

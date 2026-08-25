@@ -48,69 +48,77 @@
             flex-wrap: wrap;
         }
 
-        /* ── Search bar ────────────────────────────────────────────── */
-        .xp-search-card {
+        /* ── Search bar — single tappable pill (Grab home-screen pattern) ── */
+        .xp-search-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             background: var(--surface);
             border: 1px solid var(--hairline);
-            border-radius: 10px;
-            padding: 9px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
+            border-radius: var(--r-lg);
+            padding: 12px 16px;
             box-shadow: var(--shadow-1);
+            text-decoration: none;
+            cursor: pointer;
+            min-height: 44px;
         }
-        .xp-search-field {
-            flex: 1;
-            min-width: 200px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .xp-search-pill:hover {
+            border-color: var(--ch-yellow-line);
+            box-shadow: var(--shadow-2);
+        }
+        .xp-search-pill:focus-visible {
+            outline: 2px solid var(--ch-yellow-deep);
+            outline-offset: 2px;
+        }
+        .xp-search-pill:active {
             background: var(--surface-2);
-            border: 1px solid var(--hairline-strong);
-            border-radius: 8px;
-            padding: 8px 11px;
         }
-        .xp-search-field input {
-            flex: 1;
-            min-width: 0;
-            border: none;
-            background: transparent;
-            color: var(--ink);
-            font-size: 13px;
-            outline: none;
-        }
-        .xp-search-field input::placeholder { color: var(--muted); }
-        .xp-search-field i { color: var(--muted); font-size: 13px; flex-shrink: 0; }
-        .xp-search-field i.pickup-pin { color: #16a34a; }
-        .xp-search-separator {
+        .xp-search-pill-icon {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: var(--r-pill);
+            background: var(--ch-yellow-tint);
+            color: var(--warning-ink);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--muted);
             font-size: 14px;
-            flex-shrink: 0;
         }
-        .xp-search-date {
-            flex: 0 0 auto;
+        .xp-search-pill-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .xp-search-pill-text strong {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .xp-search-pill-text small {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .xp-search-pill-date {
+            flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: var(--surface-2);
             border: 1px solid var(--hairline-strong);
-            border-radius: 8px;
-            padding: 8px 11px;
-        }
-        .xp-search-date input {
-            border: none;
-            background: transparent;
-            color: var(--ink);
-            font-size: 13px;
-            outline: none;
-        }
-        .xp-search-date i { color: var(--muted); font-size: 13px; flex-shrink: 0; }
-        .xp-advanced-mobile {
-            display: none;
+            border-radius: var(--r-pill);
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink-3);
         }
 
         /* ── Filter chips row ──────────────────────────────────────── */
@@ -1429,80 +1437,21 @@
         /* ── Mobile overrides ──────────────────────────────────────── */
         @media (max-width: 1023px) {
             .xp-wrap {
-                padding: 12px var(--page-gutter, 10px) 104px;
-                max-width: 430px;
+                padding: 12px var(--page-gutter, 16px) 104px;
                 background: var(--canvas);
             }
-            .xp-page-header { display: none; }
-            .xp-search-card {
-                border: 0;
-                border-radius: 12px 12px 0 0;
-                padding: 12px 12px 0;
+            .xp-search-pill {
                 background: #fff;
-                box-shadow: none;
-                gap: 8px;
-                position: relative;
+                border-radius: 14px;
+                box-shadow: var(--shadow-2);
             }
-            .xp-search-field {
-                min-width: 100%;
-                height: 40px;
-                background: #fff;
-                border-color: var(--hairline-strong);
-                border-radius: 7px;
-                padding: 0 11px;
-                box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
+            /* Title matches Trips' header proportions — same eyebrow/h1/sub
+               structure, just shown here too instead of desktop-only. */
+            .xp-page-header {
+                padding: 10px 0 16px;
+                margin-bottom: 0;
             }
-            .xp-search-card .xp-search-field:first-child {
-                padding-right: 50px;
-            }
-            .xp-search-separator {
-                width: 32px;
-                height: 32px;
-                margin: 0;
-                border: 1px solid var(--hairline-strong);
-                border-radius: 8px;
-                background: #fff;
-                position: absolute;
-                top: 16px;
-                right: 20px;
-                z-index: 2;
-                box-shadow: 0 2px 6px rgba(15, 23, 42, .05);
-            }
-            .xp-search-date {
-                flex: 1 1 100%;
-                min-width: 100%;
-                height: 40px;
-                background: #fff;
-                border-radius: 7px;
-                padding: 0 11px;
-                box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
-            }
-            .xp-search-card .btn {
-                height: 38px;
-                padding: 0 15px;
-                border-radius: 9px;
-                gap: 7px;
-            }
-            .xp-search-card button.btn {
-                flex: 1 1 0;
-                order: 5;
-                background: var(--ch-yellow);
-                color: var(--ch-yellow-ink);
-                border-color: var(--ch-yellow);
-                font-weight: 900;
-            }
-            .xp-search-card button.btn:hover {
-                background: var(--ch-yellow-deep);
-            }
-            .xp-advanced-mobile {
-                display: inline-flex;
-                flex: 1 1 0;
-                order: 4;
-                background: #fff;
-                color: var(--ink);
-                border-color: var(--hairline-strong);
-                font-weight: 800;
-            }
+            .xp-title { font-size: 30px; }
             .xp-desktop-label { display: none; }
             .xp-mobile-label { display: inline; }
             .xp-footer-vehicle-mobile {
@@ -1525,15 +1474,9 @@
                 display: none !important;
             }
             .xp-chips-row {
-                padding-top: 11px;
-                gap: 6px;
-                margin-left: 0;
-                margin-right: 0;
-                padding-left: 12px;
-                padding-right: 12px;
-                padding-bottom: 12px;
-                background: #fff;
-                border-radius: 0 0 12px 12px;
+                padding: 14px 0 4px;
+                gap: 8px;
+                margin: 0;
             }
             .xp-chips-row .chip {
                 min-height: 31px;

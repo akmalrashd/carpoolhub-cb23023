@@ -145,41 +145,32 @@
                 <p class="xp-subtitle">Find rides along your usual routes, or request a custom pickup point.</p>
             </div>
             <div class="xp-header-actions">
-                <a href="{{ route('explore.search', $searchEditQuery) }}" class="btn btn-ghost btn-sm">
-                    <i class="fa-solid fa-sliders"></i> Advanced filters
-                </a>
                 <a href="{{ route('trips.create') }}" class="btn btn-primary btn-sm">
                     <i class="fa-solid fa-plus"></i> Offer a trip
                 </a>
             </div>
         </div>
 
-        {{-- ── Search bar ───────────────────────────────────────────── --}}
-        <form method="GET" action="{{ route('explore.index') }}" class="xp-search-card">
-            <div class="xp-search-field">
-                <i class="fa-solid fa-location-dot pickup-pin"></i>
-                <input type="text" name="pickup" value="{{ $searchPickup }}" placeholder="From" autocomplete="off">
-            </div>
-            <div class="xp-search-separator">
-                <i class="fa-solid fa-arrow-right-arrow-left" style="font-size:13px;"></i>
-            </div>
-            <div class="xp-search-field">
-                <i class="fa-solid fa-location-dot" style="color:var(--ink-3);"></i>
-                <input type="text" name="destination" value="{{ $searchDestination }}" placeholder="To" autocomplete="off">
-            </div>
-            <div class="xp-search-date">
-                <i class="fa-regular fa-calendar"></i>
-                <input type="date" name="date" value="{{ $searchDate }}">
-            </div>
-            <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;flex-shrink:0;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Search</span>
-            </button>
-            <a href="{{ route('explore.search', $searchEditQuery) }}" class="btn btn-ghost btn-sm xp-advanced-mobile">
-                <i class="fa-solid fa-sliders"></i>
-                <span>Advanced</span>
-            </a>
-        </form>
+        {{-- ── Search bar — tap to open the dedicated search page (Grab-style
+             home screen: one tappable bar, not an inline filter form) ───── --}}
+        <a href="{{ route('explore.search', $searchEditQuery) }}" class="xp-search-pill">
+            <span class="xp-search-pill-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <span class="xp-search-pill-text">
+                @if($hasSearchSummary)
+                    <strong>{{ $searchDestination !== '' ? $searchDestination : ($searchPickup !== '' ? 'From ' . $searchPickup : 'Search trips') }}</strong>
+                    <small>{{ $searchSummaryText }}</small>
+                @else
+                    <strong>Where to?</strong>
+                    <small>Search by destination, date &amp; seats</small>
+                @endif
+            </span>
+            @if($searchDate !== '')
+                <span class="xp-search-pill-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    {{ \Illuminate\Support\Carbon::parse($searchDate)->format('d M') }}
+                </span>
+            @endif
+        </a>
 
         {{-- ── Filter chips + sort ─────────────────────────────────── --}}
         <div class="xp-chips-row">
@@ -283,8 +274,6 @@
                             $isFree            = (float) $trip->fare_per_person <= 0;
                             $myRequest         = $trip->joinRequests->first();
                             $isJoined          = $trip->participants->contains(fn ($p) => (int) $p->user_id === (int) auth()->id());
-                            $aiRecommendation  = $aiRecommendationMap[$trip->id] ?? null;
-                            $isRecommended     = in_array((int) $trip->id, $recommendedTripIds, true);
                             $driverInitial     = strtoupper(substr($trip->driver?->name ?? '?', 0, 2));
                             $vehicleModel      = trim((string) ($trip->driver?->vehicle_model ?? ''));
                             $vehiclePlate      = trim((string) ($trip->driver?->vehicle_plate ?? ''));
@@ -294,7 +283,7 @@
 
                         <article
                             id="exploreTripCard{{ $trip->id }}"
-                            class="xp-card {{ $focusTripId === (int) $trip->id ? 'is-focus' : '' }} {{ $isRecommended ? 'is-recommended' : '' }} open-explore-card"
+                            class="xp-card {{ $focusTripId === (int) $trip->id ? 'is-focus' : '' }} open-explore-card"
                             data-trip-url="{{ route('explore.show', $trip) }}"
                             data-join-url="{{ route('explore.request-join', $trip) }}"
                             data-join-state="{{ $joinState }}"
@@ -320,17 +309,6 @@
                             role="button"
                             @if($focusTripId === (int) $trip->id) data-explore-focus-card="1" @endif
                         >
-                            @if($isRecommended)
-                            <div class="xp-rec-strip">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                AI Recommended
-                                @if(!empty($aiRecommendation['explanations']))
-                                    @foreach(array_slice($aiRecommendation['explanations'], 0, 2) as $reason)
-                                        <span class="xp-rec-pill">{{ $reason }}</span>
-                                    @endforeach
-                                @endif
-                            </div>
-                            @endif
                             <div class="xp-card-body">
                                 <div class="xp-card-main">
 

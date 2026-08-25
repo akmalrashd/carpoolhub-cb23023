@@ -8,140 +8,167 @@
     <link rel="stylesheet" href="{{ asset('css/explore-search.css') }}?v={{ filemtime(public_path('css/explore-search.css')) }}">
     @endpush
 
-    <div class="xs-page">
+    <div class="xs2-page">
 
-        {{-- ── Search form card ──────────────────────────────────────────── --}}
-        <section class="xs-card">
-            <h1 class="xs-title">Search Trips</h1>
-            <p class="xs-subtitle">Find public rides by destination, date, and seat preference.</p>
+        {{-- ── Top bar ──────────────────────────────────────────────── --}}
+        <div class="xs2-topbar">
+            <a href="{{ route('explore.index') }}" class="xs2-icon-btn" aria-label="Back to Explore">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h1 class="xs2-topbar-title">Search Trips</h1>
+        </div>
 
-            <form method="GET" action="{{ route('explore.index') }}" style="display:contents;" id="exploreSearchForm">
-
-                {{-- Primary destination --}}
-                <div class="xs-dest-box">
-                    <label class="xs-dest-label" for="search_destination">Where are you going?</label>
-                    <div class="xs-auto-wrap">
-                        <input
-                            id="search_destination"
-                            type="text"
-                            name="destination"
-                            class="xs-dest-input"
-                            value="{{ old('destination', $prefill) }}"
-                            placeholder="Search destination..."
-                            autocomplete="off"
-                            autofocus
-                        >
-                        <div class="xs-suggest-list" id="destinationSuggestList"></div>
-                    </div>
+        {{-- ── Two-field location search (Grab-style stacked pins) ─────── --}}
+        <form method="GET" action="{{ route('explore.index') }}" id="exploreSearchForm" class="xs2-form">
+            <div class="xs2-fields">
+                <div class="xs2-field-pill" data-target="pickup">
+                    <span class="xs2-field-dot xs2-field-dot-pickup"></span>
+                    <input
+                        id="search_pickup"
+                        type="text"
+                        name="pickup"
+                        class="xs2-field-input"
+                        value="{{ request('pickup') }}"
+                        placeholder="Pickup area (optional)"
+                        autocomplete="off"
+                    >
                 </div>
-
-                {{-- Secondary fields --}}
-                <div class="xs-grid">
-                    <div class="xs-field">
-                        <label class="xs-label" for="search_date">Date</label>
-                        <input id="search_date" class="xs-input" type="date" name="date" value="{{ request('date') }}">
-                    </div>
-                    <div class="xs-field">
-                        <label class="xs-label" for="search_pickup">Pickup area (optional)</label>
-                        <div class="xs-auto-wrap">
-                            <input id="search_pickup" class="xs-input" type="text" name="pickup" value="{{ request('pickup') }}" placeholder="Pickup area" autocomplete="off">
-                            <div class="xs-suggest-list" id="pickupSuggestList"></div>
-                        </div>
-                    </div>
-                    <div class="xs-field">
-                        <label class="xs-label" for="search_seats">Seats needed</label>
-                        <select id="search_seats" class="xs-input" name="seats">
-                            <option value="">Any</option>
-                            <option value="1" {{ request('seats') === '1' ? 'selected' : '' }}>1 seat</option>
-                            <option value="2plus" {{ request('seats') === '2plus' ? 'selected' : '' }}>2+ seats</option>
-                        </select>
-                    </div>
-                    <div class="xs-field">
-                        <label class="xs-label" for="search_sort">Sort by</label>
-                        <select id="search_sort" class="xs-input" name="sort">
-                            <option value="nearest" {{ request('sort', 'nearest') === 'nearest' ? 'selected' : '' }}>Nearest date</option>
-                            <option value="latest"  {{ request('sort') === 'latest' ? 'selected' : '' }}>Latest date</option>
-                        </select>
-                    </div>
-                    <div class="xs-field">
-                        <label class="xs-label" for="search_radius_km">Radius (km from pin)</label>
-                        <input id="search_radius_km" class="xs-input" type="number" name="radius_km" min="0.5" step="0.5" value="{{ request('radius_km', 5) }}">
-                    </div>
+                <div class="xs2-field-connector"><span></span><span></span><span></span></div>
+                <div class="xs2-field-pill" data-target="destination">
+                    <span class="xs2-field-dot xs2-field-dot-dest"></span>
+                    <input
+                        id="search_destination"
+                        type="text"
+                        name="destination"
+                        class="xs2-field-input"
+                        value="{{ old('destination', $prefill) }}"
+                        placeholder="Where to?"
+                        autocomplete="off"
+                        autofocus
+                    >
                 </div>
+            </div>
 
-                {{-- Hidden coordinate inputs --}}
-                <input type="hidden" id="search_center_lat"      name="center_lat"      value="{{ request('center_lat') }}">
-                <input type="hidden" id="search_center_lng"      name="center_lng"      value="{{ request('center_lng') }}">
-                <input type="hidden" id="search_pickup_lat"      name="pickup_lat"      value="{{ request('pickup_lat') }}">
-                <input type="hidden" id="search_pickup_lng"      name="pickup_lng"      value="{{ request('pickup_lng') }}">
-                <input type="hidden" id="search_destination_lat" name="destination_lat" value="{{ request('destination_lat') }}">
-                <input type="hidden" id="search_destination_lng" name="destination_lng" value="{{ request('destination_lng') }}">
+            {{-- Quick filters --}}
+            <div class="xs2-quick-row">
+                <label class="xs2-pill-field">
+                    <i class="fa-regular fa-calendar"></i>
+                    <input type="date" name="date" value="{{ request('date') }}">
+                </label>
+                <select class="xs2-pill-field" name="seats">
+                    <option value="">Any seats</option>
+                    <option value="1" {{ request('seats') === '1' ? 'selected' : '' }}>1 seat</option>
+                    <option value="2plus" {{ request('seats') === '2plus' ? 'selected' : '' }}>2+ seats</option>
+                </select>
+                <select class="xs2-pill-field" name="sort">
+                    <option value="nearest" {{ request('sort', 'nearest') === 'nearest' ? 'selected' : '' }}>Nearest date</option>
+                    <option value="latest"  {{ request('sort') === 'latest' ? 'selected' : '' }}>Latest date</option>
+                </select>
+            </div>
 
-                {{-- Map picker --}}
-                <div class="xs-map-card">
-                    <div class="xs-map-head">
-                        <div>
-                            <p class="xs-map-title"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;color:var(--warning-ink);"></i>Pin Location on Map</p>
-                            <p class="xs-map-hint">Select a target, then tap the map to drop a pin.</p>
-                        </div>
-                        <div class="xs-map-targets">
-                            <button type="button" class="xs-map-target-btn active" id="targetDestinationBtn">
-                                <i class="fa-solid fa-flag-checkered" style="margin-right:4px;"></i>Destination
-                            </button>
-                            <button type="button" class="xs-map-target-btn" id="targetPickupBtn">
-                                <i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>Pickup
-                            </button>
-                        </div>
-                    </div>
-                    <div class="xs-map-status" id="searchMapStatus">No destination pin set yet.</div>
-                    <div id="exploreSearchMap"></div>
-                </div>
+            {{-- Hidden coordinate inputs, set by the map picker below --}}
+            <input type="hidden" id="search_radius_km"      name="radius_km"      value="{{ request('radius_km', 5) }}">
+            <input type="hidden" id="search_center_lat"      name="center_lat"      value="{{ request('center_lat') }}">
+            <input type="hidden" id="search_center_lng"      name="center_lng"      value="{{ request('center_lng') }}">
+            <input type="hidden" id="search_pickup_lat"      name="pickup_lat"      value="{{ request('pickup_lat') }}">
+            <input type="hidden" id="search_pickup_lng"      name="pickup_lng"      value="{{ request('pickup_lng') }}">
+            <input type="hidden" id="search_destination_lat" name="destination_lat" value="{{ request('destination_lat') }}">
+            <input type="hidden" id="search_destination_lng" name="destination_lng" value="{{ request('destination_lng') }}">
 
-                {{-- Submit / clear --}}
-                <div class="xs-actions">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-magnifying-glass"></i> Find Trips
+            <button type="submit" class="xs2-submit-btn">
+                <i class="fa-solid fa-magnifying-glass"></i> Find Trips
+            </button>
+        </form>
+
+        {{-- ── Recent / Suggested tabs, replaced by live search results while typing ── --}}
+        <div class="xs2-list-card">
+            <div class="xs2-tabs" role="tablist" id="searchTabs">
+                <button type="button" class="xs2-tab active" data-panel="recent" role="tab" aria-selected="true">Recent</button>
+                <button type="button" class="xs2-tab" data-panel="suggested" role="tab" aria-selected="false">Suggested</button>
+            </div>
+
+            <div class="xs2-results" data-panel="live-search" id="liveSearchResults" hidden></div>
+
+            <div class="xs2-results" data-panel="recent">
+                <button type="button" class="xs2-result-row" id="currentLocationBtn">
+                    <span class="xs2-result-icon xs2-result-icon-current"><i class="fa-solid fa-location-crosshairs"></i></span>
+                    <span class="xs2-result-text">
+                        <strong>Current location</strong>
+                        <small id="currentLocationLabel">Tap to use as your pickup point</small>
+                    </span>
+                    <i class="fa-solid fa-chevron-right xs2-result-chevron"></i>
+                </button>
+                @forelse($recentSearches as $item)
+                    <button type="button" class="xs2-result-row" data-fill="{{ $item }}">
+                        <span class="xs2-result-icon xs2-result-icon-recent"><i class="fa-regular fa-clock"></i></span>
+                        <span class="xs2-result-text">
+                            <strong>{{ $item }}</strong>
+                            <small>Recent search</small>
+                        </span>
+                        <i class="fa-solid fa-chevron-right xs2-result-chevron"></i>
                     </button>
-                    <a href="{{ route('explore.search') }}" class="btn btn-ghost">
-                        <i class="fa-solid fa-rotate-left"></i> Clear All
-                    </a>
-                    <a href="{{ route('explore.index') }}" class="btn btn-ghost">
-                        <i class="fa-solid fa-compass"></i> Browse All
-                    </a>
-                </div>
+                @empty
+                    <div class="xs2-empty-state">
+                        <i class="fa-regular fa-clock"></i>
+                        <p>No recent searches yet — try searching a destination above.</p>
+                    </div>
+                @endforelse
+            </div>
 
-            </form>
-        </section>
+            <div class="xs2-results" data-panel="suggested" hidden>
+                @forelse($suggestedDestinations as $item)
+                    <button type="button" class="xs2-result-row" data-fill="{{ $item }}">
+                        <span class="xs2-result-icon xs2-result-icon-suggested"><i class="fa-solid fa-location-dot"></i></span>
+                        <span class="xs2-result-text">
+                            <strong>{{ $item }}</strong>
+                            <small>Popular destination</small>
+                        </span>
+                        <i class="fa-solid fa-chevron-right xs2-result-chevron"></i>
+                    </button>
+                @empty
+                    <div class="xs2-empty-state">
+                        <i class="fa-solid fa-compass"></i>
+                        <p>No suggested destinations yet — check back once more trips are posted.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
 
-        {{-- ── Recent searches ───────────────────────────────────────────── --}}
-        <section class="xs-card">
-            <h2 class="xs-section-title">Recent Searches</h2>
-            @if($recentSearches->isEmpty())
-                <p class="xs-empty">No recent searches yet.</p>
-            @else
-                <div class="xs-tag-list">
-                    @foreach($recentSearches as $item)
-                        <a href="{{ route('explore.index', ['destination' => $item]) }}" class="xs-tag">{{ $item }}</a>
-                    @endforeach
-                </div>
-            @endif
-        </section>
+        {{-- ── Floating button to pick a location on the map — JS keeps it
+             pinned above the on-screen keyboard when one is open ────────── --}}
+        <button type="button" class="xs2-fab" id="openMapPickerBtn">
+            <i class="fa-solid fa-map-location-dot"></i> Choose on map
+        </button>
 
-        {{-- ── Suggested destinations ─────────────────────────────────────── --}}
-        <section class="xs-card">
-            <h2 class="xs-section-title">Suggested Destinations</h2>
-            @if($suggestedDestinations->isEmpty())
-                <p class="xs-empty">No suggested destinations available yet.</p>
-            @else
-                <div class="xs-suggested-list">
-                    @foreach($suggestedDestinations as $item)
-                        <a href="{{ route('explore.index', ['destination' => $item]) }}" class="xs-suggested-item">
-                            <i class="fa-solid fa-location-dot" style="margin-right:6px;color:var(--warning-ink);"></i>{{ $item }}
-                        </a>
-                    @endforeach
-                </div>
-            @endif
-        </section>
+        {{-- ── Full-screen map picker overlay ───────────────────────── --}}
+        <div class="xs2-map-overlay" id="mapOverlay" hidden>
+            {{-- Which field this sets (Pickup or Destination) is decided by
+                 whichever field was active before the map opened — not a
+                 manual toggle. Tapping this bar (like the back arrow) exits
+                 back to the search page without picking a location. --}}
+            <div class="xs2-map-overlay-top">
+                <button type="button" class="xs2-icon-btn" id="closeMapPickerBtn" aria-label="Back to search">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button type="button" class="xs2-map-search-bar" id="mapBackToSearchBtn">
+                    <span class="xs2-field-dot xs2-field-dot-dest" id="mapSearchBarIcon"></span>
+                    <span id="mapSearchBarLabel">Where to?</span>
+                </button>
+            </div>
+            <div class="xs2-map-container">
+                <div id="exploreSearchMap"></div>
+                <div class="xs2-center-pin" id="centerPin"><i class="fa-solid fa-location-dot"></i></div>
+                <button type="button" class="xs2-locate-btn" id="locateMeBtn" aria-label="Center on my location">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                </button>
+            </div>
+            <div class="xs2-map-sheet">
+                <div class="xs2-map-sheet-handle"></div>
+                <p class="xs2-map-sheet-label" id="searchMapStatus">Move the map to set your pin.</p>
+                <div class="xs2-sheet-options" id="mapSheetOptions" hidden></div>
+                <button type="button" class="xs2-map-confirm-btn" id="confirmPinBtn" disabled>Choose this location</button>
+            </div>
+        </div>
 
     </div>
 
