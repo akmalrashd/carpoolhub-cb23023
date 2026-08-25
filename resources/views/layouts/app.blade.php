@@ -1122,5 +1122,32 @@
         });
     });
 </script>
+<script>
+    // On real mobile devices, a `position: fixed` bottom nav rides up with
+    // the on-screen keyboard instead of staying put — hiding it the instant
+    // a text field is focused (and restoring it once nothing needs typing)
+    // is what makes that feel native instead of the nav floating awkwardly
+    // above the keyboard.
+    (function () {
+        var TEXT_ENTRY_SELECTOR = 'input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), textarea, select, [contenteditable="true"]';
+        var hideTimer = null;
+
+        document.addEventListener('focusin', function (event) {
+            if (!(event.target instanceof Element) || !event.target.matches(TEXT_ENTRY_SELECTOR)) return;
+            clearTimeout(hideTimer);
+            document.body.classList.add('keyboard-open');
+        });
+
+        document.addEventListener('focusout', function (event) {
+            if (!(event.target instanceof Element) || !event.target.matches(TEXT_ENTRY_SELECTOR)) return;
+            // Small delay so tabbing/clicking straight from one text field
+            // into another doesn't flash the nav back in between them.
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(function () {
+                document.body.classList.remove('keyboard-open');
+            }, 100);
+        });
+    })();
+</script>
 </body>
 </html>
