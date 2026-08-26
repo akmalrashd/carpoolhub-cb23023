@@ -230,6 +230,26 @@
 
                             </div>
 
+                            <div class="field-row">
+                                <label class="field-label" for="driving_license_expiry">License expiry date</label>
+                                <div class="input-wrap">
+                                    <i class="fa-solid fa-calendar-days input-icon"></i>
+                                    <input
+                                        id="driving_license_expiry"
+                                        class="input {{ $errors->has('driving_license_expiry') ? 'is-invalid' : '' }}"
+                                        type="date"
+                                        name="driving_license_expiry"
+                                        value="{{ old('driving_license_expiry') }}"
+                                    >
+                                </div>
+                                @error('driving_license_expiry')
+                                    <span class="field-error">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        {{ $message }}
+                                    </span>
+                                @enderror
+                            </div>
+
                             {{-- Driving license photo --}}
                             <div class="field-row">
                                 <label class="field-label" for="driving_license_photo">Driving license photo</label>
@@ -323,7 +343,7 @@
 <script>
     (() => {
         const vehicleSection = document.getElementById('vehicle-section');
-        const vehicleInputs = vehicleSection.querySelectorAll('#vehicle_model, #vehicle_plate');
+        const vehicleInputs = vehicleSection.querySelectorAll('#vehicle_model, #vehicle_plate, #driving_license_expiry');
         const licenseInput = document.getElementById('driving_license_photo');
         const selfieInput = document.getElementById('selfie_photo');
 

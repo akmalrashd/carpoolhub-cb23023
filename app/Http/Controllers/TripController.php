@@ -185,7 +185,17 @@ class TripController extends Controller
 
     private function ensureCanManage(Request $request): void
     {
-        abort_unless($request->user()->role === 'driver', 403);
+        $user = $request->user();
+
+        abort_unless($user->role === 'driver', 403);
+
+        if ($user->driver_verification_status !== 'approved') {
+            abort(403, 'Your driver account is not approved to manage trips yet.');
+        }
+
+        if ($user->driving_license_expiry && $user->driving_license_expiry->isPast()) {
+            abort(403, 'Your driving license has expired. Please update it in Settings before creating or editing trips.');
+        }
     }
 
     private function buildGroupPaymentRollups(Trip $trip): array

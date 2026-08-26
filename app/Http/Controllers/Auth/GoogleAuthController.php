@@ -82,11 +82,14 @@ class GoogleAuthController extends Controller
         // Same gate LoginController::store() enforces for a password login —
         // Google sign-in must not be a side door around driver approval.
         if (! $user->is_active) {
-            $message = $user->role === 'driver'
-                ? 'Your driver account is pending admin approval.'
-                : 'Your account has been deactivated. Please contact support.';
+            if ($user->isDriverAwaitingSelfService()) {
+                Auth::login($user, remember: true);
+                $request->session()->regenerate();
 
-            return redirect()->route('login')->withErrors(['email' => $message]);
+                return redirect()->route('settings.index')->with('status', $this->inactiveMessage($user));
+            }
+
+            return redirect()->route('login')->withErrors(['email' => $this->inactiveMessage($user)]);
         }
 
         Auth::login($user, remember: true);
@@ -172,5 +175,18 @@ class GoogleAuthController extends Controller
 
             return Socialite::driver('google')->stateless()->user();
         }
+    }
+
+    private function inactiveMessage(User $user): string
+    {
+        if ($user->role !== 'driver') {
+            return 'Your account has been deactivated. Please contact support.';
+        }
+
+        return match ($user->driver_verification_status) {
+            'rejected' => 'Your driver application was rejected. Check your notifications, update your documents in Settings, and resubmit.',
+            'approved' => 'Your driver account has been suspended. Please contact support.',
+            default => 'Your driver account is pending admin approval.',
+        };
     }
 }

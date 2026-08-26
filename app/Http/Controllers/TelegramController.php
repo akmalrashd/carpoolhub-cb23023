@@ -151,7 +151,11 @@ class TelegramController extends Controller
         }
 
         if (! $user->is_active) {
-            return response()->json(['success' => false, 'message' => 'account_inactive'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'account_inactive',
+                'reason' => $user->role === 'driver' ? $user->driver_verification_status : null,
+            ], 403);
         }
 
         Auth::login($user);

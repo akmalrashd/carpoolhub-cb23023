@@ -6,6 +6,7 @@ use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -44,6 +45,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'driving_license_photo',
         'selfie_photo',
         'is_active',
+        'driver_verification_status',
+        'driver_verification_reason',
+        'driver_verified_at',
+        'driver_reviewed_by',
+        'driving_license_expiry',
     ];
 
     /**
@@ -69,6 +75,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'driving_license_expiry' => 'date',
+            'driver_verified_at' => 'datetime',
         ];
     }
 
@@ -180,6 +188,27 @@ class User extends Authenticatable implements MustVerifyEmail
     public function riskProfile(): HasOne
     {
         return $this->hasOne(PassengerRiskProfile::class);
+    }
+
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'driver_reviewed_by');
+    }
+
+    /**
+     * A pending or rejected driver has is_active=false like any other
+     * deactivated account, but — unlike a plain suspension — there IS
+     * something they can do about it themselves: update their documents in
+     * Settings and resubmit. EnsureUserIsActive and the login controllers
+     * both consult this single definition so a driver in this state can
+     * reach exactly Settings/Notifications/Logout while staying blocked from
+     * everything else, without the three call sites risking drifting apart
+     * on what counts as "awaiting self-service".
+     */
+    public function isDriverAwaitingSelfService(): bool
+    {
+        return $this->role === 'driver'
+            && in_array($this->driver_verification_status, ['pending', 'rejected'], true);
     }
 
     public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void

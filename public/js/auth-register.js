@@ -93,7 +93,7 @@
         // submission anyway (form has novalidate) but we still want
         // per-step reportValidity() checks to behave correctly either way.
         const vehicleRequiredInputs = vehicleStep
-            ? Array.from(vehicleStep.querySelectorAll('#vehicle_model, #vehicle_plate'))
+            ? Array.from(vehicleStep.querySelectorAll('#vehicle_model, #vehicle_plate, #driving_license_expiry'))
             : [];
 
         const currentRole = () => {

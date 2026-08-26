@@ -197,6 +197,8 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::prefix('/admin')->middleware('role:admin')->group(function (): void {
         Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
         Route::patch('/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
+        Route::patch('/users/{user}/approve', [AdminUserController::class, 'approve'])->name('admin.users.approve');
+        Route::patch('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('admin.users.reject');
         Route::get('/reports', [AdminReportController::class, 'index'])->name('admin.reports.index');
         Route::get('/reports/export/csv', [AdminReportController::class, 'exportCsv'])->name('admin.reports.export.csv');
         Route::get('/reports/export/pdf', [AdminReportController::class, 'exportPdfView'])->name('admin.reports.export.pdf');

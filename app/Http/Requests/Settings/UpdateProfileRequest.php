@@ -40,6 +40,7 @@ class UpdateProfileRequest extends FormRequest
             // but with no rule here it was stripped from validated() and silently
             // discarded, so licence uploads never saved. Validate so it works.
             'driving_license_photo' => ['nullable', 'image', 'max:4096'],
+            'driving_license_expiry' => ['nullable', 'date'],
         ];
     }
 

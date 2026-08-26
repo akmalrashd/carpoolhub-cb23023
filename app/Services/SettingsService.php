@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\UserNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -68,8 +69,27 @@ class SettingsService
         $vehiclePlate = array_key_exists('vehicle_plate', $data)
             ? (($data['vehicle_plate'] !== '') ? strtoupper((string) $data['vehicle_plate']) : null)
             : $user->vehicle_plate;
+        $licenseExpiry = array_key_exists('driving_license_expiry', $data) && $data['driving_license_expiry']
+            ? $data['driving_license_expiry']
+            : $user->driving_license_expiry?->toDateString();
 
-        $user->update([
+        // A driver resubmitting any verification-relevant field re-enters the
+        // review queue. Compared against values resolved from $user's
+        // pre-update state (captured at the top of this method), so editing an
+        // unrelated field like name or phone never resets an approved/rejected
+        // driver back to pending. Gated on role so a passenger (whose
+        // verification fields are always null) or an admin with leftover
+        // driver data from a past role change can never trigger this.
+        $isDriver = $user->role === 'driver';
+        $verificationFieldsChanged = $isDriver && (
+            $licensePath !== $user->getOriginal('driving_license_photo')
+            || $selfiePath !== $user->getOriginal('selfie_photo')
+            || $vehicleModel !== $user->getOriginal('vehicle_model')
+            || $vehiclePlate !== $user->getOriginal('vehicle_plate')
+            || $licenseExpiry !== $user->getOriginal('driving_license_expiry')
+        );
+
+        $updates = [
             'name' => $name,
             'email' => $email,
             'email_visible' => $emailVisible,
@@ -85,7 +105,30 @@ class SettingsService
             'payment_qr_tng' => $tngQrPath,
             'selfie_photo' => $selfiePath,
             'driving_license_photo' => $licensePath,
-        ]);
+            'driving_license_expiry' => $licenseExpiry,
+        ];
+
+        if ($verificationFieldsChanged) {
+            $updates['is_active'] = false;
+            $updates['driver_verification_status'] = 'pending';
+            $updates['driver_verification_reason'] = null;
+            $updates['driver_verified_at'] = null;
+            $updates['driver_reviewed_by'] = null;
+        }
+
+        $user->update($updates);
+
+        if ($verificationFieldsChanged) {
+            UserNotification::query()->create([
+                'user_id' => $user->id,
+                'type' => 'system',
+                'title' => 'Driver Documents Resubmitted',
+                'message' => 'Your updated vehicle/license details have been submitted for review. You will be notified once an admin reviews them.',
+                'related_type' => 'settings',
+                'related_id' => null,
+                'is_read' => false,
+            ]);
+        }
 
         return $user->refresh();
     }

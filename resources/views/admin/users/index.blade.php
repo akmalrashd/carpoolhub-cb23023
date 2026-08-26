@@ -8,8 +8,7 @@
     $adminCount     = User::where('role', 'admin')->count();
     $driverCount    = User::where('role', 'driver')->count();
     $passengerCount = User::where('role', 'passenger')->count();
-    $pendingDrivers = User::where('role', 'driver')->where('is_active', false)->get();
-    $pendingCount   = $pendingDrivers->count();
+    $pendingCount   = $pendingDrivers->total();
 @endphp
 
 @push('styles')
@@ -105,6 +104,15 @@
                                 {{ $pdVehicle }}
                             </div>
                         @endif
+                        @if($pd->driving_license_expiry)
+                            <div class="dac-meta" style="margin-top:1px;">
+                                <i class="fa-solid fa-calendar-days" style="font-size:10px;opacity:.6;margin-right:3px;"></i>
+                                Expires {{ $pd->driving_license_expiry->format('d M Y') }}
+                                @if($pd->driving_license_expiry->isPast())
+                                    <span class="status-pill status-rejected" style="margin-left:6px;">Expired</span>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
                 {{-- Verification thumbnail on the RIGHT (Driving License only) --}}
@@ -119,6 +127,8 @@
                         data-phone="{{ $pd->phone ?? '—' }}"
                         data-vehicle="{{ $pdVehicle }}"
                         data-active="{{ $pd->is_active ? '1' : '0' }}"
+                        data-status="{{ $pd->driver_verification_status }}"
+                        data-reason="{{ $pd->driver_verification_reason }}"
                         data-joined="{{ $pd->created_at?->format('d M Y') ?? '—' }}"
                         {{-- data-license deliberately omitted: it held a byte-identical
                              copy of src, doubling this page's weight (these are
@@ -135,25 +145,23 @@
             </div>
             {{-- ROW 2: Approve + Reject --}}
             <div class="dac-row2">
-                <form method="POST" action="{{ route('admin.users.update', $pd) }}" style="display:inline;">
+                <form method="POST" action="{{ route('admin.users.approve', $pd) }}" style="display:inline;">
                     @csrf @method('PATCH')
-                    <input type="hidden" name="role" value="driver">
-                    <input type="hidden" name="is_active" value="1">
                     <button type="submit" class="btn-approve"><i class="fa-solid fa-circle-check"></i> Approve</button>
                 </form>
-                <form method="POST" action="{{ route('admin.users.update', $pd) }}" style="display:inline;">
-                    @csrf @method('PATCH')
-                    <input type="hidden" name="role" value="driver">
-                    <input type="hidden" name="is_active" value="0">
-                    <button type="submit" class="btn-reject"
-                        onclick="return confirm('Reject driver application for {{ addslashes($pd->name) }}?')"
-                    ><i class="fa-solid fa-circle-xmark"></i> Reject</button>
-                </form>
+                <button type="button" class="btn-reject"
+                    onclick="openRejectModal('{{ $pd->id }}', '{{ addslashes($pd->name) }}')"
+                ><i class="fa-solid fa-circle-xmark"></i> Reject</button>
             </div>
         </div>
     </div>
     @endforeach
 
+    @if($pendingDrivers->hasPages())
+        <div style="padding:12px 16px;border-top:1px solid var(--hairline);display:flex;justify-content:flex-end;">
+            {{ $pendingDrivers->links() }}
+        </div>
+    @endif
 </div>
 @endif
 
@@ -221,10 +229,18 @@
                         </span>
                     </td>
                     <td>
-                        @if($user->is_active)
+                        @if($user->role === 'driver')
+                            @if($user->driver_verification_status === 'pending')
+                                <span class="status-pill status-pending"><span class="dot-sm" style="background:#d97706;"></span> Pending</span>
+                            @elseif($user->driver_verification_status === 'rejected')
+                                <span class="status-pill status-rejected"><span class="dot-sm" style="background:#dc2626;"></span> Rejected</span>
+                            @elseif($user->is_active)
+                                <span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Active</span>
+                            @else
+                                <span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Suspended</span>
+                            @endif
+                        @elseif($user->is_active)
                             <span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Active</span>
-                        @elseif($user->role === 'driver')
-                            <span class="status-pill status-pending"><span class="dot-sm" style="background:#d97706;"></span> Pending</span>
                         @else
                             <span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Inactive</span>
                         @endif
@@ -242,6 +258,8 @@
                                     data-phone="{{ $user->phone ?? '—' }}"
                                     data-vehicle="{{ $uVehicle }}"
                                     data-active="{{ $user->is_active ? '1' : '0' }}"
+                                    data-status="{{ $user->driver_verification_status }}"
+                                    data-reason="{{ $user->driver_verification_reason }}"
                                     data-joined="{{ $user->created_at?->format('d M Y') ?? '—' }}"
                                     data-license="{{ $user->driving_license_photo ?? '' }}"
                                     data-selfie="{{ $user->selfie_photo ?? '' }}"
@@ -301,6 +319,10 @@
                 <div class="lr-info-item"><span class="lr-info-lbl">Registered</span><span class="lr-info-val" id="lr-joined">—</span></div>
                 <div class="lr-info-item"><span class="lr-info-lbl">Status</span><span class="lr-info-val" id="lr-status">—</span></div>
             </div>
+            <div class="lr-info-item" id="lr-reason-row" style="display:none;margin-top:8px;">
+                <span class="lr-info-lbl">Rejection Reason</span>
+                <span class="lr-info-val" id="lr-reason" style="display:block;margin-top:2px;">—</span>
+            </div>
             <div class="lr-img-section">
                 <div class="lr-img-dual-grid">
                     {{-- Selfie Verification Card --}}
@@ -335,16 +357,21 @@
             <div><span id="lr-badge"></span></div>
             <div class="lr-btn-side">
                 <button class="lr-close-footer" onclick="closeLicenseModal()">Close</button>
-                <form id="lr-reject-form" method="POST" style="display:inline;">
+                <button type="button" class="lr-reject-btn" id="lr-reject-btn" onclick="openRejectModalFromLicense()"><i class="fa-solid fa-circle-xmark"></i> Reject</button>
+                <form id="lr-suspend-form" method="POST" style="display:inline;">
                     @csrf @method('PATCH')
                     <input type="hidden" name="role" value="driver">
                     <input type="hidden" name="is_active" value="0">
-                    <button type="submit" class="lr-reject-btn" id="lr-reject-btn"><i class="fa-solid fa-circle-xmark"></i> Reject</button>
+                    <button type="submit" class="lr-reject-btn" id="lr-suspend-btn"><i class="fa-solid fa-circle-minus"></i> Suspend</button>
                 </form>
-                <form id="lr-approve-form" method="POST" style="display:inline;">
+                <form id="lr-reactivate-form" method="POST" style="display:inline;">
                     @csrf @method('PATCH')
                     <input type="hidden" name="role" value="driver">
                     <input type="hidden" name="is_active" value="1">
+                    <button type="submit" class="lr-approve-btn" id="lr-reactivate-btn"><i class="fa-solid fa-rotate-left"></i> Reactivate</button>
+                </form>
+                <form id="lr-approve-form" method="POST" style="display:inline;">
+                    @csrf @method('PATCH')
                     <button type="submit" class="lr-approve-btn" id="lr-approve-btn"><i class="fa-solid fa-circle-check"></i> Approve Driver</button>
                 </form>
             </div>
@@ -378,6 +405,27 @@
             <button type="submit" class="eu-save-btn"><i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Save Changes</button>
         </form>
         <button onclick="closeEditDrawer()" style="width:100%;margin-top:8px;padding:9px;border-radius:var(--r-sm);border:1px solid var(--hairline-strong);background:var(--surface);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-ui);">Cancel</button>
+    </div>
+</div>
+
+{{-- ── REJECT DRIVER MODAL ── --}}
+<div id="reject-modal" class="eu-backdrop" onclick="if(event.target===this)closeRejectModal()">
+    <div class="eu-drawer">
+        <div class="eu-pill"></div>
+        <div class="eu-title" id="rj-title">Reject Driver Application</div>
+        <div class="eu-sub">This reason is shown to the driver so they know what to fix.</div>
+        <form id="rj-form" method="POST">
+            @csrf @method('PATCH')
+            <div class="eu-field">
+                <label class="eu-label" for="rj-reason">Reason</label>
+                <textarea id="rj-reason" name="reason" class="eu-select" rows="4"
+                    placeholder="e.g. License photo is blurry — please re-upload a clearer photo." required></textarea>
+            </div>
+            <button type="submit" class="lr-reject-btn" style="width:100%; justify-content:center;">
+                <i class="fa-solid fa-circle-xmark"></i> Confirm Rejection
+            </button>
+        </form>
+        <button onclick="closeRejectModal()" style="width:100%;margin-top:8px;padding:9px;border-radius:var(--r-sm);border:1px solid var(--hairline-strong);background:var(--surface);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-ui);">Cancel</button>
     </div>
 </div>
 
@@ -421,6 +469,8 @@ function openLicenseFromEl(el){
         el.dataset.phone,
         el.dataset.vehicle,
         el.dataset.active,
+        el.dataset.status,
+        el.dataset.reason || '',
         lic,
         sel,
         el.dataset.joined
@@ -436,6 +486,8 @@ function openLicenseFromBtn(btn){
         btn.dataset.phone,
         btn.dataset.vehicle,
         btn.dataset.active,
+        btn.dataset.status,
+        btn.dataset.reason || '',
         btn.dataset.license || '',
         btn.dataset.selfie || '',
         btn.dataset.joined
@@ -448,7 +500,15 @@ function openLicenseModalById(uid){
     if(btn){ openLicenseFromEl(btn); }
 }
 
-function openLicenseModal(uid,name,email,phone,vehicle,active,licenseImg,selfieImg,joined){
+// Tracks who the license modal currently shows, so the reject-reason modal
+// (a separate overlay) knows who to submit against when opened from here.
+let lrCurrentUid = null;
+let lrCurrentName = null;
+
+function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,licenseImg,selfieImg,joined){
+    lrCurrentUid = uid;
+    lrCurrentName = name;
+
     document.getElementById('lr-name').textContent    = name;
     document.getElementById('lr-email').textContent   = email;
     document.getElementById('lr-phone').textContent   = phone;
@@ -485,29 +545,63 @@ function openLicenseModal(uid,name,email,phone,vehicle,active,licenseImg,selfieI
     }
 
     const base = '{{ url("/admin/users") }}/'+uid;
-    document.getElementById('lr-approve-form').action = base;
-    document.getElementById('lr-reject-form').action  = base;
-    const ab = document.getElementById('lr-approve-btn');
-    const rb = document.getElementById('lr-reject-btn');
+    document.getElementById('lr-approve-form').action = base + '/approve';
+    document.getElementById('lr-suspend-form').action = base;
+    document.getElementById('lr-reactivate-form').action = base;
+
+    const approveBtn = document.getElementById('lr-approve-btn');
+    const rejectBtn = document.getElementById('lr-reject-btn');
+    const suspendForm = document.getElementById('lr-suspend-form');
+    const reactivateForm = document.getElementById('lr-reactivate-form');
     const badge = document.getElementById('lr-badge');
     const stat  = document.getElementById('lr-status');
-    if(active==='1'){
+    const reasonRow = document.getElementById('lr-reason-row');
+
+    // Every button/form defaults hidden, then the branch below shows exactly
+    // the actions valid for this driver's actual state (pending / approved /
+    // approved-but-suspended / rejected) — the same 4-way split the table's
+    // status pill uses, not just active/inactive.
+    approveBtn.style.display = 'none';
+    rejectBtn.style.display = 'none';
+    suspendForm.style.display = 'none';
+    reactivateForm.style.display = 'none';
+    reasonRow.style.display = 'none';
+
+    if (status === 'rejected') {
+        stat.innerHTML  = '<span class="status-pill status-rejected"><span class="dot-sm" style="background:#dc2626;"></span> Rejected</span>';
+        badge.innerHTML = '<span class="status-pill status-rejected"><span class="dot-sm" style="background:#dc2626;"></span> Application Rejected</span>';
+        approveBtn.style.display = 'inline-flex';
+        approveBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Approve Anyway';
+        if (reason) {
+            document.getElementById('lr-reason').textContent = reason;
+            reasonRow.style.display = 'block';
+        }
+    } else if (status === 'approved' && active === '1') {
         stat.innerHTML  = '<span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Active</span>';
         badge.innerHTML = '<span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Account is Active</span>';
-        ab.style.display='none'; rb.style.display='inline-flex';
-        rb.innerHTML='<i class="fa-solid fa-circle-minus"></i> Deactivate';
+        suspendForm.style.display = 'inline-flex';
+    } else if (status === 'approved') {
+        stat.innerHTML  = '<span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Suspended</span>';
+        badge.innerHTML = '<span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Account Suspended</span>';
+        reactivateForm.style.display = 'inline-flex';
     } else {
         stat.innerHTML  = '<span class="status-pill status-pending"><span class="dot-sm" style="background:#d97706;"></span> Pending</span>';
         badge.innerHTML = '<span class="status-pill status-pending"><span class="dot-sm" style="background:#d97706;"></span> Awaiting Approval</span>';
-        ab.style.display='inline-flex'; rb.style.display='inline-flex';
-        rb.innerHTML='<i class="fa-solid fa-circle-xmark"></i> Reject';
+        approveBtn.style.display = 'inline-flex';
+        approveBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Approve Driver';
+        rejectBtn.style.display = 'inline-flex';
     }
+
     document.getElementById('license-modal').style.display='flex';
     document.body.style.overflow='hidden';
 }
 function closeLicenseModal(){
     document.getElementById('license-modal').style.display='none';
     document.body.style.overflow='';
+}
+function openRejectModalFromLicense(){
+    if (!lrCurrentUid) return;
+    openRejectModal(lrCurrentUid, lrCurrentName);
 }
 
 function openEditDrawer(uid,name,role,active){
@@ -524,7 +618,20 @@ function closeEditDrawer(){
     document.body.style.overflow='';
 }
 
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLicenseModal();closeEditDrawer();}});
+function openRejectModal(uid, name){
+    closeLicenseModal();
+    document.getElementById('rj-title').textContent = 'Reject: ' + name;
+    document.getElementById('rj-form').action = '{{ url("/admin/users") }}/' + uid + '/reject';
+    document.getElementById('rj-reason').value = '';
+    document.getElementById('reject-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closeRejectModal(){
+    document.getElementById('reject-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLicenseModal();closeEditDrawer();closeRejectModal();}});
 </script>
 
 @endsection

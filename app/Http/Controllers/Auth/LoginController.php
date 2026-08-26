@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,14 +62,16 @@ class LoginController extends Controller
         $user = Auth::user();
 
         if (! $user->is_active) {
+            if ($user->isDriverAwaitingSelfService()) {
+                $request->session()->regenerate();
+
+                return redirect()->route('settings.index')->with('status', $this->inactiveMessage($user));
+            }
+
             Auth::logout();
             $request->session()->invalidate();
 
-            $message = $user->role === 'driver'
-                ? 'Your driver account is pending admin approval.'
-                : 'Your account has been deactivated. Please contact support.';
-
-            return back()->withErrors(['email' => $message])->onlyInput('email');
+            return back()->withErrors(['email' => $this->inactiveMessage($user)])->onlyInput('email');
         }
 
         $request->session()->regenerate();
@@ -84,5 +87,18 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    private function inactiveMessage(User $user): string
+    {
+        if ($user->role !== 'driver') {
+            return 'Your account has been deactivated. Please contact support.';
+        }
+
+        return match ($user->driver_verification_status) {
+            'rejected' => 'Your driver application was rejected. Check your notifications, update your documents in Settings, and resubmit.',
+            'approved' => 'Your driver account has been suspended. Please contact support.',
+            default => 'Your driver account is pending admin approval.',
+        };
     }
 }

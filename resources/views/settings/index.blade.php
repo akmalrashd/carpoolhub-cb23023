@@ -158,6 +158,18 @@
                                 <i class="fa-solid fa-user"></i> Passenger
                             @endif
                         </span>
+                        @if($user->role === 'driver' && $user->driver_verification_status)
+                            @php
+                                $vBadge = match($user->driver_verification_status) {
+                                    'approved' => $user->is_active
+                                        ? ['Verified', 'badge-success', 'fa-circle-check']
+                                        : ['Suspended', 'badge-danger', 'fa-circle-pause'],
+                                    'rejected' => ['Rejected', 'badge-danger', 'fa-circle-xmark'],
+                                    default => ['Pending Review', 'badge-warning', 'fa-clock'],
+                                };
+                            @endphp
+                            <span class="badge {{ $vBadge[1] }}"><i class="fa-solid {{ $vBadge[2] }}"></i> {{ $vBadge[0] }}</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -333,36 +345,78 @@
                                 @enderror
                             </div>
 
-                            {{-- Driver Verification Documents — submitted once at registration, view-only here. --}}
+                            @if($user->driver_verification_status === 'rejected' && $user->driver_verification_reason)
+                                <div class="settings-alert error" style="margin-top:4px;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    <span><strong>Application rejected:</strong> {{ $user->driver_verification_reason }} — update your details below and save to resubmit.</span>
+                                </div>
+                            @endif
+
+                            {{-- Driver Verification Documents — editable; resubmitting sends the account back for review (see SettingsService::updateProfile). --}}
                             <div style="margin-top:4px;">
                                 <label class="form-label">Driver Verification Documents</label>
-                                <p class="field-hint" style="margin:2px 0 10px;">Submitted when you registered. Contact support if you need to update them.</p>
+                                <p class="field-hint" style="margin:2px 0 10px;">Uploading a new license or selfie sends your account back for admin review — you'll be notified once it's checked again.</p>
                                 <div class="qr-upload-grid">
                                     {{-- License Photo --}}
-                                    <div class="qr-card qr-card-readonly">
+                                    <div class="qr-card">
                                         <div class="qr-preview-box">
                                             @if($user->driving_license_photo)
-                                                <img src="{{ $user->driving_license_photo }}" alt="Driving License">
+                                                <img id="licensePreview" src="{{ $user->driving_license_photo }}" alt="Driving License">
                                             @else
-                                                <div class="qr-empty-icon"><i class="fa-solid fa-id-card"></i></div>
+                                                <div id="licenseEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-id-card"></i></div>
+                                                <img id="licensePreview" src="" alt="" style="display:none;">
                                             @endif
                                         </div>
                                         <h4 class="qr-title">Driving License</h4>
                                         <p class="qr-sub">{{ $user->driving_license_photo ? 'On file' : 'Not submitted' }}</p>
+                                        <div class="qr-btn-wrap">
+                                            <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('licenseInput').click()">
+                                                <i class="fa-solid fa-upload"></i> {{ $user->driving_license_photo ? 'Replace' : 'Upload' }}
+                                            </button>
+                                            <input type="file" id="licenseInput" name="driving_license_photo" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'licensePreview', 'licenseEmptyIcon')">
+                                        </div>
+                                        @error('driving_license_photo')
+                                            <span class="field-error" style="justify-content:center;"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                        @enderror
                                     </div>
 
                                     {{-- Selfie Photo --}}
-                                    <div class="qr-card qr-card-readonly">
+                                    <div class="qr-card">
                                         <div class="qr-preview-box">
                                             @if($user->selfie_photo)
-                                                <img src="{{ $user->selfie_photo }}" alt="Selfie with License">
+                                                <img id="selfiePreview" src="{{ $user->selfie_photo }}" alt="Selfie with License">
                                             @else
-                                                <div class="qr-empty-icon"><i class="fa-solid fa-user-shield"></i></div>
+                                                <div id="selfieEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-user-shield"></i></div>
+                                                <img id="selfiePreview" src="" alt="" style="display:none;">
                                             @endif
                                         </div>
                                         <h4 class="qr-title">Selfie Verification</h4>
                                         <p class="qr-sub">{{ $user->selfie_photo ? 'On file' : 'Not submitted' }}</p>
+                                        <div class="qr-btn-wrap">
+                                            <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('selfieInput').click()">
+                                                <i class="fa-solid fa-upload"></i> {{ $user->selfie_photo ? 'Replace' : 'Upload' }}
+                                            </button>
+                                            <input type="file" id="selfieInput" name="selfie_photo" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'selfiePreview', 'selfieEmptyIcon')">
+                                        </div>
+                                        @error('selfie_photo')
+                                            <span class="field-error" style="justify-content:center;"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                        @enderror
                                     </div>
+                                </div>
+
+                                <div class="form-group" style="margin-top:14px;">
+                                    <label class="form-label" for="drivingLicenseExpiry">License Expiry Date</label>
+                                    <div class="input-wrap @error('driving_license_expiry') has-error @enderror">
+                                        <span class="input-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                                        <input type="date" id="drivingLicenseExpiry" name="driving_license_expiry" class="input-field"
+                                            value="{{ old('driving_license_expiry', $user->driving_license_expiry?->toDateString()) }}">
+                                        @if($user->driving_license_expiry && $user->driving_license_expiry->isPast())
+                                            <span class="badge badge-danger" style="margin-left:8px;">Expired</span>
+                                        @endif
+                                    </div>
+                                    @error('driving_license_expiry')
+                                        <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                         @endif
