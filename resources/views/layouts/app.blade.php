@@ -36,6 +36,9 @@
          <x-ai-chat> always renders — safe to load its CSS unconditionally,
          same as mascot.css above. --}}
     <link rel="stylesheet" href="{{ asset('css/ai-chat.css') }}?v={{ filemtime(public_path('css/ai-chat.css')) }}">
+    {{-- Same reasoning as ai-chat.css above — the Telegram nudge modal
+         renders from this layout's own body too. --}}
+    <link rel="stylesheet" href="{{ asset('css/telegram-nudge.css') }}?v={{ filemtime(public_path('css/telegram-nudge.css')) }}">
     {{-- Every other page's own stylesheet pushes its <link> here
          instead of sitting inline in @section('content'). A <link> discovered
          mid-body has no render-blocking guarantee, so the browser can paint
@@ -496,6 +499,7 @@
 @auth
     @include('layouts.partials.mobile-bottom-nav')
     <x-ai-chat />
+    @include('layouts.partials.telegram-nudge')
 @endauth
 
 <script>

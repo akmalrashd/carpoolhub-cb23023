@@ -1,0 +1,126 @@
+/* Extracted from resources/views/layouts/partials/telegram-nudge.blade.php — cacheable.
+   Self-contained (flat color values, no shared custom properties) since this
+   loads globally alongside app.css's compiled Tailwind output, which has no
+   design-token layer of its own to hook into. */
+
+.tg-nudge-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .52);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 4000;
+}
+
+.tg-nudge-overlay.show {
+    display: flex;
+}
+
+.tg-nudge-card {
+    width: min(400px, 100%);
+    background: #fff;
+    border: 1px solid #dbe2ea;
+    border-radius: 16px;
+    padding: 28px 24px 24px;
+    position: relative;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, .25);
+    animation: tg-nudge-in .2s ease;
+}
+
+@keyframes tg-nudge-in {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tg-nudge-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid #dbe2ea;
+    background: #fff;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+}
+
+.tg-nudge-close:hover {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.tg-nudge-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(41, 151, 224, .12);
+    color: #2997e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin: 0 auto 14px;
+}
+
+.tg-nudge-title {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.tg-nudge-desc {
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #64748b;
+}
+
+.tg-nudge-form {
+    margin: 0 0 8px;
+}
+
+.tg-nudge-primary-btn {
+    width: 100%;
+    height: 46px;
+    border: none;
+    border-radius: 12px;
+    background: #2997e0;
+    color: #fff;
+    font-size: 14.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.tg-nudge-primary-btn:hover {
+    background: #227fbd;
+}
+
+.tg-nudge-later-btn {
+    width: 100%;
+    height: 40px;
+    border: none;
+    background: none;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.tg-nudge-later-btn:hover {
+    color: #0f172a;
+}
