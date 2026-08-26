@@ -1,5 +1,26 @@
-/* Extracted from layouts/partials/bg-pattern.blade.php — cacheable. */
+/* Extracted from layouts/partials/bg-pattern.blade.php — cacheable.
+   Every tunable knob lives as a custom property on .bg-pattern-fixed, all
+   defaulting to today's shipped look. Tune them live at /dev/bg-playground
+   (local env only) — that page overrides these same variables via JS, it
+   never forks this file — then carry the numbers it prints into the
+   defaults below to change them everywhere. */
 .bg-pattern-fixed {
+    /* --hex-h is locked to --hex-w by the regular-hexagon ratio (2/sqrt(3))
+       so every hex always has 6 equal sides — set --hex-h directly and the
+       hexagons stop being regular. */
+    --hex-w: 110px;
+    --hex-h: calc(var(--hex-w) * 1.1547);
+    --hex-intensity: 0.18;
+    --hex-stroke: 3px;
+    --hex-blur: 0px;
+    --hex-duration: 26s;
+    /* 0 = every hex pulses in lockstep, 1 = today's per-layer stagger. */
+    --hex-spread: 1;
+    --hex-op-min: 0.35;
+    --hex-op-max: 1;
+    --hex-scale-min: 0.82;
+    --hex-scale-max: 1.06;
+
     position: fixed;
     inset: 0;
     /* Negative, not 0 — a positioned z-index:0 sibling still paints ABOVE
@@ -20,17 +41,16 @@
 
 .bg-pattern-grid {
     display: grid;
-    grid-template-columns: repeat(8, 110px);
-    grid-template-rows: repeat(8, 127px);
-    opacity: 0.18;
+    grid-template-columns: repeat(8, var(--hex-w));
+    grid-template-rows: repeat(8, var(--hex-h));
+    opacity: var(--hex-intensity);
+    filter: blur(var(--hex-blur));
     transform: translate(-3%, -4%);
 }
 
 .bg-pattern-shape {
-    width: 110px;
-    height: 127px;
-    -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    width: var(--hex-w);
+    height: var(--hex-h);
 }
 
 .bg-pattern-shape svg {
@@ -39,22 +59,47 @@
     display: block;
 }
 
-/* Slow breathing pulse per hexagon layer — animation-duration/-delay are set
-   inline per polygon (blade controls timing/stagger), this just defines the
-   keyframe shape. Plain CSS animation instead of SMIL <animate>, which left
-   these shapes with an empty points list and nothing painted. */
+/* Per-hex pulse — animation-name switches with the parent's [data-anim],
+   animation-delay is this layer's baked-in phase (--hex-delay-frac, 0..1)
+   scaled by --hex-spread and the current --hex-duration, so speed and
+   stagger stay live-tunable without touching the SVG markup. */
 .bg-pattern-poly {
+    fill: none;
+    stroke: var(--hex-color);
+    stroke-width: var(--hex-stroke);
     transform-box: fill-box;
     transform-origin: 50% 50%;
-    animation-name: bg-pattern-pulse;
+    animation-name: bg-pattern-breathe;
+    animation-duration: var(--hex-duration);
+    animation-delay: calc(var(--hex-delay-frac, 0) * var(--hex-spread) * var(--hex-duration));
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
 }
 
-@keyframes bg-pattern-pulse {
-    0%, 100% { opacity: .35; transform: scale(.82); }
-    50% { opacity: 1; transform: scale(1.06); }
+/* Breathe — scale + opacity pulse (the original/default style: a slow throb). */
+@keyframes bg-pattern-breathe {
+    0%, 100% { opacity: var(--hex-op-min); transform: scale(var(--hex-scale-min)); }
+    50% { opacity: var(--hex-op-max); transform: scale(var(--hex-scale-max)); }
 }
+
+/* Twinkle — opacity-only flicker, mostly dim with a brief bright flash, no
+   scale change (so nothing ever jitters in place). Reads as fireflies/stars
+   rather than a synchronized wave, especially with --hex-spread > 0. */
+@keyframes bg-pattern-twinkle {
+    0%, 78%, 100% { opacity: var(--hex-op-min); }
+    88% { opacity: var(--hex-op-max); }
+}
+
+/* Drift — the calmest option: a narrow, slow opacity shimmer with no scale
+   change at all. Meant for "must not fight the content" over anything else. */
+@keyframes bg-pattern-drift {
+    0%, 100% { opacity: var(--hex-op-min); }
+    50% { opacity: var(--hex-op-max); }
+}
+
+.bg-pattern-fixed[data-anim="twinkle"] .bg-pattern-poly { animation-name: bg-pattern-twinkle; }
+.bg-pattern-fixed[data-anim="drift"] .bg-pattern-poly { animation-name: bg-pattern-drift; }
+.bg-pattern-fixed[data-anim="static"] .bg-pattern-poly { animation: none; opacity: var(--hex-op-max); }
 
 /* Fades the grid into the plain --canvas color at the edges, so a fixed-size
    grid never reads as "cut off" on very wide screens — it just fades sooner. */

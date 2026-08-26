@@ -48,6 +48,13 @@ if (app()->environment('local')) {
 
         return new VerifyEmailMail($user);
     })->name('dev.preview.verify-email');
+
+    // Live sandbox for tuning the ambient honeycomb background (bg-pattern.css)
+    // without touching CSS by hand — adjusts size/opacity/speed/animation style
+    // via CSS custom properties on the same partial every real page includes,
+    // so what looks right here is exactly what ships once the values are
+    // copied into layouts/partials/bg-pattern.blade.php and bg-pattern.css.
+    Route::view('/dev/bg-playground', 'dev.bg-playground')->name('dev.bg-playground');
 }
 
 // Public — no auth required, since a prospective user needs to read this
