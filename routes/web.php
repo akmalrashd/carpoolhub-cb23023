@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ConnectionController;
@@ -18,9 +20,23 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\TripJoinRequestController;
+use App\Mail\ResetPasswordMail;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/home');
+
+// Local-only: open in a browser to see the reset-password email's actual
+// rendered HTML without triggering the real forgot-password flow. Returning
+// a Mailable straight from a route is a stock Laravel dev trick — the
+// framework renders it as if it were a view.
+if (app()->environment('local')) {
+    Route::get('/dev/preview/reset-password-email', function () {
+        $user = User::first() ?? new User(['name' => 'Preview User', 'email' => 'preview@example.com']);
+
+        return new ResetPasswordMail('preview-token', $user);
+    })->name('dev.preview.reset-password-email');
+}
 
 // Public — no auth required, since a prospective user needs to read this
 // before registering (linked from the sign-up form's consent text).
@@ -37,6 +53,10 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:6,1')->name('register.store');
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.update');
     Route::post('/telegram/miniapp-auth', [TelegramController::class, 'miniAppAuth'])->middleware('throttle:20,1')->name('telegram.miniapp-auth');
 });
 
