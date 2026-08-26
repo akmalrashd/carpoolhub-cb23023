@@ -71,16 +71,21 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/reset-password', [ResetPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.update');
     Route::post('/telegram/miniapp-auth', [TelegramController::class, 'miniAppAuth'])->middleware('throttle:20,1')->name('telegram.miniapp-auth');
 
-    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
-    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
-
-    // Reached only via the Google callback above, for a brand-new email —
+    // Reached only via the Google callback below, for a brand-new email —
     // Google can't tell us role or (for a driver) vehicle/license, and role
     // has no edit path once an account exists, so this collects the rest
     // before the User row is actually created.
     Route::get('/register/complete', [GoogleRegisterController::class, 'show'])->name('register.complete');
     Route::post('/register/complete', [GoogleRegisterController::class, 'store'])->middleware('throttle:6,1')->name('register.complete.store');
 });
+
+// Deliberately NOT inside the 'guest' group above: settings' "Connect
+// Google" button sends an already-authenticated user through this exact
+// same redirect/callback pair (with ?purpose=link) to link Google onto
+// their existing account, so a logged-in visitor has to be able to reach it
+// too — not just someone signing in or registering.
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 // Needs 'auth' (there must be a logged-in user to check/mark verified) but
 // deliberately NOT 'active' or 'verified' — this IS the escape hatch an
@@ -156,6 +161,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::get('/profile', [SettingsController::class, 'index'])->name('profile.index');
     Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
     Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->middleware('throttle:6,1')->name('settings.password.update');
+    Route::post('/settings/google/unlink', [GoogleAuthController::class, 'unlink'])->name('settings.google.unlink');
 
     // Every route below except clearHistory bills a real Anthropic API call, so
     // they share the 'ai-spend' limiter (registered in AppServiceProvider) —

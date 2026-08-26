@@ -98,7 +98,7 @@
         $errorTab = '';
         if ($errors->any()) {
             $errorKeys = $errors->keys();
-            if (array_intersect($errorKeys, ['current_password', 'new_password', 'new_password_confirmation'])) {
+            if (array_intersect($errorKeys, ['current_password', 'new_password', 'new_password_confirmation', 'google'])) {
                 $errorTab = 'security';
             } elseif (array_intersect($errorKeys, ['payment_account_name', 'payment_account_number', 'payment_bank_name', 'payment_qr_duitnow', 'payment_qr_tng'])) {
                 $errorTab = 'payment';
@@ -578,6 +578,43 @@
                         </div>
                     </div>
                 </form>
+
+                <div class="channel-row" style="margin-top: 18px;">
+                    <div class="channel-row-info">
+                        <span class="channel-row-icon google"><i class="fa-brands fa-google"></i></span>
+                        <div class="channel-row-text">
+                            <div class="channel-row-title">
+                                Google
+                                @if($user->google_id)
+                                    <span class="channel-status-pill on">Connected</span>
+                                @else
+                                    <span class="channel-status-pill off">Not connected</span>
+                                @endif
+                            </div>
+                            <div class="channel-row-desc">
+                                @if($user->google_id)
+                                    You can log in with Google, using {{ $user->email }}.
+                                @else
+                                    Connect Google for a faster login — must be signed in to Google with this same address ({{ $user->email }}).
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="channel-row-action">
+                        @if($user->google_id)
+                            <form method="POST" action="{{ route('settings.google.unlink') }}">
+                                @csrf
+                                <button type="submit" class="btn-submit-ghost">
+                                    <i class="fa-solid fa-link-slash"></i> Disconnect
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('auth.google.redirect', ['purpose' => 'link']) }}" class="btn-submit-yellow">
+                                <i class="fa-brands fa-google"></i> Connect Google
+                            </a>
+                        @endif
+                    </div>
+                </div>
             </div>
 
             {{-- ─────────────────────────────────────────────────────────────
