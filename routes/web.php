@@ -1,10 +1,15 @@
 <?php
 
 use App\Http\Controllers\AiChatController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Auth\GoogleRegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ConnectionController;
@@ -21,21 +26,28 @@ use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\TripJoinRequestController;
 use App\Mail\ResetPasswordMail;
+use App\Mail\VerifyEmailMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/home');
 
-// Local-only: open in a browser to see the reset-password email's actual
-// rendered HTML without triggering the real forgot-password flow. Returning
-// a Mailable straight from a route is a stock Laravel dev trick — the
-// framework renders it as if it were a view.
+// Local-only: open in a browser to see an email's actual rendered HTML
+// without triggering the real flow that sends it. Returning a Mailable
+// straight from a route is a stock Laravel dev trick — the framework
+// renders it as if it were a view.
 if (app()->environment('local')) {
     Route::get('/dev/preview/reset-password-email', function () {
         $user = User::first() ?? new User(['name' => 'Preview User', 'email' => 'preview@example.com']);
 
         return new ResetPasswordMail('preview-token', $user);
     })->name('dev.preview.reset-password-email');
+
+    Route::get('/dev/preview/verify-email', function () {
+        $user = User::first() ?? new User(['name' => 'Preview User', 'email' => 'preview@example.com']);
+
+        return new VerifyEmailMail($user);
+    })->name('dev.preview.verify-email');
 }
 
 // Public — no auth required, since a prospective user needs to read this
@@ -58,11 +70,39 @@ Route::middleware('guest')->group(function (): void {
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])->name('password.reset');
     Route::post('/reset-password', [ResetPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.update');
     Route::post('/telegram/miniapp-auth', [TelegramController::class, 'miniAppAuth'])->middleware('throttle:20,1')->name('telegram.miniapp-auth');
+
+    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+    // Reached only via the Google callback above, for a brand-new email —
+    // Google can't tell us role or (for a driver) vehicle/license, and role
+    // has no edit path once an account exists, so this collects the rest
+    // before the User row is actually created.
+    Route::get('/register/complete', [GoogleRegisterController::class, 'show'])->name('register.complete');
+    Route::post('/register/complete', [GoogleRegisterController::class, 'store'])->middleware('throttle:6,1')->name('register.complete.store');
 });
 
+// Needs 'auth' (there must be a logged-in user to check/mark verified) but
+// deliberately NOT 'active' or 'verified' — this IS the escape hatch an
+// unverified user is sent to, so it can't itself require being verified.
+Route::middleware('auth')->group(function (): void {
+    Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');
+    Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+        ->middleware('throttle:3,1')
+        ->name('verification.send');
+});
+
+// No 'verified' here — logging out has to work from the verify-email
+// prompt page too, which is exactly where 'verified' would send someone
+// who isn't verified yet.
 Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+});
 
+Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::get('/home', [DashboardController::class, 'index'])->name('home');
     Route::redirect('/dashboard', '/home')->name('dashboard');
 

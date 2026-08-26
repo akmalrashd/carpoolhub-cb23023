@@ -7,29 +7,50 @@ use App\Models\User;
 use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-class RegisterController extends Controller
+class GoogleRegisterController extends Controller
 {
-    public function show(): View
+    public function show(Request $request): View|RedirectResponse
     {
-        return view('auth.register');
+        $pending = $request->session()->get('pending_google_signup');
+
+        if (! $pending) {
+            return redirect()->route('register');
+        }
+
+        return view('auth.complete-registration', [
+            'name' => $pending['name'],
+            'email' => $pending['email'],
+        ]);
     }
 
     public function store(Request $request, ImageService $imageService): RedirectResponse
     {
+        $pending = $request->session()->get('pending_google_signup');
+
+        if (! $pending) {
+            return redirect()->route('register');
+        }
+
+        // Another tab, or a second Google attempt, may have already created
+        // this account while this form was open.
+        if (User::where('email', $pending['email'])->exists()) {
+            $request->session()->forget('pending_google_signup');
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'That account already exists — please log in instead.',
+            ]);
+        }
+
         $data = $request->validate([
-            'name'                   => ['required', 'string', 'max:100'],
-            'email'                  => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone'                  => ['required', 'string', 'max:20'],
             'role'                   => ['required', 'in:passenger,driver'],
             'vehicle_model'          => ['required_if:role,driver', 'nullable', 'string', 'max:100'],
             'vehicle_plate'          => ['required_if:role,driver', 'nullable', 'string', 'max:20'],
             'driving_license_photo'  => ['required_if:role,driver', 'nullable', 'image', 'max:4096'],
             'selfie_photo'           => ['nullable', 'image', 'max:5120'],
-            'password'               => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ], [
             'vehicle_model.required_if'         => 'Vehicle model is required for drivers.',
             'vehicle_plate.required_if'         => 'Vehicle plate is required for drivers.',
@@ -42,8 +63,6 @@ class RegisterController extends Controller
 
         $isDriver = $data['role'] === 'driver';
 
-        // Compress on upload then store as base64 (licence larger so it stays
-        // legible for admin verification; selfie a touch smaller).
         $licenseBase64 = null;
         $selfieBase64  = null;
         if ($isDriver && $request->hasFile('driving_license_photo')) {
@@ -54,26 +73,31 @@ class RegisterController extends Controller
         }
 
         $user = User::create([
-            'name'                  => $data['name'],
-            'email'                 => $data['email'],
+            'name'                  => $pending['name'],
+            'email'                 => $pending['email'],
+            'google_id'             => $pending['google_id'],
+            'profile_photo'         => $pending['avatar'],
+            'email_verified_at'     => now(),
+            'password'              => null,
             'phone'                 => $data['phone'],
             'role'                  => $data['role'],
             'vehicle_model'         => $data['vehicle_model'] ?? null,
             'vehicle_plate'         => $data['vehicle_plate'] ?? null,
             'driving_license_photo' => $licenseBase64,
             'selfie_photo'          => $selfieBase64,
-            'password'              => Hash::make($data['password']),
             'is_active'             => ! $isDriver,
         ]);
 
-        $user->sendEmailVerificationNotification();
+        $request->session()->forget('pending_google_signup');
 
         if ($isDriver) {
             return redirect()->route('login')
                 ->with('status', 'Your driver account has been created and is pending admin approval. You will be able to log in once approved.');
         }
 
-        return redirect()->route('login')
-            ->with('status', 'Account created successfully. You can now log in.');
+        Auth::login($user, remember: true);
+        $request->session()->regenerate();
+
+        return redirect()->route('home');
     }
 }

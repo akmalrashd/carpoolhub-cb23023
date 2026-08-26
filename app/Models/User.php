@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -27,6 +29,7 @@ class User extends Authenticatable
         'email',
         'email_visible',
         'password',
+        'google_id',
         'role',
         'phone',
         'phone_visible',
@@ -184,6 +187,22 @@ class User extends Authenticatable
         $this->notify(new ResetPasswordNotification($token));
     }
 
+    /**
+     * A Google sign-in already proves the address is real and owned by
+     * whoever is signing in — Google verified it before ever handing us the
+     * email — so linking a google_id counts as verified even if
+     * email_verified_at itself is still empty.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null || $this->google_id !== null;
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification());
+    }
+
     public function userNotifications(): HasMany
     {
         return $this->hasMany(UserNotification::class);
@@ -261,7 +280,9 @@ class User extends Authenticatable
      * Resolve an image column to a usable <img src>. Images are stored as base64
      * data URIs (returned as-is), but older rows may still hold a storage path
      * (resolved to a public URL) — so both keep working during and after the
-     * switch to base64.
+     * switch to base64. A Google sign-in stores its avatar as a plain
+     * https:// URL (googleusercontent.com), which also needs to pass through
+     * unchanged rather than being treated as a relative storage path.
      */
     private function imageSrc(?string $value): ?string
     {
@@ -269,9 +290,11 @@ class User extends Authenticatable
             return null;
         }
 
-        return str_starts_with($value, 'data:')
-            ? $value
-            : asset('storage/' . $value);
+        if (str_starts_with($value, 'data:') || str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+
+        return asset('storage/' . $value);
     }
 
     public function getProfilePhotoUrlAttribute(): ?string
