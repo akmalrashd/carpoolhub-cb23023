@@ -829,6 +829,15 @@
                                         data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
                                         data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
+                                    @if($isAdmin)
+                                        <button
+                                            type="button"
+                                            class="payments-btn payments-btn-soft open-reverse-payment-modal"
+                                            data-action="{{ route('payments.reverse', $payment) }}"
+                                            data-passenger="{{ $payment->user?->name ?: '-' }}"
+                                            data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                        ><i class="fa-solid fa-rotate-left"></i> Reverse</button>
+                                    @endif
                                 @endif
                                 </div>
                                 </div>
@@ -1179,6 +1188,16 @@
                                                 data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
                                                 data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
                                             ><i class="fa-solid fa-receipt"></i> Receipt</button>
+                                            @if($isAdmin)
+                                                <button
+                                                    type="button"
+                                                    class="payments-btn payment-table-action open-reverse-payment-modal"
+                                                    style="width:100%;margin-top:4px;"
+                                                    data-action="{{ route('payments.reverse', $payment) }}"
+                                                    data-passenger="{{ $payment->user?->name ?: '-' }}"
+                                                    data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
+                                                ><i class="fa-solid fa-rotate-left"></i> Reverse</button>
+                                            @endif
                                         </div>
                                     @endif
                                 </td>
@@ -2089,6 +2108,49 @@
             <div class="reject-modal-actions">
                 <button type="button" class="btn-subtle-close" id="rejectModalCancel">Cancel</button>
                 <button type="submit" class="btn-solid-reject" form="rejectModalForm"><i class="fa-solid fa-xmark"></i> Reject Payment</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Admin-only: revert a wrongly-confirmed 'paid' payment back to unpaid. --}}
+    <div class="request-modal" id="reversePaymentModal" aria-hidden="true">
+        <div class="request-modal-card request-modal-compact">
+            <div class="request-modal-head">
+                <div>
+                    <h3 class="request-modal-title">Reverse Payment</h3>
+                    <p class="request-modal-sub">This sends the payment back to Unpaid and notifies the payer.</p>
+                </div>
+                <button type="button" class="modal-close-square" id="reversePaymentModalCloseTop" aria-label="Close">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="request-modal-grid-two" style="margin-bottom: 12px;">
+                <div class="request-modal-line">
+                    <span class="request-modal-label"><i class="fa-solid fa-user" style="margin-right:4px;"></i> Passenger</span>
+                    <span class="request-modal-value" id="reversePaymentModalPassenger">-</span>
+                </div>
+                <div class="request-modal-line">
+                    <span class="request-modal-label"><i class="fa-solid fa-coins" style="margin-right:4px;"></i> Amount</span>
+                    <span class="request-modal-value" id="reversePaymentModalAmount">-</span>
+                </div>
+            </div>
+            <form id="reversePaymentModalForm" method="POST" style="margin-bottom: 20px;">
+                @csrf
+                @method('PATCH')
+                <div class="reject-reason-wrap">
+                    <label class="request-modal-label" style="display:block; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px; color:#eab308;"></i> Reason</label>
+                    <textarea
+                        class="reject-reason-input-modern"
+                        id="reversePaymentModalReason"
+                        name="reason"
+                        placeholder="Explain briefly why this confirmed payment is being reversed..."
+                        required
+                    ></textarea>
+                </div>
+            </form>
+            <div class="reject-modal-actions">
+                <button type="button" class="btn-subtle-close" id="reversePaymentModalCancel">Cancel</button>
+                <button type="submit" class="btn-solid-reject" form="reversePaymentModalForm"><i class="fa-solid fa-rotate-left"></i> Reverse Payment</button>
             </div>
         </div>
     </div>

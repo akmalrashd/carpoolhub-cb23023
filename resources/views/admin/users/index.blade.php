@@ -397,10 +397,14 @@
             </div>
             <div class="eu-field">
                 <label class="eu-label" for="eu-status">Account Status</label>
-                <select id="eu-status" name="is_active" class="eu-select">
+                <select id="eu-status" name="is_active" class="eu-select" onchange="toggleEditReasonField()">
                     <option value="1">Active</option>
                     <option value="0">Inactive / Suspended</option>
                 </select>
+            </div>
+            <div class="eu-field" id="eu-reason-field" style="display:none;">
+                <label class="eu-label" for="eu-reason">Reason for suspending</label>
+                <textarea id="eu-reason" name="reason" class="eu-select" rows="3" placeholder="Shown to the user if they try to log in."></textarea>
             </div>
             <button type="submit" class="eu-save-btn"><i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Save Changes</button>
         </form>
@@ -604,18 +608,31 @@ function openRejectModalFromLicense(){
     openRejectModal(lrCurrentUid, lrCurrentName);
 }
 
+let euWasActive = '1';
+
 function openEditDrawer(uid,name,role,active){
     document.getElementById('eu-title').textContent = 'Edit: '+name;
     document.getElementById('eu-sub').textContent   = 'Change role or status for this user.';
     document.getElementById('eu-form').action = '{{ url("/admin/users") }}/'+uid;
     document.getElementById('eu-role').value   = role;
     document.getElementById('eu-status').value = active;
+    document.getElementById('eu-reason').value = '';
+    euWasActive = active;
+    toggleEditReasonField();
     document.getElementById('edit-drawer').style.display='flex';
     document.body.style.overflow='hidden';
 }
 function closeEditDrawer(){
     document.getElementById('edit-drawer').style.display='none';
     document.body.style.overflow='';
+}
+function toggleEditReasonField(){
+    var status = document.getElementById('eu-status').value;
+    var reasonField = document.getElementById('eu-reason-field');
+    var reasonInput = document.getElementById('eu-reason');
+    var isDeactivating = euWasActive === '1' && status === '0';
+    reasonField.style.display = isDeactivating ? 'block' : 'none';
+    reasonInput.required = isDeactivating;
 }
 
 function openRejectModal(uid, name){

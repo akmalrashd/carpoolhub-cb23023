@@ -6,6 +6,7 @@ use App\Services\ReportService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminReportController extends Controller
@@ -15,16 +16,18 @@ class AdminReportController extends Controller
     }
 
     /**
-     * The nine ReportService calls every admin report view needs. Was copied
+     * The ReportService calls every admin report view needs. Was copied
      * into index(), exportCsv() and exportPdfView() separately — a metric
      * added to the report page had to be remembered in three places to also
      * reach the exports. $forExport switches monthlyReports to the export's
      * longer 24-month window; everything else is identical either way.
+     * $dateFrom/$dateTo scope only overview() — see ReportService::overview()
+     * for why the rest of these stay all-time.
      */
-    private function sharedReportData(bool $forExport = false): array
+    private function sharedReportData(bool $forExport = false, ?string $dateFrom = null, ?string $dateTo = null): array
     {
         return [
-            'overview' => $this->reportService->overview(),
+            'overview' => $this->reportService->overview($dateFrom, $dateTo),
             'paymentBreakdown' => $this->reportService->paymentStatusBreakdown(),
             'monthlyReports' => $forExport
                 ? $this->reportService->monthlyTripSummaryForExport()
@@ -33,15 +36,23 @@ class AdminReportController extends Controller
             'requestSummary' => $this->reportService->requestDecisionSummary(),
             'customRouteSummary' => $this->reportService->customRouteSummary(),
             'aiSupportSummary' => $this->reportService->aiSupportSummary(),
+            'aiUsage' => $this->reportService->aiUsageSummary(),
             'reliabilitySummary' => $this->reportService->passengerReliabilitySummary(),
             'thesisAlignment' => $this->reportService->thesisAlignmentSummary(),
         ];
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $data = $this->sharedReportData();
+        $filters = $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+        ]);
+
+        $data = $this->sharedReportData(false, $filters['date_from'] ?? null, $filters['date_to'] ?? null);
         $data['dailyTripRanges'] = $this->reportService->dailyTripRanges();
+        $data['dateFrom'] = $filters['date_from'] ?? null;
+        $data['dateTo'] = $filters['date_to'] ?? null;
 
         return view('admin.reports.index', $data);
     }
@@ -56,9 +67,11 @@ class AdminReportController extends Controller
             'requestSummary' => $requestSummary,
             'customRouteSummary' => $customRouteSummary,
             'aiSupportSummary' => $aiSupportSummary,
+            'aiUsage' => $aiUsage,
             'reliabilitySummary' => $reliabilitySummary,
             'thesisAlignment' => $thesisAlignment,
         ] = $this->sharedReportData(forExport: true);
+        $dailyTripRanges = $this->reportService->dailyTripRanges();
         $filename = 'carpoolhub-admin-report-' . now()->format('Ymd-His') . '.csv';
 
         $headers = [
@@ -66,7 +79,7 @@ class AdminReportController extends Controller
             'Content-Disposition' => "attachment; filename={$filename}",
         ];
 
-        $callback = function () use ($overview, $paymentBreakdown, $monthlyReports, $topRoutes, $requestSummary, $customRouteSummary, $aiSupportSummary, $reliabilitySummary, $thesisAlignment): void {
+        $callback = function () use ($overview, $paymentBreakdown, $monthlyReports, $topRoutes, $requestSummary, $customRouteSummary, $aiSupportSummary, $aiUsage, $reliabilitySummary, $thesisAlignment, $dailyTripRanges): void {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['CarpoolHub Admin Report']);
@@ -148,6 +161,26 @@ class AdminReportController extends Controller
                     number_format((float) $row['pending_unpaid_total'], 2, '.', ''),
                 ]);
             }
+            fputcsv($handle, []);
+
+            fputcsv($handle, ['Trips by Day (last 30 days)']);
+            fputcsv($handle, ['Date', 'Trips']);
+            foreach (($dailyTripRanges['30d'] ?? []) as $day => $count) {
+                fputcsv($handle, [$day, (string) $count]);
+            }
+            fputcsv($handle, []);
+
+            fputcsv($handle, ['AI Usage (Claude API)']);
+            foreach ($aiUsage as $key => $value) {
+                if (in_array($key, ['by_endpoint', 'error_breakdown'], true)) {
+                    continue;
+                }
+                fputcsv($handle, [$key, (string) $value]);
+            }
+            fputcsv($handle, ['By endpoint']);
+            foreach (($aiUsage['by_endpoint'] ?? []) as $endpoint => $count) {
+                fputcsv($handle, [$endpoint, (string) $count]);
+            }
 
             fclose($handle);
         };
@@ -157,7 +190,10 @@ class AdminReportController extends Controller
 
     public function exportPdfView(): View|Factory|Application
     {
-        return view('admin.reports.pdf', $this->sharedReportData(forExport: true));
+        $data = $this->sharedReportData(forExport: true);
+        $data['dailyTripRanges'] = $this->reportService->dailyTripRanges();
+
+        return view('admin.reports.pdf', $data);
     }
 
     /**

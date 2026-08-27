@@ -23,8 +23,6 @@ class UpdateProfileRequest extends FormRequest
             // password-gated flow if ever added. SettingsService also forces the
             // stored email, as defence in depth.
             'email_visible' => ['nullable', 'string', Rule::in(['visible_public', 'visible_friend', 'unvisible'])],
-            'whatsapp_country_code' => ['nullable', 'string', 'regex:/^\+\d{1,4}$/', 'required_with:whatsapp_number'],
-            'whatsapp_number' => ['nullable', 'string', 'max:20'],
             'phone' => ['nullable', 'string', 'max:30'],
             'phone_visible' => ['nullable', 'string', Rule::in(['visible_public', 'visible_friend', 'unvisible'])],
             'vehicle_model' => ['nullable', 'string', 'max:80'],
@@ -42,37 +40,5 @@ class UpdateProfileRequest extends FormRequest
             'driving_license_photo' => ['nullable', 'image', 'max:4096'],
             'driving_license_expiry' => ['nullable', 'date'],
         ];
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $countryCode = (string) $this->input('whatsapp_country_code', '');
-        $number = (string) $this->input('whatsapp_number', '');
-
-        if ($countryCode !== '' || $number !== '') {
-            $normalized = $this->normalizeWhatsappPhone($countryCode, $number);
-            $this->merge([
-                'phone' => $normalized,
-            ]);
-        }
-    }
-
-    private function normalizeWhatsappPhone(string $countryCode, string $number): ?string
-    {
-        $codeDigits = preg_replace('/\D+/', '', $countryCode);
-        $numberDigits = preg_replace('/\D+/', '', $number);
-
-        if (! $numberDigits) {
-            return null;
-        }
-
-        // Local numbers usually start with 0; remove it after country code selection.
-        $numberDigits = ltrim($numberDigits, '0');
-
-        if (! $codeDigits) {
-            return null;
-        }
-
-        return '+' . $codeDigits . $numberDigits;
     }
 }

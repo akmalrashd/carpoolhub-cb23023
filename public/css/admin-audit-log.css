@@ -1,0 +1,27 @@
+/* Audit log page — filter bar layout. Individual controls (.au-input,
+   .au-select, badges) reuse admin-users.css; this file only lays them out. */
+
+.al-filter-row { margin-bottom: 8px; }
+.al-filter-row:last-child { margin-bottom: 0; }
+
+.al-filter-search { position: relative; }
+.al-filter-search i {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 12px; pointer-events: none;
+}
+
+.al-filter-row-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.al-filter-row-controls .au-select { min-width: 0; }
+.al-filter-to { font-size: 12px; color: var(--muted); }
+
+@media (max-width: 640px) {
+    .al-filter-row-controls { flex-direction: column; align-items: stretch; }
+    .al-filter-row-controls .au-select,
+    .al-filter-row-controls button { width: 100%; }
+    .al-filter-to { text-align: center; }
+}

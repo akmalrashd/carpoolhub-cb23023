@@ -1,0 +1,60 @@
+/* Admin > System Settings page */
+
+.ss-header-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: var(--r-sm);
+    display: grid; place-items: center;
+    background: var(--ch-yellow-tint);
+    border: 1px solid var(--ch-yellow-line);
+    color: var(--ch-yellow-ink);
+    font-size: 16px;
+}
+
+.ss-live-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hairline);
+}
+
+.ss-field-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hairline);
+}
+.ss-field-row:last-of-type { border-bottom: none; }
+
+.ss-field-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    margin-top: 22px;
+    border-radius: var(--r-sm);
+    display: grid; place-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--hairline-strong);
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.ss-field-main { flex: 1; min-width: 0; }
+
+.ss-field-live {
+    flex-shrink: 0;
+    width: 84px;
+    margin-top: 22px;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.ss-field-live strong { font-size: 15px; color: var(--ink); font-family: var(--font-display), sans-serif; }
+
+@media (max-width: 480px) {
+    .ss-field-row { flex-wrap: wrap; }
+    .ss-field-icon { display: none; }
+    .ss-field-live { width: auto; text-align: left; margin-top: 4px; flex-direction: row; align-items: center; gap: 6px; }
+}

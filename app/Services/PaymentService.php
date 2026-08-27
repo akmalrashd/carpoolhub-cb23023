@@ -22,6 +22,7 @@ class PaymentService
 
     public function __construct(
         private readonly PassengerRiskScoringService $passengerRiskScoringService,
+        private readonly AdminAuditService $adminAuditService,
     ) {
     }
 
@@ -461,6 +462,53 @@ class PaymentService
                 'is_read'      => false,
             ]);
 
+            if ($actor->role === 'admin') {
+                $this->adminAuditService->log($actor, 'payment.confirmed', 'payment', $payment->id);
+            }
+
+            if ($payment->user) {
+                $this->passengerRiskScoringService->refreshRiskProfile($payment->user);
+            }
+
+            return $payment->refresh();
+        });
+    }
+
+    public function reversePayment(User $admin, TripPayment $payment, string $reason): TripPayment
+    {
+        abort_unless($admin->role === 'admin', 403);
+
+        $payment->loadMissing('trip', 'user');
+
+        if ($payment->payment_status !== TripPayment::STATUS_PAID) {
+            throw ValidationException::withMessages([
+                'payment' => 'Only a paid payment can be reversed.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($payment, $admin, $reason): TripPayment {
+            $payment->update([
+                'payment_status' => TripPayment::STATUS_UNPAID,
+                'marked_paid_at' => null,
+                'confirmed_by' => null,
+                'confirmed_at' => null,
+                'payment_method' => null,
+                'remarks' => null,
+            ]);
+
+            $label = $this->tripLabel($payment);
+            UserNotification::query()->create([
+                'user_id'      => $payment->user_id,
+                'type'         => 'payment',
+                'title'        => 'Payment Reversed',
+                'message'      => "Your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} was reversed by an admin. Reason: {$reason}. Please re-settle it.",
+                'related_type' => 'trip_payment',
+                'related_id'   => $payment->id,
+                'is_read'      => false,
+            ]);
+
+            $this->adminAuditService->log($admin, 'payment.reversed', 'payment', $payment->id, $reason);
+
             if ($payment->user) {
                 $this->passengerRiskScoringService->refreshRiskProfile($payment->user);
             }
@@ -514,6 +562,10 @@ class PaymentService
                 'is_read'      => false,
             ]);
 
+            if ($actor->role === 'admin') {
+                $this->adminAuditService->log($actor, 'payment.rejected', 'payment', $payment->id, $reason);
+            }
+
             if ($payment->user) {
                 $this->passengerRiskScoringService->refreshRiskProfile($payment->user);
             }
@@ -563,6 +615,10 @@ class PaymentService
             'related_id'   => $payment->id,
             'is_read'      => false,
         ]);
+
+        if ($actor->role === 'admin') {
+            $this->adminAuditService->log($actor, 'payment.reminded', 'payment', $payment->id);
+        }
     }
 
     public function reminderStateForPayments(Collection $payments): array

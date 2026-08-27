@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Payment\ConfirmPaidRequest;
 use App\Http\Requests\Payment\MarkPaidRequest;
 use App\Http\Requests\Payment\RejectPaidRequest;
+use App\Http\Requests\Payment\ReversePaymentRequest;
 use App\Http\Requests\Payment\SendReminderRequest;
 use App\Models\TripPayment;
 use App\Services\PaymentService;
@@ -213,6 +214,33 @@ class PaymentController extends Controller
             ->with('status', 'Payment request rejected. Passenger has been notified to resubmit.');
     }
 
+    public function reverse(ReversePaymentRequest $request, TripPayment $payment): RedirectResponse|JsonResponse
+    {
+        try {
+            $this->paymentService->reversePayment($request->user(), $payment, $request->validated('reason'));
+        } catch (ValidationException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first() ?: 'Payment could not be reversed.',
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
+            return back()->withErrors($exception->errors());
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Payment reversed. The payer has been notified.',
+                'payment_status' => TripPayment::STATUS_UNPAID,
+            ]);
+        }
+
+        return redirect()
+            ->route('payments.index')
+            ->with('status', 'Payment reversed. The payer has been notified.');
+    }
+
     public function sendReminder(SendReminderRequest $request, TripPayment $payment): RedirectResponse|JsonResponse
     {
         try {
@@ -280,10 +308,16 @@ class PaymentController extends Controller
         // the column is `payment_status` enum('unpaid','pending_confirmation',
         // 'paid'). The old filter threw "Unknown column 'status'" on every
         // click, so this endpoint had never once approved a payment.
+        // Admin gets platform-wide oversight everywhere else on this page
+        // (confirmPaid/rejectPaidRequest/sendReminder in PaymentService all
+        // drop this same driver_id restriction for role==='admin') — without
+        // it, this bulk action was a no-op for any admin who doesn't
+        // personally drive trips.
         $pendingPayments = TripPayment::query()
-            ->whereHas('trip', function ($q) use ($user) {
-                $q->where('driver_id', $user->id);
-            })
+            ->when(
+                $user->role !== 'admin',
+                fn ($q) => $q->whereHas('trip', fn ($tq) => $tq->where('driver_id', $user->id))
+            )
             ->where('payment_status', TripPayment::STATUS_PENDING_CONFIRMATION)
             ->get();
 

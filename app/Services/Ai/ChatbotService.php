@@ -187,13 +187,13 @@ class ChatbotService
             ? match ($role) {
                 'driver'    => 'PEMANDU — boleh buat trip baru.',
                 'passenger' => 'PENUMPANG — boleh cari trip dan semak bayaran.',
-                'admin'     => 'ADMIN — boleh akses semua bahagian.',
+                'admin'     => 'ADMIN — urus pengguna, semak laporan, dan boleh edit/padam mana-mana trip, tapi tak boleh cipta trip atau route baru.',
                 default     => 'pengguna biasa.',
             }
             : match ($role) {
                 'driver'    => 'DRIVER — can create new trips.',
                 'passenger' => 'PASSENGER — can search trips and check payments.',
-                'admin'     => 'ADMIN — can access all sections.',
+                'admin'     => 'ADMIN — manages users, reviews reports, and can edit/delete any trip, but doesn\'t create trips or routes.',
                 default     => 'regular user.',
             };
 
@@ -407,7 +407,7 @@ PROMPT;
 
         // route_draft — AI suggests a new saved route with coordinates
         if ($intent === 'route_draft') {
-            if (! \in_array((string) $user->role, ['driver', 'admin'], true)) {
+            if ((string) $user->role !== 'driver') {
                 return ['intent' => 'general', 'reply' => $language === 'en'
                     ? 'Only drivers can create saved routes.'
                     : 'Hanya pemandu boleh buat saved route.'];
@@ -422,7 +422,7 @@ PROMPT;
         }
 
         if ($intent === 'trip_draft') {
-            if (! \in_array((string) $user->role, ['driver', 'admin'], true)) {
+            if ((string) $user->role !== 'driver') {
                 return [
                     'intent' => 'general',
                     'reply'  => $language === 'en'

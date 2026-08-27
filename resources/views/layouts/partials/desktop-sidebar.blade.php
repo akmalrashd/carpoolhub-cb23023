@@ -71,6 +71,15 @@
                 <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" title="Reports">
                     <i class="fa-solid fa-chart-line"></i><span class="desktop-nav-label">Reports</span>
                 </a>
+                <a href="{{ route('admin.audit-log.index') }}" class="{{ request()->routeIs('admin.audit-log.*') ? 'active' : '' }}" title="Audit Log">
+                    <i class="fa-solid fa-clipboard-list"></i><span class="desktop-nav-label">Audit Log</span>
+                </a>
+                <a href="{{ route('admin.messages.create') }}" class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}" title="Message Users">
+                    <i class="fa-solid fa-paper-plane"></i><span class="desktop-nav-label">Messages</span>
+                </a>
+                <a href="{{ route('admin.system-settings.index') }}" class="{{ request()->routeIs('admin.system-settings.*') ? 'active' : '' }}" title="System Settings">
+                    <i class="fa-solid fa-sliders"></i><span class="desktop-nav-label">Settings</span>
+                </a>
             </nav>
         </div>
     @endif

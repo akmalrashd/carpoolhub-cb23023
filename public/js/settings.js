@@ -195,10 +195,67 @@
             return null;
         }
 
+        // ── Phone number auto-format: +60 XX-XXX XXXX ──────────────────────
+        // Same single-field behaviour as the registration page's #phone
+        // field (public/js/auth-register.js) — no country-code selector,
+        // +60 is pre-filled and stays anchored, digits get grouped as typed,
+        // and the "011" prefix gets its one extra local digit.
+        function formatMyPhone(raw) {
+            let digits = raw.replace(/\D/g, '');
+            if (digits.startsWith('60')) digits = digits.slice(2);
+            if (digits.startsWith('0')) digits = digits.slice(1);
+
+            const isElevenPrefix = digits.slice(0, 2) === '11';
+            digits = digits.slice(0, isElevenPrefix ? 10 : 9);
+
+            let formatted = '+60';
+            if (digits.length) formatted += ' ' + digits.slice(0, 2);
+            if (isElevenPrefix) {
+                if (digits.length > 2) formatted += '-' + digits.slice(2, 6);
+                if (digits.length > 6) formatted += ' ' + digits.slice(6, 10);
+            } else {
+                if (digits.length > 2) formatted += '-' + digits.slice(2, 5);
+                if (digits.length > 5) formatted += ' ' + digits.slice(5, 9);
+            }
+            return formatted;
+        }
+
+        function bindPhoneNumberFormatting() {
+            const phoneInput = document.getElementById('profilePhone');
+            if (!phoneInput) return;
+
+            const PREFIX = '+60 ';
+
+            const applyFormat = () => {
+                const cursorFromEnd = phoneInput.value.length - phoneInput.selectionStart;
+                phoneInput.value = formatMyPhone(phoneInput.value);
+                const pos = Math.max(phoneInput.value.length - cursorFromEnd, PREFIX.length);
+                phoneInput.setSelectionRange(pos, pos);
+            };
+
+            const clearIfEmpty = () => {
+                if (phoneInput.value.trim() === '+60') {
+                    phoneInput.value = '';
+                }
+            };
+
+            phoneInput.value = phoneInput.value ? formatMyPhone(phoneInput.value) : PREFIX;
+
+            phoneInput.addEventListener('input', applyFormat);
+            phoneInput.addEventListener('focus', () => {
+                if (!phoneInput.value) phoneInput.value = PREFIX;
+            });
+            phoneInput.addEventListener('blur', clearIfEmpty);
+            if (phoneInput.form) {
+                phoneInput.form.addEventListener('submit', clearIfEmpty);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const target = resolveInitialSettingsTab();
             if (target) {
                 switchSettingsTab(target);
             }
             bindSettingsFormLoadingState();
+            bindPhoneNumberFormatting();
         });

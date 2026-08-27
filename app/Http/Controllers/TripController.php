@@ -6,6 +6,7 @@ use App\Http\Requests\Trip\StoreTripRequest;
 use App\Http\Requests\Trip\UpdateTripRequest;
 use App\Models\SavedRoute;
 use App\Models\Trip;
+use App\Models\User;
 use App\Services\TripService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -110,7 +111,7 @@ class TripController extends Controller
 
     public function edit(Request $request, Trip $trip): View
     {
-        $this->ensureCanManage($request);
+        $this->ensureCanEditOrDelete($request);
         $this->tripService->ensureTripOwner($request->user(), $trip);
         $trip->load('returnTrip');
 
@@ -132,7 +133,7 @@ class TripController extends Controller
 
     public function update(UpdateTripRequest $request, Trip $trip): RedirectResponse
     {
-        $this->ensureCanManage($request);
+        $this->ensureCanEditOrDelete($request);
 
         try {
             $updatedTrip = $this->tripService->update($request->user(), $trip, $request->validated());
@@ -147,7 +148,7 @@ class TripController extends Controller
 
     public function destroy(Request $request, Trip $trip): RedirectResponse
     {
-        $this->ensureCanManage($request);
+        $this->ensureCanEditOrDelete($request);
 
         $this->tripService->delete($request->user(), $trip);
 
@@ -188,7 +189,28 @@ class TripController extends Controller
         $user = $request->user();
 
         abort_unless($user->role === 'driver', 403);
+        $this->ensureDriverIsApprovedAndCurrent($user);
+    }
 
+    /**
+     * Editing/deleting an existing trip is oversight, not authorship — an
+     * admin can manage any trip via ensureTripOwner()/TripService below, same
+     * as the trip's own driver. Creating a brand-new trip stays driver-only
+     * (ensureCanManage above): admin has no vehicle/license to drive it with.
+     */
+    private function ensureCanEditOrDelete(Request $request): void
+    {
+        $user = $request->user();
+
+        abort_unless(in_array($user->role, ['driver', 'admin'], true), 403);
+
+        if ($user->role === 'driver') {
+            $this->ensureDriverIsApprovedAndCurrent($user);
+        }
+    }
+
+    private function ensureDriverIsApprovedAndCurrent(User $user): void
+    {
         if ($user->driver_verification_status !== 'approved') {
             abort(403, 'Your driver account is not approved to manage trips yet.');
         }

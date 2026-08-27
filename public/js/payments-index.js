@@ -1268,6 +1268,59 @@ window.isPaymentRowHidden = function (row) {
         });
     }
 
+    // Admin-only: reverse a confirmed 'paid' payment back to unpaid, same
+    // open/close/populate mechanics as the reject modal above.
+    const reverseModal = document.getElementById('reversePaymentModal');
+    const reverseCancelBtn = document.getElementById('reversePaymentModalCancel');
+    const reverseCloseTopBtn = document.getElementById('reversePaymentModalCloseTop');
+    const reverseForm = document.getElementById('reversePaymentModalForm');
+    const reversePassengerEl = document.getElementById('reversePaymentModalPassenger');
+    const reverseAmountEl = document.getElementById('reversePaymentModalAmount');
+    const reverseReasonEl = document.getElementById('reversePaymentModalReason');
+    const openReverseButtons = document.querySelectorAll('.open-reverse-payment-modal');
+
+    if (reverseModal && reverseCancelBtn && reverseForm) {
+        if (reverseModal.parentElement !== document.body) {
+            document.body.appendChild(reverseModal);
+        }
+        const openReverseModal = (action, passenger, amount) => {
+            reverseForm.setAttribute('action', action || '');
+            if (reversePassengerEl) reversePassengerEl.textContent = passenger || '-';
+            if (reverseAmountEl) reverseAmountEl.textContent = amount || '-';
+            reverseModal.classList.add('show');
+            reverseModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            setTimeout(() => {
+                if (!reverseReasonEl) return;
+                try {
+                    reverseReasonEl.focus({ preventScroll: true });
+                } catch (_error) {
+                    reverseReasonEl.focus();
+                }
+            }, 30);
+        };
+
+        const closeReverseModal = () => {
+            reverseModal.classList.remove('show');
+            reverseModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            reverseForm.setAttribute('action', '');
+            if (reverseReasonEl) reverseReasonEl.value = '';
+        };
+
+        openReverseButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                openReverseModal(button.dataset.action, button.dataset.passenger, button.dataset.amount);
+            });
+        });
+
+        reverseCancelBtn.addEventListener('click', closeReverseModal);
+        if (reverseCloseTopBtn) reverseCloseTopBtn.addEventListener('click', closeReverseModal);
+        reverseModal.addEventListener('click', (event) => {
+            if (event.target === reverseModal) closeReverseModal();
+        });
+    }
+
     const driverPaymentDetailsModal = document.getElementById('driverPaymentDetailsModal');
     const driverPaymentDetailsClose = document.getElementById('driverPaymentDetailsClose');
     const driverPaymentDetailsCloseTop = document.getElementById('driverPaymentDetailsCloseTop');

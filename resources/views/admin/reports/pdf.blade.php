@@ -150,6 +150,41 @@
     </tbody>
 </table>
 
+<h2>Trips by Day (last 30 days)</h2>
+<table>
+    <thead>
+    <tr><th>Date</th><th class="right">Trips</th></tr>
+    </thead>
+    <tbody>
+    @forelse(($dailyTripRanges['30d'] ?? []) as $day => $count)
+        <tr><td>{{ $day }}</td><td class="right">{{ $count }}</td></tr>
+    @empty
+        <tr><td colspan="2">No data available.</td></tr>
+    @endforelse
+    </tbody>
+</table>
+
+<h2>AI Usage (Claude API)</h2>
+<table>
+    <tbody>
+        <tr><td>Total calls</td><td class="right">{{ $aiUsage['total_calls'] ?? 0 }}</td></tr>
+        <tr><td>Success rate</td><td class="right">{{ $aiUsage['success_rate'] ?? 0 }}%</td></tr>
+        <tr><td>Total input tokens</td><td class="right">{{ number_format($aiUsage['total_input_tokens'] ?? 0) }}</td></tr>
+        <tr><td>Total output tokens</td><td class="right">{{ number_format($aiUsage['total_output_tokens'] ?? 0) }}</td></tr>
+        <tr><td>Retries</td><td class="right">{{ $aiUsage['retry_count'] ?? 0 }}</td></tr>
+    </tbody>
+</table>
+@if(!empty($aiUsage['by_endpoint']))
+<table>
+    <thead><tr><th>Endpoint</th><th class="right">Calls</th></tr></thead>
+    <tbody>
+    @foreach($aiUsage['by_endpoint'] as $endpoint => $count)
+        <tr><td>{{ $endpoint }}</td><td class="right">{{ $count }}</td></tr>
+    @endforeach
+    </tbody>
+</table>
+@endif
+
 <script>
     window.addEventListener('load', () => {
         setTimeout(() => window.print(), 250);

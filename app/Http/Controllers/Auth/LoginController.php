@@ -92,12 +92,20 @@ class LoginController extends Controller
     private function inactiveMessage(User $user): string
     {
         if ($user->role !== 'driver') {
-            return 'Your account has been deactivated. Please contact support.';
+            $reason = trim((string) $user->deactivation_reason);
+
+            return $reason !== ''
+                ? "Your account has been deactivated. Please contact support. Reason: {$reason}"
+                : 'Your account has been deactivated. Please contact support.';
         }
+
+        $driverReason = trim((string) $user->deactivation_reason);
 
         return match ($user->driver_verification_status) {
             'rejected' => 'Your driver application was rejected. Check your notifications, update your documents in Settings, and resubmit.',
-            'approved' => 'Your driver account has been suspended. Please contact support.',
+            'approved' => $driverReason !== ''
+                ? "Your driver account has been suspended. Please contact support. Reason: {$driverReason}"
+                : 'Your driver account has been suspended. Please contact support.',
             default => 'Your driver account is pending admin approval.',
         };
     }

@@ -5,36 +5,6 @@
         $photoUrl = $user->profile_photo_url;
         $duitnowQrUrl = $user->payment_qr_duitnow_url;
         $tngQrUrl = $user->payment_qr_tng_url;
-        $countryOptions = [
-            '+60' => 'MY (+60)',
-            '+65' => 'SG (+65)',
-            '+62' => 'ID (+62)',
-            '+66' => 'TH (+66)',
-            '+63' => 'PH (+63)',
-            '+673' => 'BN (+673)',
-            '+84' => 'VN (+84)',
-            '+91' => 'IN (+91)',
-            '+1' => 'US/CA (+1)',
-            '+44' => 'GB (+44)',
-        ];
-        $oldCode = old('whatsapp_country_code');
-        $oldNumber = old('whatsapp_number');
-        $parsedCode = '+60';
-        $parsedNumber = '';
-        $existingPhone = (string) ($user->phone ?? '');
-        $phoneDigits = preg_replace('/\D+/', '', $existingPhone);
-        if ($phoneDigits) {
-            foreach (array_keys($countryOptions) as $code) {
-                $codeDigits = ltrim($code, '+');
-                if (str_starts_with($phoneDigits, $codeDigits)) {
-                    $parsedCode = $code;
-                    $parsedNumber = substr($phoneDigits, strlen($codeDigits)) ?: '';
-                    break;
-                }
-            }
-        }
-        $selectedCode = $oldCode ?: $parsedCode;
-        $selectedNumber = $oldNumber ?? $parsedNumber;
         $selectedEmailVisibility = (string) old('email_visible', $user->email_visible ?: 'visible_friend');
         $selectedPhoneVisibility = (string) old('phone_visible', $user->phone_visible ?: 'visible_friend');
         $paymentBankOptions = [
@@ -68,7 +38,11 @@
             'Setel Wallet',
         ];
         $selectedPaymentBank = (string) old('payment_bank_name', $user->payment_bank_name ?? '');
-        $isDriverOrAdmin = in_array($user->role, ['driver', 'admin'], true);
+        // Admin isn't subject to driver verification and can't create trips
+        // (see TripController::ensureCanManage), so vehicle/license/payment
+        // fields below are driver-only, not "driver or admin" like they used
+        // to be — an admin account never had a legitimate use for them.
+        $isDriver = $user->role === 'driver';
 
         // Profile completeness — computed from real fields, not a fake trust badge.
         // Name and email are already required at signup, so they count as done from
@@ -77,11 +51,11 @@
             ['label' => 'Full name', 'done' => trim((string) $user->name) !== '', 'tab' => 'profile'],
             ['label' => 'Email address', 'done' => trim((string) $user->email) !== '', 'tab' => 'profile'],
             ['label' => 'Profile photo', 'done' => (bool) $photoUrl, 'tab' => 'profile'],
-            ['label' => 'Phone number', 'done' => $phoneDigits !== '', 'tab' => 'profile'],
+            ['label' => 'Phone number', 'done' => trim((string) $user->phone) !== '', 'tab' => 'profile'],
         ];
         // Payment Methods is a driver-only concern (you only need to receive fares
         // if you drive), so it's the only tab hidden for passengers entirely.
-        if ($isDriverOrAdmin) {
+        if ($isDriver) {
             $completionItems[] = ['label' => 'Payment method', 'done' => (bool) ($user->payment_account_number || $duitnowQrUrl || $tngQrUrl), 'tab' => 'payment'];
             $completionItems[] = ['label' => 'Vehicle details', 'done' => (bool) ($user->vehicle_model && $user->vehicle_plate), 'tab' => 'profile'];
             $completionItems[] = ['label' => 'Verification documents', 'done' => (bool) ($user->driving_license_photo && $user->selfie_photo), 'tab' => 'profile'];
@@ -203,10 +177,10 @@
                     <span class="nav-btn-icon"><i class="fa-solid fa-user"></i></span>
                     <span class="nav-btn-text">
                         <span class="nav-btn-label">Profile Details</span>
-                        <span class="nav-btn-desc">Name, contact{{ $isDriverOrAdmin ? ', vehicle & docs' : '' }}</span>
+                        <span class="nav-btn-desc">Name, contact{{ $isDriver ? ', vehicle & docs' : '' }}</span>
                     </span>
                 </button>
-                @if($isDriverOrAdmin)
+                @if($isDriver)
                     <button type="button" class="settings-nav-btn" id="nav-btn-payment" role="tab" aria-selected="false" aria-controls="panel-payment" onclick="switchSettingsTab('payment')">
                         <span class="nav-btn-icon"><i class="fa-solid fa-wallet"></i></span>
                         <span class="nav-btn-text">
@@ -295,14 +269,9 @@
                         {{-- Phone / WhatsApp Number + Visibility --}}
                         <div class="form-group">
                             <label class="form-label" for="profilePhone">Phone / WhatsApp Number</label>
-                            <div class="input-wrap @error('whatsapp_number') has-error @enderror">
+                            <div class="input-wrap @error('phone') has-error @enderror">
                                 <span class="input-icon"><i class="fa-brands fa-whatsapp"></i></span>
-                                <select name="whatsapp_country_code" class="input-field select-field" style="width:110px; flex:0 0 auto; border-right:1px solid var(--hairline);" title="Country Code">
-                                    @foreach($countryOptions as $code => $label)
-                                        <option value="{{ $code }}" {{ $selectedCode === $code ? 'selected' : '' }}>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                                <input type="tel" id="profilePhone" name="whatsapp_number" class="input-field" value="{{ $selectedNumber }}" placeholder="e.g. 1110000011">
+                                <input type="tel" id="profilePhone" name="phone" class="input-field" value="{{ old('phone', $user->phone) }}" placeholder="+60 12-345 6789">
                                 <div class="vis-select-group">
                                     <span class="vis-select-label">Visible to</span>
                                     <select name="phone_visible" class="input-field select-field vis-select" title="Who can see your phone number">
@@ -312,14 +281,14 @@
                                     </select>
                                 </div>
                             </div>
-                            @error('whatsapp_number')
+                            @error('phone')
                                 <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
                             @enderror
                             <span class="field-hint">Used for trip coordination — visibility controls who else on CarpoolHub can see it.</span>
                         </div>
 
-                        {{-- Vehicle Details & Verification Documents (Driver & Admin) --}}
-                        @if($isDriverOrAdmin)
+                        {{-- Vehicle Details & Verification Documents (Driver only) --}}
+                        @if($isDriver)
                             <h4 class="form-section-title"><i class="fa-solid fa-car-side"></i> Vehicle & Verification</h4>
 
                             <div class="form-group">
@@ -432,10 +401,10 @@
             </div>
 
             {{-- ─────────────────────────────────────────────────────────────
-                 TAB 2: PAYMENT METHODS & QR (driver & admin only — passengers
-                 only ever pay drivers, they never need to receive fares)
+                 TAB 2: PAYMENT METHODS & QR (driver only — passengers only
+                 ever pay drivers, and admin never drives/collects fares)
             ─────────────────────────────────────────────────────────────── --}}
-            @if($isDriverOrAdmin)
+            @if($isDriver)
             <div class="settings-panel-card" id="panel-payment">
                 <div class="panel-head">
                     <h3 class="panel-title"><i class="fa-solid fa-wallet"></i> Payment Methods & QR</h3>

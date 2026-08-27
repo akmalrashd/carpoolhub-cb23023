@@ -201,6 +201,33 @@
                                             <span class="bento-side-desc">Analyze system metrics and export CSVs.</span>
                                         </div>
                                     </a>
+                                    <a href="{{ route('admin.audit-log.index') }}" class="bento-side-item" data-bento-item data-keywords="audit log history actions accountability trail">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-clipboard-list"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">Audit Log</strong>
+                                            <span class="bento-side-desc">See what other admins have changed.</span>
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('admin.messages.create') }}" class="bento-side-item" data-bento-item data-keywords="message notify broadcast send announce">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">Message Users</strong>
+                                            <span class="bento-side-desc">Notify one user, a role, or everyone.</span>
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('admin.system-settings.index') }}" class="bento-side-item" data-bento-item data-keywords="settings fuel price config system">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="fa-solid fa-sliders"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">System Settings</strong>
+                                            <span class="bento-side-desc">Fuel price fallback and platform config.</span>
+                                        </div>
+                                    </a>
                                 @elseif(auth()->user()?->role === 'passenger')
                                     <a href="{{ route('explore.index') }}" class="bento-side-item" data-bento-item data-keywords="book find ride join trip driver seat search">
                                         <span class="bento-side-icon-circle">
@@ -419,6 +446,9 @@
                     ['route' => 'notifications.index', 'active' => ['notifications.*'], 'icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'badge' => true],
                     ['route' => 'admin.users.index', 'active' => ['admin.users.*'], 'icon' => 'fa-solid fa-users-gear', 'label' => 'Users Admin'],
                     ['route' => 'admin.reports.index', 'active' => ['admin.reports.*'], 'icon' => 'fa-solid fa-chart-line', 'label' => 'Reports'],
+                    ['route' => 'admin.audit-log.index', 'active' => ['admin.audit-log.*'], 'icon' => 'fa-solid fa-clipboard-list', 'label' => 'Audit Log'],
+                    ['route' => 'admin.messages.create', 'active' => ['admin.messages.*'], 'icon' => 'fa-solid fa-paper-plane', 'label' => 'Messages'],
+                    ['route' => 'admin.system-settings.index', 'active' => ['admin.system-settings.*'], 'icon' => 'fa-solid fa-sliders', 'label' => 'System Settings'],
                     ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user-gear', 'label' => 'Settings'],
                 ],
                 default => [

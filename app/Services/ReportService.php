@@ -9,24 +9,73 @@ use Illuminate\Support\Facades\DB;
 
 class ReportService
 {
-    public function overview(): array
+    /**
+     * $dateFrom/$dateTo scope the metrics that have a natural date to scope
+     * by — trips/fare on trip_datetime, payments via their trip's
+     * trip_datetime (same join pattern monthlyTripSummary() uses), users on
+     * created_at. Both null (the default) reproduces the exact all-time
+     * behaviour this method always had. Every other ReportService method
+     * stays all-time — this is deliberately the only one date-scoped, since
+     * it's what the report's top-line KPI cards read from.
+     */
+    public function overview(?string $dateFrom = null, ?string $dateTo = null): array
     {
+        $from = $dateFrom ? \Carbon\Carbon::parse($dateFrom)->startOfDay() : null;
+        $to = $dateTo ? \Carbon\Carbon::parse($dateTo)->endOfDay() : null;
+
+        $tripQuery = Trip::query();
+        $userQuery = User::query();
+        $paymentQuery = TripPayment::query()->whereHas('trip', function ($q) use ($from, $to) {
+            if ($from) {
+                $q->where('trip_datetime', '>=', $from);
+            }
+            if ($to) {
+                $q->where('trip_datetime', '<=', $to);
+            }
+        });
+
+        if ($from) {
+            $tripQuery->where('trip_datetime', '>=', $from);
+            $userQuery->where('created_at', '>=', $from);
+        }
+        if ($to) {
+            $tripQuery->where('trip_datetime', '<=', $to);
+            $userQuery->where('created_at', '<=', $to);
+        }
+
+        // Neither of these has its own date concept elsewhere in this class
+        // (all-time in every other report method too) — when a range is
+        // active here, approximate via the row's own created_at so these two
+        // KPIs still narrow along with the rest of the overview instead of
+        // staying stuck at an all-time count that no longer matches the
+        // other cards on the same page.
+        $customRouteQuery = $this->customRoutePoints();
+        $joinRequestQuery = DB::table('trip_join_requests');
+        if ($from) {
+            $customRouteQuery->where('created_at', '>=', $from);
+            $joinRequestQuery->where('created_at', '>=', $from);
+        }
+        if ($to) {
+            $customRouteQuery->where('created_at', '<=', $to);
+            $joinRequestQuery->where('created_at', '<=', $to);
+        }
+
         return [
-            'users_total' => User::query()->count(),
-            'drivers_total' => User::query()->where('role', 'driver')->count(),
-            'passengers_total' => User::query()->where('role', 'passenger')->count(),
-            'active_users_total' => User::query()->where('is_active', true)->count(),
-            'trips_total' => Trip::query()->count(),
-            'trips_completed' => Trip::query()->whereIn('status', ['recorded', 'completed'])->count(),
-            'fare_total' => (float) Trip::query()->sum('fare_total'),
-            'payments_total' => (float) TripPayment::query()->sum('amount_due'),
-            'payments_paid' => (float) TripPayment::query()->where('payment_status', 'paid')->sum('amount_due'),
-            'payments_pending_unpaid' => (float) TripPayment::query()
+            'users_total' => (clone $userQuery)->count(),
+            'drivers_total' => (clone $userQuery)->where('role', 'driver')->count(),
+            'passengers_total' => (clone $userQuery)->where('role', 'passenger')->count(),
+            'active_users_total' => (clone $userQuery)->where('is_active', true)->count(),
+            'trips_total' => (clone $tripQuery)->count(),
+            'trips_completed' => (clone $tripQuery)->whereIn('status', ['recorded', 'completed'])->count(),
+            'fare_total' => (float) (clone $tripQuery)->sum('fare_total'),
+            'payments_total' => (float) (clone $paymentQuery)->sum('amount_due'),
+            'payments_paid' => (float) (clone $paymentQuery)->where('payment_status', 'paid')->sum('amount_due'),
+            'payments_pending_unpaid' => (float) (clone $paymentQuery)
                 ->whereIn('payment_status', ['unpaid', 'pending_confirmation'])
                 ->sum('amount_due'),
-            'public_trips_total' => Trip::query()->where('visibility', 'public')->count(),
-            'custom_route_requests_total' => $this->customRoutePoints()->count(),
-            'join_requests_total' => DB::table('trip_join_requests')->count(),
+            'public_trips_total' => (clone $tripQuery)->where('visibility', 'public')->count(),
+            'custom_route_requests_total' => $customRouteQuery->count(),
+            'join_requests_total' => $joinRequestQuery->count(),
         ];
     }
 
@@ -292,6 +341,31 @@ class ReportService
                 'total' => (int) $row->total,
                 'avg_score' => round((float) $row->avg_score, 1),
             ])->values()->all(),
+        ];
+    }
+
+    /**
+     * ai_usage_logs is written on every chat/fare-advice/route-recommendation
+     * call (app/Services/AiUsageLogger.php) but was never read anywhere
+     * outside that write path — no cost/spend visibility existed before this.
+     * Deliberately no dollar estimate: Anthropic pricing changes over time
+     * and hardcoding a rate risks silently going stale, whereas call/token
+     * counts already show the trend (usage up/down) without that risk.
+     */
+    public function aiUsageSummary(): array
+    {
+        $rows = DB::table('ai_usage_logs')->get();
+        $total = $rows->count();
+        $successful = $rows->where('success', true)->count();
+
+        return [
+            'total_calls' => $total,
+            'success_rate' => $total > 0 ? round(($successful / $total) * 100, 1) : 0.0,
+            'total_input_tokens' => (int) $rows->sum('input_tokens'),
+            'total_output_tokens' => (int) $rows->sum('output_tokens'),
+            'retry_count' => $rows->where('is_retry', true)->count(),
+            'by_endpoint' => $rows->groupBy('endpoint')->map->count()->all(),
+            'error_breakdown' => $rows->where('success', false)->groupBy('error_type')->map->count()->all(),
         ];
     }
 

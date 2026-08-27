@@ -45,6 +45,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'driving_license_photo',
         'selfie_photo',
         'is_active',
+        'deactivation_reason',
         'driver_verification_status',
         'driver_verification_reason',
         'driver_verified_at',

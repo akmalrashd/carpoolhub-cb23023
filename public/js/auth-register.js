@@ -68,6 +68,71 @@
         handleFileUpload(input, 'selfie', 'Upload selfie holding your license', 'fa-solid fa-user-shield', 5);
     }
 
+    // ── Phone number auto-format: +60 XX-XXX XXXX ───────────────────────
+    // Runs on whichever page has a plain #phone field (register.blade.php,
+    // complete-registration.blade.php) — self-guards on the element existing,
+    // same pattern as the wizard IIFE below. Reformats on every keystroke so
+    // typing/pasting any mix of digits (with or without +60/leading 0) always
+    // converges on the one uniform shape shown in the placeholder.
+    (() => {
+        const phoneInput = document.getElementById('phone');
+        if (!phoneInput) return;
+
+        const PREFIX = '+60 ';
+
+        const formatMyPhone = (raw) => {
+            let digits = raw.replace(/\D/g, '');
+            if (digits.startsWith('60')) digits = digits.slice(2);
+            if (digits.startsWith('0')) digits = digits.slice(1);
+
+            // The "011" prefix carries one extra local digit versus every
+            // other Malaysian mobile prefix — 10 digits total (XX-XXXX XXXX)
+            // instead of 9 (XX-XXX XXXX).
+            const isElevenPrefix = digits.slice(0, 2) === '11';
+            digits = digits.slice(0, isElevenPrefix ? 10 : 9);
+
+            let formatted = '+60';
+            if (digits.length) formatted += ' ' + digits.slice(0, 2);
+            if (isElevenPrefix) {
+                if (digits.length > 2) formatted += '-' + digits.slice(2, 6);
+                if (digits.length > 6) formatted += ' ' + digits.slice(6, 10);
+            } else {
+                if (digits.length > 2) formatted += '-' + digits.slice(2, 5);
+                if (digits.length > 5) formatted += ' ' + digits.slice(5, 9);
+            }
+            return formatted;
+        };
+
+        const applyFormat = () => {
+            const cursorFromEnd = phoneInput.value.length - phoneInput.selectionStart;
+            phoneInput.value = formatMyPhone(phoneInput.value);
+            const pos = Math.max(phoneInput.value.length - cursorFromEnd, PREFIX.length);
+            phoneInput.setSelectionRange(pos, pos);
+        };
+
+        const clearIfEmpty = () => {
+            if (phoneInput.value.trim() === '+60') {
+                phoneInput.value = '';
+            }
+        };
+
+        // Anchor the +60 immediately rather than waiting for the first
+        // keystroke, so it reads as already there — matching how the
+        // placeholder looks before any of this ran. An existing old('phone')
+        // value (e.g. after a failed submit on another field) is normalized
+        // into the same shape rather than left as whatever was typed before.
+        phoneInput.value = phoneInput.value ? formatMyPhone(phoneInput.value) : PREFIX;
+
+        phoneInput.addEventListener('input', applyFormat);
+        phoneInput.addEventListener('focus', () => {
+            if (!phoneInput.value) phoneInput.value = PREFIX;
+        });
+        phoneInput.addEventListener('blur', clearIfEmpty);
+        if (phoneInput.form) {
+            phoneInput.form.addEventListener('submit', clearIfEmpty);
+        }
+    })();
+
     // ── Step wizard ──────────────────────────────────────────────────────
     // Step 3 (vehicle & verification) only applies to drivers, so the active
     // step list is recomputed from the current role selection rather than

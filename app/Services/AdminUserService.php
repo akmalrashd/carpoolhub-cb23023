@@ -9,6 +9,10 @@ use Illuminate\Validation\ValidationException;
 
 class AdminUserService
 {
+    public function __construct(private readonly AdminAuditService $adminAuditService)
+    {
+    }
+
     public function paginatePendingDrivers(int $perPage = 10): LengthAwarePaginator
     {
         return User::query()
@@ -45,6 +49,8 @@ class AdminUserService
             'is_read' => false,
         ]);
 
+        $this->adminAuditService->log($admin, 'driver.approved', 'user', $target->id);
+
         return $target->refresh();
     }
 
@@ -73,6 +79,8 @@ class AdminUserService
             'related_id' => null,
             'is_read' => false,
         ]);
+
+        $this->adminAuditService->log($admin, 'driver.rejected', 'user', $target->id, $reason);
 
         return $target->refresh();
     }
@@ -109,10 +117,33 @@ class AdminUserService
             ]);
         }
 
+        $originalRole = $target->role;
+        $wasActive = (bool) $target->is_active;
+        $newActive = (bool) $data['is_active'];
+        $isDeactivating = $wasActive && ! $newActive;
+        $reason = trim((string) ($data['reason'] ?? ''));
+
+        // Unlike driver rejection (which already required a reason from day
+        // one), a plain suspend/reactivate never captured a reason at all —
+        // required here, but only on the actual deactivating transition, so
+        // editing an already-inactive user's role doesn't suddenly demand one.
+        if ($isDeactivating && $reason === '') {
+            throw ValidationException::withMessages([
+                'reason' => 'A reason is required when suspending an active account.',
+            ]);
+        }
+
         $updates = [
             'role' => $data['role'],
-            'is_active' => (bool) $data['is_active'],
+            'is_active' => $newActive,
         ];
+
+        if ($isDeactivating) {
+            $updates['deactivation_reason'] = $reason;
+        } elseif (! $wasActive && $newActive) {
+            // Reactivating clears whatever suspension reason was on file.
+            $updates['deactivation_reason'] = null;
+        }
 
         // Reactivating a driver through the generic edit-drawer still counts as
         // approval — otherwise is_active=true with driver_verification_status
@@ -122,7 +153,7 @@ class AdminUserService
         // driver_verification_status: that's what lets an already-approved
         // driver's login message correctly read "suspended" instead of
         // reverting to "pending".
-        if ($data['role'] === 'driver' && (bool) $data['is_active'] && $target->driver_verification_status !== 'approved') {
+        if ($data['role'] === 'driver' && $newActive && $target->driver_verification_status !== 'approved') {
             $updates['driver_verification_status'] = 'approved';
             $updates['driver_verification_reason'] = null;
             $updates['driver_verified_at'] = now();
@@ -130,6 +161,15 @@ class AdminUserService
         }
 
         $target->update($updates);
+
+        if ($originalRole !== $target->role) {
+            $this->adminAuditService->log($admin, 'user.role_changed', 'user', $target->id, "{$originalRole} -> {$target->role}");
+        }
+        if ($isDeactivating) {
+            $this->adminAuditService->log($admin, 'user.suspended', 'user', $target->id, $reason);
+        } elseif (! $wasActive && $newActive) {
+            $this->adminAuditService->log($admin, 'user.reactivated', 'user', $target->id);
+        }
 
         return $target->refresh();
     }

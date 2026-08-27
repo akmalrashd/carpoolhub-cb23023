@@ -15,10 +15,17 @@
             <p class="rp-subtitle">Operational analytics for CarpoolHub features: AI assistance, custom route preferences, passenger reliability, and payment tracking.</p>
         </div>
         <div class="rp-header-actions">
-            <button type="button" class="btn btn-ghost btn-sm" style="font-weight:700; color:var(--muted);">
-                <i class="fa-regular fa-calendar"></i>
-                {{ now()->format('M Y') }}
-            </button>
+            <form method="GET" action="{{ route('admin.reports.index') }}" style="display:flex;align-items:center;gap:6px;">
+                <input type="date" name="date_from" value="{{ $dateFrom }}" class="input" style="height:36px;padding:0 10px;font-size:13px;width:150px;">
+                <span style="color:var(--muted);font-size:13px;">to</span>
+                <input type="date" name="date_to" value="{{ $dateTo }}" class="input" style="height:36px;padding:0 10px;font-size:13px;width:150px;">
+                <button type="submit" class="btn btn-ghost btn-sm" style="font-weight:700;">
+                    <i class="fa-regular fa-calendar"></i> Apply
+                </button>
+                @if($dateFrom || $dateTo)
+                    <a href="{{ route('admin.reports.index') }}" class="btn btn-ghost btn-sm" style="font-weight:700;">Reset</a>
+                @endif
+            </form>
             <a href="{{ route('admin.reports.export.csv') }}" class="btn btn-primary btn-sm" style="background:var(--ch-yellow); color:var(--ch-yellow-ink); border:1px solid var(--ch-yellow-line); font-weight:800;">
                 <i class="fa-solid fa-download"></i>
                 Export CSV
@@ -29,6 +36,13 @@
             </a>
         </div>
     </div>
+
+    {{-- Only the KPI grid below is scoped by the date range above — every
+         other section on this page (top routes, monthly trend, AI/reliability
+         summaries, etc.) stays all-time; see ReportService::overview(). --}}
+    <p class="t-xs text-muted" style="margin:-8px 0 4px;">
+        Overview KPIs: <strong>{{ ($dateFrom || $dateTo) ? ($dateFrom ?: 'earliest') . ' – ' . ($dateTo ?: 'latest') : 'All time' }}</strong> · everything else below is all-time.
+    </p>
 
     {{-- KPI Grid: 4 Stat Cards --}}
     <div class="rp-kpi-grid">
@@ -276,6 +290,48 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    {{-- AI Usage: ai_usage_logs is written on every chat/fare-advice/route-recommendation
+         call but was never surfaced anywhere before this — no dollar estimate here on
+         purpose, see ReportService::aiUsageSummary(). --}}
+    <div class="rp-chart-card">
+        <div class="rp-chart-head">
+            <h2 class="rp-chart-title">
+                <i class="fa-solid fa-robot" style="color:var(--muted);"></i> AI Usage (Claude API)
+            </h2>
+        </div>
+        <div class="rp-kpi-grid" style="margin-top:0;">
+            <div class="rp-kpi-card">
+                <span class="rp-kpi-label">Total Calls</span>
+                <span class="rp-kpi-value">{{ $aiUsage['total_calls'] ?? 0 }}</span>
+                <span class="rp-kpi-delta mute">{{ $aiUsage['retry_count'] ?? 0 }} retried</span>
+            </div>
+            <div class="rp-kpi-card">
+                <span class="rp-kpi-label">Success Rate</span>
+                <span class="rp-kpi-value">{{ $aiUsage['success_rate'] ?? 0 }}%</span>
+            </div>
+            <div class="rp-kpi-card">
+                <span class="rp-kpi-label">Input Tokens</span>
+                <span class="rp-kpi-value">{{ number_format($aiUsage['total_input_tokens'] ?? 0) }}</span>
+            </div>
+            <div class="rp-kpi-card">
+                <span class="rp-kpi-label">Output Tokens</span>
+                <span class="rp-kpi-value">{{ number_format($aiUsage['total_output_tokens'] ?? 0) }}</span>
+            </div>
+        </div>
+        @if(!empty($aiUsage['by_endpoint']))
+            <div class="rp-table-wrap" style="margin-top:16px;">
+                <table class="rp-table">
+                    <thead><tr><th>Endpoint</th><th class="num">Calls</th></tr></thead>
+                    <tbody>
+                    @foreach($aiUsage['by_endpoint'] as $endpoint => $count)
+                        <tr><td>{{ $endpoint }}</td><td class="num">{{ $count }}</td></tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 
 </div>

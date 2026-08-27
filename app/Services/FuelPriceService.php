@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\SystemSetting;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -31,8 +32,43 @@ class FuelPriceService
     public function current(): array
     {
         return Cache::remember(self::CACHE_KEY, now()->addHours(self::CACHE_TTL_HOURS), function () {
-            return $this->fetchFromApi() ?? self::FALLBACK;
+            return $this->fetchFromApi() ?? $this->dbFallback() ?? self::FALLBACK;
         });
+    }
+
+    /**
+     * Called after an admin edits the fuel-price fallback in System Settings
+     * so the new values take effect immediately instead of waiting up to
+     * CACHE_TTL_HOURS for the cached figure to expire on its own.
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+    }
+
+    /**
+     * Admin-editable override, checked when the live API is unreachable —
+     * sits between fetchFromApi() and the hardcoded FALLBACK constant, which
+     * stays as the absolute last resort if this isn't configured either.
+     */
+    private function dbFallback(): ?array
+    {
+        $budi = SystemSetting::get('fuel_price_ron95_budi');
+        $ron95 = SystemSetting::get('fuel_price_ron95_market');
+        $ron97 = SystemSetting::get('fuel_price_ron97_market');
+        $diesel = SystemSetting::get('fuel_price_diesel_market');
+
+        if ($budi === null || $ron95 === null || $ron97 === null || $diesel === null) {
+            return null;
+        }
+
+        return [
+            'RON95' => ['budi' => (float) $budi, 'market' => (float) $ron95],
+            'RON97' => ['market' => (float) $ron97],
+            'Diesel' => ['market' => (float) $diesel],
+            'as_of' => null,
+            'source' => 'admin_override',
+        ];
     }
 
     private function fetchFromApi(): ?array
