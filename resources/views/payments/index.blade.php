@@ -832,11 +832,13 @@
                                     @if($isAdmin)
                                         <button
                                             type="button"
-                                            class="payments-btn payments-btn-soft open-reverse-payment-modal"
+                                            class="payments-btn payments-btn-danger payments-btn-icon open-reverse-payment-modal"
                                             data-action="{{ route('payments.reverse', $payment) }}"
                                             data-passenger="{{ $payment->user?->name ?: '-' }}"
                                             data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
-                                        ><i class="fa-solid fa-rotate-left"></i> Reverse</button>
+                                            title="Reverse payment"
+                                            aria-label="Reverse payment"
+                                        ><i class="fa-solid fa-rotate-left"></i></button>
                                     @endif
                                 @endif
                                 </div>
@@ -1173,7 +1175,7 @@
                                             <button
                                                 type="button"
                                                 class="payments-btn payment-table-action open-payment-receipt-btn"
-                                                style="width:100%;"
+                                                style="{{ $isAdmin ? 'flex:1;' : 'width:100%;' }}"
                                                 data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
                                                 data-trip-ref="{{ $tripRef }}"
                                                 data-trip-mode="{{ ($payment->trip?->is_return_trip ?? false) ? 'Return' : 'Outbound' }}"
@@ -1191,12 +1193,13 @@
                                             @if($isAdmin)
                                                 <button
                                                     type="button"
-                                                    class="payments-btn payment-table-action open-reverse-payment-modal"
-                                                    style="width:100%;margin-top:4px;"
+                                                    class="payments-btn payments-btn-danger payments-btn-icon open-reverse-payment-modal"
                                                     data-action="{{ route('payments.reverse', $payment) }}"
                                                     data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                     data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
-                                                ><i class="fa-solid fa-rotate-left"></i> Reverse</button>
+                                                    title="Reverse payment"
+                                                    aria-label="Reverse payment"
+                                                ><i class="fa-solid fa-rotate-left"></i></button>
                                             @endif
                                         </div>
                                     @endif
