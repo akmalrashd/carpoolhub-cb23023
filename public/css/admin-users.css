@@ -175,6 +175,9 @@
 textarea.eu-select { width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px; line-height: 1.5; }
 .eu-save-btn { width: 100%; padding: 11px; border-radius: var(--r-sm); border: none; cursor: pointer; font-size: 14px; font-weight: 800; font-family: var(--font-ui), sans-serif; background: var(--ch-yellow); color: var(--ch-yellow-ink); margin-top: 4px; transition: background .15s, transform .1s; }
 .eu-save-btn:hover { background: var(--ch-yellow-deep); transform: translateY(-1px); }
+.eu-qp-btn { padding: 5px 11px; border-radius: 999px; border: 1.5px solid var(--hairline-strong); background: var(--surface); color: var(--ink); font-size: 12px; font-weight: 700; font-family: var(--font-ui), sans-serif; cursor: pointer; transition: background .12s, border-color .12s; }
+.eu-qp-btn:hover { background: var(--surface-2); }
+.eu-qp-btn.active { background: var(--ch-yellow); border-color: var(--ch-yellow-deep); color: var(--ch-yellow-ink); }
 /* â”€â”€ Pagination â”€â”€ */
 nav[role="navigation"] { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 4px; }
 nav[role="navigation"] span, nav[role="navigation"] a { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 6px; border-radius: var(--r-sm); border: 1px solid var(--hairline-strong); font-size: 13px; font-weight: 600; color: var(--ink); background: var(--surface); text-decoration: none; transition: background .12s; }

@@ -21,7 +21,9 @@ class UpdateAdminUserRequest extends FormRequest
             // transition (needs the target's current state, not just this
             // request's payload) — kept nullable here, not required_if.
             'reason' => ['nullable', 'string', 'max:1000'],
+            // Same nullable-not-required_if reasoning as `reason` above: a
+            // blank value here means permanent, enforced in AdminUserService.
+            'suspended_until' => ['nullable', 'date', 'after:now'],
         ];
     }
 }
-

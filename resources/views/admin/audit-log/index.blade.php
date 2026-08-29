@@ -208,7 +208,10 @@
                         {{ $log->created_at?->format('d M Y, h:i A') }}
                         <div class="t-xs text-muted">{{ $log->created_at?->diffForHumans() }}</div>
                     </td>
-                    <td style="font-weight:600;">{{ $log->admin?->name ?? 'Unknown' }}</td>
+                    <td style="font-weight:600;">
+                        {{ $log->admin?->name ?? 'System' }}
+                        @if(!$log->admin_id)<span class="t-xs text-muted" style="display:block;font-weight:500;">Automated</span>@endif
+                    </td>
                     <td>
                         <span class="badge {{ $badgeClass }}" title="{{ $badgeLabel }}"><i class="fa-solid {{ $badgeIcon }}"></i> {{ $log->action }}</span>
                     </td>

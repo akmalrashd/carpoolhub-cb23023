@@ -49,6 +49,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // paths with a same-day driver nag for the same trip.
         $schedule->command('notifications:payment-grace-reminder')
             ->dailyAt('09:00');
+
+        // Every 5 minutes, not daily like the reminders above — a temporary
+        // suspension can expire at any minute and the account should regain
+        // access promptly, not sit needlessly suspended for up to a day.
+        $schedule->command('users:reactivate-expired-suspensions')
+            ->everyFiveMinutes();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

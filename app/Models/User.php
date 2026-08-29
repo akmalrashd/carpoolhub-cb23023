@@ -46,6 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'selfie_photo',
         'is_active',
         'deactivation_reason',
+        'suspended_until',
         'driver_verification_status',
         'driver_verification_reason',
         'driver_verified_at',
@@ -76,6 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'suspended_until' => 'datetime',
             'driving_license_expiry' => 'date',
             'driver_verified_at' => 'datetime',
         ];
@@ -240,7 +242,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 return ['label' => 'Rejected', 'pill_class' => 'status-rejected', 'dot_color' => '#dc2626', 'reason' => $this->driver_verification_reason];
             }
             if (! $this->is_active) {
-                return ['label' => 'Suspended', 'pill_class' => 'status-inactive', 'dot_color' => 'var(--muted-2)', 'reason' => $this->deactivation_reason];
+                return ['label' => 'Suspended', 'pill_class' => 'status-inactive', 'dot_color' => 'var(--muted-2)', 'reason' => $this->suspensionNote()];
             }
 
             return ['label' => 'Active', 'pill_class' => 'status-active', 'dot_color' => '#16a34a', 'reason' => null];
@@ -248,7 +250,23 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return $this->is_active
             ? ['label' => 'Active', 'pill_class' => 'status-active', 'dot_color' => '#16a34a', 'reason' => null]
-            : ['label' => 'Suspended', 'pill_class' => 'status-inactive', 'dot_color' => 'var(--muted-2)', 'reason' => $this->deactivation_reason];
+            : ['label' => 'Suspended', 'pill_class' => 'status-inactive', 'dot_color' => 'var(--muted-2)', 'reason' => $this->suspensionNote()];
+    }
+
+    /**
+     * deactivation_reason plus, when this is a timed suspension rather than
+     * an indefinite one, when it auto-reactivates — composed once here so
+     * every caller of accountStatusLabel() (table, license modal, tooltip)
+     * picks up the expiry without each needing its own formatting logic.
+     */
+    private function suspensionNote(): ?string
+    {
+        $parts = array_filter([
+            $this->deactivation_reason,
+            $this->suspended_until ? 'Auto-reactivates '.$this->suspended_until->format('d M Y, h:ia') : null,
+        ]);
+
+        return $parts ? implode(' · ', $parts) : null;
     }
 
     public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void

@@ -179,12 +179,19 @@ class GoogleAuthController extends Controller
 
     private function inactiveMessage(User $user): string
     {
+        // A timed suspension should tell the blocked user when they'll get
+        // back in, not just that they're stuck — otherwise "contact support"
+        // is the only path even though this one resolves itself.
+        $until = $user->suspended_until
+            ? ' It will be automatically lifted on '.$user->suspended_until->format('d M Y, h:ia').'.'
+            : '';
+
         if ($user->role !== 'driver') {
             $reason = trim((string) $user->deactivation_reason);
 
             return $reason !== ''
-                ? "Your account has been suspended. Please contact support. Reason: {$reason}"
-                : 'Your account has been suspended. Please contact support.';
+                ? "Your account has been suspended. Please contact support. Reason: {$reason}{$until}"
+                : "Your account has been suspended. Please contact support.{$until}";
         }
 
         $driverReason = trim((string) $user->deactivation_reason);
@@ -192,8 +199,8 @@ class GoogleAuthController extends Controller
         return match ($user->driver_verification_status) {
             'rejected' => 'Your driver application was rejected. Check your notifications, update your documents in Settings, and resubmit.',
             'approved' => $driverReason !== ''
-                ? "Your driver account has been suspended. Please contact support. Reason: {$driverReason}"
-                : 'Your driver account has been suspended. Please contact support.',
+                ? "Your driver account has been suspended. Please contact support. Reason: {$driverReason}{$until}"
+                : "Your driver account has been suspended. Please contact support.{$until}",
             default => 'Your driver account is pending admin approval.',
         };
     }

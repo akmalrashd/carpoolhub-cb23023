@@ -545,6 +545,17 @@
                 <p class="t-xs text-muted" style="margin:0 0 6px;">The user will see this exact text if they try to log in while suspended.</p>
                 <textarea id="eu-reason" name="reason" class="eu-select" rows="4" maxlength="1000" placeholder="e.g. Repeated no-show complaints."></textarea>
             </div>
+            <div class="eu-field" id="eu-suspend-until-field" style="display:none;">
+                <label class="eu-label" for="eu-suspended-until">Suspend Until (optional)</label>
+                <p class="t-xs text-muted" style="margin:0 0 6px;">Leave blank for a permanent suspension. Set a date and the account reactivates on its own once it passes.</p>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                    <button type="button" class="eu-qp-btn" id="eu-qp-1" onclick="setSuspendQuickPick(1,this)">1 Day</button>
+                    <button type="button" class="eu-qp-btn" id="eu-qp-7" onclick="setSuspendQuickPick(7,this)">7 Days</button>
+                    <button type="button" class="eu-qp-btn" id="eu-qp-30" onclick="setSuspendQuickPick(30,this)">30 Days</button>
+                    <button type="button" class="eu-qp-btn active" id="eu-qp-permanent" onclick="setSuspendQuickPick(null,this)">Permanent</button>
+                </div>
+                <input type="datetime-local" id="eu-suspended-until" name="suspended_until" class="eu-select" onchange="clearSuspendQuickPickHighlight()">
+            </div>
             <button type="submit" class="eu-save-btn"><i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Save Changes</button>
         </form>
         <button onclick="closeEditDrawer()" style="width:100%;margin-top:8px;padding:9px;border-radius:var(--r-sm);border:1px solid var(--hairline-strong);background:var(--surface);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-ui);">Cancel</button>
@@ -779,6 +790,8 @@ function openEditDrawer(uid,name,role,active){
     document.getElementById('eu-status').value = active;
     document.getElementById('eu-reason').value = '';
     document.getElementById('eu-reason-count').textContent = '0 / 1000';
+    document.getElementById('eu-suspended-until').value = '';
+    setSuspendQuickPick(null, document.getElementById('eu-qp-permanent'));
     euWasActive = active;
     toggleEditReasonField();
     document.getElementById('edit-drawer').style.display='flex';
@@ -792,9 +805,30 @@ function toggleEditReasonField(){
     var status = document.getElementById('eu-status').value;
     var reasonField = document.getElementById('eu-reason-field');
     var reasonInput = document.getElementById('eu-reason');
+    var suspendUntilField = document.getElementById('eu-suspend-until-field');
     var isDeactivating = euWasActive === '1' && status === '0';
     reasonField.style.display = isDeactivating ? 'block' : 'none';
     reasonInput.required = isDeactivating;
+    suspendUntilField.style.display = isDeactivating ? 'block' : 'none';
+}
+
+// datetime-local wants "YYYY-MM-DDTHH:mm" in local time, not the UTC ISO
+// string toISOString() gives — build it from local getters instead so the
+// picker shows the same wall-clock time the admin actually picked.
+function setSuspendQuickPick(days, btn){
+    var input = document.getElementById('eu-suspended-until');
+    if (days === null) {
+        input.value = '';
+    } else {
+        var d = new Date(Date.now() + days * 86400000);
+        var pad = function(n){ return String(n).padStart(2,'0'); };
+        input.value = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+    }
+    document.querySelectorAll('.eu-qp-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+}
+function clearSuspendQuickPickHighlight(){
+    document.querySelectorAll('.eu-qp-btn').forEach(function(b){ b.classList.remove('active'); });
 }
 
 (function () {

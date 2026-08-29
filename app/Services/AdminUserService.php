@@ -165,8 +165,16 @@ class AdminUserService
 
         if ($isDeactivating) {
             $updates['deactivation_reason'] = $reason;
+            // Blank means permanent — ReactivateExpiredSuspensions only ever
+            // acts on a non-null suspended_until, so leaving this null is what
+            // makes a suspension indefinite instead of timed.
+            $updates['suspended_until'] = trim((string) ($data['suspended_until'] ?? '')) !== ''
+                ? $data['suspended_until']
+                : null;
         } elseif (! $wasActive && $newActive) {
+            // Reactivating clears whatever suspension reason/expiry was on file.
             $updates['deactivation_reason'] = null;
+            $updates['suspended_until'] = null;
         }
 
         // Reactivating a driver through the generic edit-drawer still counts as
@@ -190,7 +198,10 @@ class AdminUserService
             $this->adminAuditService->log($admin, 'user.role_changed', 'user', $target->id, "{$originalRole} -> {$target->role}");
         }
         if ($isDeactivating) {
-            $this->adminAuditService->log($admin, 'user.suspended', 'user', $target->id, $reason);
+            // accountStatusLabel()['reason'] rather than the bare $reason
+            // variable so the log picks up "Auto-reactivates ..." too when
+            // this was a timed suspension, not just the admin's typed reason.
+            $this->adminAuditService->log($admin, 'user.suspended', 'user', $target->id, $target->accountStatusLabel()['reason'] ?? $reason);
         } elseif (! $wasActive && $newActive) {
             $this->adminAuditService->log($admin, 'user.reactivated', 'user', $target->id);
         }

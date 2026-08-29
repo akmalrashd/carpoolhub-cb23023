@@ -8,10 +8,16 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AdminAuditService
 {
-    public function log(User $admin, string $action, ?string $targetType = null, ?int $targetId = null, ?string $description = null): void
+    /**
+     * $admin is nullable for the one system-initiated action this supports —
+     * ReactivateExpiredSuspensions has no admin to attribute a timed
+     * suspension's expiry to. admin_action_logs.admin_id was already
+     * nullable(); every other call site still passes a real admin.
+     */
+    public function log(?User $admin, string $action, ?string $targetType = null, ?int $targetId = null, ?string $description = null): void
     {
         AdminActionLog::create([
-            'admin_id' => $admin->id,
+            'admin_id' => $admin?->id,
             'action' => $action,
             'target_type' => $targetType,
             'target_id' => $targetId,
@@ -21,7 +27,7 @@ class AdminAuditService
     }
 
     /**
-     * @param array{q?: string, action?: string, admin_id?: string, date_from?: string, date_to?: string} $filters
+     * @param  array{q?: string, action?: string, admin_id?: string, date_from?: string, date_to?: string}  $filters
      */
     public function paginateLogs(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
