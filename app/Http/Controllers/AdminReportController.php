@@ -7,17 +7,21 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminReportController extends Controller
 {
-    public function __construct(private readonly ReportService $reportService)
-    {
-    }
+    public function __construct(private readonly ReportService $reportService) {}
 
     /**
      * The ReportService calls every admin report view needs. Was copied
-     * into index(), exportCsv() and exportPdfView() separately — a metric
+     * into index(), exportExcel() and exportPdfView() separately — a metric
      * added to the report page had to be remembered in three places to also
      * reach the exports. $forExport switches monthlyReports to the export's
      * longer 24-month window; everything else is identical either way.
@@ -33,6 +37,7 @@ class AdminReportController extends Controller
                 ? $this->reportService->monthlyTripSummaryForExport()
                 : $this->reportService->monthlyTripSummary(),
             'topRoutes' => $this->reportService->topRoutes(),
+            'topDrivers' => $this->reportService->topDrivers(),
             'requestSummary' => $this->reportService->requestDecisionSummary(),
             'customRouteSummary' => $this->reportService->customRouteSummary(),
             'aiSupportSummary' => $this->reportService->aiSupportSummary(),
@@ -57,13 +62,22 @@ class AdminReportController extends Controller
         return view('admin.reports.index', $data);
     }
 
-    public function exportCsv(): StreamedResponse
+    /**
+     * One real worksheet per dataset — Power BI (and Excel) treat each sheet
+     * as its own table, so every sheet here is a plain rectangular grid:
+     * headers as column titles in row 1, one record per row after that.
+     * KPI "snapshot" groups (Overview, Passenger Requests, etc.) that used to
+     * be dumped as vertical key/value pairs are written as a single wide row
+     * instead — still one column per metric, just laid out horizontally.
+     */
+    public function exportExcel(): StreamedResponse
     {
         [
             'overview' => $overview,
             'paymentBreakdown' => $paymentBreakdown,
             'monthlyReports' => $monthlyReports,
             'topRoutes' => $topRoutes,
+            'topDrivers' => $topDrivers,
             'requestSummary' => $requestSummary,
             'customRouteSummary' => $customRouteSummary,
             'aiSupportSummary' => $aiSupportSummary,
@@ -72,120 +86,209 @@ class AdminReportController extends Controller
             'thesisAlignment' => $thesisAlignment,
         ] = $this->sharedReportData(forExport: true);
         $dailyTripRanges = $this->reportService->dailyTripRanges();
-        $filename = 'carpoolhub-admin-report-' . now()->format('Ymd-His') . '.csv';
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename={$filename}",
+        $paymentBreakdownRows = collect($paymentBreakdown)
+            ->map(fn (array $row, string $status) => [
+                'status' => ucfirst(str_replace('_', ' ', $status)),
+                'count' => $row['count'],
+                'amount' => $row['amount'],
+            ])
+            ->values()->all();
+
+        $dailyTripRows = collect($dailyTripRanges['30d'] ?? [])
+            ->map(fn (int $count, string $date) => ['date' => $date, 'trips' => $count])
+            ->values()->all();
+
+        $byEndpointRows = collect($aiUsage['by_endpoint'] ?? [])
+            ->map(fn (int $count, string $endpoint) => ['endpoint' => $endpoint, 'count' => $count])
+            ->values()->all();
+
+        $errorBreakdownRows = collect($aiUsage['error_breakdown'] ?? [])
+            ->map(fn (int $count, ?string $type) => ['type' => $type ?: 'Unknown', 'count' => $count])
+            ->values()->all();
+
+        // [sheet title, columns, rows] — columns: header label, source key, cell type.
+        $sheets = [
+            ['Report Info', [
+                ['header' => 'Field', 'key' => 'field', 'type' => 'string'],
+                ['header' => 'Value', 'key' => 'value', 'type' => 'string'],
+            ], [
+                ['field' => 'Report', 'value' => 'CarpoolHub Admin Report'],
+                ['field' => 'Generated At', 'value' => now()->toDateTimeString()],
+                ['field' => 'Data Scope', 'value' => 'All-time (the live Reports page can date-filter the Overview KPIs; every export is always all-time)'],
+            ]],
+            ['Overview', [
+                ['header' => 'Users Total', 'key' => 'users_total', 'type' => 'int'],
+                ['header' => 'Drivers Total', 'key' => 'drivers_total', 'type' => 'int'],
+                ['header' => 'Passengers Total', 'key' => 'passengers_total', 'type' => 'int'],
+                ['header' => 'Active Users Total', 'key' => 'active_users_total', 'type' => 'int'],
+                ['header' => 'Trips Total', 'key' => 'trips_total', 'type' => 'int'],
+                ['header' => 'Trips Completed', 'key' => 'trips_completed', 'type' => 'int'],
+                ['header' => 'Fare Total (RM)', 'key' => 'fare_total', 'type' => 'money'],
+                ['header' => 'Payments Total (RM)', 'key' => 'payments_total', 'type' => 'money'],
+                ['header' => 'Payments Paid (RM)', 'key' => 'payments_paid', 'type' => 'money'],
+                ['header' => 'Payments Pending/Unpaid (RM)', 'key' => 'payments_pending_unpaid', 'type' => 'money'],
+                ['header' => 'Public Trips Total', 'key' => 'public_trips_total', 'type' => 'int'],
+                ['header' => 'Custom Route Requests Total', 'key' => 'custom_route_requests_total', 'type' => 'int'],
+                ['header' => 'Join Requests Total', 'key' => 'join_requests_total', 'type' => 'int'],
+            ], [$overview]],
+            ['Payment Breakdown', [
+                ['header' => 'Status', 'key' => 'status', 'type' => 'string'],
+                ['header' => 'Count', 'key' => 'count', 'type' => 'int'],
+                ['header' => 'Amount (RM)', 'key' => 'amount', 'type' => 'money'],
+            ], $paymentBreakdownRows],
+            ['Top Routes', [
+                ['header' => 'Route', 'key' => 'route_name', 'type' => 'string'],
+                ['header' => 'Trips', 'key' => 'trip_count', 'type' => 'int'],
+                ['header' => 'Avg Fare (RM)', 'key' => 'avg_fare', 'type' => 'money'],
+                ['header' => 'Drivers', 'key' => 'driver_count', 'type' => 'int'],
+                ['header' => 'Fare Total (RM)', 'key' => 'fare_total', 'type' => 'money'],
+            ], $topRoutes],
+            ['Top Drivers', [
+                ['header' => 'Driver', 'key' => 'driver_name', 'type' => 'string'],
+                ['header' => 'Trips', 'key' => 'trip_count', 'type' => 'int'],
+                ['header' => 'Completed', 'key' => 'completed_count', 'type' => 'int'],
+                ['header' => 'Completion Rate (%)', 'key' => 'completion_rate', 'type' => 'percent'],
+                ['header' => 'Distinct Routes', 'key' => 'route_count', 'type' => 'int'],
+                ['header' => 'Avg Fare (RM)', 'key' => 'avg_fare', 'type' => 'money'],
+                ['header' => 'Total Revenue (RM)', 'key' => 'fare_total', 'type' => 'money'],
+            ], $topDrivers],
+            ['Monthly Summary', [
+                ['header' => 'Month', 'key' => 'month_key', 'type' => 'string'],
+                ['header' => 'Trips', 'key' => 'trip_count', 'type' => 'int'],
+                ['header' => 'New Users', 'key' => 'new_users', 'type' => 'int'],
+                ['header' => 'Fare Total (RM)', 'key' => 'fare_total', 'type' => 'money'],
+                ['header' => 'Paid Total (RM)', 'key' => 'paid_total', 'type' => 'money'],
+                ['header' => 'Pending/Unpaid Total (RM)', 'key' => 'pending_unpaid_total', 'type' => 'money'],
+            ], $monthlyReports],
+            ['Trips By Day', [
+                ['header' => 'Date', 'key' => 'date', 'type' => 'string'],
+                ['header' => 'Trips', 'key' => 'trips', 'type' => 'int'],
+            ], $dailyTripRows],
+            ['Passenger Requests', [
+                ['header' => 'Total', 'key' => 'total', 'type' => 'int'],
+                ['header' => 'Pending', 'key' => 'pending', 'type' => 'int'],
+                ['header' => 'Approved', 'key' => 'approved', 'type' => 'int'],
+                ['header' => 'Rejected', 'key' => 'rejected', 'type' => 'int'],
+                ['header' => 'Cancelled', 'key' => 'cancelled', 'type' => 'int'],
+                ['header' => 'Approval Rate (%)', 'key' => 'approval_rate', 'type' => 'percent'],
+                ['header' => 'Cancellation Rate (%)', 'key' => 'cancellation_rate', 'type' => 'percent'],
+                ['header' => 'Avg Decision Minutes', 'key' => 'avg_decision_minutes', 'type' => 'decimal'],
+            ], [$requestSummary]],
+            ['Custom Route Preference', [
+                ['header' => 'Total Route Points', 'key' => 'total_route_points', 'type' => 'int'],
+                ['header' => 'Custom Requests', 'key' => 'custom_requests', 'type' => 'int'],
+                ['header' => 'Accepted Custom Requests', 'key' => 'accepted_custom_requests', 'type' => 'int'],
+                ['header' => 'Custom Share (%)', 'key' => 'custom_share', 'type' => 'percent'],
+                ['header' => 'Avg Detour (KM)', 'key' => 'avg_detour_km', 'type' => 'decimal'],
+                ['header' => 'Avg Extra Fee (RM)', 'key' => 'avg_extra_fee', 'type' => 'money'],
+                ['header' => 'Extra Fee Total (RM)', 'key' => 'extra_fee_total', 'type' => 'money'],
+            ], [$customRouteSummary]],
+            ['AI Decision Support', [
+                ['header' => 'AI Interactions', 'key' => 'recommendation_logs', 'type' => 'int'],
+                ['header' => 'Avg Match Score (%)', 'key' => 'avg_match_score', 'type' => 'percent'],
+                ['header' => 'Match Score Measured', 'key' => 'avg_match_score_measured', 'type' => 'bool'],
+                ['header' => 'Strategy Suggestions', 'key' => 'strategy_suggestions', 'type' => 'int'],
+            ], [$aiSupportSummary]],
+            ['Passenger Reliability', [
+                ['header' => 'Profiles Total', 'key' => 'profiles_total', 'type' => 'int'],
+                ['header' => 'High Risk Total', 'key' => 'high_risk_total', 'type' => 'int'],
+                ['header' => 'Avg Risk Score', 'key' => 'avg_risk_score', 'type' => 'decimal'],
+                ['header' => 'Avg Payment Reliability (%)', 'key' => 'avg_payment_reliability', 'type' => 'percent'],
+                ['header' => 'Total Payments', 'key' => 'total_payments', 'type' => 'int'],
+                ['header' => 'Paid Payments', 'key' => 'paid_payments', 'type' => 'int'],
+                ['header' => 'Unpaid Payments', 'key' => 'unpaid_payments', 'type' => 'int'],
+                ['header' => 'Outstanding Amount (RM)', 'key' => 'outstanding_amount', 'type' => 'money'],
+            ], [$reliabilitySummary]],
+            ['AI Usage Summary', [
+                ['header' => 'Total Calls', 'key' => 'total_calls', 'type' => 'int'],
+                ['header' => 'Success Rate (%)', 'key' => 'success_rate', 'type' => 'percent'],
+                ['header' => 'Total Input Tokens', 'key' => 'total_input_tokens', 'type' => 'int'],
+                ['header' => 'Total Output Tokens', 'key' => 'total_output_tokens', 'type' => 'int'],
+                ['header' => 'Retry Count', 'key' => 'retry_count', 'type' => 'int'],
+            ], [$aiUsage]],
+            ['AI Usage By Endpoint', [
+                ['header' => 'Endpoint', 'key' => 'endpoint', 'type' => 'string'],
+                ['header' => 'Calls', 'key' => 'count', 'type' => 'int'],
+            ], $byEndpointRows],
+            ['AI Usage Errors', [
+                ['header' => 'Error Type', 'key' => 'type', 'type' => 'string'],
+                ['header' => 'Count', 'key' => 'count', 'type' => 'int'],
+            ], $errorBreakdownRows],
+            ['Thesis Module Evidence', [
+                ['header' => 'Objective', 'key' => 'objective', 'type' => 'string'],
+                ['header' => 'Evidence', 'key' => 'evidence', 'type' => 'int'],
+                ['header' => 'Unit', 'key' => 'unit', 'type' => 'string'],
+            ], $thesisAlignment],
         ];
 
-        $callback = function () use ($overview, $paymentBreakdown, $monthlyReports, $topRoutes, $requestSummary, $customRouteSummary, $aiSupportSummary, $aiUsage, $reliabilitySummary, $thesisAlignment, $dailyTripRanges): void {
-            $handle = fopen('php://output', 'w');
+        $spreadsheet = new Spreadsheet;
+        foreach ($sheets as $i => [$title, $columns, $rows]) {
+            $sheet = $i === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
+            $sheet->setTitle($title);
+            $this->writeReportSheet($sheet, $columns, $rows);
+        }
+        $spreadsheet->setActiveSheetIndex(0);
 
-            fputcsv($handle, ['CarpoolHub Admin Report']);
-            fputcsv($handle, ['Generated At', now()->toDateTimeString()]);
-            fputcsv($handle, []);
+        $filename = 'carpoolhub-admin-report-'.now()->format('Ymd-His').'.xlsx';
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => "attachment; filename={$filename}",
+            'Cache-Control' => 'max-age=0',
+        ];
 
-            fputcsv($handle, ['Overview']);
-            foreach ($overview as $key => $value) {
-                fputcsv($handle, [$key, is_numeric($value) ? (string) $value : $value]);
-            }
-            fputcsv($handle, []);
+        return response()->stream(function () use ($spreadsheet): void {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, 200, $headers);
+    }
 
-            fputcsv($handle, ['Payment Breakdown']);
-            fputcsv($handle, ['Status', 'Count', 'Amount']);
-            foreach ($paymentBreakdown as $status => $row) {
-                fputcsv($handle, [$status, (string) $row['count'], number_format((float) $row['amount'], 2, '.', '')]);
-            }
-            fputcsv($handle, []);
+    /**
+     * Writes one column-headers-then-records grid onto a worksheet. Text
+     * columns use setCellValueExplicit(..., TYPE_STRING) rather than the
+     * auto-detecting setCellValue() — a route/driver name starting with
+     * = + - @ would otherwise be stored as a live formula when the workbook
+     * is opened (the XLSX equivalent of CSV formula injection).
+     */
+    private function writeReportSheet(Worksheet $sheet, array $columns, array $rows): void
+    {
+        $lastCol = Coordinate::stringFromColumnIndex(count($columns));
 
-            fputcsv($handle, ['Thesis Module Evidence']);
-            fputcsv($handle, ['Module', 'Evidence', 'Unit']);
-            foreach ($thesisAlignment as $row) {
-                fputcsv($handle, [$row['objective'], (string) $row['evidence'], $row['unit']]);
-            }
-            fputcsv($handle, []);
+        foreach ($columns as $i => $column) {
+            $coord = Coordinate::stringFromColumnIndex($i + 1).'1';
+            $sheet->setCellValueExplicit($coord, $column['header'], DataType::TYPE_STRING);
+        }
+        $headerRange = "A1:{$lastCol}1";
+        $sheet->getStyle($headerRange)->getFont()->setBold(true)->getColor()->setRGB('2A1E04');
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FACC15');
 
-            fputcsv($handle, ['Custom Route Preference']);
-            foreach ($customRouteSummary as $key => $value) {
-                fputcsv($handle, [$key, (string) $value]);
-            }
-            fputcsv($handle, []);
+        foreach ($rows as $r => $row) {
+            $excelRow = $r + 2;
+            foreach ($columns as $i => $column) {
+                $coord = Coordinate::stringFromColumnIndex($i + 1).$excelRow;
+                $value = $row[$column['key']] ?? null;
 
-            fputcsv($handle, ['Passenger Requests']);
-            foreach ($requestSummary as $key => $value) {
-                fputcsv($handle, [$key, (string) $value]);
-            }
-            fputcsv($handle, []);
+                match ($column['type']) {
+                    'string' => $sheet->setCellValueExplicit($coord, (string) ($value ?? ''), DataType::TYPE_STRING),
+                    'bool' => $sheet->setCellValueExplicit($coord, $value ? 'Yes' : 'No', DataType::TYPE_STRING),
+                    default => $sheet->setCellValue($coord, is_numeric($value) ? (float) $value : 0),
+                };
 
-            fputcsv($handle, ['AI Decision Support']);
-            foreach ($aiSupportSummary as $key => $value) {
-                fputcsv($handle, [$key, (string) $value]);
-            }
-            fputcsv($handle, []);
-
-            fputcsv($handle, ['Passenger Reliability']);
-            foreach ($reliabilitySummary as $key => $value) {
-                if ($key === 'by_level') {
-                    continue;
+                $format = match ($column['type']) {
+                    'money', 'decimal' => '#,##0.00',
+                    'percent' => '0.0"%"',
+                    'int' => '#,##0',
+                    default => null,
+                };
+                if ($format !== null) {
+                    $sheet->getStyle($coord)->getNumberFormat()->setFormatCode($format);
                 }
-                fputcsv($handle, [$key, (string) $value]);
             }
-            fputcsv($handle, []);
+        }
 
-            fputcsv($handle, ['Top Routes']);
-            fputcsv($handle, ['Route', 'Trips', 'Average Fare', 'Drivers', 'Fare Total']);
-            foreach ($topRoutes as $row) {
-                fputcsv($handle, [
-                    // Route names are user-supplied and this file is opened in
-                    // Excel/Sheets, where a leading = + - @ makes the cell a
-                    // live formula. Neutralised below; ordinary names are
-                    // written unchanged.
-                    $this->csvSafe($row['route_name']),
-                    (string) $row['trip_count'],
-                    number_format((float) $row['avg_fare'], 2, '.', ''),
-                    (string) $row['driver_count'],
-                    number_format((float) $row['fare_total'], 2, '.', ''),
-                ]);
-            }
-            fputcsv($handle, []);
-
-            fputcsv($handle, ['Monthly Trip Summary']);
-            fputcsv($handle, ['Month', 'Trips', 'Fare Total', 'Paid Total', 'Pending/Unpaid Total']);
-            foreach ($monthlyReports as $row) {
-                fputcsv($handle, [
-                    $row['month_key'],
-                    (string) $row['trip_count'],
-                    number_format((float) $row['fare_total'], 2, '.', ''),
-                    number_format((float) $row['paid_total'], 2, '.', ''),
-                    number_format((float) $row['pending_unpaid_total'], 2, '.', ''),
-                ]);
-            }
-            fputcsv($handle, []);
-
-            fputcsv($handle, ['Trips by Day (last 30 days)']);
-            fputcsv($handle, ['Date', 'Trips']);
-            foreach (($dailyTripRanges['30d'] ?? []) as $day => $count) {
-                fputcsv($handle, [$day, (string) $count]);
-            }
-            fputcsv($handle, []);
-
-            fputcsv($handle, ['AI Usage (Claude API)']);
-            foreach ($aiUsage as $key => $value) {
-                if (in_array($key, ['by_endpoint', 'error_breakdown'], true)) {
-                    continue;
-                }
-                fputcsv($handle, [$key, (string) $value]);
-            }
-            fputcsv($handle, ['By endpoint']);
-            foreach (($aiUsage['by_endpoint'] ?? []) as $endpoint => $count) {
-                fputcsv($handle, [$endpoint, (string) $count]);
-            }
-
-            fclose($handle);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        foreach (range(1, count($columns)) as $i) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
+        }
+        $sheet->freezePane('A2');
     }
 
     public function exportPdfView(): View|Factory|Application
@@ -194,20 +297,5 @@ class AdminReportController extends Controller
         $data['dailyTripRanges'] = $this->reportService->dailyTripRanges();
 
         return view('admin.reports.pdf', $data);
-    }
-
-    /**
-     * Defuse CSV formula injection. A spreadsheet treats a cell beginning with
-     * = + - @ (or a leading tab/CR) as a formula, so a route named
-     * "=HYPERLINK(...)" would execute when an admin opens the export. Prefixing
-     * a single quote makes the cell literal text; Excel and Sheets both hide
-     * that prefix on display. Values not starting with those characters are
-     * returned untouched, so normal exports are byte-identical.
-     */
-    private function csvSafe(mixed $value): string
-    {
-        $value = (string) $value;
-
-        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'" . $value : $value;
     }
 }

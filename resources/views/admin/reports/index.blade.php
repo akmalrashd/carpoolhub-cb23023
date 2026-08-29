@@ -2,74 +2,90 @@
 
 @section('content')
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-users.css') }}?v={{ filemtime(public_path('css/admin-users.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/admin-reports.css') }}?v={{ filemtime(public_path('css/admin-reports.css')) }}">
 @endpush
 
-<div class="reports-page-container">
+<div class="au-page">
 
-    {{-- Page Header Card --}}
-    <div class="rp-header-card">
-        <div class="rp-header-info">
-            <p class="rp-eyebrow">Administrator</p>
-            <h1 class="rp-title">Reports &amp; Analytics</h1>
-            <p class="rp-subtitle">Operational analytics for CarpoolHub features: AI assistance, custom route preferences, passenger reliability, and payment tracking.</p>
-        </div>
-        <div class="rp-header-actions">
-            <form method="GET" action="{{ route('admin.reports.index') }}" style="display:flex;align-items:center;gap:6px;">
-                <input type="date" name="date_from" value="{{ $dateFrom }}" class="input" style="height:36px;padding:0 10px;font-size:13px;width:150px;">
-                <span style="color:var(--muted);font-size:13px;">to</span>
-                <input type="date" name="date_to" value="{{ $dateTo }}" class="input" style="height:36px;padding:0 10px;font-size:13px;width:150px;">
-                <button type="submit" class="btn btn-ghost btn-sm" style="font-weight:700;">
-                    <i class="fa-regular fa-calendar"></i> Apply
-                </button>
-                @if($dateFrom || $dateTo)
-                    <a href="{{ route('admin.reports.index') }}" class="btn btn-ghost btn-sm" style="font-weight:700;">Reset</a>
-                @endif
-            </form>
-            <a href="{{ route('admin.reports.export.csv') }}" class="btn btn-primary btn-sm" style="background:var(--ch-yellow); color:var(--ch-yellow-ink); border:1px solid var(--ch-yellow-line); font-weight:800;">
-                <i class="fa-solid fa-download"></i>
-                Export CSV
+<div>
+    <p class="au-eyebrow">Admin Panel</p>
+    <h1 class="au-title">Reports &amp; Analytics</h1>
+    <p class="au-sub">Operational analytics for CarpoolHub features: AI assistance, custom route preferences, passenger reliability, and payment tracking.</p>
+</div>
+
+@include('layouts.partials.admin-subnav')
+
+{{-- Date range + export --}}
+<div class="au-filter-card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <form method="GET" action="{{ route('admin.reports.index') }}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <input type="date" name="date_from" value="{{ $dateFrom }}" class="au-select" style="width:150px;">
+        <span style="color:var(--muted);font-size:13px;">to</span>
+        <input type="date" name="date_to" value="{{ $dateTo }}" class="au-select" style="width:150px;">
+        <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">
+            <i class="fa-regular fa-calendar" style="font-size:11px;"></i> Apply
+        </button>
+        @if($dateFrom || $dateTo)
+            <a href="{{ route('admin.reports.index') }}" class="btn btn-ghost btn-sm" style="text-decoration:none;">
+                <i class="fa-solid fa-xmark" style="font-size:11px;"></i> Reset
             </a>
-            <a href="{{ route('admin.reports.export.pdf') }}" target="_blank" class="btn btn-dark btn-sm" style="font-weight:800;">
-                <i class="fa-solid fa-file-pdf"></i>
-                Export PDF
-            </a>
+        @endif
+    </form>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{{ route('admin.reports.export.excel') }}" class="btn btn-primary btn-sm" style="background:var(--ch-yellow); color:var(--ch-yellow-ink); border:1px solid var(--ch-yellow-line); font-weight:800;text-decoration:none;">
+            <i class="fa-solid fa-file-excel"></i> Export Excel
+        </a>
+        <a href="{{ route('admin.reports.export.pdf') }}" target="_blank" class="btn btn-dark btn-sm" style="font-weight:800;text-decoration:none;">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+    </div>
+</div>
+
+{{-- Only the KPI grid below is scoped by the date range above — every
+     other section on this page (top routes, monthly trend, AI/reliability
+     summaries, etc.) stays all-time; see ReportService::overview(). --}}
+<p class="t-xs text-muted" style="margin:-8px 0 4px;">
+    Overview KPIs: <strong>{{ ($dateFrom || $dateTo) ? ($dateFrom ?: 'earliest') . ' – ' . ($dateTo ?: 'latest') : 'All time' }}</strong> · everything else below is all-time.
+</p>
+
+{{-- KPI Grid: 4 Stat Cards — shares .au-stats/.au-stat-card with Users & Audit Log --}}
+<div class="au-stats">
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:var(--info-soft);border:1px solid rgba(37,99,235,.2);">
+            <i class="fa-solid fa-car" style="color:var(--info-ink);"></i>
         </div>
+        <div class="au-stat-val">{{ $overview['drivers_total'] ?? 0 }}</div>
+        <div class="au-stat-lbl">Active Drivers</div>
+        <span class="au-stat-delta mute">{{ $overview['passengers_total'] ?? 0 }} passengers</span>
     </div>
 
-    {{-- Only the KPI grid below is scoped by the date range above — every
-         other section on this page (top routes, monthly trend, AI/reliability
-         summaries, etc.) stays all-time; see ReportService::overview(). --}}
-    <p class="t-xs text-muted" style="margin:-8px 0 4px;">
-        Overview KPIs: <strong>{{ ($dateFrom || $dateTo) ? ($dateFrom ?: 'earliest') . ' – ' . ($dateTo ?: 'latest') : 'All time' }}</strong> · everything else below is all-time.
-    </p>
-
-    {{-- KPI Grid: 4 Stat Cards --}}
-    <div class="rp-kpi-grid">
-        <div class="rp-kpi-card">
-            <span class="rp-kpi-label">Active Drivers</span>
-            <span class="rp-kpi-value">{{ $overview['drivers_total'] ?? 0 }}</span>
-            <span class="rp-kpi-delta mute">{{ $overview['passengers_total'] ?? 0 }} passengers</span>
+    <div class="au-stat-card highlight">
+        <div class="au-stat-icon" style="background:var(--surface);border:1px solid var(--ch-yellow-line);">
+            <i class="fa-solid fa-route" style="color:var(--ch-yellow-ink);"></i>
         </div>
-
-        <div class="rp-kpi-card highlight">
-            <span class="rp-kpi-label">Trips &middot; Total</span>
-            <span class="rp-kpi-value">{{ $overview['trips_total'] ?? 0 }}</span>
-            <span class="rp-kpi-delta up">{{ $overview['trips_completed'] ?? 0 }} completed</span>
-        </div>
-
-        <div class="rp-kpi-card">
-            <span class="rp-kpi-label">Payment GMV</span>
-            <span class="rp-kpi-value">RM {{ number_format((float) ($overview['payments_total'] ?? 0), 2) }}</span>
-            <span class="rp-kpi-delta mute">Fare: RM {{ number_format((float) ($overview['fare_total'] ?? 0), 2) }}</span>
-        </div>
-
-        <div class="rp-kpi-card">
-            <span class="rp-kpi-label">Total Users</span>
-            <span class="rp-kpi-value">{{ $overview['users_total'] ?? 0 }}</span>
-            <span class="rp-kpi-delta mute">{{ $overview['active_users_total'] ?? 0 }} active</span>
-        </div>
+        <div class="au-stat-val">{{ $overview['trips_total'] ?? 0 }}</div>
+        <div class="au-stat-lbl">Trips &middot; Total</div>
+        <span class="au-stat-delta up">{{ $overview['trips_completed'] ?? 0 }} completed</span>
     </div>
+
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+            <i class="fa-solid fa-wallet" style="color:#15803d;"></i>
+        </div>
+        <div class="au-stat-val">RM {{ number_format((float) ($overview['payments_total'] ?? 0), 2) }}</div>
+        <div class="au-stat-lbl">Payment GMV</div>
+        <span class="au-stat-delta mute">Fare: RM {{ number_format((float) ($overview['fare_total'] ?? 0), 2) }}</span>
+    </div>
+
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:var(--ch-yellow-tint);border:1px solid var(--ch-yellow-line);">
+            <i class="fa-solid fa-users" style="color:var(--ch-yellow-ink);"></i>
+        </div>
+        <div class="au-stat-val">{{ $overview['users_total'] ?? 0 }}</div>
+        <div class="au-stat-lbl">Total Users</div>
+        <span class="au-stat-delta mute">{{ $overview['active_users_total'] ?? 0 }} active</span>
+    </div>
+</div>
 
     {{-- Bar Chart: Trips by Day --}}
     <div class="rp-chart-card">
@@ -222,6 +238,43 @@
         </div>
     </div>
 
+    {{-- Top Drivers Table Card --}}
+    <div class="rp-section-card">
+        <div class="rp-card-head">
+            <h2 class="rp-card-title">
+                <i class="fa-solid fa-id-badge" style="color:var(--muted);"></i> Top Drivers
+            </h2>
+        </div>
+        <div class="rp-table-wrap">
+            <table class="rp-table">
+                <thead>
+                    <tr>
+                        <th>Driver</th>
+                        <th class="num">Trips</th>
+                        <th class="num">Completed</th>
+                        <th class="num">Routes</th>
+                        <th class="num">Avg Fare</th>
+                        <th class="num">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @forelse($topDrivers as $driver)
+                    <tr>
+                        <td class="route-name">{{ $driver['driver_name'] ?? 'Driver' }}</td>
+                        <td class="num">{{ $driver['trip_count'] ?? 0 }}</td>
+                        <td class="num">{{ $driver['completed_count'] ?? 0 }} ({{ $driver['completion_rate'] ?? 0 }}%)</td>
+                        <td class="num">{{ $driver['route_count'] ?? 0 }}</td>
+                        <td class="num">RM {{ number_format((float) ($driver['avg_fare'] ?? 0), 2) }}</td>
+                        <td class="num">RM {{ number_format((float) ($driver['fare_total'] ?? 0), 2) }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="6" class="rp-td-empty">No driver data available.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     {{-- Feature Performance Overview Grid --}}
     <div class="rp-section-card">
         <div class="rp-card-head">
@@ -239,12 +292,12 @@
                 <article class="rp-module-card">
                     <span class="rp-module-title">Passenger Approval</span>
                     <strong class="rp-module-value">{{ $requestSummary['approval_rate'] ?? 0 }}%</strong>
-                    <span class="rp-module-note">{{ $requestSummary['approved'] ?? 0 }} approved, {{ $requestSummary['pending'] ?? 0 }} pending, {{ $requestSummary['rejected'] ?? 0 }} rejected.</span>
+                    <span class="rp-module-note">{{ $requestSummary['approved'] ?? 0 }} approved, {{ $requestSummary['pending'] ?? 0 }} pending, {{ $requestSummary['rejected'] ?? 0 }} rejected, {{ $requestSummary['cancelled'] ?? 0 }} cancelled.</span>
                 </article>
                 <article class="rp-module-card">
                     <span class="rp-module-title">AI Support Usage</span>
                     <strong class="rp-module-value">{{ $aiSupportSummary['recommendation_logs'] ?? 0 }}</strong>
-                    <span class="rp-module-note">AI-assisted trips (fare calculation + join decisions). Avg match score {{ $aiSupportSummary['avg_match_score'] ?? 0 }}%. Decision support: {{ $aiSupportSummary['strategy_suggestions'] ?? 0 }} cases.</span>
+                    <span class="rp-module-note">AI-assisted trips (fare calculation + join decisions). Avg match score {{ !empty($aiSupportSummary['avg_match_score_measured']) ? number_format((float) $aiSupportSummary['avg_match_score'], 1) . '%' : 'not yet measured' }}. Decision support: {{ $aiSupportSummary['strategy_suggestions'] ?? 0 }} cases.</span>
                 </article>
                 <article class="rp-module-card">
                     <span class="rp-module-title">Passenger Reliability</span>
@@ -259,7 +312,7 @@
     <div class="rp-section-card">
         <div class="rp-card-head">
             <h2 class="rp-card-title">
-                <i class="fa-solid fa-calendar-days" style="color:var(--muted);"></i> Monthly Trip Summary
+                <i class="fa-solid fa-calendar-days" style="color:var(--muted);"></i> Monthly Summary
             </h2>
         </div>
         <div class="rp-table-wrap">
@@ -268,6 +321,7 @@
                     <tr>
                         <th>Month</th>
                         <th class="num">Trips</th>
+                        <th class="num">New Users</th>
                         <th class="num">Total Fare</th>
                         <th class="num">Paid</th>
                         <th class="num">Pending / Unpaid</th>
@@ -278,13 +332,14 @@
                     <tr>
                         <td style="font-weight:800; color:var(--ink);">{{ $row['month_key'] }}</td>
                         <td class="num">{{ $row['trip_count'] }}</td>
+                        <td class="num">{{ $row['new_users'] ?? 0 }}</td>
                         <td class="num">RM {{ number_format((float) $row['fare_total'], 2) }}</td>
                         <td class="num rp-td-paid">RM {{ number_format((float) $row['paid_total'], 2) }}</td>
                         <td class="num rp-td-pending">RM {{ number_format((float) $row['pending_unpaid_total'], 2) }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="rp-td-empty">No trip data available.</td>
+                        <td colspan="6" class="rp-td-empty">No trip data available.</td>
                     </tr>
                 @endforelse
                 </tbody>
@@ -301,32 +356,46 @@
                 <i class="fa-solid fa-robot" style="color:var(--muted);"></i> AI Usage (Claude API)
             </h2>
         </div>
-        <div class="rp-kpi-grid" style="margin-top:0;">
-            <div class="rp-kpi-card">
-                <span class="rp-kpi-label">Total Calls</span>
-                <span class="rp-kpi-value">{{ $aiUsage['total_calls'] ?? 0 }}</span>
-                <span class="rp-kpi-delta mute">{{ $aiUsage['retry_count'] ?? 0 }} retried</span>
-            </div>
-            <div class="rp-kpi-card">
-                <span class="rp-kpi-label">Success Rate</span>
-                <span class="rp-kpi-value">{{ $aiUsage['success_rate'] ?? 0 }}%</span>
-            </div>
-            <div class="rp-kpi-card">
-                <span class="rp-kpi-label">Input Tokens</span>
-                <span class="rp-kpi-value">{{ number_format($aiUsage['total_input_tokens'] ?? 0) }}</span>
-            </div>
-            <div class="rp-kpi-card">
-                <span class="rp-kpi-label">Output Tokens</span>
-                <span class="rp-kpi-value">{{ number_format($aiUsage['total_output_tokens'] ?? 0) }}</span>
+        <div style="padding:16px;">
+            <div class="rp-module-grid">
+                <article class="rp-module-card">
+                    <span class="rp-module-title">Total Calls</span>
+                    <strong class="rp-module-value">{{ $aiUsage['total_calls'] ?? 0 }}</strong>
+                    <span class="rp-module-note">{{ $aiUsage['retry_count'] ?? 0 }} retried</span>
+                </article>
+                <article class="rp-module-card">
+                    <span class="rp-module-title">Success Rate</span>
+                    <strong class="rp-module-value">{{ $aiUsage['success_rate'] ?? 0 }}%</strong>
+                </article>
+                <article class="rp-module-card">
+                    <span class="rp-module-title">Input Tokens</span>
+                    <strong class="rp-module-value">{{ number_format($aiUsage['total_input_tokens'] ?? 0) }}</strong>
+                </article>
+                <article class="rp-module-card">
+                    <span class="rp-module-title">Output Tokens</span>
+                    <strong class="rp-module-value">{{ number_format($aiUsage['total_output_tokens'] ?? 0) }}</strong>
+                </article>
             </div>
         </div>
         @if(!empty($aiUsage['by_endpoint']))
-            <div class="rp-table-wrap" style="margin-top:16px;">
+            <div class="rp-table-wrap">
                 <table class="rp-table">
                     <thead><tr><th>Endpoint</th><th class="num">Calls</th></tr></thead>
                     <tbody>
                     @foreach($aiUsage['by_endpoint'] as $endpoint => $count)
                         <tr><td>{{ $endpoint }}</td><td class="num">{{ $count }}</td></tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+        @if(!empty($aiUsage['error_breakdown']))
+            <div class="rp-table-wrap" style="border-top:1px solid var(--hairline);">
+                <table class="rp-table">
+                    <thead><tr><th>Error Type</th><th class="num">Count</th></tr></thead>
+                    <tbody>
+                    @foreach($aiUsage['error_breakdown'] as $type => $count)
+                        <tr><td style="color:var(--danger);">{{ $type ?: 'Unknown' }}</td><td class="num">{{ $count }}</td></tr>
                     @endforeach
                     </tbody>
                 </table>

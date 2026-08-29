@@ -204,7 +204,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
         Route::patch('/users/{user}/approve', [AdminUserController::class, 'approve'])->name('admin.users.approve');
         Route::patch('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('admin.users.reject');
         Route::get('/reports', [AdminReportController::class, 'index'])->name('admin.reports.index');
-        Route::get('/reports/export/csv', [AdminReportController::class, 'exportCsv'])->name('admin.reports.export.csv');
+        Route::get('/reports/export/excel', [AdminReportController::class, 'exportExcel'])->name('admin.reports.export.excel');
         Route::get('/reports/export/pdf', [AdminReportController::class, 'exportPdfView'])->name('admin.reports.export.pdf');
         Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('admin.audit-log.index');
         Route::get('/messages', [AdminMessageController::class, 'create'])->name('admin.messages.create');

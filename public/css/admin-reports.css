@@ -1,131 +1,14 @@
 /* Extracted from resources/views/admin/reports/index.blade.php — cacheable. */
-    /* ── Centered Layout Container ── */
-    .reports-page-container {
-        max-width: 900px;
-        margin: 0 auto;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        box-sizing: border-box;
-    }
-
-    /* ── Page Header Card ── */
-    .rp-header-card {
-        background: var(--surface);
-        border: 1px solid var(--hairline);
-        border-radius: var(--r-xl);
-        padding: 20px 22px;
-        box-shadow: var(--shadow-1);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .rp-header-info {
-        flex: 1;
-        min-width: 240px;
-    }
-    .rp-eyebrow {
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .10em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin: 0 0 4px;
-        font-family: var(--font-ui), sans-serif;
-    }
-    .rp-title {
-        margin: 0 0 4px;
-        font-family: var(--font-display), sans-serif;
-        font-size: clamp(1.4rem, 2.2vw, 1.75rem);
-        font-weight: 800;
-        color: var(--ink);
-        line-height: 1.1;
-        letter-spacing: -.02em;
-    }
-    .rp-subtitle {
-        margin: 0;
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.4;
-    }
-    .rp-header-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    /* ── KPI Grid (4 Cards) ── */
-    .rp-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    @media (max-width: 840px) {
-        .rp-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 480px) {
-        .rp-kpi-grid { grid-template-columns: 1fr; }
-    }
-
-    .rp-kpi-card {
-        background: var(--surface);
-        border: 1px solid var(--hairline);
-        border-radius: var(--r-xl);
-        padding: 16px;
-        box-shadow: var(--shadow-1);
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-    }
-    .rp-kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-2);
-    }
-    .rp-kpi-card.highlight {
-        border-color: var(--ch-yellow-line);
-        background: var(--ch-yellow-tint);
-    }
-    .rp-kpi-label {
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: var(--muted);
-        font-family: var(--font-ui), sans-serif;
-    }
-    .rp-kpi-value {
-        font-family: var(--font-display), sans-serif;
-        font-size: 24px;
-        font-weight: 800;
-        color: var(--ink);
-        line-height: 1.1;
-        letter-spacing: -.02em;
-        margin: 2px 0;
-    }
-    .rp-kpi-delta {
-        font-size: 12px;
-        font-weight: 700;
-        font-family: var(--font-ui), sans-serif;
-    }
-    .rp-kpi-delta.up   { color: var(--success); }
-    .rp-kpi-delta.mute { color: var(--muted); }
+/* Page container, header (eyebrow/title/sub), sub-nav, filter bar, and the
+   4 overview stat cards now reuse admin-users.css's .au-page/.au-stats/etc
+   so Reports looks like the same app as the other 4 admin pages. Only the
+   report-specific chart/table/breakdown components live here. */
 
     /* ── Bar Chart Card ── */
     .rp-chart-card {
         background: var(--surface);
         border: 1px solid var(--hairline);
-        border-radius: var(--r-xl);
-        box-shadow: var(--shadow-1);
+        border-radius: var(--r-md);
         overflow: hidden;
         width: 100%;
         box-sizing: border-box;
@@ -238,8 +121,7 @@
     .rp-section-card {
         background: var(--surface);
         border: 1px solid var(--hairline);
-        border-radius: var(--r-xl);
-        box-shadow: var(--shadow-1);
+        border-radius: var(--r-md);
         overflow: hidden;
         width: 100%;
         box-sizing: border-box;
@@ -359,9 +241,8 @@
     .rp-module-card {
         background: var(--surface);
         border: 1px solid var(--hairline);
-        border-radius: var(--r-xl);
+        border-radius: var(--r-md);
         padding: 16px;
-        box-shadow: var(--shadow-1);
         display: flex;
         flex-direction: column;
         gap: 6px;
