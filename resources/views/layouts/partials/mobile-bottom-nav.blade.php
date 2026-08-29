@@ -4,7 +4,10 @@
     $navItems = match ($role) {
         'admin' => [
             ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon_inactive' => 'fa-solid fa-house', 'icon_active' => 'fa-solid fa-house', 'label' => 'Home'],
-            ['route' => 'admin.users.index', 'active' => ['admin.*'], 'icon_inactive' => 'fa-solid fa-user-shield', 'icon_active' => 'fa-solid fa-user-shield', 'label' => 'Admin'],
+            // 'admin.*' minus admin.reports.* — Reports gets its own icon below, so
+            // this stays exclusive with it instead of both lighting up on /admin/reports.
+            ['route' => 'admin.users.index', 'active' => ['admin.users.*', 'admin.audit-log.*', 'admin.messages.*', 'admin.system-settings.*'], 'icon_inactive' => 'fa-solid fa-user-shield', 'icon_active' => 'fa-solid fa-user-shield', 'label' => 'Admin'],
+            ['route' => 'admin.reports.index', 'active' => ['admin.reports.*'], 'icon_inactive' => 'fa-regular fa-chart-bar', 'icon_active' => 'fa-solid fa-chart-bar', 'label' => 'Reports'],
             ['route' => 'trips.index', 'active' => ['trips.*'], 'icon_inactive' => 'fa-solid fa-car-side', 'icon_active' => 'fa-solid fa-car-side', 'label' => 'Trips'],
             ['route' => 'payments.index', 'active' => ['payments.*'], 'icon_inactive' => 'fa-regular fa-credit-card', 'icon_active' => 'fa-solid fa-credit-card', 'label' => 'Payments'],
         ],
