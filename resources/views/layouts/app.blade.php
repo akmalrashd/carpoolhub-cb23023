@@ -183,51 +183,17 @@
                             <h3 class="bento-side-title">Create</h3>
                             <div class="bento-side-list">
                                 @if(auth()->user()?->role === 'admin')
-                                    <a href="{{ route('admin.users.index') }}" class="bento-side-item" data-bento-item data-keywords="add register approve verify driver license user account">
-                                        <span class="bento-side-icon-circle">
-                                            <i class="fa-solid fa-user-plus"></i>
-                                        </span>
-                                        <div class="bento-side-info">
-                                            <strong class="bento-side-name">Manage Users</strong>
-                                            <span class="bento-side-desc">Register or update user accounts.</span>
-                                        </div>
-                                    </a>
-                                    <a href="{{ route('admin.reports.index') }}" class="bento-side-item" data-bento-item data-keywords="analytics stats export csv download data insights metrics">
-                                        <span class="bento-side-icon-circle">
-                                            <i class="fa-solid fa-chart-pie"></i>
-                                        </span>
-                                        <div class="bento-side-info">
-                                            <strong class="bento-side-name">View Reports</strong>
-                                            <span class="bento-side-desc">Analyze system metrics and export CSVs.</span>
-                                        </div>
-                                    </a>
-                                    <a href="{{ route('admin.audit-log.index') }}" class="bento-side-item" data-bento-item data-keywords="audit log history actions accountability trail">
-                                        <span class="bento-side-icon-circle">
-                                            <i class="fa-solid fa-clipboard-list"></i>
-                                        </span>
-                                        <div class="bento-side-info">
-                                            <strong class="bento-side-name">Audit Log</strong>
-                                            <span class="bento-side-desc">See what other admins have changed.</span>
-                                        </div>
-                                    </a>
-                                    <a href="{{ route('admin.messages.create') }}" class="bento-side-item" data-bento-item data-keywords="message notify broadcast send announce">
-                                        <span class="bento-side-icon-circle">
-                                            <i class="fa-solid fa-paper-plane"></i>
-                                        </span>
-                                        <div class="bento-side-info">
-                                            <strong class="bento-side-name">Message Users</strong>
-                                            <span class="bento-side-desc">Notify one user, a role, or everyone.</span>
-                                        </div>
-                                    </a>
-                                    <a href="{{ route('admin.system-settings.index') }}" class="bento-side-item" data-bento-item data-keywords="settings fuel price config system">
-                                        <span class="bento-side-icon-circle">
-                                            <i class="fa-solid fa-sliders"></i>
-                                        </span>
-                                        <div class="bento-side-info">
-                                            <strong class="bento-side-name">System Settings</strong>
-                                            <span class="bento-side-desc">Fuel price fallback and platform config.</span>
-                                        </div>
-                                    </a>
+                                    @foreach(config('admin_nav') as $adminItem)
+                                        <a href="{{ route($adminItem['route']) }}" class="bento-side-item" data-bento-item data-keywords="{{ $adminItem['bento_keywords'] }}">
+                                            <span class="bento-side-icon-circle">
+                                                <i class="{{ $adminItem['bento_icon'] }}"></i>
+                                            </span>
+                                            <div class="bento-side-info">
+                                                <strong class="bento-side-name">{{ $adminItem['bento_title'] }}</strong>
+                                                <span class="bento-side-desc">{{ $adminItem['bento_desc'] }}</span>
+                                            </div>
+                                        </a>
+                                    @endforeach
                                 @elseif(auth()->user()?->role === 'passenger')
                                     <a href="{{ route('explore.index') }}" class="bento-side-item" data-bento-item data-keywords="book find ride join trip driver seat search">
                                         <span class="bento-side-icon-circle">
@@ -444,11 +410,12 @@
                     ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
                     ['route' => 'payments.index', 'active' => ['payments.*'], 'icon' => 'fa-solid fa-wallet', 'label' => 'Payments'],
                     ['route' => 'notifications.index', 'active' => ['notifications.*'], 'icon' => 'fa-solid fa-bell', 'label' => 'Notifications', 'badge' => true],
-                    ['route' => 'admin.users.index', 'active' => ['admin.users.*'], 'icon' => 'fa-solid fa-users-gear', 'label' => 'Users Admin'],
-                    ['route' => 'admin.reports.index', 'active' => ['admin.reports.*'], 'icon' => 'fa-solid fa-chart-line', 'label' => 'Reports'],
-                    ['route' => 'admin.audit-log.index', 'active' => ['admin.audit-log.*'], 'icon' => 'fa-solid fa-clipboard-list', 'label' => 'Audit Log'],
-                    ['route' => 'admin.messages.create', 'active' => ['admin.messages.*'], 'icon' => 'fa-solid fa-paper-plane', 'label' => 'Messages'],
-                    ['route' => 'admin.system-settings.index', 'active' => ['admin.system-settings.*'], 'icon' => 'fa-solid fa-sliders', 'label' => 'System Settings'],
+                    ...array_map(fn ($item) => [
+                        'route' => $item['route'],
+                        'active' => $item['active'],
+                        'icon' => $item['icon'],
+                        'label' => $item['drawer_label'] ?? $item['label'],
+                    ], config('admin_nav')),
                     ['route' => 'profile.index', 'active' => ['profile.*', 'settings.*'], 'icon' => 'fa-solid fa-user-gear', 'label' => 'Settings'],
                 ],
                 default => [

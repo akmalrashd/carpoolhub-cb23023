@@ -61,24 +61,13 @@
     </div>
 
     @if(auth()->check() && auth()->user()->role === 'admin')
-        {{-- ADMIN group --}}
+        {{-- ADMIN group: single entry point — the 5 admin tools live behind
+             the in-page tab-strip now (admin-subnav.blade.php), not here. --}}
         <div class="desktop-nav-group">
             <div class="desktop-nav-group-label">Admin</div>
             <nav class="desktop-nav">
-                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" title="Users Admin">
-                    <i class="fa-solid fa-users-gear"></i><span class="desktop-nav-label">Users</span>
-                </a>
-                <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" title="Reports">
-                    <i class="fa-solid fa-chart-line"></i><span class="desktop-nav-label">Reports</span>
-                </a>
-                <a href="{{ route('admin.audit-log.index') }}" class="{{ request()->routeIs('admin.audit-log.*') ? 'active' : '' }}" title="Audit Log">
-                    <i class="fa-solid fa-clipboard-list"></i><span class="desktop-nav-label">Audit Log</span>
-                </a>
-                <a href="{{ route('admin.messages.create') }}" class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}" title="Message Users">
-                    <i class="fa-solid fa-paper-plane"></i><span class="desktop-nav-label">Messages</span>
-                </a>
-                <a href="{{ route('admin.system-settings.index') }}" class="{{ request()->routeIs('admin.system-settings.*') ? 'active' : '' }}" title="System Settings">
-                    <i class="fa-solid fa-sliders"></i><span class="desktop-nav-label">Settings</span>
+                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.*') ? 'active' : '' }}" title="Admin Panel">
+                    <i class="fa-solid fa-user-shield"></i><span class="desktop-nav-label">Admin Panel</span>
                 </a>
             </nav>
         </div>

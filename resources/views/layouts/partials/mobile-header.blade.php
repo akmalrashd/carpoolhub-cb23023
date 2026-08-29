@@ -103,24 +103,17 @@
                         <h3 class="bento-side-title">Create</h3>
                         <div class="bento-side-list">
                             @if(auth()->user()?->role === 'admin')
-                                <a href="{{ route('admin.users.index') }}" class="bento-side-item" data-bento-item data-keywords="add register approve verify driver license user account">
-                                    <span class="bento-side-icon-circle">
-                                        <i class="fa-solid fa-user-plus"></i>
-                                    </span>
-                                    <div class="bento-side-info">
-                                        <strong class="bento-side-name">Manage Users</strong>
-                                        <span class="bento-side-desc">Register or update user accounts.</span>
-                                    </div>
-                                </a>
-                                <a href="{{ route('admin.reports.index') }}" class="bento-side-item" data-bento-item data-keywords="analytics stats export csv download data insights metrics">
-                                    <span class="bento-side-icon-circle">
-                                        <i class="fa-solid fa-chart-pie"></i>
-                                    </span>
-                                    <div class="bento-side-info">
-                                        <strong class="bento-side-name">View Reports</strong>
-                                        <span class="bento-side-desc">Analyze system metrics and export CSVs.</span>
-                                    </div>
-                                </a>
+                                @foreach(config('admin_nav') as $adminItem)
+                                    <a href="{{ route($adminItem['route']) }}" class="bento-side-item" data-bento-item data-keywords="{{ $adminItem['bento_keywords'] }}">
+                                        <span class="bento-side-icon-circle">
+                                            <i class="{{ $adminItem['bento_icon'] }}"></i>
+                                        </span>
+                                        <div class="bento-side-info">
+                                            <strong class="bento-side-name">{{ $adminItem['bento_title'] }}</strong>
+                                            <span class="bento-side-desc">{{ $adminItem['bento_desc'] }}</span>
+                                        </div>
+                                    </a>
+                                @endforeach
                             @elseif(auth()->user()?->role === 'passenger')
                                 <a href="{{ route('explore.index') }}" class="bento-side-item" data-bento-item data-keywords="book find ride join trip driver seat search">
                                     <span class="bento-side-icon-circle">

@@ -24,6 +24,8 @@
     <p class="au-sub">Manage accounts, approve drivers, and control access.</p>
 </div>
 
+@include('layouts.partials.admin-subnav')
+
 {{-- Error banner --}}
 @if($errors->any())
     <div style="padding:12px 16px;border-radius:var(--r-md);border:1px solid rgba(220,38,38,.28);background:var(--danger-soft);color:var(--danger-ink);font-size:14px;font-weight:500;">

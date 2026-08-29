@@ -1,6 +1,19 @@
 /* Extracted from resources/views/admin/users/index.blade.php — cacheable. */
 /* â”€â”€ Page Container â”€â”€ */
 .au-page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+/* â”€â”€ Admin Sub-nav (shared across all 5 admin pages, see admin-subnav.blade.php) â”€â”€ */
+/* Same pill/segmented style as .settings-nav (resources/views/settings/index.blade.php) */
+.admin-subnav { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 14px; padding: 4px; overflow-x: auto; scrollbar-width: none; box-sizing: border-box; }
+.admin-subnav::-webkit-scrollbar { display: none; }
+.admin-subnav a { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; font-size: 13px; font-weight: 700; font-family: var(--font-ui), sans-serif; color: var(--muted); text-decoration: none; white-space: nowrap; transition: color .15s, background .15s, border-color .15s, box-shadow .15s; }
+.admin-subnav a i { font-size: 12px; }
+.admin-subnav a:hover { color: var(--ink); }
+.admin-subnav a.active { background: var(--surface); border-color: var(--hairline); color: var(--ink); box-shadow: var(--shadow-1); font-weight: 800; }
+/* â”€â”€ Stat card variants (shared with Reports KPIs) â”€â”€ */
+.au-stat-card.highlight { border-color: var(--ch-yellow-line); background: var(--ch-yellow-tint); }
+.au-stat-delta { font-size: 12px; font-weight: 700; font-family: var(--font-ui), sans-serif; }
+.au-stat-delta.up   { color: var(--success); }
+.au-stat-delta.mute { color: var(--muted); }
 .au-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; font-family: var(--font-ui), sans-serif; }
 .au-title   { margin: 0 0 4px; font-family: var(--font-display), sans-serif; font-size: clamp(1.4rem, 2.2vw, 1.75rem); font-weight: 800; color: var(--ink); line-height: 1.1; }
 .au-sub     { margin: 0; color: var(--muted); font-size: 13px; }

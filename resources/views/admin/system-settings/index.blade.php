@@ -25,6 +25,8 @@
     <p class="au-sub">Platform-wide configuration. Currently: fuel price fallback for the fare advisor.</p>
 </div>
 
+@include('layouts.partials.admin-subnav')
+
 @if($errors->any())
     <div style="padding:12px 16px;border-radius:var(--r-md);border:1px solid rgba(220,38,38,.28);background:var(--danger-soft);color:var(--danger-ink);font-size:14px;font-weight:500;">
         <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>{{ $errors->first() }}
@@ -36,7 +38,7 @@
     </div>
 @endif
 
-<div class="card card-pad-lg" style="max-width:640px;">
+<div class="card card-pad-lg">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:4px;">
         <div class="ss-header-icon"><i class="fa-solid fa-gas-pump"></i></div>
         <div>
