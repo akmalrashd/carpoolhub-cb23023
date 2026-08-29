@@ -401,27 +401,59 @@ class TripService
         });
     }
 
+    /**
+     * Fields worth telling recipients about when they change — deliberately
+     * excludes derived/internal columns like status (recomputed from
+     * trip_datetime, not something the actor directly chose) and the fare/
+     * participant-count fields (already covered by the separate "Removed
+     * from Trip" notification when someone actually drops off the trip).
+     *
+     * @var array<string, string>
+     */
+    private const TRIP_CHANGE_FIELD_LABELS = [
+        'trip_datetime' => 'departure time',
+        'pickup_name' => 'pickup location',
+        'destination_name' => 'destination',
+        'visibility' => 'visibility',
+        'seat_limit' => 'seat limit',
+        'note' => 'note',
+        'public_note' => 'public note',
+    ];
+
     public function update(User $actor, Trip $trip, array $data): Trip
     {
         $this->ensureTripOwner($actor, $trip);
 
-        $savedRoute = $this->resolveOwnedSavedRoute($actor, (int) $data['saved_route_id']);
+        $beforeChange = $trip->only(array_keys(self::TRIP_CHANGE_FIELD_LABELS));
+
+        // The trip's OWNER, not whoever is submitting the edit — ensureTripOwner()
+        // above allows admin to edit any driver's trip, but every one of these
+        // driver-scoped lookups (saved route ownership, accepted-connections
+        // check for participant_ids, driver's own seat in the split) must stay
+        // scoped to the actual driver. Using $actor here meant an admin editing
+        // someone else's trip would see an empty saved-route dropdown (routes
+        // are scoped by owner), and — worse — "include driver in split" would
+        // silently add the ADMIN as a fare-splitting participant instead of the
+        // real driver.
+        $driver = $trip->driver;
+
+        $savedRoute = $this->resolveOwnedSavedRoute($driver, (int) $data['saved_route_id']);
         $visibility = $this->resolveVisibility($data['visibility'] ?? $trip->visibility ?? 'private');
         $isPublic = $visibility === 'public';
         $includeDriverInSplit = $this->shouldIncludeDriverInSplit($data);
         $data['participant_ids'] = $this->mergePresetPassengerIds($data['participant_ids'] ?? [], $savedRoute);
-        $incomingParticipantIds = $this->buildParticipantIds($actor, $data['participant_ids'] ?? [], $includeDriverInSplit, $visibility);
+        $incomingParticipantIds = $this->buildParticipantIds($driver, $data['participant_ids'] ?? [], $includeDriverInSplit, $visibility);
         $existingParticipantIds = $isPublic
             ? $trip->participants()->pluck('user_id')
             : collect();
         $participantIds = $incomingParticipantIds->merge($existingParticipantIds)->unique()->values();
-        $seatLimit = $this->resolveSeatLimit($data, $participantIds, $actor->id, $isPublic);
+        $seatLimit = $this->resolveSeatLimit($data, $participantIds, $driver->id, $isPublic);
         $splitCount = $this->resolveSplitCount($participantIds->count(), $isPublic, $seatLimit, $includeDriverInSplit);
         $amounts = $this->buildActiveParticipantAmounts((float) $savedRoute->default_fare, $participantIds->count(), $splitCount);
         $isOpenForRequest = $this->resolveRequestOpenState($data, $isPublic, (bool) $trip->is_open_for_request);
         $previousPassengerIds = $trip->participants()->where('is_driver', false)->pluck('user_id');
 
-        return DB::transaction(function () use ($trip, $savedRoute, $data, $participantIds, $amounts, $actor, $visibility, $seatLimit, $splitCount, $isOpenForRequest, $isPublic, $previousPassengerIds): Trip {
+        return DB::transaction(function () use ($trip, $savedRoute, $data, $participantIds, $amounts, $actor, $visibility, $seatLimit, $splitCount, $isOpenForRequest, $isPublic, $previousPassengerIds, $beforeChange): Trip {
             $status = $this->resolveStatus($data['status'] ?? null, (string) $data['trip_datetime'], $trip->status);
             $outboundDirection = $this->resolveDirection($savedRoute, (string) $data['outbound_pickup_key'], (string) $data['outbound_destination_key']);
 
@@ -439,6 +471,8 @@ class TripService
                 'note' => $data['note'] ?? null,
                 'public_note' => $isPublic ? ($data['public_note'] ?? null) : null,
             ]);
+
+            $changeSummary = $this->summarizeTripChanges($beforeChange, $trip->only(array_keys(self::TRIP_CHANGE_FIELD_LABELS)));
 
             if ($trip->returnTrip) {
                 $returnDirection = $this->resolveDirection(
@@ -484,7 +518,20 @@ class TripService
                 }
             }
 
-            $this->notifyParticipants($trip, $actor->name, 'Trip Updated', 'trip');
+            $this->notifyParticipants($trip, $actor->name, 'Trip Updated', 'trip', $changeSummary);
+
+            // notifyParticipants() deliberately excludes the driver — correct
+            // when the driver is the one editing, but when admin makes the
+            // edit the driver is a bystander to their own trip changing and
+            // needs telling same as any passenger would.
+            if ($actor->id !== $trip->driver_id) {
+                $this->notifyDriver(
+                    $trip,
+                    $trip->driver_id,
+                    'Trip Updated',
+                    "An admin ({$actor->name}) updated your {$this->tripLabel($trip)}. {$changeSummary}"
+                );
+            }
 
             return $trip->refresh()->load(['savedRoute', 'participants.user', 'payments.user']);
         });
@@ -505,7 +552,14 @@ class TripService
             ->values();
         $label = $this->tripLabel($baseTrip);
 
-        DB::transaction(function () use ($baseTrip, $passengerIds, $label, $actor, $reason): void {
+        $driverId = $baseTrip->driver_id;
+        // "by the driver" was hardcoded here regardless of who actually
+        // cancelled — wrong and misleading once admin (who shares this same
+        // delete() path via ensureTripOwner()) is the one acting.
+        $isAdminActing = $actor->id !== $driverId;
+        $cancelledByText = $isAdminActing ? "an admin ({$actor->name})" : 'the driver';
+
+        DB::transaction(function () use ($baseTrip, $passengerIds, $label, $actor, $reason, $driverId, $isAdminActing, $cancelledByText): void {
             $tripIds = Trip::query()
                 ->where('id', $baseTrip->id)
                 ->orWhere('parent_trip_id', $baseTrip->id)
@@ -527,12 +581,29 @@ class TripService
                         'user_id' => $userId,
                         'type' => 'trip',
                         'title' => 'Trip Cancelled',
-                        'message' => "The {$label} has been cancelled by the driver. Please make alternative transport arrangements.",
+                        'message' => "The {$label} has been cancelled by {$cancelledByText}. Please make alternative transport arrangements.",
                         'related_type' => 'system',
                         'related_id' => null,
                         'is_read' => false,
                     ]);
                 }
+            }
+
+            // The trip row is gone by this point, so the driver can't be
+            // notified via notifyDriver()'s usual related_type:'trip' link —
+            // 'system' (same as the passenger notice above) is the only
+            // sensible target once there's nothing left to link back to.
+            if ($isAdminActing) {
+                UserNotification::query()->create([
+                    'user_id' => $driverId,
+                    'type' => 'trip',
+                    'title' => 'Trip Cancelled',
+                    'message' => "An admin ({$actor->name}) cancelled your {$label}."
+                        .($reason ? " Reason: {$reason}" : ''),
+                    'related_type' => 'system',
+                    'related_id' => null,
+                    'is_read' => false,
+                ]);
             }
         });
     }
@@ -888,7 +959,7 @@ class TripService
      * push/Telegram notification. A bulk insert() skips that silently, leaving only
      * the in-app row behind with no delivery at all.
      */
-    private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type): void
+    private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type, ?string $changeSummary = null): void
     {
         $trip->loadMissing('participants');
         $label = $this->tripLabel($trip);
@@ -904,7 +975,7 @@ class TripService
                 'title' => $title,
                 'message' => match ($title) {
                     'Trip Created' => "You have been added to the {$label}. Check your trip details and upcoming schedule.",
-                    'Trip Updated' => "The {$label} has been updated by {$actorName}. Please review the latest trip details.",
+                    'Trip Updated' => "{$actorName} updated the {$label}. {$changeSummary}",
                     default => "{$actorName} updated the {$label}.",
                 },
                 'related_type' => 'trip',
@@ -912,6 +983,42 @@ class TripService
                 'is_read' => false,
             ]);
         }
+    }
+
+    /**
+     * Builds a human-readable "X changed from A to B" list for a trip edit —
+     * reused for both the participants' notification and the driver's (when
+     * admin is the one editing). Compares TRIP_CHANGE_FIELD_LABELS fields
+     * only; see that constant's docblock for why the rest are excluded.
+     */
+    private function summarizeTripChanges(array $before, array $after): string
+    {
+        $changes = [];
+
+        foreach (self::TRIP_CHANGE_FIELD_LABELS as $field => $label) {
+            $oldValue = $before[$field] ?? null;
+            $newValue = $after[$field] ?? null;
+
+            if ($field === 'trip_datetime') {
+                $oldValue = $oldValue instanceof Carbon ? $oldValue->format('d M Y, h:ia') : $oldValue;
+                $newValue = $newValue instanceof Carbon ? $newValue->format('d M Y, h:ia') : $newValue;
+            }
+
+            $oldValue = $oldValue === '' ? null : $oldValue;
+            $newValue = $newValue === '' ? null : $newValue;
+
+            if ((string) $oldValue === (string) $newValue) {
+                continue;
+            }
+
+            $changes[] = match (true) {
+                $oldValue === null => ucfirst($label)." set to \"{$newValue}\"",
+                $newValue === null => ucfirst($label).' removed',
+                default => ucfirst($label)." changed from \"{$oldValue}\" to \"{$newValue}\"",
+            };
+        }
+
+        return $changes === [] ? 'Other trip details were adjusted.' : implode('; ', $changes).'.';
     }
 
     private function notifyDriver(Trip $trip, int $driverId, string $title, string $message): void

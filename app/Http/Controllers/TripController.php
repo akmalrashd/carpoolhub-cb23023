@@ -113,16 +113,24 @@ class TripController extends Controller
         $this->tripService->ensureTripOwner($request->user(), $trip);
         $trip->load('returnTrip');
 
+        // Scoped to the trip's driver, not $request->user() — ensureTripOwner()
+        // above lets admin edit any driver's trip, but saved routes (and the
+        // driver's own accepted-connections list for participant selection
+        // below) belong to whoever actually drives the trip. Using the actor
+        // here left an admin editing someone else's trip with an empty route
+        // dropdown (no routes match their own account) and no way to save.
+        $driver = $trip->driver;
+
         $savedRoutes = SavedRoute::query()
             ->with('passengerStops.user')
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $driver->id)
             ->where('is_active', true)
             ->orderBy('route_name')
             ->get();
 
-        $selectableParticipants = $this->tripService->getSelectableParticipants($request->user());
+        $selectableParticipants = $this->tripService->getSelectableParticipants($driver);
         $selectedParticipants = $trip->participants()
-            ->where('user_id', '!=', $request->user()->id)
+            ->where('user_id', '!=', $driver->id)
             ->pluck('user_id')
             ->all();
 

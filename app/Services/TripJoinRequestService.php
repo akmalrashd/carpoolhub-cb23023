@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\Trip;
 use App\Models\TripJoinRequest;
-use App\Models\TripPassengerRoutePoint;
 use App\Models\TripParticipant;
+use App\Models\TripPassengerRoutePoint;
 use App\Models\TripPayment;
 use App\Models\User;
 use App\Models\UserNotification;
@@ -28,8 +28,7 @@ class TripJoinRequestService
 
     public function __construct(
         private readonly PassengerRiskScoringService $passengerRiskScoringService,
-    ) {
-    }
+    ) {}
 
     public function listForTrip(User $actor, Trip $trip)
     {
@@ -87,13 +86,13 @@ class TripJoinRequestService
 
             $label = $this->tripLabel($baseTrip);
             UserNotification::query()->create([
-                'user_id'      => $baseTrip->driver_id,
-                'type'         => 'trip',
-                'title'        => 'New Join Request',
-                'message'      => "{$passenger->name} wants to join the {$label}. Review and respond to their request.",
+                'user_id' => $baseTrip->driver_id,
+                'type' => 'trip',
+                'title' => 'New Join Request',
+                'message' => "{$passenger->name} wants to join the {$label}. Review and respond to their request.",
                 'related_type' => 'trip_join_request',
-                'related_id'   => $request->id,
-                'is_read'      => false,
+                'related_id' => $request->id,
+                'is_read' => false,
             ]);
 
             $this->passengerRiskScoringService->refreshRiskProfile($passenger);
@@ -159,15 +158,15 @@ class TripJoinRequestService
         if ($trip) {
             $label = $this->tripLabel($trip);
             UserNotification::query()->create([
-                'user_id'      => $trip->driver_id,
-                'type'         => 'trip',
-                'title'        => $wasApproved ? 'Passenger Cancelled' : 'Join Request Cancelled',
-                'message'      => $wasApproved
+                'user_id' => $trip->driver_id,
+                'type' => 'trip',
+                'title' => $wasApproved ? 'Passenger Cancelled' : 'Join Request Cancelled',
+                'message' => $wasApproved
                     ? "{$passenger->name} cancelled their seat on the {$label}."
                     : "{$passenger->name} cancelled their join request for the {$label}.",
                 'related_type' => 'trip_join_request',
-                'related_id'   => $joinRequestId,
-                'is_read'      => false,
+                'related_id' => $joinRequestId,
+                'is_read' => false,
             ]);
         }
 
@@ -207,13 +206,13 @@ class TripJoinRequestService
 
         $label = $this->tripLabel($baseTrip);
         UserNotification::query()->create([
-            'user_id'      => $baseTrip->driver_id,
-            'type'         => 'trip',
-            'title'        => 'Passenger Left Trip',
-            'message'      => "{$passenger->name} left the {$label}.",
+            'user_id' => $baseTrip->driver_id,
+            'type' => 'trip',
+            'title' => 'Passenger Left Trip',
+            'message' => "{$passenger->name} left the {$label}.",
             'related_type' => 'trip',
-            'related_id'   => $baseTrip->id,
-            'is_read'      => false,
+            'related_id' => $baseTrip->id,
+            'is_read' => false,
         ]);
     }
 
@@ -275,15 +274,15 @@ class TripJoinRequestService
                 $rejectMessage .= " Reason: {$responseNote}";
             }
             UserNotification::query()->create([
-                'user_id'      => $joinRequest->user_id,
-                'type'         => 'trip',
-                'title'        => $action === 'approve' ? 'Join Request Approved' : 'Join Request Rejected',
-                'message'      => $action === 'approve'
+                'user_id' => $joinRequest->user_id,
+                'type' => 'trip',
+                'title' => $action === 'approve' ? 'Join Request Approved' : 'Join Request Rejected',
+                'message' => $action === 'approve'
                     ? "Great news! Your request to join the {$label} has been approved. Check your trip details."
                     : $rejectMessage,
                 'related_type' => 'trip_join_request',
-                'related_id'   => $joinRequest->id,
-                'is_read'      => false,
+                'related_id' => $joinRequest->id,
+                'is_read' => false,
             ]);
 
             if ($joinRequest->user) {
@@ -323,15 +322,34 @@ class TripJoinRequestService
         ]);
 
         $label = $this->tripLabel($trip);
+        $isAdminActing = $actor->id !== $trip->driver_id;
+
         UserNotification::query()->create([
-            'user_id'      => $joinRequest->user_id,
-            'type'         => 'trip',
-            'title'        => 'Removed from Trip',
-            'message'      => "You were removed from the {$label}. Reason: {$reason}",
+            'user_id' => $joinRequest->user_id,
+            'type' => 'trip',
+            'title' => 'Removed from Trip',
+            'message' => ($isAdminActing ? "An admin ({$actor->name}) removed you" : 'You were removed')
+                ." from the {$label}. Reason: {$reason}",
             'related_type' => 'trip_join_request',
-            'related_id'   => $joinRequest->id,
-            'is_read'      => false,
+            'related_id' => $joinRequest->id,
+            'is_read' => false,
         ]);
+
+        // ensureCanManageTripRequests() also allows admin here — when admin is
+        // the one removing a passenger, the driver is a bystander to their own
+        // trip's roster changing and should know, same as an admin-initiated
+        // edit or cancellation elsewhere in TripService.
+        if ($isAdminActing) {
+            UserNotification::query()->create([
+                'user_id' => $trip->driver_id,
+                'type' => 'trip',
+                'title' => 'Passenger Removed',
+                'message' => "An admin ({$actor->name}) removed {$joinRequest->user?->name} from your {$label}. Reason: {$reason}",
+                'related_type' => 'trip',
+                'related_id' => $trip->id,
+                'is_read' => false,
+            ]);
+        }
 
         if ($joinRequest->user) {
             $this->passengerRiskScoringService->refreshRiskProfile($joinRequest->user);
@@ -373,13 +391,13 @@ class TripJoinRequestService
 
         $label = $this->tripLabel($trip);
         UserNotification::query()->create([
-            'user_id'      => $joinRequest->user_id,
-            'type'         => 'trip',
-            'title'        => 'Marked Absent',
-            'message'      => "You were marked absent for the {$label}.",
+            'user_id' => $joinRequest->user_id,
+            'type' => 'trip',
+            'title' => 'Marked Absent',
+            'message' => "You were marked absent for the {$label}.",
             'related_type' => 'trip_join_request',
-            'related_id'   => $joinRequest->id,
-            'is_read'      => false,
+            'related_id' => $joinRequest->id,
+            'is_read' => false,
         ]);
 
         if ($joinRequest->user) {
