@@ -3,14 +3,15 @@
 namespace App\Services;
 
 use App\Models\TripPayment;
+use App\Models\TripPaymentStatusLog;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Ai\PassengerRiskScoringService;
 use App\Services\Concerns\FormatsTripLabel;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -23,8 +24,7 @@ class PaymentService
     public function __construct(
         private readonly PassengerRiskScoringService $passengerRiskScoringService,
         private readonly AdminAuditService $adminAuditService,
-    ) {
-    }
+    ) {}
 
     public function paginateForUser(User $user, int $perPage = 12, array $filters = [], ?array $tripIds = null): LengthAwarePaginator
     {
@@ -370,9 +370,12 @@ class PaymentService
 
         return DB::transaction(function () use ($payment, $data, $actor): TripPayment {
             $isSelfDrivenPayment = (int) ($payment->trip?->driver_id ?? 0) === (int) $actor->id;
+            $toStatus = $isSelfDrivenPayment ? TripPayment::STATUS_PAID : TripPayment::STATUS_PENDING_CONFIRMATION;
+
+            $this->logPaymentStatusChange($payment, $actor, $toStatus);
 
             $payment->update([
-                'payment_status' => $isSelfDrivenPayment ? TripPayment::STATUS_PAID : TripPayment::STATUS_PENDING_CONFIRMATION,
+                'payment_status' => $toStatus,
                 'marked_paid_at' => now(),
                 'confirmed_by' => $isSelfDrivenPayment ? $actor->id : null,
                 'confirmed_at' => $isSelfDrivenPayment ? now() : null,
@@ -385,13 +388,13 @@ class PaymentService
 
             if ($isSelfDrivenPayment) {
                 UserNotification::query()->create([
-                    'user_id'      => $payment->user_id,
-                    'type'         => 'payment',
-                    'title'        => 'Payment Recorded',
-                    'message'      => "Your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} has been recorded.",
+                    'user_id' => $payment->user_id,
+                    'type' => 'payment',
+                    'title' => 'Payment Recorded',
+                    'message' => 'Your payment of RM'.number_format((float) $payment->amount_due, 2)." for the {$label} has been recorded.",
                     'related_type' => 'trip_payment',
-                    'related_id'   => $payment->id,
-                    'is_read'      => false,
+                    'related_id' => $payment->id,
+                    'is_read' => false,
                 ]);
 
                 $this->passengerRiskScoringService->refreshRiskProfile($actor);
@@ -400,13 +403,13 @@ class PaymentService
             }
 
             UserNotification::query()->create([
-                'user_id'      => $payment->trip->driver_id,
-                'type'         => 'payment',
-                'title'        => 'Payment Submitted by Passenger',
-                'message'      => "{$actor->name} submitted a payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label}. Please verify and confirm.",
+                'user_id' => $payment->trip->driver_id,
+                'type' => 'payment',
+                'title' => 'Payment Submitted by Passenger',
+                'message' => "{$actor->name} submitted a payment of RM".number_format((float) $payment->amount_due, 2)." for the {$label}. Please verify and confirm.",
                 'related_type' => 'trip_payment',
-                'related_id'   => $payment->id,
-                'is_read'      => false,
+                'related_id' => $payment->id,
+                'is_read' => false,
             ]);
 
             $this->passengerRiskScoringService->refreshRiskProfile($actor);
@@ -442,6 +445,8 @@ class PaymentService
         return DB::transaction(function () use ($payment, $actor): TripPayment {
             $isDirectMark = $payment->payment_status === TripPayment::STATUS_UNPAID;
 
+            $this->logPaymentStatusChange($payment, $actor, TripPayment::STATUS_PAID);
+
             $payment->update([
                 'payment_status' => TripPayment::STATUS_PAID,
                 'confirmed_by' => $actor->id,
@@ -451,15 +456,15 @@ class PaymentService
 
             $label = $this->tripLabel($payment);
             UserNotification::query()->create([
-                'user_id'      => $payment->user_id,
-                'type'         => 'payment',
-                'title'        => $isDirectMark ? 'Payment Marked by Driver' : 'Payment Confirmed',
-                'message'      => $isDirectMark
-                    ? "The driver has marked your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} as paid."
-                    : "Your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} has been confirmed. You're all set!",
+                'user_id' => $payment->user_id,
+                'type' => 'payment',
+                'title' => $isDirectMark ? 'Payment Marked by Driver' : 'Payment Confirmed',
+                'message' => $isDirectMark
+                    ? 'The driver has marked your payment of RM'.number_format((float) $payment->amount_due, 2)." for the {$label} as paid."
+                    : 'Your payment of RM'.number_format((float) $payment->amount_due, 2)." for the {$label} has been confirmed. You're all set!",
                 'related_type' => 'trip_payment',
-                'related_id'   => $payment->id,
-                'is_read'      => false,
+                'related_id' => $payment->id,
+                'is_read' => false,
             ]);
 
             if ($actor->role === 'admin') {
@@ -487,6 +492,8 @@ class PaymentService
         }
 
         return DB::transaction(function () use ($payment, $admin, $reason): TripPayment {
+            $this->logPaymentStatusChange($payment, $admin, TripPayment::STATUS_UNPAID, $reason);
+
             $payment->update([
                 'payment_status' => TripPayment::STATUS_UNPAID,
                 'marked_paid_at' => null,
@@ -498,13 +505,13 @@ class PaymentService
 
             $label = $this->tripLabel($payment);
             UserNotification::query()->create([
-                'user_id'      => $payment->user_id,
-                'type'         => 'payment',
-                'title'        => 'Payment Reversed',
-                'message'      => "Your payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label} was reversed by an admin. Reason: {$reason}. Please re-settle it.",
+                'user_id' => $payment->user_id,
+                'type' => 'payment',
+                'title' => 'Payment Reversed',
+                'message' => 'Your payment of RM'.number_format((float) $payment->amount_due, 2)." for the {$label} was reversed by an admin. Reason: {$reason}. Please re-settle it.",
                 'related_type' => 'trip_payment',
-                'related_id'   => $payment->id,
-                'is_read'      => false,
+                'related_id' => $payment->id,
+                'is_read' => false,
             ]);
 
             $this->adminAuditService->log($admin, 'payment.reversed', 'payment', $payment->id, $reason);
@@ -542,6 +549,8 @@ class PaymentService
         }
 
         return DB::transaction(function () use ($payment, $actor, $reason): TripPayment {
+            $this->logPaymentStatusChange($payment, $actor, TripPayment::STATUS_UNPAID, $reason);
+
             $payment->update([
                 'payment_status' => TripPayment::STATUS_UNPAID,
                 'marked_paid_at' => null,
@@ -553,13 +562,13 @@ class PaymentService
 
             $label = $this->tripLabel($payment);
             UserNotification::query()->create([
-                'user_id'      => $payment->user_id,
-                'type'         => 'payment',
-                'title'        => 'Payment Submission Rejected',
-                'message'      => "Your payment submission for the {$label} was rejected. Reason: {$reason}. Please resubmit with the correct details.",
+                'user_id' => $payment->user_id,
+                'type' => 'payment',
+                'title' => 'Payment Submission Rejected',
+                'message' => "Your payment submission for the {$label} was rejected. Reason: {$reason}. Please resubmit with the correct details.",
                 'related_type' => 'trip_payment',
-                'related_id'   => $payment->id,
-                'is_read'      => false,
+                'related_id' => $payment->id,
+                'is_read' => false,
             ]);
 
             if ($actor->role === 'admin') {
@@ -607,13 +616,13 @@ class PaymentService
 
         $label = $this->tripLabel($payment);
         UserNotification::query()->create([
-            'user_id'      => $payment->user_id,
-            'type'         => 'payment',
-            'title'        => 'Payment Reminder',
-            'message'      => "Reminder: You have an outstanding payment of RM" . number_format((float) $payment->amount_due, 2) . " for the {$label}. Please settle it as soon as possible.",
+            'user_id' => $payment->user_id,
+            'type' => 'payment',
+            'title' => 'Payment Reminder',
+            'message' => 'Reminder: You have an outstanding payment of RM'.number_format((float) $payment->amount_due, 2)." for the {$label}. Please settle it as soon as possible.",
             'related_type' => 'trip_payment',
-            'related_id'   => $payment->id,
-            'is_read'      => false,
+            'related_id' => $payment->id,
+            'is_read' => false,
         ]);
 
         if ($actor->role === 'admin') {
@@ -647,6 +656,7 @@ class PaymentService
                     'seconds_left' => 0,
                     'next_at' => null,
                 ];
+
                 continue;
             }
 
@@ -677,17 +687,18 @@ class PaymentService
         }
 
         $nextAt = Carbon::parse($lastSentAt)->addHours(self::REMINDER_COOLDOWN_HOURS);
+
         return ['seconds_left' => max(0, now()->diffInSeconds($nextAt, false))];
     }
 
     private function summarizeByStatus(Builder $baseQuery): array
     {
         $rows = (clone $baseQuery)
-            ->selectRaw("
+            ->selectRaw('
                 payment_status,
                 COUNT(*) as cnt,
                 SUM(amount_due) as total
-            ")
+            ')
             ->groupBy('payment_status')
             ->get()
             ->keyBy('payment_status');
@@ -775,6 +786,71 @@ class PaymentService
     {
         return $payment->trip
             ? $this->formatTripLabel($payment->trip)
-            : 'Trip #' . $payment->trip_id;
+            : 'Trip #'.$payment->trip_id;
+    }
+
+    /**
+     * For the admin Audit Log's "Payment History" tab — browses
+     * trip_payment_status_logs, the trail logPaymentStatusChange() writes.
+     */
+    public function paginatePaymentStatusLogs(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    {
+        $query = TripPaymentStatusLog::query()
+            ->with(['payer:id,name', 'actor:id,name'])
+            ->latest('created_at');
+
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $query->where(function (Builder $builder) use ($q): void {
+                $builder->where('reason', 'like', "%{$q}%")
+                    ->orWhereHas('payer', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('actor', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"));
+            });
+        }
+
+        if (! empty($filters['to_status'])) {
+            $query->where('to_status', $filters['to_status']);
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->where('created_at', '>=', Carbon::parse((string) $filters['date_from'])->startOfDay());
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->where('created_at', '<=', Carbon::parse((string) $filters['date_to'])->endOfDay());
+        }
+
+        return $query->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Snapshots $payment's current (pre-change) row before a status
+     * transition overwrites it — reject/reverse null out marked_paid_at,
+     * confirmed_by, confirmed_at, payment_method and remarks with nothing
+     * else kept, so without this a disputed "I paid but it was rejected"
+     * has no evidence left to check. Call this before, not after,
+     * $payment->update(...).
+     */
+    private function logPaymentStatusChange(TripPayment $payment, User $actor, string $toStatus, ?string $reason = null): void
+    {
+        TripPaymentStatusLog::create([
+            'trip_payment_id' => $payment->id,
+            'trip_id' => $payment->trip_id,
+            'payer_id' => $payment->user_id,
+            'amount_due' => $payment->amount_due,
+            'from_status' => $payment->payment_status,
+            'to_status' => $toStatus,
+            'actor_id' => $actor->id,
+            'actor_role' => $actor->role,
+            'reason' => $reason,
+            'previous_state' => [
+                'marked_paid_at' => optional($payment->marked_paid_at)->toIso8601String(),
+                'confirmed_by' => $payment->confirmed_by,
+                'confirmed_at' => optional($payment->confirmed_at)->toIso8601String(),
+                'payment_method' => $payment->payment_method,
+                'remarks' => $payment->remarks,
+            ],
+            'created_at' => now(),
+        ]);
     }
 }

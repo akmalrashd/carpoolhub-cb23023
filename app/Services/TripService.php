@@ -5,8 +5,9 @@ namespace App\Services;
 use App\Models\Connection;
 use App\Models\SavedRoute;
 use App\Models\Trip;
-use App\Models\TripPassengerRoutePoint;
+use App\Models\TripCancellationLog;
 use App\Models\TripParticipant;
+use App\Models\TripPassengerRoutePoint;
 use App\Models\TripPayment;
 use App\Models\User;
 use App\Models\UserNotification;
@@ -472,13 +473,13 @@ class TripService
                 // ::create() per row, not insert() — see notifyParticipants() docblock.
                 foreach ($removedIds as $userId) {
                     UserNotification::query()->create([
-                        'user_id'      => $userId,
-                        'type'         => 'trip',
-                        'title'        => 'Removed from Trip',
-                        'message'      => "You have been removed from the {$label}. Please contact the driver if you have any questions.",
+                        'user_id' => $userId,
+                        'type' => 'trip',
+                        'title' => 'Removed from Trip',
+                        'message' => "You have been removed from the {$label}. Please contact the driver if you have any questions.",
                         'related_type' => 'system',
-                        'related_id'   => null,
-                        'is_read'      => false,
+                        'related_id' => null,
+                        'is_read' => false,
                     ]);
                 }
             }
@@ -489,7 +490,7 @@ class TripService
         });
     }
 
-    public function delete(User $actor, Trip $trip): void
+    public function delete(User $actor, Trip $trip, ?string $reason = null): void
     {
         $this->ensureTripOwner($actor, $trip);
 
@@ -504,11 +505,13 @@ class TripService
             ->values();
         $label = $this->tripLabel($baseTrip);
 
-        DB::transaction(function () use ($baseTrip, $passengerIds, $label): void {
+        DB::transaction(function () use ($baseTrip, $passengerIds, $label, $actor, $reason): void {
             $tripIds = Trip::query()
                 ->where('id', $baseTrip->id)
                 ->orWhere('parent_trip_id', $baseTrip->id)
                 ->pluck('id');
+
+            $this->logTripCancellation($tripIds, $actor, $reason);
 
             UserNotification::query()
                 ->where('related_type', 'trip')
@@ -521,17 +524,91 @@ class TripService
                 // ::create() per row, not insert() — see notifyParticipants() docblock.
                 foreach ($passengerIds as $userId) {
                     UserNotification::query()->create([
-                        'user_id'      => $userId,
-                        'type'         => 'trip',
-                        'title'        => 'Trip Cancelled',
-                        'message'      => "The {$label} has been cancelled by the driver. Please make alternative transport arrangements.",
+                        'user_id' => $userId,
+                        'type' => 'trip',
+                        'title' => 'Trip Cancelled',
+                        'message' => "The {$label} has been cancelled by the driver. Please make alternative transport arrangements.",
                         'related_type' => 'system',
-                        'related_id'   => null,
-                        'is_read'      => false,
+                        'related_id' => null,
+                        'is_read' => false,
                     ]);
                 }
             }
         });
+    }
+
+    /**
+     * For the admin Audit Log's "Trip Cancellations" tab — browses
+     * trip_cancellation_logs, the trail logTripCancellation() writes.
+     */
+    public function paginateCancellationLogs(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    {
+        $query = TripCancellationLog::query()
+            ->with(['driver:id,name', 'canceller:id,name'])
+            ->latest('created_at');
+
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $query->where(function ($builder) use ($q): void {
+                $builder->where('reason', 'like', "%{$q}%")
+                    ->orWhereHas('driver', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('canceller', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"));
+            });
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->where('created_at', '>=', Carbon::parse((string) $filters['date_from'])->startOfDay());
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->where('created_at', '<=', Carbon::parse((string) $filters['date_to'])->endOfDay());
+        }
+
+        return $query->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Snapshots every trip in $tripIds (plus its participants/payments)
+     * before delete() hard-deletes them — once that runs, cascadeOnDelete()
+     * on trip_participants/trip_payments takes the rest with it and the trip
+     * is unrecoverable (there's no soft-delete anywhere in this app). A
+     * dispute like "the driver cancelled 10 minutes before departure" needs
+     * something to check against; this is that something.
+     */
+    private function logTripCancellation(\Illuminate\Support\Collection $tripIds, User $actor, ?string $reason): void
+    {
+        $trips = Trip::query()
+            ->whereIn('id', $tripIds)
+            ->with(['participants', 'payments'])
+            ->get();
+
+        foreach ($trips as $trip) {
+            TripCancellationLog::create([
+                'trip_id' => $trip->id,
+                'driver_id' => $trip->driver_id,
+                'cancelled_by' => $actor->id,
+                'cancelled_by_role' => $actor->role,
+                'reason' => $reason,
+                'trip_datetime' => $trip->trip_datetime,
+                'trip_snapshot' => $trip->only([
+                    'id', 'driver_id', 'saved_route_id', 'parent_trip_id',
+                    'pickup_name', 'pickup_latitude', 'pickup_longitude',
+                    'destination_name', 'destination_latitude', 'destination_longitude',
+                    'trip_datetime', 'trip_mode', 'is_return_trip', 'visibility', 'status',
+                    'fare_total', 'fare_per_person', 'participant_count', 'seat_limit',
+                    'is_open_for_request', 'note', 'public_note', 'created_at',
+                ]),
+                'participants_snapshot' => $trip->participants->map->only([
+                    'id', 'user_id', 'is_driver', 'fare_amount',
+                    'attendance_status', 'joined_at', 'cancelled_at',
+                ])->all(),
+                'payments_snapshot' => $trip->payments->map->only([
+                    'id', 'user_id', 'amount_due', 'payment_status',
+                    'marked_paid_at', 'confirmed_by', 'confirmed_at', 'payment_method', 'remarks',
+                ])->all(),
+                'created_at' => now(),
+            ]);
+        }
     }
 
     public function ensureTripOwner(User $actor, Trip $trip): void
@@ -822,17 +899,17 @@ class TripService
 
         foreach ($recipientIds as $userId) {
             UserNotification::query()->create([
-                'user_id'      => $userId,
-                'type'         => $type,
-                'title'        => $title,
-                'message'      => match ($title) {
+                'user_id' => $userId,
+                'type' => $type,
+                'title' => $title,
+                'message' => match ($title) {
                     'Trip Created' => "You have been added to the {$label}. Check your trip details and upcoming schedule.",
                     'Trip Updated' => "The {$label} has been updated by {$actorName}. Please review the latest trip details.",
-                    default        => "{$actorName} updated the {$label}.",
+                    default => "{$actorName} updated the {$label}.",
                 },
                 'related_type' => 'trip',
-                'related_id'   => $trip->id,
-                'is_read'      => false,
+                'related_id' => $trip->id,
+                'is_read' => false,
             ]);
         }
     }
@@ -840,13 +917,13 @@ class TripService
     private function notifyDriver(Trip $trip, int $driverId, string $title, string $message): void
     {
         UserNotification::query()->create([
-            'user_id'      => $driverId,
-            'type'         => 'trip',
-            'title'        => $title,
-            'message'      => $message,
+            'user_id' => $driverId,
+            'type' => 'trip',
+            'title' => $title,
+            'message' => $message,
             'related_type' => 'trip',
-            'related_id'   => $trip->id,
-            'is_read'      => false,
+            'related_id' => $trip->id,
+            'is_read' => false,
         ]);
     }
 

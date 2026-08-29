@@ -15,9 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class TripController extends Controller
 {
-    public function __construct(private readonly TripService $tripService)
-    {
-    }
+    public function __construct(private readonly TripService $tripService) {}
 
     public function index(Request $request): View
     {
@@ -150,7 +148,8 @@ class TripController extends Controller
     {
         $this->ensureCanEditOrDelete($request);
 
-        $this->tripService->delete($request->user(), $trip);
+        $reason = trim((string) $request->input('reason', '')) ?: null;
+        $this->tripService->delete($request->user(), $trip, $reason);
 
         return redirect()
             ->route('trips.index')
@@ -160,11 +159,12 @@ class TripController extends Controller
     public function bulkDestroy(Request $request): RedirectResponse
     {
         $request->validate([
-            'ids'   => 'required|array',
+            'ids' => 'required|array',
             'ids.*' => 'integer|exists:trips,id',
         ]);
 
         $user = $request->user();
+        $reason = trim((string) $request->input('reason', '')) ?: null;
         $deletedCount = 0;
 
         // One query for the whole batch instead of a Trip::find() per id — the
@@ -174,7 +174,7 @@ class TripController extends Controller
 
         foreach ($trips as $trip) {
             if ($user->role === 'admin' || (int) $user->id === (int) $trip->driver_id) {
-                $this->tripService->delete($user, $trip);
+                $this->tripService->delete($user, $trip, $reason);
                 $deletedCount++;
             }
         }
@@ -255,5 +255,4 @@ class TripController extends Controller
             ],
         ];
     }
-
 }

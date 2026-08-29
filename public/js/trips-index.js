@@ -1,4 +1,24 @@
 /* Extracted from resources/views/trips/index.blade.php — logic; page values come from window.CH_TRIPS. */
+
+/* Shared by every cancel/delete trip form (list row, table row, detail modal,
+   bulk bar) — confirms, then optionally collects a reason into the form's
+   hidden "reason" input so TripService::delete() can keep it on the
+   trip_cancellation_logs snapshot instead of the reason being lost. */
+function confirmTripCancel(form, confirmMessage) {
+    if (!window.confirm(confirmMessage || 'Cancel this trip? This will delete the trip and all related records.')) {
+        return false;
+    }
+    const reason = window.prompt('Optional: why is this being cancelled? (leave blank to skip)', '');
+    if (reason === null) {
+        return false;
+    }
+    const reasonInput = form.querySelector('input[name="reason"]');
+    if (reasonInput) {
+        reasonInput.value = reason.trim();
+    }
+    return true;
+}
+
         const showModalSkeleton = (listEl) => {
             if (!listEl) return;
             listEl.innerHTML = `

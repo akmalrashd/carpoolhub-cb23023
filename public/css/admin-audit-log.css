@@ -1,6 +1,18 @@
 /* Audit log page — filter bar layout. Individual controls (.au-input,
    .au-select, badges) reuse admin-users.css; this file only lays them out. */
 
+/* ── In-page view tabs (Admin Actions / Payment History / Trip Cancellations) ──
+   Same pill/segmented look as .admin-subnav (admin-users.css) and .settings-nav
+   (settings.css) — this one switches ?view= on the same route instead of
+   navigating between routes. */
+.al-view-tabs { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 14px; padding: 4px; overflow-x: auto; scrollbar-width: none; box-sizing: border-box; }
+.al-view-tabs::-webkit-scrollbar { display: none; }
+.al-view-tabs a { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; font-size: 13px; font-weight: 700; font-family: var(--font-ui), sans-serif; color: var(--muted); text-decoration: none; white-space: nowrap; transition: color .15s, background .15s, border-color .15s, box-shadow .15s; }
+.al-view-tabs a:hover { color: var(--ink); }
+.al-view-tabs a.active { background: var(--surface); border-color: var(--hairline); color: var(--ink); box-shadow: var(--shadow-1); font-weight: 800; }
+.al-view-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; padding: 1px 5px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 800; }
+.al-view-tabs a.active .al-view-count { background: var(--ch-yellow-tint); color: var(--ch-yellow-ink); }
+
 .al-filter-row { margin-bottom: 8px; }
 .al-filter-row:last-child { margin-bottom: 0; }
 

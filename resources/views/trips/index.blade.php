@@ -695,9 +695,10 @@
                                             <i class="fa-regular fa-pen-to-square"></i> @if(!$canManageRequests) Edit @endif
                                         </a>
                                         @if($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true))
-                                            <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirm('Cancel this trip? This will delete the trip and all related records.');">
+                                            <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-action-form" onsubmit="return confirmTripCancel(this);">
                                                 @csrf
                                                 @method('DELETE')
+                                                <input type="hidden" name="reason">
                                                 <button type="submit" class="trip-action-btn is-filled delete-btn @if($canManageRequests) icon-only @endif" title="Delete trip" aria-label="Delete trip">
                                                     <i class="fa-regular fa-trash-can"></i> @if(!$canManageRequests) Delete @endif
                                                 </button>
@@ -1205,9 +1206,10 @@
                                                 <i class="fa-regular fa-pen-to-square"></i>
                                             </a>
                                             @if($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true))
-                                                <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-row-icon-form" onsubmit="return confirm('Delete this trip? This will remove the trip and all related records.');">
+                                                <form action="{{ route('trips.destroy', $trip) }}" method="POST" class="trip-row-icon-form" onsubmit="return confirmTripCancel(this);">
                                                     @csrf
                                                     @method('DELETE')
+                                                    <input type="hidden" name="reason">
                                                     <button type="submit" class="trip-row-icon-btn is-filled delete-btn" title="Delete trip" aria-label="Delete trip">
                                                         <i class="fa-regular fa-trash-can"></i>
                                                     </button>
@@ -1557,9 +1559,10 @@
                     <a href="#" class="trip-action-btn is-filled edit-btn" id="tripModalEditBtn">
                         <i class="fa-regular fa-pen-to-square"></i> Edit
                     </a>
-                    <form method="POST" id="tripModalDeleteForm" class="trip-action-form" onsubmit="return confirm('Cancel this trip? This will delete the trip and all related records.');">
+                    <form method="POST" id="tripModalDeleteForm" class="trip-action-form" onsubmit="return confirmTripCancel(this);">
                         @csrf
                         @method('DELETE')
+                        <input type="hidden" name="reason">
                         <button type="submit" class="trip-action-btn is-filled delete-btn">
                             <i class="fa-regular fa-trash-can"></i> Delete
                         </button>
@@ -1578,9 +1581,10 @@
     </div>
 
     {{-- Floating Batch Delete Action Bar (1-to-1 matching Payments Floating Bar) --}}
-    <form id="tripsBulkDeleteForm" action="{{ route('trips.bulk-destroy') }}" method="POST">
+    <form id="tripsBulkDeleteForm" action="{{ route('trips.bulk-destroy') }}" method="POST" onsubmit="return confirmTripCancel(this, 'Are you sure you want to delete all selected trips?');">
         @csrf
         @method('DELETE')
+        <input type="hidden" name="reason">
         <div id="tripsBatchFloatingBar" class="trips-batch-floating-bar" style="display: none;">
             <div class="trips-batch-content" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
                 <span id="tripsSelectedCountText" style="font-weight: 800; color: #0f172a; font-size: 14px; font-family: var(--font-ui), sans-serif; white-space: nowrap;">
@@ -1593,7 +1597,7 @@
                     <button type="button" id="tripsSelectAllBtn" class="btn btn-ghost trips-batch-icon-btn" title="Select all" aria-label="Select all" style="border-radius: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                         <i class="fa-solid fa-check-double"></i>
                     </button>
-                    <button type="submit" class="btn btn-danger" style="height: 38px; padding: 0 16px; font-size: 13.5px; font-weight: 800; border-radius: 10px; background: #e11d48; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="return confirm('Are you sure you want to delete all selected trips?');">
+                    <button type="submit" class="btn btn-danger" style="height: 38px; padding: 0 16px; font-size: 13.5px; font-weight: 800; border-radius: 10px; background: #e11d48; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-trash-can"></i> Delete All
                     </button>
                 </div>
