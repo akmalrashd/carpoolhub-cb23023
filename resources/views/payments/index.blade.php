@@ -1171,11 +1171,11 @@
                                             <span class="payments-btn payment-table-action is-muted" style="width:100%;"><i class="fa-regular fa-clock"></i> Pending</span>
                                         </div>
                                     @else
-                                        <div class="payments-action-row" style="width:100%;">
+                                        <div class="payments-action-row {{ $isAdmin ? 'payments-action-col' : '' }}" style="width:100%;">
                                             <button
                                                 type="button"
                                                 class="payments-btn payment-table-action open-payment-receipt-btn"
-                                                style="{{ $isAdmin ? 'flex:1;' : 'width:100%;' }}"
+                                                style="width:100%;"
                                                 data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
                                                 data-trip-ref="{{ $tripRef }}"
                                                 data-trip-mode="{{ ($payment->trip?->is_return_trip ?? false) ? 'Return' : 'Outbound' }}"
@@ -1193,13 +1193,14 @@
                                             @if($isAdmin)
                                                 <button
                                                     type="button"
-                                                    class="payments-btn payments-btn-danger payments-btn-icon open-reverse-payment-modal"
+                                                    class="payments-btn payments-btn-danger open-reverse-payment-modal"
+                                                    style="width:100%;"
                                                     data-action="{{ route('payments.reverse', $payment) }}"
                                                     data-passenger="{{ $payment->user?->name ?: '-' }}"
                                                     data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                                     title="Reverse payment"
                                                     aria-label="Reverse payment"
-                                                ><i class="fa-solid fa-rotate-left"></i></button>
+                                                ><i class="fa-solid fa-rotate-left"></i> Reverse</button>
                                             @endif
                                         </div>
                                     @endif

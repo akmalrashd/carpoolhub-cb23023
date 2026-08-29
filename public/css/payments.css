@@ -653,6 +653,22 @@
             background: #fee2e2;
             border-color: #fecaca;
         }
+        /* Reverse is a destructive, one-way action sitting right next to the
+           routine Receipt button — the soft/light danger style above reads as
+           just another neutral action next to it. A solid fill (matching
+           .btn-solid-reject's convention elsewhere on this page) makes it
+           unmistakably the "different" button without touching the Reject
+           buttons that still use the plain .payments-btn-danger look. */
+        .payments-btn-danger.open-reverse-payment-modal {
+            background: #dc2626;
+            border-color: #b91c1c;
+            color: #ffffff;
+        }
+        .payments-btn-danger.open-reverse-payment-modal:hover {
+            background: #b91c1c;
+            border-color: #991b1b;
+            color: #ffffff;
+        }
         .payments-btn-soft {
             background: #f8fafc;
             border-color: #e2e8f0;
@@ -3633,6 +3649,13 @@
                 margin: 0;
                 width: 100%;
                 white-space: nowrap;
+            }
+            /* Receipt + Reverse — stacked top/bottom like the Notify/Mark Paid
+               pair above, instead of squeezed side by side into a wide button
+               plus a cramped icon-only one. */
+            .payments-table .payments-action-row.payments-action-col {
+                flex-direction: column;
+                white-space: normal;
             }
             .payments-table .payments-btn {
                 display: inline-flex;
