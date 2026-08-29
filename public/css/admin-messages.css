@@ -1,5 +1,15 @@
 /* Admin > Message Users page */
 
+/* Section header — same convention as settings.css .panel-head/.panel-title/
+   .panel-desc (Personal Profile, Security, etc.), duplicated here rather than
+   pulled cross-file since this page doesn't load settings.css otherwise. */
+.panel-head { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--hairline); }
+.panel-title { font-family: var(--font-display), sans-serif; font-size: 18px; font-weight: 800; color: var(--ink); margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+.panel-desc { font-size: 13px; color: var(--muted); margin: 0; }
+
+.am-field { margin-bottom: 16px; }
+.am-field-hint { font-size: 12px; color: var(--muted); margin: 0 0 6px; }
+
 .am-audience-option {
     display: flex;
     align-items: center;

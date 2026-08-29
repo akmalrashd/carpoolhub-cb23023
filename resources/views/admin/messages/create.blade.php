@@ -15,6 +15,8 @@
     <p class="au-sub">Notify one user, everyone with a given role, or the whole platform — delivered through each recipient's existing in-app/push/Telegram notifications.</p>
 </div>
 
+@include('layouts.partials.admin-subnav')
+
 @if($errors->any())
     <div style="padding:12px 16px;border-radius:var(--r-md);border:1px solid rgba(220,38,38,.28);background:var(--danger-soft);color:var(--danger-ink);font-size:14px;font-weight:500;">
         <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>{{ $errors->first() }}
@@ -26,12 +28,16 @@
     </div>
 @endif
 
-<div class="card card-pad-lg" style="max-width:640px;">
-    <form id="admin-message-form" method="POST" action="{{ route('admin.messages.store') }}">
-        @csrf
+<form id="admin-message-form" method="POST" action="{{ route('admin.messages.store') }}" style="display:flex;flex-direction:column;gap:20px;">
+    @csrf
 
-        <div class="field-label" style="margin-bottom:10px;">Send to</div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+    <div class="card card-pad-lg">
+        <div class="panel-head">
+            <h3 class="panel-title"><i class="fa-solid fa-users"></i> Recipient</h3>
+            <p class="panel-desc">Choose who should receive this notification.</p>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
             <label class="am-audience-option">
                 <input type="radio" name="audience" value="user" checked onchange="updateAdminMessageAudience()">
                 <span class="am-audience-icon"><i class="fa-solid fa-user"></i></span>
@@ -87,24 +93,37 @@
                 </span>
             </label>
         </div>
+    </div>
 
-        <div class="field-label" style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <span>Title</span>
-            <span class="t-xs text-muted" id="am-title-count">0 / 150</span>
+    <div class="card card-pad-lg">
+        <div class="panel-head">
+            <h3 class="panel-title"><i class="fa-solid fa-comment-dots"></i> Message</h3>
+            <p class="panel-desc">Delivered through each recipient's existing in-app, push, and Telegram notifications.</p>
         </div>
-        <input type="text" id="am-title-input" name="title" class="input" placeholder="e.g. Scheduled maintenance tonight" maxlength="150" required style="margin-bottom:16px;" value="{{ old('title') }}">
 
-        <div class="field-label" style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <span>Message</span>
-            <span class="t-xs text-muted" id="am-message-count">0 / 2000</span>
+        <div class="am-field">
+            <div class="field-label" style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span>Title</span>
+                <span class="t-xs text-muted" id="am-title-count">0 / 150</span>
+            </div>
+            <p class="am-field-hint">Shown as the notification headline.</p>
+            <input type="text" id="am-title-input" name="title" class="input" placeholder="e.g. Scheduled maintenance tonight" maxlength="150" required value="{{ old('title') }}">
         </div>
-        <textarea id="am-message-input" name="message" class="input" rows="5" maxlength="2000" required placeholder="What do you want to tell them?" style="margin-bottom:20px;">{{ old('message') }}</textarea>
 
-        <button type="submit" class="btn btn-primary btn-block" id="am-submit-btn">
-            <i class="fa-solid fa-paper-plane"></i> <span id="am-submit-label">Send Message</span>
-        </button>
-    </form>
-</div>
+        <div class="am-field" style="margin-bottom:0;">
+            <div class="field-label" style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span>Message</span>
+                <span class="t-xs text-muted" id="am-message-count">0 / 2000</span>
+            </div>
+            <p class="am-field-hint">The full text recipients will read.</p>
+            <textarea id="am-message-input" name="message" class="input" rows="5" maxlength="2000" required placeholder="What do you want to tell them?">{{ old('message') }}</textarea>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block" id="am-submit-btn">
+        <i class="fa-solid fa-paper-plane"></i> <span id="am-submit-label">Send Message</span>
+    </button>
+</form>
 
 </div>{{-- /au-page --}}
 
