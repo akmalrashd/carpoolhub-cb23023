@@ -9,6 +9,8 @@
     $driverCount    = User::where('role', 'driver')->count();
     $passengerCount = User::where('role', 'passenger')->count();
     $pendingCount   = $pendingDrivers->total();
+    $approvedDriverCount = User::where('role', 'driver')->where('driver_verification_status', 'approved')->count();
+    $rejectedDriverCount = User::where('role', 'driver')->where('driver_verification_status', 'rejected')->count();
 @endphp
 
 @push('styles')
@@ -26,6 +28,21 @@
 
 @include('layouts.partials.admin-subnav')
 
+{{-- Manage Users vs Driver Verification were one undivided page: a general
+     roster (role/suspend, any account) mixed with document review
+     (license/selfie photos, approve/reject) that only ever applies to
+     drivers. Split via ?view= like Audit Log's tabs, sharing this one route
+     rather than becoming a 6th admin-subnav destination. --}}
+<nav class="subview-tabs">
+    <a href="{{ route('admin.users.index', ['view' => 'manage']) }}" class="{{ $view === 'manage' ? 'active' : '' }}">
+        <i class="fa-solid fa-users-gear"></i> Manage Users
+    </a>
+    <a href="{{ route('admin.users.index', ['view' => 'verification']) }}" class="{{ $view === 'verification' ? 'active' : '' }}">
+        <i class="fa-solid fa-id-card"></i> Driver Verification
+        @if($pendingCount > 0)<span class="subview-count">{{ $pendingCount }}</span>@endif
+    </a>
+</nav>
+
 {{-- Error banner --}}
 @if($errors->any())
     <div style="padding:12px 16px;border-radius:var(--r-md);border:1px solid rgba(220,38,38,.28);background:var(--danger-soft);color:var(--danger-ink);font-size:14px;font-weight:500;">
@@ -38,35 +55,38 @@
     </div>
 @endif
 
+@if($view === 'verification')
+{{-- ══════════════════════ DRIVER VERIFICATION ══════════════════════ --}}
+
 {{-- Stats --}}
 <div class="au-stats">
     <div class="au-stat-card">
-        <div class="au-stat-icon" style="background:var(--ch-yellow-tint);border:1px solid var(--ch-yellow-line);">
-            <i class="fa-solid fa-users" style="color:var(--ch-yellow-ink);"></i>
+        <div class="au-stat-icon" style="background:#fef3c7;border:1px solid #fde68a;">
+            <i class="fa-solid fa-clock" style="color:#92400e;"></i>
         </div>
-        <div class="au-stat-val">{{ $totalUsers }}</div>
-        <div class="au-stat-lbl">Total Users</div>
+        <div class="au-stat-val">{{ $pendingCount }}</div>
+        <div class="au-stat-lbl">Pending Review</div>
+    </div>
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+            <i class="fa-solid fa-circle-check" style="color:#15803d;"></i>
+        </div>
+        <div class="au-stat-val">{{ $approvedDriverCount }}</div>
+        <div class="au-stat-lbl">Approved</div>
     </div>
     <div class="au-stat-card">
         <div class="au-stat-icon" style="background:#fef2f2;border:1px solid rgba(220,38,38,.2);">
-            <i class="fa-solid fa-user-shield" style="color:#dc2626;"></i>
+            <i class="fa-solid fa-circle-xmark" style="color:#dc2626;"></i>
         </div>
-        <div class="au-stat-val">{{ $adminCount }}</div>
-        <div class="au-stat-lbl">Admins</div>
+        <div class="au-stat-val">{{ $rejectedDriverCount }}</div>
+        <div class="au-stat-lbl">Rejected</div>
     </div>
     <div class="au-stat-card">
         <div class="au-stat-icon" style="background:var(--info-soft);border:1px solid rgba(37,99,235,.2);">
             <i class="fa-solid fa-car" style="color:var(--info-ink);"></i>
         </div>
         <div class="au-stat-val">{{ $driverCount }}</div>
-        <div class="au-stat-lbl">Drivers</div>
-    </div>
-    <div class="au-stat-card">
-        <div class="au-stat-icon" style="background:var(--surface-2);border:1px solid var(--hairline-strong);">
-            <i class="fa-solid fa-user" style="color:var(--muted);"></i>
-        </div>
-        <div class="au-stat-val">{{ $passengerCount }}</div>
-        <div class="au-stat-lbl">Passengers</div>
+        <div class="au-stat-lbl">Total Drivers</div>
     </div>
 </div>
 
@@ -131,6 +151,7 @@
                         data-active="{{ $pd->is_active ? '1' : '0' }}"
                         data-status="{{ $pd->driver_verification_status }}"
                         data-reason="{{ $pd->driver_verification_reason }}"
+                        data-deactivation-reason="{{ $pd->deactivation_reason }}"
                         data-joined="{{ $pd->created_at?->format('d M Y') ?? '—' }}"
                         {{-- data-license deliberately omitted: it held a byte-identical
                              copy of src, doubling this page's weight (these are
@@ -170,6 +191,150 @@
 {{-- Filter bar --}}
 <div class="au-filter-card">
     <form method="GET" action="{{ route('admin.users.index') }}">
+        <input type="hidden" name="view" value="verification">
+        <div class="au-filter-grid">
+            <div style="position:relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;"></i>
+                <input type="text" name="vq" value="{{ request('vq') }}" placeholder="Search driver by name or emailâ€¦" class="au-input">
+            </div>
+            <select name="verification_status" class="au-select">
+                <option value="">All Statuses</option>
+                @foreach(['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $vOpt => $vLabel)
+                    <option value="{{ $vOpt }}" {{ request('verification_status') === $vOpt ? 'selected' : '' }}>{{ $vLabel }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">
+                <i class="fa-solid fa-filter" style="font-size:11px;"></i> Filter
+            </button>
+        </div>
+        @if(request('vq') || request('verification_status'))
+            <div style="margin-top:8px;">
+                <a href="{{ route('admin.users.index', ['view' => 'verification']) }}" class="btn btn-ghost btn-sm" style="text-decoration:none;">
+                    <i class="fa-solid fa-xmark" style="font-size:11px;"></i> Clear Filters
+                </a>
+            </div>
+        @endif
+    </form>
+</div>
+
+{{-- Drivers table --}}
+<div style="background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden;">
+    @forelse($drivers as $driver)
+        @php
+            $uc = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981'][abs(crc32($driver->name)) % 5];
+            $dVehicle = trim(($driver->vehicle_model ?? '').' '.($driver->vehicle_plate ?? '')) ?: '—';
+        @endphp
+        @if($loop->first)
+            <div class="au-table-wrap">
+            <table class="au-table">
+                <thead><tr>
+                    <th>Driver</th><th>Vehicle</th><th>Status</th><th>Joined</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr></thead>
+                <tbody>
+        @endif
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                            <div class="au-avatar" style="background:{{ $uc }};">{{ strtoupper(substr($driver->name,0,1)) }}</div>
+                            <div style="min-width:0;">
+                                <div style="font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{ $driver->name }}</div>
+                                <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{ $driver->email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-size:13px;color:var(--ink);white-space:nowrap;">{{ $dVehicle }}</td>
+                    <td>
+                        @php $acctStatus = $driver->accountStatusLabel(); @endphp
+                        <span class="status-pill {{ $acctStatus['pill_class'] }}"><span class="dot-sm" style="background:{{ $acctStatus['dot_color'] }};"></span> {{ $acctStatus['label'] }}</span>
+                        @if(!empty($acctStatus['reason']))
+                            <div class="t-xs text-muted" style="margin-top:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $acctStatus['reason'] }}">{{ $acctStatus['reason'] }}</div>
+                        @endif
+                    </td>
+                    <td style="font-size:13px;color:var(--muted);white-space:nowrap;">{{ $driver->created_at?->format('d M Y') ?? 'â€”' }}</td>
+                    <td>
+                        <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
+                            <button type="button" class="au-qbtn"
+                                style="background:var(--info-soft);color:var(--info-ink);border-color:rgba(37,99,235,.2);"
+                                data-uid="{{ $driver->id }}"
+                                data-name="{{ $driver->name }}"
+                                data-email="{{ $driver->email }}"
+                                data-phone="{{ $driver->phone ?? '—' }}"
+                                data-vehicle="{{ $dVehicle }}"
+                                data-active="{{ $driver->is_active ? '1' : '0' }}"
+                                data-status="{{ $driver->driver_verification_status }}"
+                                data-reason="{{ $driver->driver_verification_reason }}"
+                                data-deactivation-reason="{{ $driver->deactivation_reason }}"
+                                data-joined="{{ $driver->created_at?->format('d M Y') ?? '—' }}"
+                                data-license="{{ $driver->driving_license_photo ?? '' }}"
+                                data-selfie="{{ $driver->selfie_photo ?? '' }}"
+                                onclick="openLicenseFromBtn(this)"
+                            ><i class="fa-solid fa-id-card" style="font-size:11px;"></i> Review</button>
+                        </div>
+                    </td>
+                </tr>
+        @if($loop->last)
+                </tbody></table>
+            </div>
+        @endif
+    @empty
+        <div style="padding:56px 24px;text-align:center;">
+            <div style="width:56px;height:56px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--hairline-strong);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
+                <i class="fa-solid fa-id-card" style="font-size:22px;color:var(--muted-2);"></i>
+            </div>
+            <div style="font-size:16px;font-weight:700;font-family:var(--font-display);color:var(--ink);margin-bottom:6px;">No drivers found</div>
+            <div style="font-size:14px;color:var(--muted);">Try adjusting your search or filters.</div>
+            @if(request('vq') || request('verification_status'))
+                <div style="margin-top:14px;"><a href="{{ route('admin.users.index', ['view' => 'verification']) }}" class="btn btn-ghost btn-sm" style="text-decoration:none;">Clear Filters</a></div>
+            @endif
+        </div>
+    @endforelse
+    @if($drivers->hasPages())
+        <div style="padding:12px 16px;border-top:1px solid var(--hairline);display:flex;justify-content:flex-end;">
+            {{ $drivers->links() }}
+        </div>
+    @endif
+</div>
+
+@else
+{{-- ══════════════════════ MANAGE USERS ══════════════════════ --}}
+
+{{-- Stats --}}
+<div class="au-stats">
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:var(--ch-yellow-tint);border:1px solid var(--ch-yellow-line);">
+            <i class="fa-solid fa-users" style="color:var(--ch-yellow-ink);"></i>
+        </div>
+        <div class="au-stat-val">{{ $totalUsers }}</div>
+        <div class="au-stat-lbl">Total Users</div>
+    </div>
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:#fef2f2;border:1px solid rgba(220,38,38,.2);">
+            <i class="fa-solid fa-user-shield" style="color:#dc2626;"></i>
+        </div>
+        <div class="au-stat-val">{{ $adminCount }}</div>
+        <div class="au-stat-lbl">Admins</div>
+    </div>
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:var(--info-soft);border:1px solid rgba(37,99,235,.2);">
+            <i class="fa-solid fa-car" style="color:var(--info-ink);"></i>
+        </div>
+        <div class="au-stat-val">{{ $driverCount }}</div>
+        <div class="au-stat-lbl">Drivers</div>
+    </div>
+    <div class="au-stat-card">
+        <div class="au-stat-icon" style="background:var(--surface-2);border:1px solid var(--hairline-strong);">
+            <i class="fa-solid fa-user" style="color:var(--muted);"></i>
+        </div>
+        <div class="au-stat-val">{{ $passengerCount }}</div>
+        <div class="au-stat-lbl">Passengers</div>
+    </div>
+</div>
+
+{{-- Filter bar --}}
+<div class="au-filter-card">
+    <form method="GET" action="{{ route('admin.users.index') }}">
+        <input type="hidden" name="view" value="manage">
         <div class="au-filter-grid">
             <div style="position:relative;">
                 <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;"></i>
@@ -184,7 +349,7 @@
             <select id="active-filter" name="active" class="au-select">
                 <option value="">All Status</option>
                 <option value="1" {{ request('active') === '1' ? 'selected' : '' }}>Active</option>
-                <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>Inactive</option>
+                <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>Suspended</option>
             </select>
             <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">
                 <i class="fa-solid fa-filter" style="font-size:11px;"></i> Filter
@@ -192,7 +357,7 @@
         </div>
         @if(request('q') || request('role') || (request('active') !== null && request('active') !== ''))
             <div style="margin-top:8px;">
-                <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm" style="text-decoration:none;">
+                <a href="{{ route('admin.users.index', ['view' => 'manage']) }}" class="btn btn-ghost btn-sm" style="text-decoration:none;">
                     <i class="fa-solid fa-xmark" style="font-size:11px;"></i> Clear Filters
                 </a>
             </div>
@@ -231,43 +396,15 @@
                         </span>
                     </td>
                     <td>
-                        @if($user->role === 'driver')
-                            @if($user->driver_verification_status === 'pending')
-                                <span class="status-pill status-pending"><span class="dot-sm" style="background:#d97706;"></span> Pending</span>
-                            @elseif($user->driver_verification_status === 'rejected')
-                                <span class="status-pill status-rejected"><span class="dot-sm" style="background:#dc2626;"></span> Rejected</span>
-                            @elseif($user->is_active)
-                                <span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Active</span>
-                            @else
-                                <span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Suspended</span>
-                            @endif
-                        @elseif($user->is_active)
-                            <span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Active</span>
-                        @else
-                            <span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Inactive</span>
+                        @php $acctStatus = $user->accountStatusLabel(); @endphp
+                        <span class="status-pill {{ $acctStatus['pill_class'] }}"><span class="dot-sm" style="background:{{ $acctStatus['dot_color'] }};"></span> {{ $acctStatus['label'] }}</span>
+                        @if(!empty($acctStatus['reason']))
+                            <div class="t-xs text-muted" style="margin-top:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $acctStatus['reason'] }}">{{ $acctStatus['reason'] }}</div>
                         @endif
                     </td>
                     <td style="font-size:13px;color:var(--muted);white-space:nowrap;">{{ $user->created_at?->format('d M Y') ?? 'â€”' }}</td>
                     <td>
                         <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
-                            @if($user->role === 'driver' && ($user->driving_license_photo || $user->selfie_photo))
-                                @php $uVehicle = trim(($user->vehicle_model??'').' '.($user->vehicle_plate??'')) ?: '—'; @endphp
-                                <button type="button" class="au-qbtn"
-                                    style="background:var(--info-soft);color:var(--info-ink);border-color:rgba(37,99,235,.2);"
-                                    data-uid="{{ $user->id }}"
-                                    data-name="{{ $user->name }}"
-                                    data-email="{{ $user->email }}"
-                                    data-phone="{{ $user->phone ?? '—' }}"
-                                    data-vehicle="{{ $uVehicle }}"
-                                    data-active="{{ $user->is_active ? '1' : '0' }}"
-                                    data-status="{{ $user->driver_verification_status }}"
-                                    data-reason="{{ $user->driver_verification_reason }}"
-                                    data-joined="{{ $user->created_at?->format('d M Y') ?? '—' }}"
-                                    data-license="{{ $user->driving_license_photo ?? '' }}"
-                                    data-selfie="{{ $user->selfie_photo ?? '' }}"
-                                    onclick="openLicenseFromBtn(this)"
-                                ><i class="fa-solid fa-id-card" style="font-size:11px;"></i> License</button>
-                            @endif
                             <button class="au-qbtn au-qbtn-edit"
                                 onclick="openEditDrawer('{{ $user->id }}','{{ addslashes($user->name) }}','{{ $user->role }}','{{ $user->is_active?'1':'0' }}')"
                             ><i class="fa-solid fa-pen" style="font-size:11px;"></i> Edit</button>
@@ -286,7 +423,7 @@
             <div style="font-size:16px;font-weight:700;font-family:var(--font-display);color:var(--ink);margin-bottom:6px;">No users found</div>
             <div style="font-size:14px;color:var(--muted);">Try adjusting your search or filters.</div>
             @if(request('q') || request('role') || (request('active') !== null && request('active') !== ''))
-                <div style="margin-top:14px;"><a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm" style="text-decoration:none;">Clear Filters</a></div>
+                <div style="margin-top:14px;"><a href="{{ route('admin.users.index', ['view' => 'manage']) }}" class="btn btn-ghost btn-sm" style="text-decoration:none;">Clear Filters</a></div>
             @endif
         </div>
     @endforelse
@@ -296,6 +433,7 @@
         </div>
     @endif
 </div>
+@endif
 
 </div>{{-- /au-page --}}
 
@@ -322,7 +460,7 @@
                 <div class="lr-info-item"><span class="lr-info-lbl">Status</span><span class="lr-info-val" id="lr-status">—</span></div>
             </div>
             <div class="lr-info-item" id="lr-reason-row" style="display:none;margin-top:8px;">
-                <span class="lr-info-lbl">Rejection Reason</span>
+                <span class="lr-info-lbl" id="lr-reason-lbl">Reason</span>
                 <span class="lr-info-val" id="lr-reason" style="display:block;margin-top:2px;">—</span>
             </div>
             <div class="lr-img-section">
@@ -360,12 +498,7 @@
             <div class="lr-btn-side">
                 <button class="lr-close-footer" onclick="closeLicenseModal()">Close</button>
                 <button type="button" class="lr-reject-btn" id="lr-reject-btn" onclick="openRejectModalFromLicense()"><i class="fa-solid fa-circle-xmark"></i> Reject</button>
-                <form id="lr-suspend-form" method="POST" style="display:inline;">
-                    @csrf @method('PATCH')
-                    <input type="hidden" name="role" value="driver">
-                    <input type="hidden" name="is_active" value="0">
-                    <button type="submit" class="lr-reject-btn" id="lr-suspend-btn"><i class="fa-solid fa-circle-minus"></i> Suspend</button>
-                </form>
+                <button type="button" class="lr-reject-btn" id="lr-suspend-btn" onclick="openEditDrawerFromLicense()"><i class="fa-solid fa-circle-minus"></i> Suspend</button>
                 <form id="lr-reactivate-form" method="POST" style="display:inline;">
                     @csrf @method('PATCH')
                     <input type="hidden" name="role" value="driver">
@@ -401,12 +534,16 @@
                 <label class="eu-label" for="eu-status">Account Status</label>
                 <select id="eu-status" name="is_active" class="eu-select" onchange="toggleEditReasonField()">
                     <option value="1">Active</option>
-                    <option value="0">Inactive / Suspended</option>
+                    <option value="0">Suspended</option>
                 </select>
             </div>
             <div class="eu-field" id="eu-reason-field" style="display:none;">
-                <label class="eu-label" for="eu-reason">Reason for suspending</label>
-                <textarea id="eu-reason" name="reason" class="eu-select" rows="3" placeholder="Shown to the user if they try to log in."></textarea>
+                <label class="eu-label" for="eu-reason" style="display:flex;justify-content:space-between;align-items:baseline;">
+                    <span>Reason for suspending</span>
+                    <span class="t-xs text-muted" id="eu-reason-count" style="text-transform:none;letter-spacing:normal;font-weight:600;">0 / 1000</span>
+                </label>
+                <p class="t-xs text-muted" style="margin:0 0 6px;">The user will see this exact text if they try to log in while suspended.</p>
+                <textarea id="eu-reason" name="reason" class="eu-select" rows="4" maxlength="1000" placeholder="e.g. Repeated no-show complaints."></textarea>
             </div>
             <button type="submit" class="eu-save-btn"><i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i> Save Changes</button>
         </form>
@@ -479,7 +616,8 @@ function openLicenseFromEl(el){
         el.dataset.reason || '',
         lic,
         sel,
-        el.dataset.joined
+        el.dataset.joined,
+        el.dataset.deactivationReason || ''
     );
 }
 
@@ -496,7 +634,8 @@ function openLicenseFromBtn(btn){
         btn.dataset.reason || '',
         btn.dataset.license || '',
         btn.dataset.selfie || '',
-        btn.dataset.joined
+        btn.dataset.joined,
+        btn.dataset.deactivationReason || ''
     );
 }
 
@@ -507,13 +646,16 @@ function openLicenseModalById(uid){
 }
 
 // Tracks who the license modal currently shows, so the reject-reason modal
-// (a separate overlay) knows who to submit against when opened from here.
+// (a separate overlay) and the "Suspend" hand-off to the edit drawer know who
+// to act on when opened from here.
 let lrCurrentUid = null;
 let lrCurrentName = null;
+let lrCurrentActive = '1';
 
-function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,licenseImg,selfieImg,joined){
+function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,licenseImg,selfieImg,joined,deactivationReason){
     lrCurrentUid = uid;
     lrCurrentName = name;
+    lrCurrentActive = active;
 
     document.getElementById('lr-name').textContent    = name;
     document.getElementById('lr-email').textContent   = email;
@@ -552,16 +694,16 @@ function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,lice
 
     const base = '{{ url("/admin/users") }}/'+uid;
     document.getElementById('lr-approve-form').action = base + '/approve';
-    document.getElementById('lr-suspend-form').action = base;
     document.getElementById('lr-reactivate-form').action = base;
 
     const approveBtn = document.getElementById('lr-approve-btn');
     const rejectBtn = document.getElementById('lr-reject-btn');
-    const suspendForm = document.getElementById('lr-suspend-form');
+    const suspendBtn = document.getElementById('lr-suspend-btn');
     const reactivateForm = document.getElementById('lr-reactivate-form');
     const badge = document.getElementById('lr-badge');
     const stat  = document.getElementById('lr-status');
     const reasonRow = document.getElementById('lr-reason-row');
+    const reasonLbl = document.getElementById('lr-reason-lbl');
 
     // Every button/form defaults hidden, then the branch below shows exactly
     // the actions valid for this driver's actual state (pending / approved /
@@ -569,7 +711,7 @@ function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,lice
     // status pill uses, not just active/inactive.
     approveBtn.style.display = 'none';
     rejectBtn.style.display = 'none';
-    suspendForm.style.display = 'none';
+    suspendBtn.style.display = 'none';
     reactivateForm.style.display = 'none';
     reasonRow.style.display = 'none';
 
@@ -579,17 +721,23 @@ function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,lice
         approveBtn.style.display = 'inline-flex';
         approveBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Approve Anyway';
         if (reason) {
+            reasonLbl.textContent = 'Rejection Reason';
             document.getElementById('lr-reason').textContent = reason;
             reasonRow.style.display = 'block';
         }
     } else if (status === 'approved' && active === '1') {
         stat.innerHTML  = '<span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Active</span>';
         badge.innerHTML = '<span class="status-pill status-active"><span class="dot-sm" style="background:#16a34a;"></span> Account is Active</span>';
-        suspendForm.style.display = 'inline-flex';
+        suspendBtn.style.display = 'inline-flex';
     } else if (status === 'approved') {
         stat.innerHTML  = '<span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Suspended</span>';
         badge.innerHTML = '<span class="status-pill status-inactive"><span class="dot-sm" style="background:var(--muted-2);"></span> Account Suspended</span>';
         reactivateForm.style.display = 'inline-flex';
+        if (deactivationReason) {
+            reasonLbl.textContent = 'Suspension Reason';
+            document.getElementById('lr-reason').textContent = deactivationReason;
+            reasonRow.style.display = 'block';
+        }
     } else {
         stat.innerHTML  = '<span class="status-pill status-pending"><span class="dot-sm" style="background:#d97706;"></span> Pending</span>';
         badge.innerHTML = '<span class="status-pill status-pending"><span class="dot-sm" style="background:#d97706;"></span> Awaiting Approval</span>';
@@ -610,6 +758,17 @@ function openRejectModalFromLicense(){
     openRejectModal(lrCurrentUid, lrCurrentName);
 }
 
+// "Suspend" in the license modal used to submit is_active=0 directly with no
+// way to enter a reason — the server then rejects it (reason is required
+// when deactivating an active account) with only a generic error banner to
+// show for it. Hands off to the edit drawer instead, which already collects
+// the reason and shows the character count.
+function openEditDrawerFromLicense(){
+    if (!lrCurrentUid) return;
+    closeLicenseModal();
+    openEditDrawer(lrCurrentUid, lrCurrentName, 'driver', lrCurrentActive);
+}
+
 let euWasActive = '1';
 
 function openEditDrawer(uid,name,role,active){
@@ -619,6 +778,7 @@ function openEditDrawer(uid,name,role,active){
     document.getElementById('eu-role').value   = role;
     document.getElementById('eu-status').value = active;
     document.getElementById('eu-reason').value = '';
+    document.getElementById('eu-reason-count').textContent = '0 / 1000';
     euWasActive = active;
     toggleEditReasonField();
     document.getElementById('edit-drawer').style.display='flex';
@@ -636,6 +796,14 @@ function toggleEditReasonField(){
     reasonField.style.display = isDeactivating ? 'block' : 'none';
     reasonInput.required = isDeactivating;
 }
+
+(function () {
+    var reasonInput = document.getElementById('eu-reason');
+    var reasonCount = document.getElementById('eu-reason-count');
+    var sync = function () { reasonCount.textContent = reasonInput.value.length + ' / 1000'; };
+    reasonInput.addEventListener('input', sync);
+    sync();
+})();
 
 function openRejectModal(uid, name){
     closeLicenseModal();

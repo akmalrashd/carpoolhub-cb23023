@@ -55,7 +55,7 @@
             <i class="fa-solid fa-car" style="color:var(--info-ink);"></i>
         </div>
         <div class="au-stat-val">{{ $overview['drivers_total'] ?? 0 }}</div>
-        <div class="au-stat-lbl">Active Drivers</div>
+        <div class="au-stat-lbl">Total Drivers</div>
         <span class="au-stat-delta mute">{{ $overview['passengers_total'] ?? 0 }} passengers</span>
     </div>
 

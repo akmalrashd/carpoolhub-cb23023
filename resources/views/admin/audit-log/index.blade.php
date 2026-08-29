@@ -34,15 +34,15 @@
 
 {{-- In-page view tabs: same dataset-switcher idea as admin-subnav, but
      switching ?view= on this one route instead of navigating between routes. --}}
-<nav class="al-view-tabs">
+<nav class="subview-tabs">
     <a href="{{ route('admin.audit-log.index', ['view' => 'admin']) }}" class="{{ $view === 'admin' ? 'active' : '' }}">
-        <i class="fa-solid fa-user-shield"></i> Admin Actions <span class="al-view-count">{{ $viewCounts['admin'] }}</span>
+        <i class="fa-solid fa-user-shield"></i> Admin Actions <span class="subview-count">{{ $viewCounts['admin'] }}</span>
     </a>
     <a href="{{ route('admin.audit-log.index', ['view' => 'payments']) }}" class="{{ $view === 'payments' ? 'active' : '' }}">
-        <i class="fa-solid fa-wallet"></i> Payment History <span class="al-view-count">{{ $viewCounts['payments'] }}</span>
+        <i class="fa-solid fa-wallet"></i> Payment History <span class="subview-count">{{ $viewCounts['payments'] }}</span>
     </a>
     <a href="{{ route('admin.audit-log.index', ['view' => 'cancellations']) }}" class="{{ $view === 'cancellations' ? 'active' : '' }}">
-        <i class="fa-solid fa-calendar-xmark"></i> Trip Cancellations <span class="al-view-count">{{ $viewCounts['cancellations'] }}</span>
+        <i class="fa-solid fa-calendar-xmark"></i> Trip Cancellations <span class="subview-count">{{ $viewCounts['cancellations'] }}</span>
     </a>
 </nav>
 

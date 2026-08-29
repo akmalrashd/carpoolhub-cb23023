@@ -13,21 +13,35 @@ use Illuminate\Validation\ValidationException;
 
 class AdminUserController extends Controller
 {
-    public function __construct(private readonly AdminUserService $adminUserService)
-    {
-    }
+    public function __construct(private readonly AdminUserService $adminUserService) {}
 
     public function index(Request $request): View
     {
-        $users = $this->adminUserService->paginateUsers(
-            $request->string('q')->toString(),
-            $request->string('role')->toString(),
-            $request->string('active')->toString()
-        );
+        $view = $request->query('view') === 'verification' ? 'verification' : 'manage';
 
+        // Needed on both tabs: the queue itself only renders under
+        // 'verification', but its count badges the "Driver Verification" tab
+        // even while looking at "Manage Users", the same way Audit Log's tabs
+        // stay badged regardless of which one is active.
         $pendingDrivers = $this->adminUserService->paginatePendingDrivers(10);
 
-        return view('admin.users.index', compact('users', 'pendingDrivers'));
+        $users = null;
+        $drivers = null;
+
+        if ($view === 'verification') {
+            $drivers = $this->adminUserService->paginateDriversForVerification(
+                $request->string('vq')->toString(),
+                $request->string('verification_status')->toString()
+            );
+        } else {
+            $users = $this->adminUserService->paginateUsers(
+                $request->string('q')->toString(),
+                $request->string('role')->toString(),
+                $request->string('active')->toString()
+            );
+        }
+
+        return view('admin.users.index', compact('view', 'users', 'drivers', 'pendingDrivers'));
     }
 
     public function update(UpdateAdminUserRequest $request, User $user): RedirectResponse
@@ -63,4 +77,3 @@ class AdminUserController extends Controller
         return back()->with('status', "{$user->name}'s driver application was rejected.");
     }
 }
-

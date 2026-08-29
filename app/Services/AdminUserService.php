@@ -9,9 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class AdminUserService
 {
-    public function __construct(private readonly AdminAuditService $adminAuditService)
-    {
-    }
+    public function __construct(private readonly AdminAuditService $adminAuditService) {}
 
     public function paginatePendingDrivers(int $perPage = 10): LengthAwarePaginator
     {
@@ -21,6 +19,33 @@ class AdminUserService
             ->oldest() // oldest application first — fair review order
             ->paginate($perPage, ['*'], 'pending_page')
             ->withQueryString();
+    }
+
+    /**
+     * The "Driver Verification" tab's own searchable/filterable list — every
+     * driver (not just pending ones), so an admin can pull up an already
+     * approved or rejected application to re-review its documents. Separate
+     * from paginateUsers()'s general roster: that one manages role/suspend
+     * for every account, this one is scoped to the verification workflow
+     * specifically (driver_verification_status + documents).
+     */
+    public function paginateDriversForVerification(?string $q, ?string $status, int $perPage = 10): LengthAwarePaginator
+    {
+        $query = User::query()->where('role', 'driver')->latest();
+
+        $q = trim((string) $q);
+        if ($q !== '') {
+            $query->where(function ($builder) use ($q): void {
+                $builder->where('name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $query->where('driver_verification_status', $status);
+        }
+
+        return $query->paginate($perPage, ['*'], 'driver_page')->withQueryString();
     }
 
     public function approveDriver(User $admin, User $target): User
@@ -141,7 +166,6 @@ class AdminUserService
         if ($isDeactivating) {
             $updates['deactivation_reason'] = $reason;
         } elseif (! $wasActive && $newActive) {
-            // Reactivating clears whatever suspension reason was on file.
             $updates['deactivation_reason'] = null;
         }
 
@@ -174,4 +198,3 @@ class AdminUserService
         return $target->refresh();
     }
 }
-

@@ -27,7 +27,7 @@ class LoginController extends Controller
 
         // Throttle brute-force by email+IP. A legitimate login is untouched;
         // only the 6th+ failed attempt in a minute is blocked.
-        $throttleKey = Str::transliterate(Str::lower($credentials['email']) . '|' . $request->ip());
+        $throttleKey = Str::transliterate(Str::lower($credentials['email']).'|'.$request->ip());
 
         // The email+IP key alone does not stop credential stuffing: one attempt
         // against each of a thousand different emails never trips it. This
@@ -35,7 +35,7 @@ class LoginController extends Controller
         // shared NAT (campus, office) never sees it, and it is intentionally
         // NOT cleared on success — otherwise an attacker resets it at will by
         // logging into an account they own.
-        $ipThrottleKey = 'login-ip|' . $request->ip();
+        $ipThrottleKey = 'login-ip|'.$request->ip();
 
         foreach ([$throttleKey => 5, $ipThrottleKey => 20] as $key => $maxAttempts) {
             if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
@@ -95,8 +95,8 @@ class LoginController extends Controller
             $reason = trim((string) $user->deactivation_reason);
 
             return $reason !== ''
-                ? "Your account has been deactivated. Please contact support. Reason: {$reason}"
-                : 'Your account has been deactivated. Please contact support.';
+                ? "Your account has been suspended. Please contact support. Reason: {$reason}"
+                : 'Your account has been suspended. Please contact support.';
         }
 
         $driverReason = trim((string) $user->deactivation_reason);

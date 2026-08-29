@@ -1,6 +1,21 @@
 /* Extracted from resources/views/admin/users/index.blade.php — cacheable. */
 /* â”€â”€ Page Container â”€â”€ */
 .au-page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+/* â”€â”€ In-page sub-view tabs (e.g. Manage Users / Driver Verification on this
+   page; Admin Actions / Payment History / Trip Cancellations on Audit Log) â”€â”€
+   Same pill/segmented look as .admin-subnav below and .settings-nav
+   (settings.css) â€” this one switches a ?view= query param on the SAME route
+   instead of navigating between routes. Was duplicated per-page under an
+   "al-" (audit-log) prefix that made no sense once Users needed it too;
+   lives here once now since every admin page already loads this file. */
+.subview-tabs { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 14px; padding: 4px; overflow-x: auto; scrollbar-width: none; box-sizing: border-box; }
+.subview-tabs::-webkit-scrollbar { display: none; }
+.subview-tabs a { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; font-size: 13px; font-weight: 700; font-family: var(--font-ui), sans-serif; color: var(--muted); text-decoration: none; white-space: nowrap; transition: color .15s, background .15s, border-color .15s, box-shadow .15s; }
+.subview-tabs a:hover { color: var(--ink); }
+.subview-tabs a.active { background: var(--surface); border-color: var(--hairline); color: var(--ink); box-shadow: var(--shadow-1); font-weight: 800; }
+.subview-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; padding: 1px 5px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 800; }
+.subview-tabs a.active .subview-count { background: var(--ch-yellow-tint); color: var(--ch-yellow-ink); }
+
 /* â”€â”€ Admin Sub-nav (shared across all 5 admin pages, see admin-subnav.blade.php) â”€â”€ */
 /* Same pill/segmented style as .settings-nav (resources/views/settings/index.blade.php) */
 .admin-subnav { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 14px; padding: 4px; overflow-x: auto; scrollbar-width: none; box-sizing: border-box; }
@@ -152,6 +167,12 @@
 .eu-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .eu-select { border: 1.5px solid var(--hairline-strong); border-radius: var(--r-sm); padding: 10px 12px; font-size: 14px; color: var(--ink); background: var(--surface); font-family: var(--font-ui), sans-serif; outline: none; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
 .eu-select:focus { border-color: var(--ch-yellow-deep); box-shadow: 0 0 0 3px rgba(250,204,21,.2); }
+/* Shared with <select> above, but a <textarea> defaults to resize:both —
+   the sideways handle looks broken inside a fixed-width drawer, and a long
+   placeholder wrapped past 3 rows was clipping/scrolling instead of just
+   growing. Fixed width, vertical-only resize, and a min-height floor so the
+   handle can't be dragged smaller than the visible line count. */
+textarea.eu-select { width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px; line-height: 1.5; }
 .eu-save-btn { width: 100%; padding: 11px; border-radius: var(--r-sm); border: none; cursor: pointer; font-size: 14px; font-weight: 800; font-family: var(--font-ui), sans-serif; background: var(--ch-yellow); color: var(--ch-yellow-ink); margin-top: 4px; transition: background .15s, transform .1s; }
 .eu-save-btn:hover { background: var(--ch-yellow-deep); transform: translateY(-1px); }
 /* â”€â”€ Pagination â”€â”€ */

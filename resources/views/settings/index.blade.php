@@ -134,15 +134,24 @@
                         </span>
                         @if($user->role === 'driver' && $user->driver_verification_status)
                             @php
-                                $vBadge = match($user->driver_verification_status) {
-                                    'approved' => $user->is_active
-                                        ? ['Verified', 'badge-success', 'fa-circle-check']
-                                        : ['Suspended', 'badge-danger', 'fa-circle-pause'],
-                                    'rejected' => ['Rejected', 'badge-danger', 'fa-circle-xmark'],
-                                    default => ['Pending Review', 'badge-warning', 'fa-clock'],
+                                // Same accountStatusLabel() the admin Users table reads — a driver
+                                // seeing "Verified" here while admin's table said "Active" for the
+                                // identical state was one more inconsistent word for the same thing.
+                                $acctStatus = $user->accountStatusLabel();
+                                $vBadgeClass = match($acctStatus['label']) {
+                                    'Active' => 'badge-success',
+                                    'Suspended' => 'badge-danger',
+                                    'Rejected' => 'badge-danger',
+                                    default => 'badge-warning',
+                                };
+                                $vBadgeIcon = match($acctStatus['label']) {
+                                    'Active' => 'fa-circle-check',
+                                    'Suspended' => 'fa-circle-pause',
+                                    'Rejected' => 'fa-circle-xmark',
+                                    default => 'fa-clock',
                                 };
                             @endphp
-                            <span class="badge {{ $vBadge[1] }}"><i class="fa-solid {{ $vBadge[2] }}"></i> {{ $vBadge[0] }}</span>
+                            <span class="badge {{ $vBadgeClass }}"><i class="fa-solid {{ $vBadgeIcon }}"></i> {{ $acctStatus['label'] }}</span>
                         @endif
                     </div>
                 </div>

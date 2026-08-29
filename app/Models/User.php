@@ -6,11 +6,11 @@ use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
@@ -212,6 +212,45 @@ class User extends Authenticatable implements MustVerifyEmail
             && in_array($this->driver_verification_status, ['pending', 'rejected'], true);
     }
 
+    /**
+     * Single source of truth for the human-readable account status shown in
+     * the admin Users table, the driver license-review modal, and the edit
+     * drawer. Before this, each of those re-derived the same is_active +
+     * driver_verification_status combination independently — a non-driver
+     * with is_active=false was labelled "Inactive" while a driver in the
+     * identical state was labelled "Suspended", and the filter dropdown and
+     * edit-drawer select each used a third/fourth wording again. All of them
+     * now read from here instead, so "the same underlying state" reliably
+     * means "the same word" everywhere it's shown.
+     *
+     * 'reason' surfaces whichever free-text explanation applies —
+     * driver_verification_reason for a rejected application,
+     * deactivation_reason for a suspension — so a caller doesn't need to know
+     * which column to read for which state.
+     *
+     * @return array{label: string, pill_class: string, dot_color: string, reason: ?string}
+     */
+    public function accountStatusLabel(): array
+    {
+        if ($this->role === 'driver') {
+            if ($this->driver_verification_status === 'pending') {
+                return ['label' => 'Pending Review', 'pill_class' => 'status-pending', 'dot_color' => '#d97706', 'reason' => null];
+            }
+            if ($this->driver_verification_status === 'rejected') {
+                return ['label' => 'Rejected', 'pill_class' => 'status-rejected', 'dot_color' => '#dc2626', 'reason' => $this->driver_verification_reason];
+            }
+            if (! $this->is_active) {
+                return ['label' => 'Suspended', 'pill_class' => 'status-inactive', 'dot_color' => 'var(--muted-2)', 'reason' => $this->deactivation_reason];
+            }
+
+            return ['label' => 'Active', 'pill_class' => 'status-active', 'dot_color' => '#16a34a', 'reason' => null];
+        }
+
+        return $this->is_active
+            ? ['label' => 'Active', 'pill_class' => 'status-active', 'dot_color' => '#16a34a', 'reason' => null]
+            : ['label' => 'Suspended', 'pill_class' => 'status-inactive', 'dot_color' => 'var(--muted-2)', 'reason' => $this->deactivation_reason];
+    }
+
     public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
     {
         $this->notify(new ResetPasswordNotification($token));
@@ -230,7 +269,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyEmailNotification());
+        $this->notify(new VerifyEmailNotification);
     }
 
     public function userNotifications(): HasMany
@@ -295,7 +334,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Backward compatibility for legacy local MY numbers saved like 01xxxxxxxx.
         if (preg_match('/^01\d{8,9}$/', $digits) === 1) {
-            $digits = '60' . ltrim($digits, '0');
+            $digits = '60'.ltrim($digits, '0');
         }
 
         return $digits !== '' ? $digits : null;
@@ -303,7 +342,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function getWhatsappUrlAttribute(): ?string
     {
-        return $this->whatsapp_digits ? ('https://wa.me/' . $this->whatsapp_digits) : null;
+        return $this->whatsapp_digits ? ('https://wa.me/'.$this->whatsapp_digits) : null;
     }
 
     /**
@@ -324,7 +363,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $value;
         }
 
-        return asset('storage/' . $value);
+        return asset('storage/'.$value);
     }
 
     public function getProfilePhotoUrlAttribute(): ?string
@@ -341,5 +380,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->imageSrc($this->payment_qr_tng);
     }
-
 }

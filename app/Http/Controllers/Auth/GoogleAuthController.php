@@ -43,7 +43,7 @@ class GoogleAuthController extends Controller
             ]);
 
             return $linking
-                ? redirect(route('profile.index') . '#security')->withErrors(['google' => 'Google sign-in failed. Please try again.'])
+                ? redirect(route('profile.index').'#security')->withErrors(['google' => 'Google sign-in failed. Please try again.'])
                 : redirect()->route('login')->withErrors(['email' => 'Google sign-in failed. Please try again.']);
         }
 
@@ -101,7 +101,7 @@ class GoogleAuthController extends Controller
     public function unlink(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $target = route('profile.index') . '#security';
+        $target = route('profile.index').'#security';
 
         if (! $user->google_id) {
             return redirect($target);
@@ -130,7 +130,7 @@ class GoogleAuthController extends Controller
     private function linkToCurrentUser(SocialiteUser $googleUser): RedirectResponse
     {
         $user = Auth::user();
-        $target = route('profile.index') . '#security';
+        $target = route('profile.index').'#security';
 
         if (! $user) {
             return redirect()->route('login');
@@ -183,8 +183,8 @@ class GoogleAuthController extends Controller
             $reason = trim((string) $user->deactivation_reason);
 
             return $reason !== ''
-                ? "Your account has been deactivated. Please contact support. Reason: {$reason}"
-                : 'Your account has been deactivated. Please contact support.';
+                ? "Your account has been suspended. Please contact support. Reason: {$reason}"
+                : 'Your account has been suspended. Please contact support.';
         }
 
         $driverReason = trim((string) $user->deactivation_reason);
