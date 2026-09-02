@@ -135,9 +135,14 @@ async function smoothClick(page, locator) {
 
 // The driver's bottom tab bar (mobile-bottom-nav.blade.php) is role-aware and
 // has no ids — scope by the nav landmark and accessible name instead of
-// guessing hrefs.
+// guessing hrefs. NOT exact:true: confirmed via an aria snapshot that each
+// link's real accessible name has a leading space (whitespace between the
+// icon <span> and the label <span> in the source gets folded into the name),
+// e.g. " Explore" not "Explore" — exact:true against the bare word silently
+// matched nothing and every click just polled until timeout. Every label in
+// this nav is a distinct word, so a substring match can't cross-match.
 function navLink(page, name) {
-    return page.locator('.mobile-bottom-nav').getByRole('link', { name, exact: true });
+    return page.locator('.mobile-bottom-nav').getByRole('link', { name });
 }
 
 async function shot1Home(page) {
@@ -197,8 +202,14 @@ async function shot2Explore(page) {
 
 async function shot3TripDetailsJoin(page) {
     mark('SHOT 3/10 — Trip details & request a seat (target 10s)');
-    await page.waitForSelector('.open-explore-card', { timeout: 15000 });
-    await smoothClick(page, page.locator('.open-explore-card').first());
+    const card = page.locator('.open-explore-card').first();
+    const found = await card.waitFor({ timeout: 15000 }).then(() => true).catch(() => false);
+    if (!found) {
+        mark('  (no public trips matched this search on this account — skipping)');
+        await page.waitForTimeout(1500);
+        return;
+    }
+    await smoothClick(page, card);
     await page.waitForSelector('#exploreTripModal.is-open');
     await page.waitForTimeout(2200);
 
@@ -247,7 +258,24 @@ async function shot4CreateTrip(page) {
     const futureLocal = `${future.getFullYear()}-${pad(future.getMonth() + 1)}-${pad(future.getDate())}T${pad(future.getHours())}:${pad(future.getMinutes())}`;
     await page.locator('#trip_datetime').fill(futureLocal);
     await page.waitForTimeout(400);
-    await smoothClick(page, page.locator('#visibility_public'));
+    // A real click on this toggle has failed three different ways across
+    // live-server runs (obstruction timeout, then "outside of viewport" even
+    // at a taller viewport) — move the cursor there for the recording, but
+    // set the radio's state directly and fire the events the page's own JS
+    // listens for (it reveals the Seat Limit field on this change) instead
+    // of routing the actual state change through a click that keeps failing.
+    const publicLabel = page.locator('label[for="visibility_public"]');
+    await publicLabel.scrollIntoViewIfNeeded().catch(() => { });
+    const publicBox = await publicLabel.boundingBox().catch(() => null);
+    if (publicBox) {
+        await page.mouse.move(publicBox.x + publicBox.width / 2, publicBox.y + publicBox.height / 2, { steps: 25 }).catch(() => { });
+        await page.waitForTimeout(150);
+    }
+    await page.locator('#visibility_public').evaluate((el) => {
+        el.checked = true;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     await page.waitForTimeout(500);
     const seatLimit = page.locator('#seat_limit');
     if (await seatLimit.isVisible().catch(() => false)) {
@@ -311,7 +339,9 @@ async function shot6Payments(page) {
         await page.waitForTimeout(800);
         await page.locator('#markPaidModalMethod').selectOption('cash');
         await page.waitForTimeout(500);
-        await smoothClick(page, page.locator('.mark-paid-submit-btn'));
+        // .mark-paid-submit-btn also exists on the bulk-mark-paid modal
+        // (#bulkMarkPaidModal) — scope to the single modal we actually opened.
+        await smoothClick(page, page.locator('#markPaidModal .mark-paid-submit-btn'));
         await page.waitForTimeout(2000);
     } else {
         mark('  (no unpaid record to mark — skipping)');
