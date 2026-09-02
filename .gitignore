@@ -12,6 +12,8 @@
 /.vscode
 /.zed
 /auth.json
+/scripts/auth.json
+/scripts/recordings/
 # Nothing generates this any more — the app has no Node toolchain. Kept only so
 # a stale directory on an old clone cannot be swept into a commit by `git add -A`.
 /node_modules

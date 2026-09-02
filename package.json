@@ -1,0 +1,12 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "demo:login": "node scripts/demo-login.js",
+        "demo:record": "node scripts/demo-record.js"
+    },
+    "devDependencies": {
+        "playwright": "^1.48.0"
+    }
+}
