@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "demo:login": "node scripts/demo-login.js",
-        "demo:record": "node scripts/demo-record.js"
+        "demo:record": "node scripts/demo-record.js",
+        "demo:record:ai": "node scripts/demo-record-ai.js"
     },
     "devDependencies": {
         "playwright": "^1.48.0"
