@@ -17,6 +17,15 @@
         };
     };
 
+    // Overpass's public server can be considerably slower than Nominatim
+    // (occasionally 10s+ under load) — races it against a plain timer so a
+    // slow response degrades to "no nearby places" instead of leaving the
+    // pin's own address stuck on "Loading..." indefinitely.
+    const withTimeout = (promise, ms, fallback) => Promise.race([
+        promise,
+        new Promise((resolve) => setTimeout(() => resolve(fallback), ms)),
+    ]);
+
     // Malaysia-only — countrycodes restricts Nominatim's own search, not just
     // a client-side filter, so a generic word like "bandar" surfaces actual
     // Malaysian places instead of matches in Indonesia/India/Bangladesh too.
@@ -38,30 +47,60 @@
         return payload?.display_name || null;
     };
 
-    // Nominatim's reverse endpoint only ever returns one match per call — to
-    // offer a short pick-list for the same pin (building/POI, street, area),
-    // this asks it at a few zoom levels and keeps whatever comes back
-    // distinct, closest match first.
-    const reverseGeocodeMulti = async (lat, lng) => {
-        const zooms = [18, 17, 14];
-        const results = await Promise.all(zooms.map(async (zoom) => {
-            try {
-                const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng) + '&zoom=' + zoom;
-                const response = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
-                if (!response.ok) return null;
-                const payload = await response.json();
-                return payload?.display_name || null;
-            } catch (_e) {
-                return null;
-            }
-        }));
+    const toRad = (deg) => (deg * Math.PI) / 180;
+
+    // Metres between two lat/lng points (haversine) — used to sort nearby
+    // places by actual distance from the pin, not whatever order Overpass
+    // happened to return them in.
+    const distanceMeters = (lat1, lng1, lat2, lng2) => {
+        const R = 6371000;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2
+            + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    // Named, generally-recognisable places near the pin (malls, restaurants,
+    // schools, landmarks, parks...) — what someone actually means by "picking
+    // a place near here", as opposed to reverseGeocode's plain street address
+    // for the exact tapped point. Nominatim can't answer "what's nearby" without
+    // a search term, so this queries OSM data directly via Overpass instead.
+    const fetchNearbyPlaces = async (lat, lng, radiusMeters = 400) => {
+        const tags = ['amenity', 'shop', 'tourism', 'leisure'];
+        const clauses = tags.map((tag) => `  node["name"]["${tag}"](around:${radiusMeters},${lat},${lng});\n  way["name"]["${tag}"](around:${radiusMeters},${lat},${lng});`).join('\n');
+        const query = `[out:json][timeout:10];\n(\n${clauses}\n);\nout center 40;`;
+
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: query,
+        });
+        if (!response.ok) return [];
+        const payload = await response.json();
+        const elements = Array.isArray(payload?.elements) ? payload.elements : [];
 
         const seen = new Set();
-        return results.filter((label) => {
-            if (!label || seen.has(label)) return false;
-            seen.add(label);
-            return true;
-        });
+        const places = [];
+        for (const el of elements) {
+            const name = el.tags?.name?.trim();
+            if (!name || seen.has(name.toLowerCase())) continue;
+            const placeLat = el.lat ?? el.center?.lat;
+            const placeLng = el.lon ?? el.center?.lon;
+            if (!Number.isFinite(placeLat) || !Number.isFinite(placeLng)) continue;
+
+            seen.add(name.toLowerCase());
+            const category = el.tags?.amenity || el.tags?.shop || el.tags?.tourism || el.tags?.leisure || '';
+            places.push({
+                name,
+                category: category.replace(/_/g, ' '),
+                lat: placeLat,
+                lng: placeLng,
+                distance: distanceMeters(lat, lng, placeLat, placeLng),
+            });
+        }
+
+        return places.sort((a, b) => a.distance - b.distance).slice(0, 8);
     };
 
     const setCoords = (target, lat, lng) => {
@@ -300,7 +339,6 @@
     // ── Full-screen map picker overlay ──────────────────────────────────
     const overlay        = document.getElementById('mapOverlay');
     const mapEl           = document.getElementById('exploreSearchMap');
-    const centerPin        = document.getElementById('centerPin');
     const statusEl         = document.getElementById('searchMapStatus');
     const confirmBtn       = document.getElementById('confirmPinBtn');
     const openBtn           = document.getElementById('openMapPickerBtn');
@@ -314,18 +352,32 @@
     if (!overlay || !mapEl || !openBtn || typeof window.L === 'undefined') return;
 
     let map = null;
+    let pinMarker = null; // real Leaflet marker — tappable/draggable, not a screen-fixed overlay
     let activeTarget = 'destination';
     let currentCenter = null; // { lat, lng, label }
     let moveTimer = null;
 
     const setStatus = (text) => { if (statusEl) statusEl.textContent = text; };
 
+    const pinColor = () => (activeTarget === 'destination' ? '#dc2626' : '#16a34a');
+
+    // Leaflet positions the marker's own element via an inline transform (for
+    // panning), so the drag "lift" animation is applied to an inner <span>
+    // instead — animating the marker element's own transform would fight
+    // Leaflet's positioning and the marker would never actually move.
+    const buildPinIcon = () => window.L.divIcon({
+        className: 'xs2-map-pin-icon',
+        html: `<span class="xs2-pin-inner"><i class="fa-solid fa-location-dot" style="color:${pinColor()};"></i></span>`,
+        iconSize: [30, 42],
+        iconAnchor: [15, 42],
+    });
+
     // Which field this pin sets was already decided by whichever field was
     // active before the map opened (see openOverlay below) — this just
     // reflects that choice, it's not an interactive toggle.
     const updateTargetUI = () => {
         const isDestination = activeTarget === 'destination';
-        centerPin.style.color = isDestination ? '#dc2626' : '#16a34a';
+        pinMarker?.setIcon(buildPinIcon());
         if (mapSearchBarIcon) {
             mapSearchBarIcon.className = 'xs2-field-dot ' + (isDestination ? 'xs2-field-dot-dest' : 'xs2-field-dot-pickup');
         }
@@ -335,33 +387,122 @@
         }
     };
 
-    // Renders the 2-4 zoom-level labels reverseGeocodeMulti found for the
-    // current pin as a selectable list — first (most precise) pre-selected,
-    // tapping another just swaps which label currentCenter.label commits.
-    const renderSheetOptions = (labels) => {
+    // First row is always the exact tapped point's own address (tapping it
+    // just confirms that label — the pin is already there); every row after
+    // that is a real named place found nearby, and tapping one actually
+    // moves the pin to that place's own coordinates.
+    const renderSheetOptions = (options) => {
         if (!mapSheetOptions) return;
-        if (!labels.length) {
+        if (!options.length) {
             mapSheetOptions.hidden = true;
             mapSheetOptions.innerHTML = '';
             return;
         }
 
-        mapSheetOptions.innerHTML = labels.map((label, index) => `
+        mapSheetOptions.innerHTML = options.map((opt, index) => `
             <button type="button" class="xs2-sheet-option-row${index === 0 ? ' is-selected' : ''}" data-index="${index}">
-                <i class="fa-solid fa-location-dot"></i>
-                <span>${escapeHtml(label)}</span>
+                <i class="fa-solid ${opt.isExact ? 'fa-location-dot' : 'fa-star'}"></i>
+                <span class="xs2-sheet-option-text">
+                    <strong>${escapeHtml(opt.label)}</strong>
+                    ${opt.sub ? `<small>${escapeHtml(opt.sub)}</small>` : ''}
+                </span>
             </button>
         `).join('');
         mapSheetOptions.hidden = false;
 
         Array.from(mapSheetOptions.querySelectorAll('.xs2-sheet-option-row')).forEach((btn) => {
             btn.addEventListener('click', () => {
+                const idx = Number.parseInt(btn.dataset.index || '0', 10);
+                const opt = options[idx];
+                if (!opt) return;
+
                 Array.from(mapSheetOptions.querySelectorAll('.xs2-sheet-option-row')).forEach((b) => b.classList.remove('is-selected'));
                 btn.classList.add('is-selected');
-                const idx = Number.parseInt(btn.dataset.index || '0', 10);
-                if (currentCenter) currentCenter.label = labels[idx];
+
+                if (opt.isExact) {
+                    if (currentCenter) currentCenter.label = opt.label;
+                    bouncePin();
+                    return;
+                }
+
+                // A genuinely different nearby place — pan there (it may sit
+                // outside the current view) and move the pin to its real spot.
+                map.panTo([opt.lat, opt.lng]);
+                placePinAt(opt.lat, opt.lng);
             });
         });
+    };
+
+    const bouncePin = () => {
+        const el = pinMarker?.getElement()?.querySelector('.xs2-pin-inner');
+        if (!el) return;
+        el.classList.remove('is-dragging');
+        // Restart the animation even if it's already mid-bounce from a rapid
+        // second tap — forcing reflow between remove/add is what makes that work.
+        void el.offsetWidth;
+        el.classList.add('is-bouncing');
+        setTimeout(() => el.classList.remove('is-bouncing'), 220);
+    };
+
+    // Moves the pin to lat/lng (creating the marker on first use) and looks up
+    // its address — shared by tapping the map, dragging the marker, and the
+    // initial placement on open. This is the one path that ever sets currentCenter.
+    const placePinAt = (lat, lng) => {
+        if (!pinMarker) {
+            pinMarker = window.L.marker([lat, lng], {
+                icon: buildPinIcon(),
+                draggable: true,
+                autoPan: true,
+            }).addTo(map);
+            pinMarker.on('dragstart', () => {
+                pinMarker.getElement()?.querySelector('.xs2-pin-inner')?.classList.add('is-dragging');
+            });
+            pinMarker.on('dragend', () => {
+                pinMarker.getElement()?.querySelector('.xs2-pin-inner')?.classList.remove('is-dragging');
+                const pos = pinMarker.getLatLng();
+                placePinAt(pos.lat, pos.lng);
+            });
+        } else {
+            pinMarker.setLatLng([lat, lng]);
+        }
+
+        currentCenter = { lat, lng, label: null };
+        if (confirmBtn) confirmBtn.disabled = true;
+        setStatus('Loading nearby locations...');
+        if (mapSheetOptions) mapSheetOptions.hidden = true;
+
+        clearTimeout(moveTimer);
+        moveTimer = setTimeout(async () => {
+            const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            try {
+                const [exactLabel, nearbyPlaces] = await Promise.all([
+                    reverseGeocode(lat, lng).catch(() => null),
+                    withTimeout(fetchNearbyPlaces(lat, lng).catch(() => []), 8000, []),
+                ]);
+
+                currentCenter = { lat, lng, label: exactLabel || fallback };
+                setStatus(nearbyPlaces.length
+                    ? 'Choose a nearby place, or tap elsewhere on the map.'
+                    : 'No notable places nearby — tap elsewhere on the map.');
+
+                const options = [
+                    { label: exactLabel || fallback, sub: null, lat, lng, isExact: true },
+                    ...nearbyPlaces.map((place) => ({
+                        label: place.name,
+                        sub: place.category ? `${place.category} · ${Math.round(place.distance)}m away` : `${Math.round(place.distance)}m away`,
+                        lat: place.lat,
+                        lng: place.lng,
+                        isExact: false,
+                    })),
+                ];
+                renderSheetOptions(options);
+            } catch (_e) {
+                currentCenter = { lat, lng, label: fallback };
+                setStatus('Could not look up this address, but the pin is still usable.');
+            } finally {
+                if (confirmBtn) confirmBtn.disabled = false;
+            }
+        }, 300);
     };
 
     const initMap = () => {
@@ -370,31 +511,9 @@
             .setView([3.139, 101.6869], 12);
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-        map.on('movestart', () => centerPin.classList.add('is-dragging'));
-        map.on('move', () => centerPin.classList.remove('is-dragging'));
-        map.on('moveend', async () => {
-            centerPin.classList.remove('is-dragging');
-            const c = map.getCenter();
-            currentCenter = { lat: c.lat, lng: c.lng, label: null };
-            if (confirmBtn) confirmBtn.disabled = true;
-            setStatus('Loading nearby locations...');
-            if (mapSheetOptions) mapSheetOptions.hidden = true;
-            clearTimeout(moveTimer);
-            moveTimer = setTimeout(async () => {
-                try {
-                    const labels = await reverseGeocodeMulti(c.lat, c.lng);
-                    const fallback = `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`;
-                    currentCenter = { lat: c.lat, lng: c.lng, label: labels[0] || fallback };
-                    setStatus('Choose the closest match, or keep dragging.');
-                    renderSheetOptions(labels.length ? labels : [fallback]);
-                } catch (_e) {
-                    currentCenter = { lat: c.lat, lng: c.lng, label: `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}` };
-                    setStatus('Could not look up this address, but the pin is still usable.');
-                } finally {
-                    if (confirmBtn) confirmBtn.disabled = false;
-                }
-            }, 300);
-        });
+        // Tap/click anywhere on the map to drop the pin there — like any other
+        // map app — rather than the old "drag the map under a fixed pin" trick.
+        map.on('click', (e) => placePinAt(e.latlng.lat, e.latlng.lng));
     };
 
     // Picking a starting view for the map, in priority order:
@@ -413,8 +532,18 @@
 
         if (Number.isFinite(lat) && Number.isFinite(lng)) {
             map.setView([lat, lng], 15);
+            placePinAt(lat, lng);
             return;
         }
+
+        // Nothing pinned yet for this field (or the last open was for the
+        // other field) — no stale pin should carry over onto this one.
+        if (pinMarker) {
+            pinMarker.remove();
+            pinMarker = null;
+        }
+        currentCenter = null;
+        if (confirmBtn) confirmBtn.disabled = true;
 
         const typedQuery = activeInput?.value.trim();
         if (typedQuery) {
@@ -426,11 +555,12 @@
                 const foundLng = Number.parseFloat(best?.lon);
                 if (Number.isFinite(foundLat) && Number.isFinite(foundLng)) {
                     map.setView([foundLat, foundLng], 14);
+                    placePinAt(foundLat, foundLng);
                     return;
                 }
-                setStatus(`Couldn't find "${typedQuery}" — move the map to set your pin.`);
+                setStatus(`Couldn't find "${typedQuery}" — tap the map to set your pin.`);
             } catch (_e) {
-                setStatus('Search failed — move the map to set your pin.');
+                setStatus('Search failed — tap the map to set your pin.');
             }
             return;
         }
@@ -438,12 +568,15 @@
         if ('geolocation' in navigator) {
             setStatus('Finding your current location...');
             navigator.geolocation.getCurrentPosition(
-                (position) => map.setView([position.coords.latitude, position.coords.longitude], 15),
-                () => map.setView(map.getCenter(), map.getZoom()),
+                (position) => {
+                    map.setView([position.coords.latitude, position.coords.longitude], 15);
+                    placePinAt(position.coords.latitude, position.coords.longitude);
+                },
+                () => setStatus('Tap anywhere on the map to drop your pin.'),
                 { timeout: 8000, maximumAge: 60000 }
             );
         } else {
-            map.setView(map.getCenter(), map.getZoom());
+            setStatus('Tap anywhere on the map to drop your pin.');
         }
     };
 
@@ -472,6 +605,7 @@
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 map.setView([position.coords.latitude, position.coords.longitude], 16);
+                placePinAt(position.coords.latitude, position.coords.longitude);
                 locateMeBtn.classList.remove('is-locating');
             },
             () => {

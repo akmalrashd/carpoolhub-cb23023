@@ -360,19 +360,31 @@
            ABOVE the center pin and locate button below despite their z-index,
            hiding both completely behind the map. */
         #exploreSearchMap { position: absolute; inset: 0; z-index: 0; }
-        .xs2-center-pin {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -100%);
+        /* Real Leaflet marker now (tap-anywhere-on-map / draggable), not a
+           screen-fixed overlay — Leaflet positions .xs2-map-pin-icon itself via
+           an inline transform, so the drag/tap feedback below animates the
+           inner .xs2-pin-inner span instead; putting a transform on the
+           marker's own element would fight Leaflet's positioning and the pin
+           would stop tracking the map. */
+        .xs2-map-pin-icon {
+            background: transparent;
+            border: 0;
+            cursor: grab;
+        }
+        .xs2-map-pin-icon:active { cursor: grabbing; }
+        .xs2-pin-inner {
+            display: block;
             font-size: 34px;
-            color: #dc2626;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,.25));
-            pointer-events: none;
-            z-index: 10;
             transition: transform .12s ease;
         }
-        .xs2-center-pin.is-dragging { transform: translate(-50%, -110%) scale(1.08); }
+        .xs2-pin-inner.is-dragging { transform: scale(1.08) translateY(-6px); }
+        .xs2-pin-inner.is-bouncing { animation: xs2-pin-bounce .22s ease; }
+        @keyframes xs2-pin-bounce {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.15) translateY(-4px); }
+            100% { transform: scale(1); }
+        }
         .xs2-locate-btn {
             position: absolute;
             right: 12px;
@@ -452,6 +464,28 @@
             font-weight: 700;
         }
         .xs2-sheet-option-row.is-selected i { color: var(--warning-ink); }
+        .xs2-sheet-option-text {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            gap: 1px;
+        }
+        .xs2-sheet-option-text strong {
+            font-weight: inherit;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .xs2-sheet-option-text small {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: capitalize;
+        }
+        .xs2-sheet-option-row.is-selected .xs2-sheet-option-text small { color: var(--warning-ink); opacity: .75; }
         .xs2-map-confirm-btn {
             width: 100%;
             min-height: 46px;

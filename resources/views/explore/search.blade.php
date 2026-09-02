@@ -157,14 +157,13 @@
             </div>
             <div class="xs2-map-container">
                 <div id="exploreSearchMap"></div>
-                <div class="xs2-center-pin" id="centerPin"><i class="fa-solid fa-location-dot"></i></div>
                 <button type="button" class="xs2-locate-btn" id="locateMeBtn" aria-label="Center on my location">
                     <i class="fa-solid fa-location-crosshairs"></i>
                 </button>
             </div>
             <div class="xs2-map-sheet">
                 <div class="xs2-map-sheet-handle"></div>
-                <p class="xs2-map-sheet-label" id="searchMapStatus">Move the map to set your pin.</p>
+                <p class="xs2-map-sheet-label" id="searchMapStatus">Tap anywhere on the map to drop your pin.</p>
                 <div class="xs2-sheet-options" id="mapSheetOptions" hidden></div>
                 <button type="button" class="xs2-map-confirm-btn" id="confirmPinBtn" disabled>Choose this location</button>
             </div>
