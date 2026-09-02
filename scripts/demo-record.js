@@ -136,7 +136,7 @@ function navLink(page, name) {
 async function shot1Home(page) {
     mark('SHOT 1/10 — Home dashboard (target 5s)');
     await page.goto(`${BASE_URL}/home`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('.hp-mobile-hero-title');
     await page.waitForTimeout(4500);
 }
@@ -144,13 +144,14 @@ async function shot1Home(page) {
 async function shot2Explore(page) {
     mark('SHOT 2/10 — Explore & Grab-style search (target 16s)');
     await smoothClick(page, navLink(page, 'Explore'));
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(800);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.xp-search-pill', { timeout: 15000 });
+    await page.waitForTimeout(600);
 
     // Tap the search pill — a real <a> to the dedicated search page
     // (Grab-style home screen: one tappable bar, not an inline filter form).
     await smoothClick(page, page.locator('.xp-search-pill'));
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForSelector('#search_destination');
     await page.waitForTimeout(500);
 
@@ -182,8 +183,9 @@ async function shot2Explore(page) {
     await page.waitForTimeout(300);
 
     await smoothClick(page, page.locator('.xs2-submit-btn'));
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500); // explore/index.blade.php refreshes its own list via AJAX on load — let it settle
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('#xp-real-list', { timeout: 15000 }).catch(() => { });
+    await page.waitForTimeout(1800); // explore/index.blade.php refreshes its own list via AJAX on load — let it settle
 }
 
 async function shot3TripDetailsJoin(page) {
@@ -209,15 +211,21 @@ async function shot3TripDetailsJoin(page) {
 async function shot4CreateTrip(page) {
     mark('SHOT 4/10 — Create a trip from a Saved Route (target 15s)');
     await smoothClick(page, navLink(page, 'Create trip'));
-    await page.waitForLoadState('networkidle');
-    await page.waitForSelector('#savedRouteTrigger');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('#savedRouteTrigger', { timeout: 15000 });
     await page.waitForTimeout(600);
 
     // Step 1 · Saved Route — picking one auto-fills pickup/destination/fare.
+    // Requires this account to already have at least one; there's no in-shot
+    // fallback for "none yet" since manually filling pickup/destination points
+    // on a map is its own can of worms — set one up on this account beforehand.
     await smoothClick(page, page.locator('#savedRouteTrigger'));
-    await page.waitForSelector('.route-picker-option', { timeout: 10000 });
     await page.waitForTimeout(400);
-    await smoothClick(page, page.locator('.route-picker-option').first());
+    const routeOption = page.locator('.route-picker-option').first();
+    if ((await routeOption.count()) === 0) {
+        throw new Error('This account has no Saved Routes yet — add one first, then re-run.');
+    }
+    await smoothClick(page, routeOption);
     await page.waitForTimeout(900);
     await smoothClick(page, page.locator('[data-wizard-next="1"]'));
     await page.waitForTimeout(600);
@@ -252,14 +260,15 @@ async function shot4CreateTrip(page) {
 
     // Step 5 · Review & Publish.
     await smoothClick(page, page.locator('.trip-publish-btn'));
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2500);
 }
 
 async function shot5ManageRequests(page) {
     mark('SHOT 5/10 — Approve a join request (target 8s)');
     await smoothClick(page, navLink(page, 'Trips'));
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.trips-table-card', { timeout: 15000 }).catch(() => { });
     await page.waitForTimeout(600);
 
     // Only trip cards with a pending count show the badge — target one of those.
@@ -284,8 +293,9 @@ async function shot5ManageRequests(page) {
 async function shot6Payments(page) {
     mark('SHOT 6/10 — Payments ledger (target 10s)');
     await smoothClick(page, navLink(page, 'Payments'));
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500); // let the RM summary + transaction list render
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.payments-h1', { timeout: 15000 }).catch(() => { });
+    await page.waitForTimeout(1800); // let the RM summary + transaction list render
 
     const markPaidBtn = page.locator('.open-mark-paid-modal').first();
     if (await markPaidBtn.count() > 0) {
@@ -305,8 +315,9 @@ async function shot6Payments(page) {
 async function shot7Connections(page) {
     mark('SHOT 7/10 — Connections (target 8s)');
     await page.goto(`${BASE_URL}/connections`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1800);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.pg-title', { timeout: 15000 }).catch(() => { });
+    await page.waitForTimeout(1200);
 
     const acceptBtn = page.locator('.btn-action-accept').first();
     if (await acceptBtn.count() > 0) {
@@ -319,7 +330,12 @@ async function shot7Connections(page) {
 
 async function shot8AiChat(page) {
     mark('SHOT 8/10 — Hexa, the AI assistant (target 13s)');
-    await smoothClick(page, page.locator('#ai-fab'));
+    // #ai-fab exists twice in the DOM — once in mobile-header.blade.php, once
+    // in app.blade.php's desktop <header class="desktop-topbar"> (CSS-hidden
+    // on mobile, but still rendered) — a real duplicate-id bug in the app.
+    // Scope to the mobile header so Playwright's strict-mode locator doesn't
+    // choke on it.
+    await smoothClick(page, page.locator('.mobile-header #ai-fab'));
     await page.waitForSelector('#ai-chat-window[aria-hidden="false"]', { timeout: 5000 }).catch(() => { });
     await page.waitForTimeout(600);
 
@@ -345,15 +361,17 @@ async function shot8AiChat(page) {
 async function shot9Notifications(page) {
     mark('SHOT 9/10 — Notifications (target 5s)');
     await page.goto(`${BASE_URL}/notifications`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(4000);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.pg-title', { timeout: 15000 }).catch(() => { });
+    await page.waitForTimeout(3500);
 }
 
 async function shot10Closing(page) {
     mark('SHOT 10/10 — Closing (target 5s)');
     await page.goto(`${BASE_URL}/home`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(4000);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('.hp-mobile-hero-title', { timeout: 15000 }).catch(() => { });
+    await page.waitForTimeout(3500);
 }
 
 (async () => {
@@ -369,28 +387,48 @@ async function shot10Closing(page) {
         permissions: ['geolocation'],
         geolocation: { latitude: 3.4934, longitude: 103.4267 },
     });
+    // Playwright's default per-action timeout is 30s. A production host over
+    // real internet is slower than localhost — 15s turned out too tight (it
+    // made MORE shots fail, not fewer) — so this gives real network latency
+    // real room without letting a single genuinely-missing element stall the
+    // whole recording for a full 30s.
+    context.setDefaultTimeout(25000);
     await context.addInitScript(CURSOR_INIT_SCRIPT);
     const page = await context.newPage();
 
-    try {
-        mark('Using saved login session (scripts/auth.json)');
-        await shot1Home(page);
-        await shot2Explore(page);
-        await shot3TripDetailsJoin(page);
-        await shot4CreateTrip(page);
-        await shot5ManageRequests(page);
-        await shot6Payments(page);
-        await shot7Connections(page);
-        await shot8AiChat(page);
-        await shot9Notifications(page);
-        await shot10Closing(page);
-        mark('All 10 shots done');
-    } catch (err) {
-        mark(`FAILED: ${err.message}`);
-        throw err;
-    } finally {
-        await context.close(); // finalizes the .webm file
-        await browser.close();
-        process.exit(0);
+    const debugDir = path.join(__dirname, 'recordings', 'debug');
+    fs.mkdirSync(debugDir, { recursive: true });
+
+    // One shot failing (a missing prerequisite on this particular account —
+    // no saved routes, no pending requests, whatever) shouldn't cost every
+    // shot after it. Log it, screenshot exactly what the page looked like at
+    // the moment it failed (so a failure is diagnosable after the fact
+    // instead of guessed at from an error string), and move on.
+    async function runShot(name, fn) {
+        try {
+            await fn(page);
+        } catch (err) {
+            const shotPath = path.join(debugDir, `${name}-${Date.now()}.png`);
+            await page.screenshot({ path: shotPath }).catch(() => { });
+            mark(`  SHOT FAILED (skipping to next): ${err.message.split('\n')[0]}`);
+            mark(`  → screenshot: scripts/recordings/debug/${path.basename(shotPath)}`);
+        }
     }
+
+    mark('Using saved login session (scripts/auth.json)');
+    await runShot('shot1-home', shot1Home);
+    await runShot('shot2-explore', shot2Explore);
+    await runShot('shot3-trip-join', shot3TripDetailsJoin);
+    await runShot('shot4-create-trip', shot4CreateTrip);
+    await runShot('shot5-manage-requests', shot5ManageRequests);
+    await runShot('shot6-payments', shot6Payments);
+    await runShot('shot7-connections', shot7Connections);
+    await runShot('shot8-ai-chat', shot8AiChat);
+    await runShot('shot9-notifications', shot9Notifications);
+    await runShot('shot10-closing', shot10Closing);
+    mark('All 10 shots attempted');
+
+    await context.close(); // finalizes the .webm file
+    await browser.close();
+    process.exit(0);
 })();
