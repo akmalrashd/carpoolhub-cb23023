@@ -383,10 +383,24 @@ async function shot10Closing(page) {
 
 (async () => {
     const device = devices['iPhone 14 Pro'];
+    // Deliberately NOT spreading the full device descriptor: it sets
+    // isMobile:true + hasTouch:true, which switches Chromium into real
+    // touch-emulation mode — and debug screenshots from a live run showed
+    // clicks (bottom-nav links, a wizard toggle) stalling or landing outside
+    // the viewport under it. This app's mobile layout is triggered purely by
+    // a CSS width breakpoint (max-width:1023px), not touch/UA sniffing, so a
+    // narrow mouse-driven viewport looks identical and clicks reliably. Using
+    // the device's screen height (852) rather than its browser-chrome-
+    // adjusted viewport height (660) also gives bottom-of-card elements room
+    // instead of sitting right on the viewport edge.
     const browser = await chromium.launch({ headless: false, slowMo: 35 });
     const context = await browser.newContext({
-        ...device,
-        recordVideo: { dir: path.join(__dirname, 'recordings'), size: device.viewport },
+        userAgent: device.userAgent,
+        viewport: { width: device.viewport.width, height: device.screen.height },
+        deviceScaleFactor: device.deviceScaleFactor,
+        isMobile: false,
+        hasTouch: false,
+        recordVideo: { dir: path.join(__dirname, 'recordings'), size: { width: device.viewport.width, height: device.screen.height } },
         storageState: AUTH_STATE_PATH,
         // Keeps "use my current location" (search page's locate-me button,
         // map picker) from hanging on a permission prompt mid-recording.
