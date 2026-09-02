@@ -123,7 +123,14 @@ async function smoothClick(page, locator) {
     if (!box) throw new Error('smoothClick: element has no bounding box (not visible?)');
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 25 });
     await page.waitForTimeout(150);
-    await locator.click();
+    // force:true — we've already confirmed the element has a real box and
+    // moved the mouse onto it ourselves, so we don't need Playwright's own
+    // obstruction/stability re-check on top of that. Debug screenshots from
+    // a live-server run showed the cursor sitting exactly on the target
+    // (visibility_public's label, and separately the bottom-nav links) while
+    // the plain click kept timing out — a known Playwright gotcha with
+    // custom-styled native inputs and, apparently, this app's nav too.
+    await locator.click({ force: true });
 }
 
 // The driver's bottom tab bar (mobile-bottom-nav.blade.php) is role-aware and
