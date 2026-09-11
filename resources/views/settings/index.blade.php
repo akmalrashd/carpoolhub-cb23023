@@ -189,57 +189,57 @@
 
         {{-- Two-column shell: nav rail on desktop, scrollable tab strip on mobile --}}
         <div class="settings-shell">
-            {{-- Mobile-only compact header above the tab strip — the desktop
-                 rail already carries its own persistent label + description
-                 per item, so it doesn't need this. Title/icon/step swap live
-                 via updateQuickbar() in settings.js whenever the tab changes. --}}
-            <div class="settings-quickbar">
-                <div class="settings-quickbar-head">
+            {{-- Nav rail on desktop; on mobile, the quickbar header + tab strip
+                 merge into one card (.settings-nav-wrap carries the card
+                 chrome there so there's a single border/shadow, not two
+                 stacked boxes). Title/icon/step swap live via
+                 updateQuickbar() in settings.js whenever the tab changes. --}}
+            <div class="settings-nav-wrap">
+                <div class="settings-quickbar">
                     <div class="settings-quickbar-title">
                         <span class="settings-quickbar-icon" id="quickbarIcon"><i class="fa-solid fa-user"></i></span>
                         <strong id="quickbarTitle">Profile Settings</strong>
                     </div>
                     <span class="settings-quickbar-step" id="quickbarStep">1 of {{ $isDriver ? 4 : 3 }}</span>
                 </div>
-                <div class="settings-quickbar-switch-label"><i class="fa-solid fa-shuffle"></i> Quick Switch</div>
-            </div>
 
-            <div class="settings-nav" role="tablist" aria-label="Settings sections">
-                <button type="button" class="settings-nav-btn is-active" id="nav-btn-profile" role="tab" aria-selected="true" aria-controls="panel-profile" onclick="switchSettingsTab('profile')">
-                    <span class="nav-btn-icon"><i class="fa-solid fa-user"></i></span>
-                    <span class="nav-btn-text">
-                        <span class="nav-btn-label">Profile</span>
-                        <span class="nav-btn-desc">Name, contact{{ $isDriver ? ', vehicle & docs' : '' }}</span>
-                    </span>
-                </button>
-                @if($isDriver)
-                    <button type="button" class="settings-nav-btn" id="nav-btn-payment" role="tab" aria-selected="false" aria-controls="panel-payment" onclick="switchSettingsTab('payment')">
-                        <span class="nav-btn-icon"><i class="fa-solid fa-wallet"></i></span>
+                <div class="settings-nav" role="tablist" aria-label="Settings sections">
+                    <button type="button" class="settings-nav-btn is-active" id="nav-btn-profile" role="tab" aria-selected="true" aria-controls="panel-profile" onclick="switchSettingsTab('profile')">
+                        <span class="nav-btn-icon"><i class="fa-solid fa-user"></i></span>
                         <span class="nav-btn-text">
-                            <span class="nav-btn-label">Payouts</span>
-                            <span class="nav-btn-desc">Bank account & QR codes</span>
+                            <span class="nav-btn-label">Profile</span>
+                            <span class="nav-btn-desc">Name, contact{{ $isDriver ? ', vehicle & docs' : '' }}</span>
                         </span>
                     </button>
-                @endif
-                <button type="button" class="settings-nav-btn" id="nav-btn-security" role="tab" aria-selected="false" aria-controls="panel-security" onclick="switchSettingsTab('security')">
-                    <span class="nav-btn-icon"><i class="fa-solid fa-shield-halved"></i></span>
-                    <span class="nav-btn-text">
-                        <span class="nav-btn-label">Security</span>
-                        <span class="nav-btn-desc">Login password & sessions</span>
-                    </span>
-                </button>
-                <button type="button" class="settings-nav-btn" id="nav-btn-notifications" role="tab" aria-selected="false" aria-controls="panel-notifications" onclick="switchSettingsTab('notifications')">
-                    <span class="nav-btn-icon">
-                        <i class="fa-solid fa-bell"></i>
-                        @if($telegramConfigured && ! $user->telegram_chat_id)
-                            <span class="nav-badge-dot" aria-hidden="true"></span>
-                        @endif
-                    </span>
-                    <span class="nav-btn-text">
-                        <span class="nav-btn-label">Alerts</span>
-                        <span class="nav-btn-desc">Push & Telegram alerts</span>
-                    </span>
-                </button>
+                    @if($isDriver)
+                        <button type="button" class="settings-nav-btn" id="nav-btn-payment" role="tab" aria-selected="false" aria-controls="panel-payment" onclick="switchSettingsTab('payment')">
+                            <span class="nav-btn-icon"><i class="fa-solid fa-wallet"></i></span>
+                            <span class="nav-btn-text">
+                                <span class="nav-btn-label">Payouts</span>
+                                <span class="nav-btn-desc">Bank account & QR codes</span>
+                            </span>
+                        </button>
+                    @endif
+                    <button type="button" class="settings-nav-btn" id="nav-btn-security" role="tab" aria-selected="false" aria-controls="panel-security" onclick="switchSettingsTab('security')">
+                        <span class="nav-btn-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                        <span class="nav-btn-text">
+                            <span class="nav-btn-label">Security</span>
+                            <span class="nav-btn-desc">Login password & sessions</span>
+                        </span>
+                    </button>
+                    <button type="button" class="settings-nav-btn" id="nav-btn-notifications" role="tab" aria-selected="false" aria-controls="panel-notifications" onclick="switchSettingsTab('notifications')">
+                        <span class="nav-btn-icon">
+                            <i class="fa-solid fa-bell"></i>
+                            @if($telegramConfigured && ! $user->telegram_chat_id)
+                                <span class="nav-badge-dot" aria-hidden="true"></span>
+                            @endif
+                        </span>
+                        <span class="nav-btn-text">
+                            <span class="nav-btn-label">Alerts</span>
+                            <span class="nav-btn-desc">Push & Telegram alerts</span>
+                        </span>
+                    </button>
+                </div>
             </div>
 
         {{-- Panels Container --}}
@@ -613,10 +613,13 @@
                     <p class="panel-desc">Update your password to keep your account safe.</p>
                 </div>
 
-                <div class="channel-row" style="margin-bottom: 18px;">
-                    <div class="channel-row-info">
-                        <span class="channel-row-icon google"><i class="fa-brands fa-google"></i></span>
-                        <div class="channel-row-text">
+                @php
+                    $googleGIcon = '<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.9-2.26 5.36-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+                @endphp
+                <div class="channel-row is-bind-row" style="margin-bottom: 18px;">
+                    <span class="channel-row-icon google">{!! $googleGIcon !!}</span>
+                    <div class="channel-row-main">
+                        <div class="channel-row-headline">
                             <div class="channel-row-title">
                                 Google
                                 @if($user->google_id)
@@ -625,34 +628,23 @@
                                     <span class="channel-status-pill off">Not connected</span>
                                 @endif
                             </div>
-                            <div class="channel-row-desc">
-                                @if($user->google_id)
-                                    You can log in with Google, using {{ $user->email }}.
-                                @else
-                                    Connect Google for a faster login — must be signed in to Google with this same address ({{ $user->email }}).
-                                @endif
-                            </div>
+                            @if($user->google_id)
+                                <form method="POST" action="{{ route('settings.google.unlink') }}">
+                                    @csrf
+                                    <button type="submit" class="btn-bind ghost">Unbind</button>
+                                </form>
+                            @else
+                                <a href="{{ route('auth.google.redirect', ['purpose' => 'link']) }}" class="btn-bind">Bind</a>
+                            @endif
+                        </div>
+                        <div class="channel-row-desc">
+                            @if($user->google_id)
+                                Signed in with Google via {{ $user->email }}.
+                            @else
+                                Faster login — must match this account's email ({{ $user->email }}).
+                            @endif
                         </div>
                     </div>
-                    <div class="channel-row-action">
-                        @if($user->google_id)
-                            <form method="POST" action="{{ route('settings.google.unlink') }}">
-                                @csrf
-                                <button type="submit" class="btn-submit-ghost">
-                                    <i class="fa-solid fa-link-slash"></i> Disconnect
-                                </button>
-                            </form>
-                        @else
-                            <a href="{{ route('auth.google.redirect', ['purpose' => 'link']) }}" class="btn-submit-yellow">
-                                <i class="fa-brands fa-google"></i> Connect Google
-                            </a>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="settings-info-banner">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <span>For your security, updating your password signs you out of every other device. This device stays signed in.</span>
                 </div>
 
                 <form method="POST" action="{{ route('settings.password.update') }}" data-tab="security" id="passwordForm">
@@ -708,6 +700,7 @@
                         </div>
 
                         <div class="form-actions">
+                            <span class="form-note-inline"><i class="fa-solid fa-circle-info"></i> Signs you out of every other device — this one stays signed in.</span>
                             <button type="submit" class="btn-submit-yellow">
                                 <i class="fa-solid fa-shield-halved"></i>
                                 Update Password
@@ -723,7 +716,7 @@
             <div class="settings-panel-card" id="panel-notifications" data-tab="notifications">
                 <div class="panel-head">
                     <h3 class="panel-title"><i class="fa-solid fa-bell"></i> Notifications</h3>
-                    <p class="panel-desc">CarpoolHub always keeps a record in your in-app notification list. Turn on a channel below to get alerted the moment something happens — trip updates, join requests, payments — even when you're not looking at the app.</p>
+                    <p class="panel-desc">Trip updates, join requests, and payments always land in your in-app list. Turn on a channel below to get alerted even when you're not in the app.</p>
                 </div>
 
                 <div class="channel-row">
@@ -734,7 +727,7 @@
                                 Browser Push
                                 <span class="channel-status-pill off" id="pushStatusPill">Checking&hellip;</span>
                             </div>
-                            <div class="channel-row-desc" id="pushStatusDesc">Alerts appear on this device, even with CarpoolHub closed — as long as this browser stays installed/signed in.</div>
+                            <div class="channel-row-desc" id="pushStatusDesc">Alerts on this device, even when CarpoolHub is closed.</div>
                         </div>
                     </div>
                     <div class="channel-row-action">
@@ -759,15 +752,17 @@
                                     <span class="channel-status-pill off">Not connected</span>
                                 @endif
                             </div>
-                            <div class="channel-row-desc">
-                                @if($user->telegram_chat_id)
-                                    Sending alerts to {{ $user->telegram_username ? '@'.$user->telegram_username : 'your linked Telegram account' }}. Works on any device — no app install needed.
-                                @elseif($telegramConfigured)
-                                    Connect your Telegram account for reliable, instant alerts on any device — phone, desktop, anywhere. Bonus: once connected, you can open the app straight from the bot as a Mini App with no login needed — works on any phone, as long as Telegram is installed.
-                                @else
-                                    Telegram isn't set up on this server yet.
-                                @endif
-                            </div>
+                            @if($user->telegram_chat_id)
+                                <div class="channel-row-desc">Sending alerts to {{ $user->telegram_username ? '@'.$user->telegram_username : 'your linked Telegram account' }}.</div>
+                            @elseif($telegramConfigured)
+                                <div class="channel-row-desc">Reliable, instant alerts on any device.</div>
+                                <ul class="channel-perk-list">
+                                    <li><i class="fa-solid fa-bolt"></i> Works on phone &amp; desktop</li>
+                                    <li><i class="fa-solid fa-mobile-screen-button"></i> Opens as a Mini App — no login needed</li>
+                                </ul>
+                            @else
+                                <div class="channel-row-desc">Telegram isn't set up on this server yet.</div>
+                            @endif
                         </div>
                     </div>
                     <div class="channel-row-action">

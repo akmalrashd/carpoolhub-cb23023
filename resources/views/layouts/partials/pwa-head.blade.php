@@ -159,10 +159,20 @@
     (function () {
         'use strict';
 
-        /* ---- Service worker -------------------------------------------- */
+        /* ---- Service worker --------------------------------------------
+           No explicit `scope` here on purpose — its default is the
+           directory the script itself lives in. Forcing scope:'/' broke
+           registration outright (SecurityError) on any deploy where sw.js
+           isn't served from the domain root — e.g. this project's own local
+           dev setup, served from /CarpoolHub-Laravel/public/ with no vhost.
+           A failed registration means navigator.serviceWorker.ready never
+           resolves, which is what left Settings > Notifications stuck on
+           "Checking…" forever (see push-notifications.js). Leaving scope
+           unset still yields '/' on a proper root deploy, so this is a
+           strict improvement, not a tradeoff. */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('{{ asset('sw.js') }}', { scope: '/' })
+                navigator.serviceWorker.register('{{ asset('sw.js') }}')
                     .catch(function (error) {
                         console.warn('Service worker registration failed:', error);
                     });

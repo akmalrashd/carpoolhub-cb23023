@@ -70,7 +70,7 @@
     async function refreshUi() {
         if (!supported) {
             setPill('Not supported', false);
-            desc.textContent = 'This browser (or this device — e.g. iPhone Safari not added to Home Screen) doesn’t support push notifications. Try Telegram below instead for reliable alerts.';
+            desc.textContent = 'Not supported on this browser/device. Try Telegram below instead.';
             enableBtn.hidden = true;
             disableBtn.hidden = true;
             return;
@@ -78,13 +78,33 @@
 
         if (Notification.permission === 'denied') {
             setPill('Blocked', false);
-            desc.textContent = 'Notifications are blocked for this site in your browser settings. Allow them there, then reload this page.';
+            desc.textContent = 'Blocked in your browser settings. Allow them, then reload.';
             enableBtn.hidden = true;
             disableBtn.hidden = true;
             return;
         }
 
-        const reg = await navigator.serviceWorker.ready;
+        // navigator.serviceWorker.ready only resolves once a worker is
+        // actually controlling this scope — if registration ever fails (wrong
+        // scope, sw.js 404s, browser policy) it never resolves at all, and
+        // this used to leave the pill on its blade-default "Checking…" text
+        // forever with no way out. Race it against a timeout so every path
+        // reaches a real terminal state.
+        let reg;
+        try {
+            reg = await Promise.race([
+                navigator.serviceWorker.ready,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000)),
+            ]);
+        } catch (e) {
+            console.error('Service worker never became ready', e);
+            setPill('Unavailable', false);
+            desc.textContent = 'Could not set up push notifications on this page. Try Telegram below, or reload this page.';
+            enableBtn.hidden = true;
+            disableBtn.hidden = true;
+            return;
+        }
+
         const sub = await reg.pushManager.getSubscription();
 
         if (sub) {
