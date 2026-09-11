@@ -438,17 +438,6 @@
             line-height: 1.2;
             word-break: break-word;
         }
-        .trip-passenger-role {
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-pill);
-            padding: 3px 8px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--ink-3);
-            background: var(--surface);
-            margin-left: auto;
-            white-space: nowrap;
-        }
         .trip-point-cards {
             display: grid;
             gap: 7px;

@@ -2262,7 +2262,6 @@ function confirmTripCancel(form, confirmMessage) {
                                 <span class="trip-passenger-name">${name}</span>
                                 <span class="trip-passenger-email">${email || '-'}</span>
                             </div>
-                            <span class="trip-passenger-role">Passenger</span>
                         </div>
                     `;
                 }).join('');

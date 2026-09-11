@@ -2170,17 +2170,6 @@
         .trip-passenger-meta { min-width: 0; display: grid; gap: 1px; flex: 1 1 auto; }
         .trip-passenger-name { color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.2; }
         .trip-passenger-email { color: var(--muted); font-size: 11px; word-break: break-word; }
-        .trip-passenger-role {
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-pill);
-            padding: 3px 8px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--ink-3);
-            background: var(--surface);
-            margin-left: auto;
-            white-space: nowrap;
-        }
         .trip-modal-map {
             width: 100%;
             height: 150px;

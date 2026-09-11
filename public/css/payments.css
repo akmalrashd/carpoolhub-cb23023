@@ -1367,21 +1367,6 @@
             line-height: 1.2;
             word-break: break-word;
         }
-        .trip-passenger-role {
-            border: 1px solid #dbe2ea;
-            border-radius: 999px;
-            padding: 3px 8px;
-            font-size: 10px;
-            font-weight: 700;
-            white-space: nowrap;
-            color: #475569;
-            background: #fff;
-        }
-        .trip-passenger-role.driver {
-            color: #92400e;
-            border-color: #fde68a;
-            background: #fffbeb;
-        }
         .trip-contact-bar {
             margin: 0 -14px -14px;
             padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
