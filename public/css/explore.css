@@ -1359,6 +1359,8 @@
                 position: relative;
                 z-index: 2;
                 background: var(--surface);
+                touch-action: none;
+                cursor: grab;
             }
             .xp-modal-title {
                 font-size: 15px;

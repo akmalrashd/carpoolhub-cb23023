@@ -470,6 +470,12 @@ function confirmTripCancel(form, confirmMessage) {
                     window.location.reload();
                 }
             };
+            window.CarpoolBottomSheet?.enable({
+                modal: modal,
+                card: modal.querySelector('.trip-payment-review-card'),
+                head: modal.querySelector('.trip-payment-review-head'),
+                closeFn: close,
+            });
 
             buttons.forEach((button) => {
                 button.addEventListener('click', (event) => {
@@ -760,6 +766,12 @@ function confirmTripCancel(form, confirmMessage) {
                     window.location.reload();
                 }
             };
+            window.CarpoolBottomSheet?.enable({
+                modal: modal,
+                card: modal.querySelector('.trip-payment-review-card'),
+                head: modal.querySelector('.trip-payment-review-head'),
+                closeFn: close,
+            });
 
             buttons.forEach((button) => {
                 button.addEventListener('click', (event) => {
@@ -886,6 +898,12 @@ function confirmTripCancel(form, confirmMessage) {
                 modal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
             };
+            window.CarpoolBottomSheet?.enable({
+                modal: modal,
+                card: modal.querySelector('.trip-payment-review-card'),
+                head: modal.querySelector('.trip-payment-review-head'),
+                closeFn: close,
+            });
 
             buttons.forEach((button) => {
                 button.addEventListener('click', (event) => {
@@ -1024,6 +1042,12 @@ function confirmTripCancel(form, confirmMessage) {
                 if (rejectReasonEl) rejectReasonEl.value = '';
             };
             if (rejectModal) {
+                window.CarpoolBottomSheet?.enable({
+                    modal: rejectModal,
+                    card: rejectModal.querySelector('.trip-payment-review-card'),
+                    head: rejectModal.querySelector('.trip-payment-review-head'),
+                    closeFn: closeRejectModal,
+                });
                 list.addEventListener('click', (event) => {
                     const rejectBtn = event.target.closest('.open-trip-reject-reason');
                     if (!rejectBtn) return;
@@ -1099,6 +1123,12 @@ function confirmTripCancel(form, confirmMessage) {
                 if (removeReasonEl) removeReasonEl.value = '';
             };
             if (removeModal) {
+                window.CarpoolBottomSheet?.enable({
+                    modal: removeModal,
+                    card: removeModal.querySelector('.trip-payment-review-card'),
+                    head: removeModal.querySelector('.trip-payment-review-head'),
+                    closeFn: closeRemoveModal,
+                });
                 list.addEventListener('click', (event) => {
                     const removeBtn = event.target.closest('.open-trip-remove-reason');
                     if (!removeBtn) return;
@@ -1732,6 +1762,12 @@ function confirmTripCancel(form, confirmMessage) {
                 modal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
             };
+            window.CarpoolBottomSheet?.enable({
+                modal: modal,
+                card: modal.querySelector('.trip-payment-review-card'),
+                head: modal.querySelector('.trip-payment-review-head'),
+                closeFn: close,
+            });
 
             buttons.forEach((button) => {
                 button.addEventListener('click', (event) => {
@@ -1849,6 +1885,17 @@ function confirmTripCancel(form, confirmMessage) {
                 pendingModal?.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
             };
+            if (pendingModal) {
+                // .xp-modal's mobile sheet breakpoint (explore.css) is 639px,
+                // not the 767px the .trip-payment-review-modal family above uses.
+                window.CarpoolBottomSheet?.enable({
+                    modal: pendingModal,
+                    card: pendingModal.querySelector('.xp-modal-card'),
+                    head: pendingModal.querySelector('.xp-modal-head'),
+                    closeFn: pendingClose,
+                    breakpoint: 639,
+                });
+            }
             const renderPendingCard = (request) => {
                 if (!pendingModal) return;
                 const setText = (id, value) => {
@@ -2015,6 +2062,12 @@ function confirmTripCancel(form, confirmMessage) {
                     myRequestMap = null;
                 }
             };
+            window.CarpoolBottomSheet?.enable({
+                modal: modal,
+                card: modal.querySelector('.trip-payment-review-card'),
+                head: modal.querySelector('.trip-payment-review-head'),
+                closeFn: close,
+            });
 
             const render = (request) => {
                 if (!request) {
@@ -2501,6 +2554,16 @@ function confirmTripCancel(form, confirmMessage) {
             closeBtn.addEventListener('click', closeModal);
             modal.addEventListener('click', (event) => {
                 if (event.target === modal) closeModal();
+            });
+
+            // Drag-to-dismiss on mobile — see public/js/bottom-sheet-drag.js.
+            // The grabber pill above trip-modal-head was purely decorative
+            // before this; the sheet never actually tracked a finger.
+            window.CarpoolBottomSheet?.enable({
+                modal: modal,
+                card: modal.querySelector('.trip-modal-card'),
+                head: modal.querySelector('.trip-modal-head'),
+                closeFn: closeModal,
             });
         })();
 

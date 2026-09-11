@@ -2555,6 +2555,8 @@
                 padding: 24px 20px 12px;
                 border-bottom: 1px solid var(--hairline);
                 flex: 0 0 auto;
+                touch-action: none;
+                cursor: grab;
             }
             .trip-modal-scroll {
                 padding: 12px 20px 20px;

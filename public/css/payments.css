@@ -1728,6 +1728,8 @@
                 padding: 24px 20px 12px;
                 border-bottom: 1px solid #dbe2ea;
                 flex: 0 0 auto;
+                touch-action: none;
+                cursor: grab;
             }
             .request-modal-scroll,
             .trip-details-scroll {
@@ -4123,6 +4125,8 @@
             .trip-payment-review-head {
                 padding: 24px 20px 12px;
                 flex: 0 0 auto;
+                touch-action: none;
+                cursor: grab;
             }
             .trip-payment-review-list {
                 max-height: none !important;

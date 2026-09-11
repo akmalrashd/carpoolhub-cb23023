@@ -687,6 +687,13 @@
                 document.body.style.overflow = '';
                 document.body.classList.remove('explore-modal-open');
             };
+            window.CarpoolBottomSheet?.enable({
+                modal: modal,
+                card: modal.querySelector('.xp-modal-card'),
+                head: modal.querySelector('.xp-modal-head'),
+                closeFn: closeModal,
+                breakpoint: 639,
+            });
 
             cards.forEach((card) => {
                 card.addEventListener('click', (e) => {

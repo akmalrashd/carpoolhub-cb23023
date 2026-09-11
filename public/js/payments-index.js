@@ -146,6 +146,12 @@ window.isPaymentRowHidden = function (row) {
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
     };
+    window.CarpoolBottomSheet?.enable({
+        modal: modal,
+        card: modal.querySelector('.trip-payment-review-card'),
+        head: modal.querySelector('.trip-payment-review-head'),
+        closeFn: close,
+    });
     const resultHtml = (message, isError = false) => `
                 <div class="trip-payment-popup-result ${isError ? 'error' : ''}">
                     <span class="trip-payment-popup-icon"><i class="fa-solid ${isError ? 'fa-xmark' : 'fa-check'}"></i></span>
@@ -422,6 +428,12 @@ window.isPaymentRowHidden = function (row) {
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
     };
+    window.CarpoolBottomSheet?.enable({
+        modal: modal,
+        card: modal.querySelector('.trip-payment-review-card'),
+        head: modal.querySelector('.trip-payment-review-head'),
+        closeFn: close,
+    });
 
     if (backBtn) backBtn.addEventListener('click', close);
 
@@ -854,6 +866,12 @@ window.isPaymentRowHidden = function (row) {
             tripDetailsModal.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('modal-open');
         };
+        window.CarpoolBottomSheet?.enable({
+            modal: tripDetailsModal,
+            card: tripDetailsModal.querySelector('.request-modal-card'),
+            head: tripDetailsModal.querySelector('.request-modal-head'),
+            closeFn: closeTripDetailsModal,
+        });
 
         tripDetailsCloseTop.addEventListener('click', closeTripDetailsModal);
         tripDetailsModal.addEventListener('click', (event) => {
@@ -908,6 +926,12 @@ window.isPaymentRowHidden = function (row) {
                 approveForm.setAttribute('action', '');
             }
         };
+        window.CarpoolBottomSheet?.enable({
+            modal: modal,
+            card: modal.querySelector('.request-modal-card'),
+            head: modal.querySelector('.request-modal-head'),
+            closeFn: closeModal,
+        });
 
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
         if (closeBtnTop) closeBtnTop.addEventListener('click', closeModal);
@@ -966,6 +990,12 @@ window.isPaymentRowHidden = function (row) {
             markPaidModal.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('modal-open');
         };
+        window.CarpoolBottomSheet?.enable({
+            modal: markPaidModal,
+            card: markPaidModal.querySelector('.request-modal-card'),
+            head: markPaidModal.querySelector('.request-modal-head'),
+            closeFn: closeMarkPaidModal,
+        });
         closeMarkPaidBtn.addEventListener('click', closeMarkPaidModal);
         markPaidModal.addEventListener('click', (event) => {
             if (event.target === markPaidModal) closeMarkPaidModal();
@@ -1083,19 +1113,22 @@ window.isPaymentRowHidden = function (row) {
             document.body.classList.add('modal-open');
         });
 
+        const closeBulkMarkPaidModal = () => {
+            bulkModal.classList.remove('show');
+            bulkModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        };
+        window.CarpoolBottomSheet?.enable({
+            modal: bulkModal,
+            card: bulkModal.querySelector('.request-modal-card'),
+            head: bulkModal.querySelector('.request-modal-head'),
+            closeFn: closeBulkMarkPaidModal,
+        });
         if (bulkModalClose) {
-            bulkModalClose.addEventListener('click', () => {
-                bulkModal.classList.remove('show');
-                bulkModal.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('modal-open');
-            });
+            bulkModalClose.addEventListener('click', closeBulkMarkPaidModal);
         }
         bulkModal.addEventListener('click', (e) => {
-            if (e.target === bulkModal) {
-                bulkModal.classList.remove('show');
-                bulkModal.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('modal-open');
-            }
+            if (e.target === bulkModal) closeBulkMarkPaidModal();
         });
     }
 
@@ -1192,6 +1225,12 @@ window.isPaymentRowHidden = function (row) {
             modal.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('modal-open');
         };
+        window.CarpoolBottomSheet?.enable({
+            modal: modal,
+            card: modal.querySelector('.request-modal-card'),
+            head: modal.querySelector('.request-modal-head'),
+            closeFn: closeModal,
+        });
 
         if (closeTop) closeTop.addEventListener('click', closeModal);
         if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
@@ -1240,6 +1279,12 @@ window.isPaymentRowHidden = function (row) {
             rejectForm.setAttribute('action', '');
             if (rejectReasonEl) rejectReasonEl.value = '';
         };
+        window.CarpoolBottomSheet?.enable({
+            modal: rejectModal,
+            card: rejectModal.querySelector('.request-modal-card'),
+            head: rejectModal.querySelector('.request-modal-head'),
+            closeFn: closeRejectModal,
+        });
 
         openRejectButtons.forEach((button) => {
             button.addEventListener('click', () => {
@@ -1309,6 +1354,12 @@ window.isPaymentRowHidden = function (row) {
             reverseForm.setAttribute('action', '');
             if (reverseReasonEl) reverseReasonEl.value = '';
         };
+        window.CarpoolBottomSheet?.enable({
+            modal: reverseModal,
+            card: reverseModal.querySelector('.request-modal-card'),
+            head: reverseModal.querySelector('.request-modal-head'),
+            closeFn: closeReverseModal,
+        });
 
         openReverseButtons.forEach((button) => {
             button.addEventListener('click', () => {
@@ -1360,6 +1411,12 @@ window.isPaymentRowHidden = function (row) {
             driverPaymentDetailsModal.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('modal-open');
         };
+        window.CarpoolBottomSheet?.enable({
+            modal: driverPaymentDetailsModal,
+            card: driverPaymentDetailsModal.querySelector('.request-modal-card'),
+            head: driverPaymentDetailsModal.querySelector('.request-modal-head'),
+            closeFn: closeDriverPaymentModal,
+        });
 
         driverPaymentButtons.forEach((button) => {
             button.addEventListener('click', () => {

@@ -52,6 +52,7 @@
          layout has no @stack('scripts')) so window.CarpoolAvatar always
          exists before any page script that renders an avatar runs. --}}
     <script src="{{ asset('js/avatar.js') }}?v={{ filemtime(public_path('js/avatar.js')) }}"></script>
+    <script src="{{ asset('js/bottom-sheet-drag.js') }}?v={{ filemtime(public_path('js/bottom-sheet-drag.js')) }}"></script>
     @include('layouts.partials.pwa-head')
 </head>
 <body>

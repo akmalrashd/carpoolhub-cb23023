@@ -531,8 +531,10 @@
 {{-- â•â• EDIT USER DRAWER â•â• --}}
 <div id="edit-drawer" class="eu-backdrop" onclick="if(event.target===this)closeEditDrawer()">
     <div class="eu-drawer">
-        <div class="eu-pill"></div>
-        <div class="eu-title" id="eu-title">Edit User</div>
+        <div class="eu-drag-handle">
+            <div class="eu-pill"></div>
+            <div class="eu-title" id="eu-title">Edit User</div>
+        </div>
         <div class="eu-sub" id="eu-sub">Update role and account status</div>
         <form id="eu-form" method="POST">
             @csrf @method('PATCH')
@@ -579,8 +581,10 @@
 {{-- ── REJECT DRIVER MODAL ── --}}
 <div id="reject-modal" class="eu-backdrop" onclick="if(event.target===this)closeRejectModal()">
     <div class="eu-drawer">
-        <div class="eu-pill"></div>
-        <div class="eu-title" id="rj-title">Reject Driver Application</div>
+        <div class="eu-drag-handle">
+            <div class="eu-pill"></div>
+            <div class="eu-title" id="rj-title">Reject Driver Application</div>
+        </div>
         <div class="eu-sub">This reason is shown to the driver so they know what to fix.</div>
         <form id="rj-form" method="POST">
             @csrf @method('PATCH')
@@ -775,6 +779,13 @@ function closeLicenseModal(){
     document.getElementById('license-modal').style.display='none';
     document.body.style.overflow='';
 }
+window.CarpoolBottomSheet?.enable({
+    modal: document.getElementById('license-modal'),
+    card: document.querySelector('#license-modal .lr-modal'),
+    head: document.querySelector('#license-modal .lr-top'),
+    closeFn: closeLicenseModal,
+    breakpoint: 640,
+});
 function openRejectModalFromLicense(){
     if (!lrCurrentUid) return;
     openRejectModal(lrCurrentUid, lrCurrentName);
@@ -812,6 +823,13 @@ function closeEditDrawer(){
     document.getElementById('edit-drawer').style.display='none';
     document.body.style.overflow='';
 }
+window.CarpoolBottomSheet?.enable({
+    modal: document.getElementById('edit-drawer'),
+    card: document.querySelector('#edit-drawer .eu-drawer'),
+    head: document.querySelector('#edit-drawer .eu-drag-handle'),
+    closeFn: closeEditDrawer,
+    breakpoint: 599,
+});
 function toggleEditReasonField(){
     var status = document.getElementById('eu-status').value;
     var reasonField = document.getElementById('eu-reason-field');
@@ -862,6 +880,13 @@ function closeRejectModal(){
     document.getElementById('reject-modal').style.display = 'none';
     document.body.style.overflow = '';
 }
+window.CarpoolBottomSheet?.enable({
+    modal: document.getElementById('reject-modal'),
+    card: document.querySelector('#reject-modal .eu-drawer'),
+    head: document.querySelector('#reject-modal .eu-drag-handle'),
+    closeFn: closeRejectModal,
+    breakpoint: 599,
+});
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLicenseModal();closeEditDrawer();closeRejectModal();}});
 </script>
