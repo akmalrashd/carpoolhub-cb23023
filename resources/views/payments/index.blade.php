@@ -577,6 +577,7 @@
                             $participantsPayload = $payment->trip?->participants?->map(function ($participant) {
                                 $participantUser = $participant->user;
                                 return [
+                                    'user_id' => $participantUser?->id,
                                     'name' => $participantUser?->name ?: '-',
                                     'email' => $participantUser?->email ?: '',
                                     'photo_url' => $participantUser?->profile_photo_url,
@@ -637,6 +638,8 @@
                             data-route="{{ $routeLabel }}"
                             data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                             data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                                        data-driver-id="{{ $payment->trip?->driver_id }}"
+                                        data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                             data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
                             data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                             data-pickup-name="{{ $pickupName }}"
@@ -786,6 +789,8 @@
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                                        data-driver-id="{{ $payment->trip?->driver_id }}"
+                                        data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"
@@ -917,7 +922,8 @@
                                 $participantsPayload = $payment->trip?->participants?->map(function ($participant) {
                                     $participantUser = $participant->user;
                                     return [
-                                        'name' => $participantUser?->name ?: '-',
+                                        'user_id' => $participantUser?->id,
+                                    'name' => $participantUser?->name ?: '-',
                                         'email' => $participantUser?->email ?: '',
                                         'photo_url' => $participantUser?->profile_photo_url,
                                         'is_driver' => (bool) $participant->is_driver,
@@ -970,6 +976,8 @@
                                 data-route="{{ $routeLabel }}"
                                 data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                 data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                                        data-driver-id="{{ $payment->trip?->driver_id }}"
+                                        data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                 data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
                                 data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                 data-pickup-name="{{ $pickupName }}"
@@ -1041,6 +1049,8 @@
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                                        data-driver-id="{{ $payment->trip?->driver_id }}"
+                                        data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"
@@ -1507,6 +1517,7 @@
                             $participantsPayload = $payment->trip?->participants?->map(function ($participant) {
                                 $participantUser = $participant->user;
                                 return [
+                                    'user_id' => $participantUser?->id,
                                     'name' => $participantUser?->name ?: '-',
                                     'email' => $participantUser?->email ?: '',
                                     'photo_url' => $participantUser?->profile_photo_url,
@@ -1532,6 +1543,8 @@
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                                        data-driver-id="{{ $payment->trip?->driver_id }}"
+                                        data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"
@@ -1689,6 +1702,7 @@
                             $participantsPayload = $payment->trip?->participants?->map(function ($participant) {
                                 $participantUser = $participant->user;
                                 return [
+                                    'user_id' => $participantUser?->id,
                                     'name' => $participantUser?->name ?: '-',
                                     'email' => $participantUser?->email ?: '',
                                     'photo_url' => $participantUser?->profile_photo_url,
@@ -1713,6 +1727,8 @@
                                         data-route="{{ $routeLabel }}"
                                         data-driver="{{ $payment->trip?->driver?->name ?: '-' }}"
                                         data-driver-email="{{ $payment->trip?->driver?->email ?: '' }}"
+                                        data-driver-id="{{ $payment->trip?->driver_id }}"
+                                        data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"

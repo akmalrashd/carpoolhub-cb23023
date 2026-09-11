@@ -45,8 +45,8 @@
     height: 32px;
     border-radius: 10px;
     border: 1px solid #ece7da;
-    background: #faf7ee;
-    color: #64748b;
+    background: #fff;
+    color: #475569;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -57,9 +57,9 @@
 }
 
 .tg-nudge-close:hover {
-    background: #fee2e2;
-    border-color: rgba(220, 38, 38, .3);
-    color: #dc2626;
+    background: #faf7ee;
+    border-color: #dad2be;
+    color: #0b1220;
 }
 
 .tg-nudge-icon {

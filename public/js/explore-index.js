@@ -633,9 +633,15 @@
                 activeCard = card;
                 setText('exploreTripModalTitle', 'Trip details');
                 setText('exploreTripModalSub', card.dataset.tripRef || '-');
-                setText('exploreModalDriverAvatar', card.dataset.driverInitial || 'DR');
+                const modalAvatarEl = document.getElementById('exploreModalDriverAvatar');
+                if (modalAvatarEl && window.CarpoolAvatar) {
+                    const photoUrl = card.dataset.driverPhoto || '';
+                    modalAvatarEl.innerHTML = window.CarpoolAvatar.innerHtml({ photoUrl: photoUrl, name: card.dataset.driver });
+                    modalAvatarEl.style.cssText = photoUrl ? '' : ('background:' + (card.dataset.driverColor || '#94a3b8') + ';color:#fff;');
+                } else {
+                    setText('exploreModalDriverAvatar', card.dataset.driverInitial || 'DR');
+                }
                 setText('exploreModalDriver', card.dataset.driver || 'Driver');
-                setText('exploreModalRating', card.dataset.rating || '5.00');
                 setText('exploreModalTime', card.dataset.time || '-');
                 setText('exploreModalSeats', card.dataset.seats || '-');
                 setText('exploreModalFare', card.dataset.fare || '-');

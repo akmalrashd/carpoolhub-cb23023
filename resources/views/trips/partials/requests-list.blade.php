@@ -42,7 +42,8 @@
                 };
                 $requesterName = (string) ($requestRow->user?->name ?? '-');
                 $requesterPhotoUrl = $requestRow->user?->profile_photo_url;
-                $requesterInitial = strtoupper(substr(trim($requesterName) ?: 'U', 0, 1));
+                $requesterInitial = $requestRow->user?->avatar_initial ?? 'U';
+                $requesterColor = $requestRow->user?->avatar_color ?? '#94a3b8';
                 $routePoint = $requestRow->routePoint;
                 $routeFitDisplay = $routePoint && $routePoint->route_fit_score !== null
                     ? ((int) $routePoint->route_fit_score . '% sesuai')
@@ -57,7 +58,7 @@
             <article class="request-item" data-request-status="{{ strtolower((string) $requestRow->status) }}" data-request-search="{{ strtolower(trim($requesterName . ' ' . ($requestRow->user?->email ?? '') . ' ' . ($requestRow->status ?? '') . ' ' . ($requestRow->request_note ?? '') . ' ' . ($requestRow->response_note ?? '') . ' ' . ($routePoint?->route_fit_label ?? '') . ' ' . ($routePoint?->pickup_name ?? '') . ' ' . ($routePoint?->dropoff_name ?? ''))) }}">
                 <div class="request-head">
                     <div class="request-user">
-                        <span class="request-avatar">
+                        <span class="request-avatar" @unless($requesterPhotoUrl) style="background:{{ $requesterColor }};" @endunless>
                             @if($requesterPhotoUrl)
                                 <img src="{{ $requesterPhotoUrl }}" alt="{{ $requesterName }}">
                             @else

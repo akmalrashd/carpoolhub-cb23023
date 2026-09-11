@@ -64,9 +64,7 @@
             width: 40px;
             height: 40px;
             border-radius: var(--r-pill);
-            border: 1px solid var(--hairline);
-            background: var(--surface-2);
-            color: var(--ink);
+            color: #fff;
             font-size: 14px;
             font-weight: 700;
             display: inline-flex;
@@ -248,7 +246,7 @@
             cursor: pointer;
             font-size: 14px;
         }
-        .trip-modal-close:hover { background: var(--surface-2); color: var(--ink); }
+        .trip-modal-close:hover { background: var(--surface-2); border-color: var(--hairline-strong); color: var(--ink); }
         .trip-modal-scroll {
             min-height: 0;
             overflow: auto;
@@ -332,9 +330,7 @@
             width: 34px;
             height: 34px;
             border-radius: var(--r-pill);
-            border: 1px solid var(--hairline);
-            background: var(--surface-2);
-            color: var(--ink);
+            color: #fff;
             font-size: 13px;
             font-weight: 700;
             display: inline-flex;
@@ -403,9 +399,7 @@
             width: 30px;
             height: 30px;
             border-radius: var(--r-pill);
-            border: 1px solid var(--hairline);
-            background: var(--surface);
-            color: var(--ink);
+            color: #fff;
             font-size: 12px;
             font-weight: 700;
             display: inline-flex;
@@ -616,8 +610,8 @@
             width: 34px;
             height: 34px;
             border-radius: var(--r-pill);
-            border: 1px solid var(--hairline-strong);
-            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            background: var(--surface);
             color: var(--ink-3);
             font-size: 24px;
             line-height: 1;
@@ -626,6 +620,12 @@
             align-items: center;
             justify-content: center;
             padding: 0;
+            transition: background .15s ease, color .15s ease, border-color .15s ease;
+        }
+        .modal-close-x:hover {
+            background: var(--surface-2);
+            border-color: var(--hairline-strong);
+            color: var(--ink);
         }
         .request-modal-title {
             margin: 0;

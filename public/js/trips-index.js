@@ -1855,9 +1855,13 @@ function confirmTripCancel(form, confirmMessage) {
                     const el = document.getElementById(id);
                     if (el) el.textContent = value;
                 };
-                setText('tripPendingRequestDriverAvatar', request.driver_initial || 'DR');
+                const pendingAvatarEl = document.getElementById('tripPendingRequestDriverAvatar');
+                if (pendingAvatarEl) {
+                    const photoUrl = request.driver_photo || '';
+                    pendingAvatarEl.innerHTML = window.CarpoolAvatar.innerHtml({ photoUrl: photoUrl, name: request.driver_name });
+                    pendingAvatarEl.style.cssText = photoUrl ? '' : window.CarpoolAvatar.bgStyle(request.driver_id);
+                }
                 setText('tripPendingRequestDriver', request.driver_name || 'Driver');
-                setText('tripPendingRequestRating', request.driver_rating || '5.00');
                 setText('tripPendingRequestTime', request.trip_datetime || '-');
                 setText('tripPendingRequestSeats', request.seats_available ?? '-');
                 setText('tripPendingRequestFare', request.fare_per_person ? `RM ${request.fare_per_person}` : '-');
@@ -2252,9 +2256,8 @@ function confirmTripCancel(form, confirmMessage) {
                 passengerListEl.innerHTML = passengers.map((item) => {
                     const name = escapeHtml(item?.name || '-');
                     const email = escapeHtml(item?.email || '');
-                    const avatarHtml = item?.photo_url
-                        ? `<span class="trip-passenger-avatar"><img src="${escapeHtml(item.photo_url)}" alt="${name}"></span>`
-                        : `<span class="trip-passenger-avatar">${escapeHtml((item?.name || 'U').trim().charAt(0).toUpperCase() || 'U')}</span>`;
+                    const avatarStyle = item?.photo_url ? '' : (' style="' + window.CarpoolAvatar.bgStyle(item?.user_id) + '"');
+                    const avatarHtml = `<span class="trip-passenger-avatar"${avatarStyle}>${window.CarpoolAvatar.innerHtml({ photoUrl: item?.photo_url, name: item?.name })}</span>`;
                     return `
                         <div class="trip-passenger-item">
                             ${avatarHtml}
@@ -2408,7 +2411,11 @@ function confirmTripCancel(form, confirmMessage) {
                     if (modeEl)         modeEl.textContent          = btn.dataset.mode || '-';
                     if (routeNameEl)    routeNameEl.textContent     = btn.dataset.routeName || '-';
                     if (driverEl)       driverEl.textContent        = btn.dataset.driverName || '-';
-                    if (driverAvatarEl) driverAvatarEl.textContent  = ((btn.dataset.driverName || 'D').trim().charAt(0) || 'D').toUpperCase();
+                    if (driverAvatarEl) {
+                        const photoUrl = btn.dataset.driverPhoto || '';
+                        driverAvatarEl.innerHTML = window.CarpoolAvatar.innerHtml({ photoUrl: photoUrl, name: btn.dataset.driverName });
+                        driverAvatarEl.style.cssText = photoUrl ? '' : window.CarpoolAvatar.bgStyle(btn.dataset.driverId);
+                    }
                     if (driverEmailEl)  driverEmailEl.textContent   = driverEmail || '-';
                     if (statusEl) {
                         const statusText = btn.dataset.status || '-';

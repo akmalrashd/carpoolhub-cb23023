@@ -384,10 +384,14 @@
                                                 @endphp
                                                 <a href="{{ route('explore.show', $trip->id) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
                                                     <div class="hp-pub-driver-row">
-                                                        <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
-                                                        <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
-                                                        <span class="hp-pub-driver-rating"><i class="fa-solid fa-star"></i> {{ number_format($trip->driver?->rating ?? 5.0, 2) }}</span>
-                                                    </div>
+                                                        <span class="hp-pub-mobile-avatar" @unless($trip->driver?->profile_photo_url) style="background:{{ $trip->driver?->avatar_color ?? '#94a3b8' }};" @endunless>
+                                                            @if($trip->driver?->profile_photo_url)
+                                                                <img src="{{ $trip->driver->profile_photo_url }}" alt="{{ $trip->driver->name }}">
+                                                            @else
+                                                                {{ $trip->driver?->avatar_initial ?? 'U' }}
+                                                            @endif
+                                                        </span>
+                                                        <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>                                                    </div>
                                                     <div class="hp-pub-divider"></div>
                                                     <div class="hp-pub-mobile-route">
                                                         <div class="hp-pub-point">
@@ -507,9 +511,14 @@
                                             default => 'Payment',
                                         };
                                     @endphp
+                                    @php $drPerson = $item->passenger ?? $item->user; @endphp
                                     <div class="hp-review-row">
-                                        <div class="hp-review-avatar">
-                                            {{ strtoupper(substr($item->passenger?->name ?? $item->user?->name ?? '?', 0, 1)) }}
+                                        <div class="hp-review-avatar" @unless($drPerson?->profile_photo_url) style="background:{{ $drPerson?->avatar_color ?? '#94a3b8' }};" @endunless>
+                                            @if($drPerson?->profile_photo_url)
+                                                <img src="{{ $drPerson->profile_photo_url }}" alt="{{ $drPerson->name }}">
+                                            @else
+                                                {{ $drPerson?->avatar_initial ?? '?' }}
+                                            @endif
                                         </div>
                                         <div style="flex:1;min-width:0;">
                                             <div class="hp-review-name">{{ $item->passenger?->name ?? $item->user?->name ?? 'Passenger' }}</div>
@@ -831,9 +840,14 @@
                                         default => 'Payment',
                                     };
                                 @endphp
+                                @php $mrPerson = $item->passenger ?? $item->user; @endphp
                                 <a href="{{ route('payments.index', ['review_payment' => $item->id]) }}" class="hp-review-row" style="text-decoration:none;color:inherit;">
-                                    <div class="hp-review-avatar">
-                                        {{ strtoupper(substr($item->passenger?->name ?? $item->user?->name ?? '?', 0, 1)) }}
+                                    <div class="hp-review-avatar" @unless($mrPerson?->profile_photo_url) style="background:{{ $mrPerson?->avatar_color ?? '#94a3b8' }};" @endunless>
+                                        @if($mrPerson?->profile_photo_url)
+                                            <img src="{{ $mrPerson->profile_photo_url }}" alt="{{ $mrPerson->name }}">
+                                        @else
+                                            {{ $mrPerson?->avatar_initial ?? '?' }}
+                                        @endif
                                     </div>
                                     <div style="flex:1;min-width:0;">
                                         <div class="hp-review-name">{{ $item->passenger?->name ?? $item->user?->name ?? 'Passenger' }}</div>
@@ -875,9 +889,14 @@
                                 <div class="hp-pub-carousel-slide">
                                     <a href="{{ route('explore.show', $trip->id) }}" class="hp-pub-mini" style="text-decoration:none;color:inherit;">
                                         <div class="hp-pub-driver-row">
-                                            <span class="hp-pub-mobile-avatar">{{ strtoupper(substr($trip->driver?->name ?? 'U', 0, 2)) }}</span>
+                                            <span class="hp-pub-mobile-avatar" @unless($trip->driver?->profile_photo_url) style="background:{{ $trip->driver?->avatar_color ?? '#94a3b8' }};" @endunless>
+                                                            @if($trip->driver?->profile_photo_url)
+                                                                <img src="{{ $trip->driver->profile_photo_url }}" alt="{{ $trip->driver->name }}">
+                                                            @else
+                                                                {{ $trip->driver?->avatar_initial ?? 'U' }}
+                                                            @endif
+                                                        </span>
                                             <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
-                                            <span class="hp-pub-driver-rating"><i class="fa-solid fa-star"></i> {{ number_format($trip->driver?->rating ?? 5.0, 2) }}</span>
                                         </div>
                                         <div class="hp-pub-divider"></div>
                                         <div class="hp-pub-mobile-route">

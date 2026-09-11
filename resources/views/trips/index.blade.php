@@ -524,8 +524,10 @@
                                     // Pending-request card (Explore-style read-only view) only
                                     // needs these — kept here so both cards share one payload.
                                     'driver_name' => $trip->driver?->name ?: 'Driver',
-                                    'driver_initial' => strtoupper(substr($trip->driver?->name ?? '?', 0, 2)),
-                                    'driver_rating' => number_format($trip->driver?->rating ?? 5.0, 2),
+                                    'driver_id' => $trip->driver_id,
+                                    'driver_initial' => $trip->driver?->avatar_initial ?? 'D',
+                                    'driver_color' => $trip->driver?->avatar_color ?? '#94a3b8',
+                                    'driver_photo' => $trip->driver?->profile_photo_url,
                                     'pickup_name' => $pickupName,
                                     'destination_name' => $destinationName,
                                     'vehicle_text' => trim($myVehicleModel . ($myVehicleModel && $myVehiclePlate ? ' · ' : '') . $myVehiclePlate) ?: '-',
@@ -611,6 +613,7 @@
                                         data-route-name="{{ $routeName }}"
                                         data-driver-name="{{ $trip->driver?->name ?: '-' }}"
                                         data-driver-id="{{ $trip->driver_id }}"
+                                        data-driver-photo="{{ $trip->driver?->profile_photo_url }}"
                                         data-driver-email="{{ $trip->driver?->email ?: '' }}"
                                         data-driver-whatsapp-url="{{ $trip->driver?->whatsapp_url ?: '' }}"
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
@@ -1110,6 +1113,7 @@
                                         data-route-name="{{ $routeName }}"
                                         data-driver-name="{{ $trip->driver?->name ?: '-' }}"
                                         data-driver-id="{{ $trip->driver_id }}"
+                                        data-driver-photo="{{ $trip->driver?->profile_photo_url }}"
                                         data-driver-email="{{ $trip->driver?->email ?: '' }}"
                                         data-driver-whatsapp-url="{{ $trip->driver?->whatsapp_url ?: '' }}"
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
@@ -1438,11 +1442,8 @@
             </div>
             <div class="xp-modal-body">
                 <div class="xp-modal-driver">
-                    <span class="xp-modal-avatar" id="tripPendingRequestDriverAvatar">DR</span>
-                    <span>
-                        <strong class="xp-driver-name" id="tripPendingRequestDriver">Driver</strong>
-                        <span class="xp-driver-rating"><i class="fa-solid fa-star"></i><span id="tripPendingRequestRating">5.00</span></span>
-                    </span>
+                    <span class="xp-modal-avatar" id="tripPendingRequestDriverAvatar"></span>
+                    <strong class="xp-driver-name" id="tripPendingRequestDriver">Driver</strong>
                 </div>
                 <span class="xp-modal-section-label">Trip details</span>
                 <div class="xp-modal-kv">

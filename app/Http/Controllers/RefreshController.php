@@ -139,9 +139,11 @@ class RefreshController extends Controller
             'status_text' => ucfirst((string) $displayTrip->status),
             'passenger_count' => (int) $passengers->count(),
             'passengers' => $passengers->map(fn ($participant) => [
+                'user_id' => $participant->user_id,
                 'name' => (string) ($participant->user?->name ?? '-'),
                 'email' => (string) ($participant->user?->email ?? '-'),
-                'initial' => strtoupper(substr((string) ($participant->user?->name ?? 'P'), 0, 1)),
+                'initial' => $participant->user?->avatar_initial ?? 'P',
+                'photo_url' => $participant->user?->profile_photo_url,
             ])->values()->all(),
             'rollups' => $rollups,
         ]);

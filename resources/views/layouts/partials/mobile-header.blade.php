@@ -251,21 +251,21 @@
 
         <details class="profile-wrap">
             <summary class="profile-toggle" style="list-style:none;">
-                <span class="avatar-initial">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                <x-header-avatar />
                 <i class="fa-solid fa-chevron-down profile-chevron"></i>
             </summary>
             <div class="profile-dropdown">
-                <div class="profile-dropdown-header">
-                    <span class="avatar-initial">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                <a href="{{ route('profile.index') }}" class="profile-dropdown-header">
+                    <x-header-avatar />
                     <div class="profile-dropdown-meta">
                         <span class="profile-dropdown-name">{{ auth()->user()->name }}</span>
                         <span class="profile-dropdown-role">{{ ucfirst(auth()->user()->role ?? 'driver') }}</span>
                     </div>
-                </div>
+                </a>
                 <div class="profile-dropdown-divider"></div>
                 <a href="{{ route('profile.index') }}" class="profile-menu-link">
                     <i class="fa-solid fa-user-gear"></i>
-                    <span>Profile</span>
+                    <span>Settings</span>
                 </a>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf

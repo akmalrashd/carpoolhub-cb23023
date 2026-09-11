@@ -129,7 +129,7 @@
 
 @php
     $adminMsgUsersJson = $users->map(function ($u) {
-        return ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role];
+        return ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role, 'photo_url' => $u->profile_photo_url];
     })->values();
 @endphp
 <script>
@@ -156,7 +156,9 @@
         document.getElementById('am-user-id-input').value = user.id;
         document.getElementById('am-selected-name').textContent = user.name;
         document.getElementById('am-selected-email').textContent = user.email + ' · ' + user.role.charAt(0).toUpperCase() + user.role.slice(1);
-        document.getElementById('am-selected-avatar').textContent = user.name.charAt(0).toUpperCase();
+        var selAvatarEl = document.getElementById('am-selected-avatar');
+        selAvatarEl.innerHTML = window.CarpoolAvatar.innerHtml({ photoUrl: user.photo_url, name: user.name });
+        selAvatarEl.style.cssText = user.photo_url ? '' : window.CarpoolAvatar.bgStyle(user.id);
         document.getElementById('am-selected-chip').style.display = 'flex';
         document.getElementById('am-picker-search-wrap').style.display = 'none';
         document.getElementById('am-picker-hint').style.display = 'none';
@@ -194,8 +196,9 @@
         }
 
         resultsEl.innerHTML = matches.map(function (u) {
+            var avatarStyle = u.photo_url ? '' : (' style="' + window.CarpoolAvatar.bgStyle(u.id) + '"');
             return '<button type="button" class="am-user-result" role="option" data-user-id="' + u.id + '">' +
-                '<span class="am-result-avatar">' + escapeHtml(u.name.charAt(0).toUpperCase()) + '</span>' +
+                '<span class="am-result-avatar"' + avatarStyle + '>' + window.CarpoolAvatar.innerHtml({ photoUrl: u.photo_url, name: u.name }) + '</span>' +
                 '<span class="am-result-info"><strong>' + escapeHtml(u.name) + '</strong>' +
                 '<span class="t-xs text-muted">' + escapeHtml(u.email) + ' · ' + escapeHtml(u.role) + '</span></span>' +
                 '</button>';

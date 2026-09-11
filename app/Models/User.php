@@ -389,6 +389,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->imageSrc($this->profile_photo);
     }
 
+    public function getAvatarInitialAttribute(): string
+    {
+        return \App\Support\Avatar::initial($this->name);
+    }
+
+    public function getAvatarColorAttribute(): string
+    {
+        return \App\Support\Avatar::color($this->id);
+    }
+
     public function getPaymentQrDuitnowUrlAttribute(): ?string
     {
         return $this->imageSrc($this->payment_qr_duitnow);

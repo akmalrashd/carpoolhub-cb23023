@@ -858,8 +858,9 @@
             z-index: 2;
         }
         .modal-close-x:hover {
-            background: #f8fafc;
-            color: #0f172a;
+            background: #faf7ee;
+            border-color: #dad2be;
+            color: #0b1220;
         }
         .modal-close-x::before {
             content: 'x';
@@ -903,8 +904,9 @@
             font-size: 14px;
         }
         .modal-close-square:hover {
-            background: #f8fafc;
-            color: #0f172a;
+            background: #faf7ee;
+            border-color: #dad2be;
+            color: #0b1220;
         }
         .request-modal-grid {
             display: grid;
@@ -1041,16 +1043,16 @@
             width: 34px;
             height: 34px;
             border-radius: 999px;
-            border: 1px solid #dbe2ea;
-            background: #f8fafc;
-            color: #0f172a;
+            color: #fff;
             font-size: 13px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex: 0 0 auto;
+            overflow: hidden;
         }
+        .trip-driver-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .trip-driver-meta {
             display: grid;
             gap: 1px;
@@ -1332,9 +1334,7 @@
             width: 30px;
             height: 30px;
             border-radius: 999px;
-            border: 1px solid #dbe2ea;
-            background: #fff;
-            color: #0f172a;
+            color: #fff;
             font-size: 12px;
             font-weight: 700;
             display: inline-flex;
@@ -2840,10 +2840,16 @@
             width: 34px;
             height: 34px;
             border-radius: 10px;
-            border: 1px solid var(--hairline-strong);
+            border: 1px solid var(--hairline);
             background: var(--surface);
-            color: var(--ink);
+            color: var(--ink-3);
             cursor: pointer;
+            transition: background .15s ease, color .15s ease, border-color .15s ease;
+        }
+        .trip-payment-review-close:hover {
+            background: var(--surface-2);
+            border-color: var(--hairline-strong);
+            color: var(--ink);
         }
         .trip-payment-review-list {
             display: flex;

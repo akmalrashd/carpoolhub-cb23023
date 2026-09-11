@@ -107,11 +107,11 @@
         <div class="settings-hero-card">
             <div class="settings-hero-top">
                 <div class="settings-hero-avatar-wrap">
-                    <div class="settings-hero-avatar" onclick="document.getElementById('avatarFileInput').click()" title="Click to upload profile photo">
+                    <div class="settings-hero-avatar" onclick="document.getElementById('avatarFileInput').click()" title="Click to upload profile photo" @unless($photoUrl) style="background:{{ $user->avatar_color }};" @endunless>
                         @if($photoUrl)
                             <img src="{{ $photoUrl }}" alt="{{ $user->name }}">
                         @else
-                            <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                            <span>{{ $user->avatar_initial }}</span>
                         @endif
                     </div>
                     <button type="button" class="avatar-cam-badge" onclick="document.getElementById('avatarFileInput').click()" title="Change photo" aria-label="Change profile photo">
@@ -230,9 +230,6 @@
                     <button type="button" class="settings-nav-btn" id="nav-btn-notifications" role="tab" aria-selected="false" aria-controls="panel-notifications" onclick="switchSettingsTab('notifications')">
                         <span class="nav-btn-icon">
                             <i class="fa-solid fa-bell"></i>
-                            @if($telegramConfigured && ! $user->telegram_chat_id)
-                                <span class="nav-badge-dot" aria-hidden="true"></span>
-                            @endif
                         </span>
                         <span class="nav-btn-text">
                             <span class="nav-btn-label">Alerts</span>

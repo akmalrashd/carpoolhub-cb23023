@@ -334,10 +334,11 @@
     .sr-redeem-close {
         display: inline-flex; align-items: center; justify-content: center;
         width: 30px; height: 30px; flex-shrink: 0;
-        border: 1px solid var(--hairline-strong); border-radius: 10px;
-        background: var(--surface); color: var(--muted); cursor: pointer;
+        border: 1px solid var(--hairline); border-radius: 10px;
+        background: var(--surface); color: var(--ink-3); cursor: pointer;
+        transition: background .15s ease, color .15s ease, border-color .15s ease;
     }
-    .sr-redeem-close:hover { background: var(--surface-2); }
+    .sr-redeem-close:hover { background: var(--surface-2); border-color: var(--hairline-strong); color: var(--ink); }
     .sr-redeem-field label {
         display: block; font-size: 12px; font-weight: 700; color: var(--ink-2);
         margin-bottom: 6px;

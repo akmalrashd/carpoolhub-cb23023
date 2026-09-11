@@ -274,7 +274,9 @@
                             $isFree            = (float) $trip->fare_per_person <= 0;
                             $myRequest         = $trip->joinRequests->first();
                             $isJoined          = $trip->participants->contains(fn ($p) => (int) $p->user_id === (int) auth()->id());
-                            $driverInitial     = strtoupper(substr($trip->driver?->name ?? '?', 0, 2));
+                            $driverInitial     = $trip->driver?->avatar_initial ?? '?';
+                            $driverColor       = $trip->driver?->avatar_color ?? '#94a3b8';
+                            $driverPhoto       = $trip->driver?->profile_photo_url;
                             $vehicleModel      = trim((string) ($trip->driver?->vehicle_model ?? ''));
                             $vehiclePlate      = trim((string) ($trip->driver?->vehicle_plate ?? ''));
                             $joinState         = $isJoined ? 'joined' : (($myRequest && $myRequest->status === 'pending') ? 'pending' : ($isFull ? 'full' : (! $trip->is_open_for_request ? 'closed' : 'open')));
@@ -289,7 +291,8 @@
                             data-join-state="{{ $joinState }}"
                             data-driver="{{ $trip->driver?->name ?: 'Driver' }}"
                             data-driver-initial="{{ $driverInitial }}"
-                            data-rating="{{ number_format($trip->driver?->rating ?? 5.0, 2) }}"
+                            data-driver-color="{{ $driverColor }}"
+                            data-driver-photo="{{ $driverPhoto }}"
                             data-route-name="{{ $routeName }}"
                             data-pickup="{{ $pickupText }}"
                             data-pickup-lat="{{ $trip->pickup_latitude ?? '' }}"
@@ -314,14 +317,16 @@
 
                                 {{-- Driver row --}}
                                     <div class="xp-driver-row">
-                                    <span class="xp-avatar">{{ $driverInitial }}</span>
+                                    <span class="xp-avatar" @unless($driverPhoto) style="background:{{ $driverColor }};" @endunless>
+                                        @if($driverPhoto)
+                                            <img src="{{ $driverPhoto }}" alt="{{ $trip->driver?->name }}">
+                                        @else
+                                            {{ $driverInitial }}
+                                        @endif
+                                    </span>
                                     <div class="xp-driver-info">
                                         <span class="xp-driver-name">{{ $trip->driver?->name ?: '—' }}</span>
-                                        <span class="xp-driver-rating">
-                                            <i class="fa-solid fa-star"></i>
-                                            {{ number_format($trip->driver?->rating ?? 5.0, 2) }}
-                                            <span class="xp-desktop-label">&middot; {{ $trip->driver?->trips_count ?? 0 }} trips</span>
-                                        </span>
+                                        <span class="xp-driver-rating xp-desktop-label">{{ $trip->driver?->trips_count ?? 0 }} trips</span>
                                     </div>
                                     </div>
 
@@ -521,11 +526,8 @@
             </div>
             <div class="xp-modal-body">
                 <div class="xp-modal-driver">
-                    <span class="xp-modal-avatar" id="exploreModalDriverAvatar">DR</span>
-                    <span>
-                        <strong class="xp-driver-name" id="exploreModalDriver">Driver</strong>
-                        <span class="xp-driver-rating"><i class="fa-solid fa-star"></i><span id="exploreModalRating">5.00</span></span>
-                    </span>
+                    <span class="xp-modal-avatar" id="exploreModalDriverAvatar"></span>
+                    <strong class="xp-driver-name" id="exploreModalDriver">Driver</strong>
                 </div>
                 <span class="xp-modal-section-label">Trip details</span>
                 <div class="xp-modal-kv">

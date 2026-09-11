@@ -106,8 +106,6 @@
 
     @foreach($pendingDrivers as $pd)
     @php
-        $pdColors = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981'];
-        $pdColor  = $pdColors[abs(crc32($pd->name)) % 5];
         $pdVehicle = trim(($pd->vehicle_model??'').' '.($pd->vehicle_plate??'')) ?: '—';
     @endphp
     <div class="dac-wrap" style="background:{{ $loop->odd ? 'var(--surface)' : 'var(--surface-2)' }};">
@@ -116,7 +114,13 @@
             <div class="dac-row1">
                 {{-- Avatar + info --}}
                 <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
-                    <div class="dac-avatar" style="background:{{ $pdColor }};">{{ strtoupper(substr($pd->name,0,1)) }}</div>
+                    <div class="dac-avatar" @unless($pd->profile_photo_url) style="background:{{ $pd->avatar_color }};" @endunless>
+                        @if($pd->profile_photo_url)
+                            <img src="{{ $pd->profile_photo_url }}" alt="{{ $pd->name }}">
+                        @else
+                            {{ $pd->avatar_initial }}
+                        @endif
+                    </div>
                     <div class="dac-info">
                         <div class="dac-name">{{ $pd->name }}</div>
                         <div class="dac-meta">{{ $pd->email }}</div>
@@ -221,7 +225,6 @@
 <div style="background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden;">
     @forelse($drivers as $driver)
         @php
-            $uc = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981'][abs(crc32($driver->name)) % 5];
             $dVehicle = trim(($driver->vehicle_model ?? '').' '.($driver->vehicle_plate ?? '')) ?: '—';
         @endphp
         @if($loop->first)
@@ -236,7 +239,13 @@
                 <tr>
                     <td>
                         <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                            <div class="au-avatar" style="background:{{ $uc }};">{{ strtoupper(substr($driver->name,0,1)) }}</div>
+                            <div class="au-avatar" @unless($driver->profile_photo_url) style="background:{{ $driver->avatar_color }};" @endunless>
+                                @if($driver->profile_photo_url)
+                                    <img src="{{ $driver->profile_photo_url }}" alt="{{ $driver->name }}">
+                                @else
+                                    {{ $driver->avatar_initial }}
+                                @endif
+                            </div>
                             <div style="min-width:0;">
                                 <div style="font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{ $driver->name }}</div>
                                 <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{ $driver->email }}</div>
@@ -368,7 +377,6 @@
 {{-- Users table --}}
 <div style="background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden;">
     @forelse($users as $user)
-        @php $uc = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981'][abs(crc32($user->name)) % 5]; @endphp
         @if($loop->first)
             <div class="au-table-wrap">
             <table class="au-table">
@@ -381,7 +389,13 @@
                 <tr>
                     <td>
                         <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                            <div class="au-avatar" style="background:{{ $uc }};">{{ strtoupper(substr($user->name,0,1)) }}</div>
+                            <div class="au-avatar" @unless($user->profile_photo_url) style="background:{{ $user->avatar_color }};" @endunless>
+                                @if($user->profile_photo_url)
+                                    <img src="{{ $user->profile_photo_url }}" alt="{{ $user->name }}">
+                                @else
+                                    {{ $user->avatar_initial }}
+                                @endif
+                            </div>
                             <div style="min-width:0;">
                                 <div style="font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{ $user->name }}</div>
                                 <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{ $user->email }}</div>
@@ -584,9 +598,6 @@
 </div>
 
 <script>
-const ACOLS = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981'];
-function strCol(s){let h=0;for(let i=0;i<s.length;i++)h=s.charCodeAt(i)+((h<<5)-h);return ACOLS[Math.abs(h)%ACOLS.length];}
-
 // Open full resolution base64 image in new tab safely without getting blocked as blank
 function openFullImage(src) {
     if (!src || src.trim() === '') return;
@@ -674,8 +685,8 @@ function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,lice
     document.getElementById('lr-vehicle').textContent = vehicle;
     document.getElementById('lr-joined').textContent  = joined;
     const av = document.getElementById('lr-av');
-    av.textContent = name.charAt(0).toUpperCase();
-    av.style.background = strCol(name);
+    av.textContent = window.CarpoolAvatar.initial(name);
+    av.style.background = window.CarpoolAvatar.color(uid);
 
     // 1. Selfie Image Element
     const sImg = document.getElementById('lr-selfie-img');

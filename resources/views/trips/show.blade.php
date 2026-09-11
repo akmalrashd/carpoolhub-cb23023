@@ -101,7 +101,13 @@
         <div class="ts-detail-cell" style="margin-bottom:14px;">
             <span class="ts-detail-label" style="margin-bottom:6px;"><i class="fa-solid fa-steering-wheel"></i>Driver</span>
             <div class="ts-driver-row">
-                <span class="ts-driver-avatar">{{ strtoupper(substr((string) ($trip->driver?->name ?? 'D'), 0, 1)) }}</span>
+                <span class="ts-driver-avatar" @unless($trip->driver?->profile_photo_url) style="background:{{ $trip->driver?->avatar_color ?? '#94a3b8' }};" @endunless>
+                    @if($trip->driver?->profile_photo_url)
+                        <img src="{{ $trip->driver->profile_photo_url }}" alt="{{ $trip->driver->name }}">
+                    @else
+                        {{ $trip->driver?->avatar_initial ?? 'D' }}
+                    @endif
+                </span>
                 <span class="ts-driver-meta">
                     <span class="ts-driver-name">{{ $trip->driver?->name ?: '-' }}</span>
                     <span class="ts-driver-email">{{ $trip->driver?->email ?: '-' }}</span>
@@ -118,7 +124,13 @@
             <div id="tripShowPassengerList" class="ts-passenger-list">
                 @forelse($passengers as $participant)
                     <div class="ts-passenger-item">
-                        <span class="ts-passenger-avatar">{{ strtoupper(substr((string) ($participant->user?->name ?? 'P'), 0, 1)) }}</span>
+                        <span class="ts-passenger-avatar" @unless($participant->user?->profile_photo_url) style="background:{{ $participant->user?->avatar_color ?? '#94a3b8' }};" @endunless>
+                            @if($participant->user?->profile_photo_url)
+                                <img src="{{ $participant->user->profile_photo_url }}" alt="{{ $participant->user->name }}">
+                            @else
+                                {{ $participant->user?->avatar_initial ?? 'P' }}
+                            @endif
+                        </span>
                         <span class="ts-passenger-meta">
                             <span class="ts-passenger-name">{{ $participant->user?->name ?: '-' }}</span>
                             <span class="ts-passenger-email">{{ $participant->user?->email ?: '-' }}</span>
@@ -192,15 +204,18 @@
                 passengerListEl.innerHTML = '<span class="ts-passenger-empty">No passenger records found for this trip.</span>';
                 return;
             }
-            passengerListEl.innerHTML = rows.map((row) => `
+            passengerListEl.innerHTML = rows.map((row) => {
+                const avatarStyle = row.photo_url ? '' : (' style="' + window.CarpoolAvatar.bgStyle(row.user_id) + '"');
+                return `
                 <div class="ts-passenger-item">
-                    <span class="ts-passenger-avatar">${esc(row.initial || 'P')}</span>
+                    <span class="ts-passenger-avatar"${avatarStyle}>${window.CarpoolAvatar.innerHtml({ photoUrl: row.photo_url, name: row.name })}</span>
                     <span class="ts-passenger-meta">
                         <span class="ts-passenger-name">${esc(row.name || '-')}</span>
                         <span class="ts-passenger-email">${esc(row.email || '-')}</span>
                     </span>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         };
 
         const applyRollup = (key, payload) => {

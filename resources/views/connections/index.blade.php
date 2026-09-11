@@ -57,11 +57,11 @@
                                     : '';
                             @endphp
                             <div class="conn-item-row">
-                                <div class="conn-avatar">
+                                <div class="conn-avatar" @unless($photo) style="background:{{ $connectedUser->avatar_color }};" @endunless>
                                     @if($photo)
                                         <img src="{{ $photo }}" alt="{{ $connectedUser->name }}">
                                     @else
-                                        <span>{{ strtoupper(substr($connectedUser->name, 0, 1)) }}</span>
+                                        <span>{{ $connectedUser->avatar_initial }}</span>
                                     @endif
                                 </div>
                                 <div class="conn-user-details">
@@ -121,11 +121,11 @@
                                 $showRequesterEmail = $requester && $requester->showsEmailTo(isset($connectionIdSet[$requester->id]));
                             @endphp
                             <div class="conn-item-row">
-                                <div class="conn-avatar">
+                                <div class="conn-avatar" @unless($reqPhoto) style="background:{{ $requester?->avatar_color ?? '#94a3b8' }};" @endunless>
                                     @if($reqPhoto)
                                         <img src="{{ $reqPhoto }}" alt="{{ $requester?->name }}">
                                     @else
-                                        <span>{{ strtoupper(substr($requester?->name ?? 'U', 0, 1)) }}</span>
+                                        <span>{{ $requester?->avatar_initial ?? 'U' }}</span>
                                     @endif
                                 </div>
                                 <div class="conn-user-details">
@@ -186,11 +186,11 @@
                                 $recPhoto = $receiver?->profile_photo_url;
                             @endphp
                             <div class="conn-item-row">
-                                <div class="conn-avatar">
+                                <div class="conn-avatar" @unless($recPhoto) style="background:{{ $receiver?->avatar_color ?? '#94a3b8' }};" @endunless>
                                     @if($recPhoto)
                                         <img src="{{ $recPhoto }}" alt="{{ $receiver?->name }}">
                                     @else
-                                        <span>{{ strtoupper(substr($receiver?->name ?? 'U', 0, 1)) }}</span>
+                                        <span>{{ $receiver?->avatar_initial ?? 'U' }}</span>
                                     @endif
                                 </div>
                                 <div class="conn-user-details">
@@ -264,11 +264,11 @@
                                     $relStatus = $foundUser->relationship_status ?? 'none';
                                 @endphp
                                 <div class="modal-result-row">
-                                    <div class="conn-avatar">
+                                    <div class="conn-avatar" @unless($photo) style="background:{{ $foundUser->avatar_color }};" @endunless>
                                         @if($photo)
                                             <img src="{{ $photo }}" alt="{{ $foundUser->name }}">
                                         @else
-                                            <span>{{ strtoupper(substr($foundUser->name, 0, 1)) }}</span>
+                                            <span>{{ $foundUser->avatar_initial }}</span>
                                         @endif
                                     </div>
                                     <div class="conn-user-details">

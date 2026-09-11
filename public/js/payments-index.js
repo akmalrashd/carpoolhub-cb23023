@@ -592,9 +592,8 @@ window.isPaymentRowHidden = function (row) {
             tripDetailsPassengerList.innerHTML = passengerOnly.map((item) => {
                 const name = esc(item?.name || '-');
                 const email = esc(item?.email || '');
-                const avatarHtml = item?.photo_url
-                    ? `<span class="trip-passenger-avatar"><img src="${esc(item.photo_url)}" alt="${name}"></span>`
-                    : `<span class="trip-passenger-avatar">${esc((item?.name || 'U').trim().charAt(0).toUpperCase() || 'U')}</span>`;
+                const avatarStyle = item?.photo_url ? '' : (' style="' + window.CarpoolAvatar.bgStyle(item?.user_id) + '"');
+                const avatarHtml = `<span class="trip-passenger-avatar"${avatarStyle}>${window.CarpoolAvatar.innerHtml({ photoUrl: item?.photo_url, name: item?.name })}</span>`;
 
                 return `
                             <div class="trip-passenger-item">
@@ -764,7 +763,11 @@ window.isPaymentRowHidden = function (row) {
             if (tripDetailsPickupPoint) tripDetailsPickupPoint.textContent = pickupName;
             if (tripDetailsDestinationPoint) tripDetailsDestinationPoint.textContent = destinationName;
             if (tripDetailsDriver) tripDetailsDriver.textContent = driverName;
-            if (tripDetailsDriverAvatar) tripDetailsDriverAvatar.textContent = (driverName.trim().charAt(0) || 'D').toUpperCase();
+            if (tripDetailsDriverAvatar) {
+                const driverPhotoUrl = source.dataset.driverPhoto || '';
+                tripDetailsDriverAvatar.innerHTML = window.CarpoolAvatar.innerHtml({ photoUrl: driverPhotoUrl, name: driverName });
+                tripDetailsDriverAvatar.style.cssText = driverPhotoUrl ? '' : window.CarpoolAvatar.bgStyle(source.dataset.driverId);
+            }
             if (tripDetailsDriverEmail) tripDetailsDriverEmail.textContent = driverEmail || '-';
             if (tripDetailsDatetime) tripDetailsDatetime.textContent = source.dataset.datetime || '-';
             if (tripDetailsMode) tripDetailsMode.textContent = source.dataset.mode || '-';

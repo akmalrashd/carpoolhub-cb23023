@@ -47,6 +47,11 @@
          navigation, cache or no cache. This is the same reasoning as the
          mascot.css comment above, generalised to every page. --}}
     @stack('styles')
+    {{-- Loaded here (head, no defer) rather than alongside each page's own
+         scripts (which sit inline at the bottom of @section('content'), this
+         layout has no @stack('scripts')) so window.CarpoolAvatar always
+         exists before any page script that renders an avatar runs. --}}
+    <script src="{{ asset('js/avatar.js') }}?v={{ filemtime(public_path('js/avatar.js')) }}"></script>
     @include('layouts.partials.pwa-head')
 </head>
 <body>
@@ -344,7 +349,7 @@
             </details>
             <details class="profile-wrap">
                 <summary class="profile-toggle">
-                    <span class="avatar-initial">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                    <x-header-avatar />
                     <div class="profile-details">
                         <span class="profile-name">{{ explode(' ', auth()->user()->name)[0] }}</span>
                         <span class="profile-role">{{ ucfirst(auth()->user()->role ?? 'driver') }}</span>
@@ -352,17 +357,17 @@
                     <i class="fa-solid fa-chevron-down profile-chevron"></i>
                 </summary>
                 <div class="profile-dropdown">
-                    <div class="profile-dropdown-header">
-                        <span class="avatar-initial">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                    <a href="{{ route('profile.index') }}" class="profile-dropdown-header">
+                        <x-header-avatar />
                         <div class="profile-dropdown-meta">
                             <span class="profile-dropdown-name">{{ auth()->user()->name }}</span>
                             <span class="profile-dropdown-role">{{ ucfirst(auth()->user()->role ?? 'driver') }}</span>
                         </div>
-                    </div>
+                    </a>
                     <div class="profile-dropdown-divider"></div>
                     <a href="{{ route('profile.index') }}" class="profile-menu-link">
                         <i class="fa-solid fa-gear"></i>
-                        <span>Profile</span>
+                        <span>Settings</span>
                     </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf

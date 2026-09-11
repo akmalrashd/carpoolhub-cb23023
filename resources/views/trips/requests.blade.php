@@ -139,6 +139,7 @@
                         data-route-name="{{ $routeName }}"
                         data-driver-name="{{ $trip->driver?->name ?: '-' }}"
                         data-driver-id="{{ $trip->driver_id }}"
+                        data-driver-photo="{{ $trip->driver?->profile_photo_url }}"
                         data-driver-email="{{ $trip->driver?->email ?: '' }}"
                         data-driver-whatsapp-url="{{ $trip->driver?->whatsapp_url ?: '' }}"
                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"

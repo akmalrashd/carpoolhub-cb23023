@@ -572,10 +572,16 @@
             width: 34px;
             height: 34px;
             border-radius: 10px;
-            border: 1px solid var(--hairline-strong);
+            border: 1px solid var(--hairline);
             background: var(--surface);
-            color: var(--ink);
+            color: var(--ink-3);
             cursor: pointer;
+            transition: background .15s ease, color .15s ease, border-color .15s ease;
+        }
+        .trip-payment-review-close:hover {
+            background: var(--surface-2);
+            border-color: var(--hairline-strong);
+            color: var(--ink);
         }
         .trip-payment-review-list {
             display: flex;
@@ -2045,7 +2051,7 @@
             font-size: 14px;
             transition: background .14s;
         }
-        .trip-modal-close:hover { background: var(--surface-2); color: var(--ink); }
+        .trip-modal-close:hover { background: var(--surface-2); border-color: var(--hairline-strong); color: var(--ink); }
         .trip-modal-scroll {
             min-height: 0;
             overflow-y: auto;
@@ -2101,9 +2107,7 @@
             width: 36px;
             height: 36px;
             border-radius: var(--r-pill);
-            border: 1px solid var(--hairline);
-            background: var(--canvas);
-            color: var(--ink);
+            color: #fff;
             font-size: 14px;
             font-weight: 700;
             display: inline-flex;
@@ -2155,9 +2159,7 @@
             width: 30px;
             height: 30px;
             border-radius: var(--r-pill);
-            border: 1px solid var(--hairline);
-            background: var(--canvas);
-            color: var(--ink);
+            color: #fff;
             font-size: 12px;
             font-weight: 700;
             display: inline-flex;
