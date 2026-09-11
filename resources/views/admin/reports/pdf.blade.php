@@ -319,6 +319,25 @@
 </div>
 @endif
 
+@if(!empty($aiUsage['top_users']))
+<div class="section">
+    <h2 class="section-title"><i class="fa-solid fa-ranking-star"></i> Top AI Users (30 Days)</h2>
+    <table>
+        <thead><tr><th>User</th><th class="num">Calls</th><th class="num">Input Tokens</th><th class="num">Output Tokens</th></tr></thead>
+        <tbody>
+        @foreach($aiUsage['top_users'] as $row)
+            <tr>
+                <td>{{ $row['name'] }}</td>
+                <td class="num">{{ number_format($row['calls']) }}</td>
+                <td class="num">{{ number_format($row['input_tokens']) }}</td>
+                <td class="num">{{ number_format($row['output_tokens']) }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+</div>
+@endif
+
 <footer>CarpoolHub Admin Report &middot; generated {{ now()->format('d M Y, h:i A') }} &middot; internal use only</footer>
 
 <script>

@@ -19,4 +19,11 @@ return [
     // these bills a real Anthropic call, so this is a spend ceiling, not
     // just an abuse guard.
     'daily_limit' => (int) env('AI_CHAT_DAILY_LIMIT', 150),
+
+    // Platform-wide daily ceiling across ALL users combined, checked by the
+    // same 'ai-spend' rate limiter — the per-user cap above bounds one
+    // account, but not total spend if the user base (or fake accounts) grows.
+    // Starting value is a rough placeholder; retune it once real traffic is
+    // visible via the admin Reports page (ReportService::aiUsageSummary()).
+    'global_daily_limit' => (int) env('AI_CHAT_GLOBAL_DAILY_LIMIT', 3000),
 ];

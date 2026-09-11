@@ -78,6 +78,7 @@
                 onclick="aiChat.toggleVoice()"
                 title="Voice Input (Speech-to-Text)"
                 aria-label="Voice Input"
+                aria-pressed="false"
             >
                 <i class="fa-solid fa-microphone"></i>
                 <span class="ai-mic-pulse"></span>
@@ -191,7 +192,7 @@ const aiChat = (() => {
     function fabMascot(fn, ...args) { FAB_MASCOT_IDS.forEach(id => Mascot?.[fn]?.(id, ...args)); }
 
     function toggle(e)   { if (e) e.stopPropagation(); isOpen ? close() : open(); }
-    function close()    { isOpen = false; document.querySelectorAll('#ai-fab').forEach(el => el.classList.remove('is-open')); $('ai-chat-window').classList.remove('is-open'); $('ai-chat-window').setAttribute('aria-hidden','true'); }
+    function close()    { isOpen = false; stopVoice(); document.querySelectorAll('#ai-fab').forEach(el => el.classList.remove('is-open')); $('ai-chat-window').classList.remove('is-open'); $('ai-chat-window').setAttribute('aria-hidden','true'); }
 
     function open() {
         isOpen = true;
@@ -630,6 +631,7 @@ const aiChat = (() => {
     // ── Send ─────────────────────────────────────────────────────────
     async function sendMessage(message) {
         if (loading || !message.trim()) return;
+        stopVoice(); // don't leave the mic listening in the background once a message is on its way
         loading = true;
         $('ai-send-btn').disabled = true;
         hideChips();
@@ -703,6 +705,7 @@ const aiChat = (() => {
     async function clear() {
         const msg = (lang ?? DEFAULT_LANG) === 'ms' ? 'Reset perbualan dan bahasa?' : 'Reset chat and language?';
         if (!confirm(msg)) return;
+        stopVoice();
         await fetch(CLEAR_URL, { method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'} });
 
         // Reset language + messages
@@ -747,22 +750,34 @@ const aiChat = (() => {
     let isListening = false;
     let initialText = '';
     let silenceTimer = null;
+    let listenStartedAt = 0;
+    let rapidEndCount = 0; // consecutive sessions that die almost instantly — some browsers (notably Safari) can't sustain continuous recognition
 
-    function resetSilenceTimer() {
+    function voiceNotice(msMsg, enMsg) {
+        const text = lang === 'ms' ? msMsg : enMsg;
+        if (window.showToast) {
+            window.showToast(text, 'error');
+        } else {
+            alert(text);
+        }
+    }
+
+    function resetSilenceTimer(initial) {
         if (silenceTimer) clearTimeout(silenceTimer);
+        // Longer grace period before the user has said anything at all; tighter
+        // once we know speech is actually coming through.
         silenceTimer = setTimeout(() => {
-            if (isListening) {
-                stopVoice();
-            }
-        }, 5000); // Auto-stop listening after 5 seconds of continuous silence
+            if (isListening) stopVoice();
+        }, initial ? 8000 : 5000);
     }
 
     function toggleVoice() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert(lang === 'ms' 
-                ? 'Pengesahan suara tidak disokong oleh pelayar anda. Sila guna Chrome, Edge, atau Safari.' 
-                : 'Speech recognition is not supported by your browser. Please use Chrome, Edge, or Safari.');
+            voiceNotice(
+                'Pengesahan suara tidak disokong oleh pelayar anda. Sila guna Chrome atau Edge.',
+                'Speech recognition is not supported by your browser. Please use Chrome or Edge.'
+            );
             return;
         }
 
@@ -777,6 +792,7 @@ const aiChat = (() => {
         try {
             const inp = $('ai-input');
             initialText = inp ? (inp.value ? inp.value.trim() + ' ' : '') : '';
+            rapidEndCount = 0;
 
             recognition = new SpeechRecognition();
             recognition.continuous = true;
@@ -787,11 +803,13 @@ const aiChat = (() => {
 
             recognition.onstart = () => {
                 isListening = true;
+                listenStartedAt = Date.now();
                 if (micBtn) {
                     micBtn.classList.add('is-listening');
+                    micBtn.setAttribute('aria-pressed', 'true');
                     micBtn.title = lang === 'ms' ? 'Mendengar... (Klik untuk hentikan)' : 'Listening... (Click to stop)';
                 }
-                resetSilenceTimer();
+                resetSilenceTimer(true);
             };
 
             recognition.onresult = (event) => {
@@ -803,18 +821,47 @@ const aiChat = (() => {
                     inp.value = initialText + transcript;
                     resize(inp);
                 }
-                resetSilenceTimer();
+                rapidEndCount = 0; // speech is actually being captured — session is healthy
+                resetSilenceTimer(false);
             };
 
             recognition.onerror = (event) => {
                 console.warn('Speech recognition error:', event.error);
-                if (event.error === 'no-speech') return; // Keep listening on silent pauses
+                if (event.error === 'no-speech' || event.error === 'aborted') return; // silent pauses / our own stop() call
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    stopVoice();
+                    voiceNotice(
+                        'Akses mikrofon disekat. Benarkan akses mikrofon dalam tetapan pelayar untuk guna input suara.',
+                        'Microphone access was blocked. Allow microphone access in your browser settings to use voice input.'
+                    );
+                    return;
+                }
+                if (event.error === 'audio-capture') {
+                    stopVoice();
+                    voiceNotice(
+                        'Tiada mikrofon dikesan pada peranti ini.',
+                        'No microphone was detected on this device.'
+                    );
+                    return;
+                }
                 stopVoice();
             };
 
             recognition.onend = () => {
                 // If user hasn't manually clicked to stop, keep listening continuously
                 if (isListening) {
+                    const sessionMs = Date.now() - listenStartedAt;
+                    if (sessionMs < 800 && ++rapidEndCount >= 3) {
+                        // The recognition session is dying almost immediately on every
+                        // restart — retrying forever would just spin silently in the
+                        // background instead of actually listening.
+                        stopVoice();
+                        voiceNotice(
+                            'Input suara berterusan tidak stabil pada pelayar ini. Cuba cakap dalam ayat pendek, atau guna Chrome/Edge.',
+                            'Continuous voice input isn\'t stable on this browser. Try shorter phrases, or use Chrome/Edge.'
+                        );
+                        return;
+                    }
                     try {
                         const currentInp = $('ai-input');
                         initialText = currentInp ? (currentInp.value ? currentInp.value.trim() + ' ' : '') : '';
@@ -845,6 +892,7 @@ const aiChat = (() => {
         const micBtn = $('ai-mic-btn');
         if (micBtn) {
             micBtn.classList.remove('is-listening');
+            micBtn.setAttribute('aria-pressed', 'false');
             micBtn.title = lang === 'ms' ? 'Input Suara (Speech-to-Text)' : 'Voice Input (Speech-to-Text)';
         }
     }

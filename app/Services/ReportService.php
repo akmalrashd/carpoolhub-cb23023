@@ -420,7 +420,59 @@ class ReportService
             'retry_count' => $rows->where('is_retry', true)->count(),
             'by_endpoint' => $rows->groupBy('endpoint')->map->count()->all(),
             'error_breakdown' => $rows->where('success', false)->groupBy('error_type')->map->count()->all(),
+            'top_users' => $this->aiUsageTopUsers(),
+            'daily_trend' => $this->aiUsageDailyTrend(),
         ];
+    }
+
+    /**
+     * Heaviest AI users in the last 30 days. The all-time totals above can't
+     * tell an admin whether usage is spread evenly or one account is
+     * hammering the chatbot (a runaway client bug, or genuine abuse) — this
+     * is what actually surfaces that.
+     */
+    private function aiUsageTopUsers(int $limit = 8): array
+    {
+        return DB::table('ai_usage_logs')
+            ->join('users', 'users.id', '=', 'ai_usage_logs.user_id')
+            ->where('ai_usage_logs.created_at', '>=', now()->subDays(30))
+            ->selectRaw('users.id, users.name, COUNT(*) as calls, SUM(ai_usage_logs.input_tokens) as input_tokens, SUM(ai_usage_logs.output_tokens) as output_tokens')
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('calls')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => [
+                'user_id' => (int) $row->id,
+                'name' => (string) $row->name,
+                'calls' => (int) $row->calls,
+                'input_tokens' => (int) $row->input_tokens,
+                'output_tokens' => (int) $row->output_tokens,
+            ])
+            ->all();
+    }
+
+    /**
+     * Calls per day for the last 14 days. A single all-time total flattens a
+     * spend spike into invisibility — this is what actually lets an admin
+     * spot one, day by day, without needing a charting library.
+     */
+    private function aiUsageDailyTrend(int $days = 14): array
+    {
+        $since = now()->subDays($days - 1)->startOfDay();
+
+        $counts = DB::table('ai_usage_logs')
+            ->where('created_at', '>=', $since)
+            ->selectRaw('DATE(created_at) as day, COUNT(*) as calls')
+            ->groupBy('day')
+            ->pluck('calls', 'day');
+
+        $trend = [];
+        for ($i = 0; $i < $days; $i++) {
+            $day = $since->copy()->addDays($i)->toDateString();
+            $trend[$day] = (int) ($counts[$day] ?? 0);
+        }
+
+        return $trend;
     }
 
     /**

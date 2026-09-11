@@ -159,33 +159,56 @@
 
             {{-- Profile completeness — real, computed from actual saved fields. --}}
             <div class="settings-hero-completion">
-                <div class="hero-completion-ring" style="--pct: {{ $completionPercent }}" role="img" aria-label="Profile {{ $completionPercent }}% complete">
-                    <span>{{ $completionPercent }}%</span>
-                </div>
-                <div class="hero-completion-text">
-                    @if($completionPercent >= 100)
-                        <strong>Profile complete</strong>
-                        <span>All your details are set up. Nice work!</span>
-                    @else
-                        <strong>Profile {{ $completionPercent }}% complete</strong>
-                        <span>Missing: {{ implode(', ', array_column($missingItems, 'label')) }}</span>
+                <div class="hero-completion-top">
+                    <div class="hero-completion-bar-block" role="img" aria-label="Profile {{ $completionPercent }}% complete">
+                        <div class="hero-completion-bar-head">
+                            <strong>Profile {{ $completionPercent }}% complete</strong>
+                            @if($completionPercent < 100)
+                                <span class="hero-steps-left">{{ count($missingItems) }} step{{ count($missingItems) === 1 ? '' : 's' }} left</span>
+                            @else
+                                <span class="hero-steps-left is-done"><i class="fa-solid fa-circle-check"></i> All set</span>
+                            @endif
+                        </div>
+                        <div class="hero-progress-track">
+                            <div class="hero-progress-fill" style="width: {{ $completionPercent }}%"></div>
+                        </div>
+                    </div>
+                    @if($completionPercent < 100)
+                        <button type="button" class="hero-completion-cta" onclick="switchSettingsTab('{{ $firstMissingTab }}')">
+                            Complete <i class="fa-solid fa-arrow-right"></i>
+                        </button>
                     @endif
                 </div>
                 @if($completionPercent < 100)
-                    <button type="button" class="hero-completion-cta" onclick="switchSettingsTab('{{ $firstMissingTab }}')">
-                        Complete now <i class="fa-solid fa-arrow-right"></i>
-                    </button>
+                    <p class="hero-completion-missing"><i class="fa-solid fa-circle-info"></i> Missing: {{ implode(', ', array_column($missingItems, 'label')) }}</p>
+                @else
+                    <p class="hero-completion-missing is-done"><i class="fa-solid fa-sparkles"></i> All your details are set up. Nice work!</p>
                 @endif
             </div>
         </div>
 
         {{-- Two-column shell: nav rail on desktop, scrollable tab strip on mobile --}}
         <div class="settings-shell">
+            {{-- Mobile-only compact header above the tab strip — the desktop
+                 rail already carries its own persistent label + description
+                 per item, so it doesn't need this. Title/icon/step swap live
+                 via updateQuickbar() in settings.js whenever the tab changes. --}}
+            <div class="settings-quickbar">
+                <div class="settings-quickbar-head">
+                    <div class="settings-quickbar-title">
+                        <span class="settings-quickbar-icon" id="quickbarIcon"><i class="fa-solid fa-user"></i></span>
+                        <strong id="quickbarTitle">Profile Settings</strong>
+                    </div>
+                    <span class="settings-quickbar-step" id="quickbarStep">1 of {{ $isDriver ? 4 : 3 }}</span>
+                </div>
+                <div class="settings-quickbar-switch-label"><i class="fa-solid fa-shuffle"></i> Quick Switch</div>
+            </div>
+
             <div class="settings-nav" role="tablist" aria-label="Settings sections">
                 <button type="button" class="settings-nav-btn is-active" id="nav-btn-profile" role="tab" aria-selected="true" aria-controls="panel-profile" onclick="switchSettingsTab('profile')">
                     <span class="nav-btn-icon"><i class="fa-solid fa-user"></i></span>
                     <span class="nav-btn-text">
-                        <span class="nav-btn-label">Profile Details</span>
+                        <span class="nav-btn-label">Profile</span>
                         <span class="nav-btn-desc">Name, contact{{ $isDriver ? ', vehicle & docs' : '' }}</span>
                     </span>
                 </button>
@@ -193,7 +216,7 @@
                     <button type="button" class="settings-nav-btn" id="nav-btn-payment" role="tab" aria-selected="false" aria-controls="panel-payment" onclick="switchSettingsTab('payment')">
                         <span class="nav-btn-icon"><i class="fa-solid fa-wallet"></i></span>
                         <span class="nav-btn-text">
-                            <span class="nav-btn-label">Payment Methods</span>
+                            <span class="nav-btn-label">Payouts</span>
                             <span class="nav-btn-desc">Bank account & QR codes</span>
                         </span>
                     </button>
@@ -206,9 +229,14 @@
                     </span>
                 </button>
                 <button type="button" class="settings-nav-btn" id="nav-btn-notifications" role="tab" aria-selected="false" aria-controls="panel-notifications" onclick="switchSettingsTab('notifications')">
-                    <span class="nav-btn-icon"><i class="fa-solid fa-bell"></i></span>
+                    <span class="nav-btn-icon">
+                        <i class="fa-solid fa-bell"></i>
+                        @if($telegramConfigured && ! $user->telegram_chat_id)
+                            <span class="nav-badge-dot" aria-hidden="true"></span>
+                        @endif
+                    </span>
                     <span class="nav-btn-text">
-                        <span class="nav-btn-label">Notifications</span>
+                        <span class="nav-btn-label">Alerts</span>
                         <span class="nav-btn-desc">Push & Telegram alerts</span>
                     </span>
                 </button>
@@ -240,161 +268,201 @@
                     @enderror
 
                     <div class="form-grid">
-                        <h4 class="form-section-title"><i class="fa-solid fa-id-badge"></i> Basic Information</h4>
 
-                        {{-- Full Name --}}
-                        <div class="form-group">
-                            <label class="form-label" for="profileName">Full Name</label>
-                            <div class="input-wrap @error('name') has-error @enderror">
-                                <span class="input-icon"><i class="fa-solid fa-user"></i></span>
-                                <input type="text" id="profileName" name="name" class="input-field" value="{{ old('name', $user->name) }}" required placeholder="Enter your full name">
+                        {{-- ── Basic Information ─────────────────────────────── --}}
+                        <div class="settings-subcard">
+                            <div class="settings-subcard-head">
+                                <h4 class="form-section-title"><i class="fa-solid fa-id-badge"></i> Basic Information</h4>
+                                <span class="subcard-badge">Public profile</span>
                             </div>
-                            @error('name')
-                                <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
-                            @enderror
-                        </div>
 
-                        {{-- Email Address (Read-only) + Email Visibility --}}
-                        <div class="form-group">
-                            <label class="form-label" for="profileEmail">Email Address</label>
-                            <div class="input-wrap">
-                                <span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
-                                <input type="email" id="profileEmail" class="input-field" value="{{ $user->email }}" disabled readonly>
-                                <span class="input-icon" title="Email is locked"><i class="fa-solid fa-lock" style="font-size:12px;"></i></span>
-                                <div class="vis-select-group">
-                                    <span class="vis-select-label">Visible to</span>
-                                    <select name="email_visible" class="input-field select-field vis-select" title="Who can see your email">
-                                        <option value="visible_public" {{ $selectedEmailVisibility === 'visible_public' ? 'selected' : '' }}>Public</option>
-                                        <option value="visible_friend" {{ $selectedEmailVisibility === 'visible_friend' ? 'selected' : '' }}>Connections Only</option>
-                                        <option value="unvisible" {{ $selectedEmailVisibility === 'unvisible' ? 'selected' : '' }}>Private</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <span class="field-hint">Email address is fixed to your account credentials.</span>
-                        </div>
-
-                        <h4 class="form-section-title"><i class="fa-solid fa-address-book"></i> Contact & Visibility</h4>
-
-                        {{-- Phone / WhatsApp Number + Visibility --}}
-                        <div class="form-group">
-                            <label class="form-label" for="profilePhone">Phone / WhatsApp Number</label>
-                            <div class="input-wrap @error('phone') has-error @enderror">
-                                <span class="input-icon"><i class="fa-brands fa-whatsapp"></i></span>
-                                <input type="tel" id="profilePhone" name="phone" class="input-field" value="{{ old('phone', $user->phone) }}" placeholder="+60 12-345 6789">
-                                <div class="vis-select-group">
-                                    <span class="vis-select-label">Visible to</span>
-                                    <select name="phone_visible" class="input-field select-field vis-select" title="Who can see your phone number">
-                                        <option value="visible_public" {{ $selectedPhoneVisibility === 'visible_public' ? 'selected' : '' }}>Public</option>
-                                        <option value="visible_friend" {{ $selectedPhoneVisibility === 'visible_friend' ? 'selected' : '' }}>Connections Only</option>
-                                        <option value="unvisible" {{ $selectedPhoneVisibility === 'unvisible' ? 'selected' : '' }}>Private</option>
-                                    </select>
-                                </div>
-                            </div>
-                            @error('phone')
-                                <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
-                            @enderror
-                            <span class="field-hint">Used for trip coordination — visibility controls who else on CarpoolHub can see it.</span>
-                        </div>
-
-                        {{-- Vehicle Details & Verification Documents (Driver only) --}}
-                        @if($isDriver)
-                            <h4 class="form-section-title"><i class="fa-solid fa-car-side"></i> Vehicle & Verification</h4>
-
+                            {{-- Full Name --}}
                             <div class="form-group">
-                                <label class="form-label">Vehicle Details</label>
-                                <div class="input-wrap @error('vehicle_model') has-error @enderror @error('vehicle_plate') has-error @enderror">
-                                    <span class="input-icon"><i class="fa-solid fa-car"></i></span>
-                                    <input type="text" name="vehicle_model" class="input-field" value="{{ old('vehicle_model', $user->vehicle_model) }}" placeholder="Model (e.g. Perodua Myvi 1.5)" style="border-right:1px solid var(--hairline);" list="vehicle-model-suggestions">
-                                    <datalist id="vehicle-model-suggestions">
-                                        @foreach (config('vehicle_fuel_consumption', []) as $vehicleOption)
-                                            <option value="{{ $vehicleOption['label'] }}"></option>
-                                        @endforeach
-                                    </datalist>
-                                    <div class="vehicle-plate-group">
-                                        <span class="input-icon"><i class="fa-solid fa-id-card"></i></span>
-                                        <input type="text" name="vehicle_plate" class="input-field" value="{{ old('vehicle_plate', $user->vehicle_plate) }}" placeholder="Plate (e.g. VAB 1234)">
+                                <label class="form-label" for="profileName">Full Name</label>
+                                <div class="input-wrap @error('name') has-error @enderror">
+                                    <span class="input-icon"><i class="fa-solid fa-user"></i></span>
+                                    <input type="text" id="profileName" name="name" class="input-field" value="{{ old('name', $user->name) }}" required placeholder="Enter your full name">
+                                </div>
+                                @error('name')
+                                    <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Email Address (Read-only) + Email Visibility --}}
+                            <div class="form-group">
+                                <div class="form-label-row">
+                                    <label class="form-label" for="profileEmail">Email Address</label>
+                                    <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                                </div>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
+                                    <input type="email" id="profileEmail" class="input-field" value="{{ $user->email }}" disabled readonly>
+                                    <span class="input-icon" title="Email is locked"><i class="fa-solid fa-lock" style="font-size:12px;"></i></span>
+                                </div>
+                                <span class="field-hint">Email address is fixed to your account credentials.</span>
+
+                                <span class="form-label" style="display:block;margin-top:12px;">Who can see your email</span>
+                                <div class="quick-switch" role="radiogroup" aria-label="Who can see your email">
+                                    <input type="radio" class="sr-only" name="email_visible" id="emailVisPublic" value="visible_public" {{ $selectedEmailVisibility === 'visible_public' ? 'checked' : '' }}>
+                                    <label for="emailVisPublic">Public</label>
+                                    <input type="radio" class="sr-only" name="email_visible" id="emailVisFriend" value="visible_friend" {{ $selectedEmailVisibility === 'visible_friend' ? 'checked' : '' }}>
+                                    <label for="emailVisFriend">Connections</label>
+                                    <input type="radio" class="sr-only" name="email_visible" id="emailVisPrivate" value="unvisible" {{ $selectedEmailVisibility === 'unvisible' ? 'checked' : '' }}>
+                                    <label for="emailVisPrivate">Private</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── Contact & Privacy ─────────────────────────────── --}}
+                        <div class="settings-subcard">
+                            <div class="settings-subcard-head">
+                                <h4 class="form-section-title"><i class="fa-solid fa-address-book"></i> Contact & Privacy</h4>
+                                <span class="subcard-badge">Riders only</span>
+                            </div>
+
+                            {{-- Phone / WhatsApp Number + Visibility --}}
+                            <div class="form-group">
+                                <label class="form-label" for="profilePhone">Phone / WhatsApp Number</label>
+                                <div class="input-wrap @error('phone') has-error @enderror">
+                                    <span class="input-icon"><i class="fa-brands fa-whatsapp"></i></span>
+                                    <input type="tel" id="profilePhone" name="phone" class="input-field" value="{{ old('phone', $user->phone) }}" placeholder="+60 12-345 6789">
+                                </div>
+                                @error('phone')
+                                    <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                @enderror
+                                <span class="field-hint">Used for trip coordination — visibility controls who else on CarpoolHub can see it.</span>
+
+                                <span class="form-label" style="display:block;margin-top:12px;">Phone visibility to other members</span>
+                                <div class="quick-switch" role="radiogroup" aria-label="Who can see your phone number">
+                                    <input type="radio" class="sr-only" name="phone_visible" id="phoneVisPublic" value="visible_public" {{ $selectedPhoneVisibility === 'visible_public' ? 'checked' : '' }}>
+                                    <label for="phoneVisPublic">Public</label>
+                                    <input type="radio" class="sr-only" name="phone_visible" id="phoneVisFriend" value="visible_friend" {{ $selectedPhoneVisibility === 'visible_friend' ? 'checked' : '' }}>
+                                    <label for="phoneVisFriend">Connections</label>
+                                    <input type="radio" class="sr-only" name="phone_visible" id="phoneVisPrivate" value="unvisible" {{ $selectedPhoneVisibility === 'unvisible' ? 'checked' : '' }}>
+                                    <label for="phoneVisPrivate">Private</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── Vehicle & Credentials (Driver only) ───────────── --}}
+                        @if($isDriver)
+                            @php
+                                $docStatusMap = [
+                                    'approved' => ['label' => 'Verified', 'class' => 'is-verified', 'icon' => 'fa-circle-check'],
+                                    'pending'  => ['label' => 'Pending review', 'class' => 'is-pending', 'icon' => 'fa-clock'],
+                                    'rejected' => ['label' => 'Rejected', 'class' => 'is-rejected', 'icon' => 'fa-circle-xmark'],
+                                ];
+                                $missingDocStatus = ['label' => 'Not submitted', 'class' => 'is-missing', 'icon' => 'fa-circle-exclamation'];
+                                $licenseStatus = $user->driving_license_photo
+                                    ? ($docStatusMap[$user->driver_verification_status] ?? $docStatusMap['pending'])
+                                    : $missingDocStatus;
+                                $selfieStatus = $user->selfie_photo
+                                    ? ($docStatusMap[$user->driver_verification_status] ?? $docStatusMap['pending'])
+                                    : $missingDocStatus;
+                                $licenseExpiryText = $licenseStatus['class'] === 'is-verified' && $user->driving_license_expiry
+                                    ? ' • Exp: ' . $user->driving_license_expiry->format('m/Y')
+                                    : '';
+                            @endphp
+                            <div class="settings-subcard">
+                                <div class="settings-subcard-head">
+                                    <h4 class="form-section-title"><i class="fa-solid fa-car-side"></i> Vehicle & Credentials</h4>
+                                    <span class="subcard-badge is-accent">Driver Pass</span>
+                                </div>
+
+                                @if($user->driver_verification_status === 'rejected' && $user->driver_verification_reason)
+                                    <div class="settings-alert error">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        <span><strong>Application rejected:</strong> {{ $user->driver_verification_reason }} — update your details below and save to resubmit.</span>
+                                    </div>
+                                @endif
+
+                                <div class="form-grid-2col">
+                                    <div class="form-group">
+                                        <label class="form-label" for="vehicleModel">Car Model</label>
+                                        <div class="input-wrap @error('vehicle_model') has-error @enderror">
+                                            <span class="input-icon"><i class="fa-solid fa-car"></i></span>
+                                            <input type="text" id="vehicleModel" name="vehicle_model" class="input-field" value="{{ old('vehicle_model', $user->vehicle_model) }}" placeholder="e.g. Perodua Myvi 1.5" list="vehicle-model-suggestions">
+                                            <datalist id="vehicle-model-suggestions">
+                                                @foreach (config('vehicle_fuel_consumption', []) as $vehicleOption)
+                                                    <option value="{{ $vehicleOption['label'] }}"></option>
+                                                @endforeach
+                                            </datalist>
+                                        </div>
+                                        @error('vehicle_model')
+                                            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="vehiclePlate">Plate Number</label>
+                                        <div class="input-wrap @error('vehicle_plate') has-error @enderror">
+                                            <span class="input-icon"><i class="fa-solid fa-id-card"></i></span>
+                                            <input type="text" id="vehiclePlate" name="vehicle_plate" class="input-field" value="{{ old('vehicle_plate', $user->vehicle_plate) }}" placeholder="e.g. VAB 1234">
+                                        </div>
+                                        @error('vehicle_plate')
+                                            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
-                                @error('vehicle_model')
-                                    <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
-                                @enderror
-                                @error('vehicle_plate')
-                                    <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
-                                @enderror
-                            </div>
 
-                            @if($user->driver_verification_status === 'rejected' && $user->driver_verification_reason)
-                                <div class="settings-alert error" style="margin-top:4px;">
-                                    <i class="fa-solid fa-triangle-exclamation"></i>
-                                    <span><strong>Application rejected:</strong> {{ $user->driver_verification_reason }} — update your details below and save to resubmit.</span>
-                                </div>
-                            @endif
+                                {{-- Driver Verification Documents — editable; resubmitting sends the account back for review (see SettingsService::updateProfile). --}}
+                                <div>
+                                    <label class="form-label">Required Document Status</label>
+                                    <p class="field-hint" style="margin:2px 0 10px;">Uploading a new license or selfie sends your account back for admin review — you'll be notified once it's checked again.</p>
 
-                            {{-- Driver Verification Documents — editable; resubmitting sends the account back for review (see SettingsService::updateProfile). --}}
-                            <div style="margin-top:4px;">
-                                <label class="form-label">Driver Verification Documents</label>
-                                <p class="field-hint" style="margin:2px 0 10px;">Uploading a new license or selfie sends your account back for admin review — you'll be notified once it's checked again.</p>
-                                <div class="qr-upload-grid">
-                                    {{-- License Photo --}}
-                                    <div class="qr-card">
-                                        <div class="qr-preview-box">
-                                            @if($user->driving_license_photo)
-                                                <img id="licensePreview" src="{{ $user->driving_license_photo }}" alt="Driving License">
-                                            @else
-                                                <div id="licenseEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-id-card"></i></div>
-                                                <img id="licensePreview" src="" alt="" style="display:none;">
-                                            @endif
-                                        </div>
-                                        <h4 class="qr-title">Driving License</h4>
-                                        <p class="qr-sub">{{ $user->driving_license_photo ? 'On file' : 'Not submitted' }}</p>
-                                        <div class="qr-btn-wrap">
-                                            <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('licenseInput').click()">
-                                                <i class="fa-solid fa-upload"></i> {{ $user->driving_license_photo ? 'Replace' : 'Upload' }}
+                                    <div class="doc-status-list">
+                                        {{-- License Photo --}}
+                                        <div class="doc-status-row">
+                                            <span class="doc-status-icon">
+                                                <img id="licensePreview" src="{{ $user->driving_license_photo ?: '' }}" alt="Driver's License" style="{{ $user->driving_license_photo ? '' : 'display:none;' }}">
+                                                <i class="fa-solid fa-id-card" id="licenseEmptyIcon" style="{{ $user->driving_license_photo ? 'display:none;' : '' }}"></i>
+                                            </span>
+                                            <div class="doc-status-text">
+                                                <strong>Driver's License</strong>
+                                                <span class="doc-status-line {{ $licenseStatus['class'] }}"><i class="fa-solid {{ $licenseStatus['icon'] }}"></i> {{ $licenseStatus['label'] }}{{ $licenseExpiryText }}</span>
+                                            </div>
+                                            <button type="button" class="doc-status-btn {{ $user->driving_license_photo ? '' : 'is-primary' }}" onclick="document.getElementById('licenseInput').click()">
+                                                {{ $user->driving_license_photo ? 'Replace' : 'Upload' }}
                                             </button>
                                             <input type="file" id="licenseInput" name="driving_license_photo" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'licensePreview', 'licenseEmptyIcon')">
                                         </div>
                                         @error('driving_license_photo')
-                                            <span class="field-error" style="justify-content:center;"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
                                         @enderror
-                                    </div>
 
-                                    {{-- Selfie Photo --}}
-                                    <div class="qr-card">
-                                        <div class="qr-preview-box">
-                                            @if($user->selfie_photo)
-                                                <img id="selfiePreview" src="{{ $user->selfie_photo }}" alt="Selfie with License">
-                                            @else
-                                                <div id="selfieEmptyIcon" class="qr-empty-icon"><i class="fa-solid fa-user-shield"></i></div>
-                                                <img id="selfiePreview" src="" alt="" style="display:none;">
-                                            @endif
-                                        </div>
-                                        <h4 class="qr-title">Selfie Verification</h4>
-                                        <p class="qr-sub">{{ $user->selfie_photo ? 'On file' : 'Not submitted' }}</p>
-                                        <div class="qr-btn-wrap">
-                                            <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('selfieInput').click()">
-                                                <i class="fa-solid fa-upload"></i> {{ $user->selfie_photo ? 'Replace' : 'Upload' }}
+                                        {{-- Selfie Photo --}}
+                                        <div class="doc-status-row">
+                                            <span class="doc-status-icon">
+                                                <img id="selfiePreview" src="{{ $user->selfie_photo ?: '' }}" alt="Driver Selfie Verification" style="{{ $user->selfie_photo ? '' : 'display:none;' }}">
+                                                <i class="fa-solid fa-user-shield" id="selfieEmptyIcon" style="{{ $user->selfie_photo ? 'display:none;' : '' }}"></i>
+                                            </span>
+                                            <div class="doc-status-text">
+                                                <strong>Driver Selfie Verification</strong>
+                                                <span class="doc-status-line {{ $selfieStatus['class'] }}"><i class="fa-solid {{ $selfieStatus['icon'] }}"></i> {{ $selfieStatus['label'] }}</span>
+                                            </div>
+                                            <button type="button" class="doc-status-btn {{ $user->selfie_photo ? '' : 'is-primary' }}" onclick="document.getElementById('selfieInput').click()">
+                                                {{ $user->selfie_photo ? 'Replace' : 'Upload' }}
                                             </button>
                                             <input type="file" id="selfieInput" name="selfie_photo" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'selfiePreview', 'selfieEmptyIcon')">
                                         </div>
                                         @error('selfie_photo')
-                                            <span class="field-error" style="justify-content:center;"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
                                         @enderror
                                     </div>
-                                </div>
 
-                                <div class="form-group" style="margin-top:14px;">
-                                    <label class="form-label" for="drivingLicenseExpiry">License Expiry Date</label>
-                                    <div class="input-wrap @error('driving_license_expiry') has-error @enderror">
-                                        <span class="input-icon"><i class="fa-solid fa-calendar-days"></i></span>
-                                        <input type="date" id="drivingLicenseExpiry" name="driving_license_expiry" class="input-field"
-                                            value="{{ old('driving_license_expiry', $user->driving_license_expiry?->toDateString()) }}">
-                                        @if($user->driving_license_expiry && $user->driving_license_expiry->isPast())
-                                            <span class="badge badge-danger" style="margin-left:8px;">Expired</span>
-                                        @endif
+                                    <div class="form-group" style="margin-top:14px;">
+                                        <label class="form-label" for="drivingLicenseExpiry">License Expiry Date</label>
+                                        <div class="input-wrap @error('driving_license_expiry') has-error @enderror">
+                                            <span class="input-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                                            <input type="date" id="drivingLicenseExpiry" name="driving_license_expiry" class="input-field"
+                                                value="{{ old('driving_license_expiry', $user->driving_license_expiry?->toDateString()) }}">
+                                            @if($user->driving_license_expiry && $user->driving_license_expiry->isPast())
+                                                <span class="badge badge-danger" style="margin-left:8px;">Expired</span>
+                                            @endif
+                                        </div>
+                                        @error('driving_license_expiry')
+                                            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    @error('driving_license_expiry')
-                                        <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
-                                    @enderror
                                 </div>
                             </div>
                         @endif

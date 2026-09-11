@@ -20,10 +20,38 @@
                 }
             });
 
+            updateQuickbar(tabName);
+
             if (history.pushState) {
                 history.pushState(null, null, `#${tabName}`);
             } else {
                 location.hash = `#${tabName}`;
+            }
+        }
+
+        // ── Mobile "Quick Switch" bar: swap title/icon/step to match the
+        // active tab. Step position is read from the DOM (not hardcoded) so
+        // it stays correct whether the Payouts tab exists (driver) or not.
+        const QUICKBAR_META = {
+            profile: { title: 'Profile Settings', icon: 'fa-user' },
+            payment: { title: 'Payout Settings', icon: 'fa-wallet' },
+            security: { title: 'Security Settings', icon: 'fa-shield-halved' },
+            notifications: { title: 'Alert Settings', icon: 'fa-bell' },
+        };
+        function updateQuickbar(tabName) {
+            const meta = QUICKBAR_META[tabName];
+            const titleEl = document.getElementById('quickbarTitle');
+            const iconEl = document.getElementById('quickbarIcon');
+            const stepEl = document.getElementById('quickbarStep');
+            if (!meta || !titleEl || !iconEl || !stepEl) return;
+
+            titleEl.textContent = meta.title;
+            iconEl.innerHTML = `<i class="fa-solid ${meta.icon}"></i>`;
+
+            const buttons = Array.from(document.querySelectorAll('.settings-nav-btn'));
+            const index = buttons.findIndex(btn => btn.id === `nav-btn-${tabName}`);
+            if (index !== -1) {
+                stepEl.textContent = `${index + 1} of ${buttons.length}`;
             }
         }
 
@@ -255,6 +283,8 @@
             const target = resolveInitialSettingsTab();
             if (target) {
                 switchSettingsTab(target);
+            } else {
+                updateQuickbar('profile');
             }
             bindSettingsFormLoadingState();
             bindPhoneNumberFormatting();

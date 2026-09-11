@@ -401,6 +401,35 @@
                 </table>
             </div>
         @endif
+        @if(!empty($aiUsage['top_users']))
+            <div class="rp-table-wrap" style="border-top:1px solid var(--hairline);">
+                <table class="rp-table">
+                    <thead><tr><th>Top User (30d)</th><th class="num">Calls</th><th class="num">Input Tokens</th><th class="num">Output Tokens</th></tr></thead>
+                    <tbody>
+                    @foreach($aiUsage['top_users'] as $row)
+                        <tr>
+                            <td>{{ $row['name'] }}</td>
+                            <td class="num">{{ number_format($row['calls']) }}</td>
+                            <td class="num">{{ number_format($row['input_tokens']) }}</td>
+                            <td class="num">{{ number_format($row['output_tokens']) }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+        @if(!empty($aiUsage['daily_trend']))
+            <div class="rp-table-wrap" style="border-top:1px solid var(--hairline);">
+                <table class="rp-table">
+                    <thead><tr><th>Last 14 Days</th><th class="num">Calls</th></tr></thead>
+                    <tbody>
+                    @foreach($aiUsage['daily_trend'] as $day => $count)
+                        <tr><td>{{ \Illuminate\Support\Carbon::parse($day)->format('d M') }}</td><td class="num">{{ number_format($count) }}</td></tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 
 </div>

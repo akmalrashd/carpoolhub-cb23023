@@ -178,53 +178,74 @@
         /* ── Hero Profile Completeness ── */
         .settings-hero-completion {
             display: flex;
-            align-items: center;
-            gap: 14px;
+            flex-direction: column;
+            gap: 10px;
             padding-top: 14px;
             border-top: 1px solid var(--hairline);
+        }
+        .hero-completion-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
             flex-wrap: wrap;
         }
-        .hero-completion-ring {
-            --pct: 0;
-            width: 46px;
-            height: 46px;
-            border-radius: 999px;
-            background: conic-gradient(var(--ch-yellow) calc(var(--pct) * 1%), var(--hairline) 0);
-            display: grid;
-            place-items: center;
-            flex-shrink: 0;
-            position: relative;
-        }
-        .hero-completion-ring::before {
-            content: '';
-            position: absolute;
-            inset: 4px;
-            border-radius: 999px;
-            background: var(--surface);
-        }
-        .hero-completion-ring span {
-            position: relative;
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--ink);
-            font-family: var(--font-display), sans-serif;
-        }
-        .hero-completion-text {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
+        .hero-completion-bar-block {
             flex: 1;
             min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
-        .hero-completion-text strong {
+        .hero-completion-bar-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .hero-completion-bar-head strong {
             font-size: 13px;
             font-weight: 800;
             color: var(--ink);
             font-family: var(--font-display), sans-serif;
         }
-        .hero-completion-text span {
-            font-size: 12px;
+        .hero-steps-left {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: var(--warning-ink);
+            white-space: nowrap;
+        }
+        .hero-steps-left.is-done {
+            color: var(--success-ink, #15803d);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .hero-progress-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--hairline);
+            overflow: hidden;
+        }
+        .hero-progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--ch-yellow), var(--ch-yellow-deep));
+            transition: width .3s ease;
+        }
+        .hero-completion-missing {
+            margin: 0;
+            font-size: 11.5px;
             color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hero-completion-missing i {
+            color: var(--warning-ink);
+        }
+        .hero-completion-missing.is-done i {
+            color: var(--success-ink, #15803d);
         }
         .hero-completion-cta {
             background: var(--ch-yellow);
@@ -284,6 +305,82 @@
         }
         .settings-nav::-webkit-scrollbar { display: none; }
 
+        /* ── Mobile "Quick Switch" bar — a compact header sitting above the
+           tab strip on narrow screens only, showing the active section's
+           title/icon and its step position ("1 of 4"). The desktop rail
+           already carries its own persistent label + description per item,
+           so it doesn't need this; hidden there. ── */
+        .settings-quickbar {
+            display: none;
+        }
+        @media (max-width: 899px) {
+            .settings-quickbar {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                background: var(--surface);
+                border: 1px solid var(--hairline);
+                border-radius: var(--r-lg);
+                padding: 12px 14px;
+                box-shadow: var(--shadow-1);
+            }
+        }
+        .settings-quickbar-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .settings-quickbar-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .settings-quickbar-title strong {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink);
+            font-family: var(--font-display), sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .settings-quickbar-icon {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: var(--ink);
+            color: var(--surface);
+            display: grid;
+            place-items: center;
+            font-size: 12px;
+        }
+        .settings-quickbar-step {
+            flex-shrink: 0;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--warning-ink);
+            background: var(--ch-yellow-tint);
+            border: 1px solid var(--ch-yellow-line);
+            padding: 3px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .settings-quickbar-switch-label {
+            align-self: flex-end;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+        }
+        .settings-quickbar-switch-label i {
+            font-size: 10px;
+        }
+
         .settings-nav-btn {
             flex: 1 0 auto;
             min-width: 0;
@@ -314,6 +411,14 @@
         .settings-nav-btn:hover {
             color: var(--ink);
         }
+        /* Without this, tapping/clicking a tab shows the browser's default
+           dark focus ring on top of the yellow .is-active styling below —
+           looks like a rendering bug even though the colors underneath are
+           correct. Swap it for an on-brand ring instead. */
+        .settings-nav-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--ch-yellow-tint);
+        }
         .settings-nav-btn.is-active {
             background: var(--surface);
             border-color: var(--hairline);
@@ -321,11 +426,33 @@
             box-shadow: var(--shadow-1);
             font-weight: 800;
         }
+        /* Mobile pill strip only — the desktop rail keeps its own left-border
+           accent below instead of a filled background. */
+        @media (max-width: 899px) {
+            .settings-nav-btn.is-active {
+                background: var(--ch-yellow-soft);
+                border-color: var(--ch-yellow-line);
+                color: var(--warning-ink);
+            }
+        }
         .nav-btn-icon {
+            position: relative;
             display: inline-flex;
             font-size: 14px;
             color: inherit;
             flex-shrink: 0;
+        }
+        /* Small action-needed dot on a tab icon (e.g. Alerts when Telegram
+           isn't connected yet). */
+        .nav-badge-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: var(--danger);
+            border: 1.5px solid var(--surface);
         }
         .nav-btn-text {
             display: flex;
@@ -497,6 +624,128 @@
             color: var(--ink-2);
         }
 
+        /* ── Sub-card grouping within a panel (Basic Information, Contact &
+           Privacy, Vehicle & Credentials each get their own bordered card
+           instead of just a dashed-divider heading). ── */
+        .settings-subcard {
+            display: grid;
+            gap: 16px;
+            padding: 16px;
+            background: var(--surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+        }
+        .settings-subcard-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .settings-subcard-head .form-section-title {
+            margin: 0;
+            padding-top: 0;
+            border-top: 0;
+        }
+        .subcard-badge {
+            flex-shrink: 0;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            padding: 3px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .subcard-badge.is-accent {
+            color: var(--warning-ink);
+            background: var(--ch-yellow-tint);
+            border-color: var(--ch-yellow-line);
+        }
+
+        /* ── Document status rows (Driver's License / Selfie Verification) —
+           a compact list of icon + status + action, replacing a QR-style
+           preview card grid for content that isn't a scannable QR code. ── */
+        .doc-status-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .doc-status-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .doc-status-list .doc-status-row:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+        .doc-status-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--r-sm);
+            background: var(--surface-2);
+            border: 1px solid var(--hairline);
+            display: grid;
+            place-items: center;
+            font-size: 15px;
+            color: var(--muted);
+            overflow: hidden;
+        }
+        .doc-status-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .doc-status-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .doc-status-text strong {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .doc-status-line {
+            font-size: 11.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .doc-status-line.is-verified { color: var(--success-ink, #15803d); }
+        .doc-status-line.is-pending { color: var(--warning-ink); }
+        .doc-status-line.is-rejected { color: var(--danger-ink); }
+        .doc-status-line.is-missing { color: var(--warning-ink); }
+        .doc-status-btn {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            border-radius: var(--r-sm);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1px solid var(--hairline-strong);
+            background: var(--surface);
+            color: var(--ink-3);
+            transition: background .15s ease;
+        }
+        .doc-status-btn:hover { background: var(--surface-2); }
+        .doc-status-btn.is-primary {
+            background: var(--ch-yellow);
+            color: var(--ch-yellow-ink);
+            border-color: var(--ch-yellow-line);
+        }
+        .doc-status-btn.is-primary:hover { background: var(--ch-yellow-deep); }
+
         /* Inline field feedback */
         .field-hint {
             font-size: 11px;
@@ -588,70 +837,63 @@
             cursor: pointer;
         }
 
-        /* Label + select travel together as one unit so they can never be split
-           across a wrap onto different lines (flex-wrap packs one item at a time,
-           so two separate siblings can land on different lines unpredictably). */
-        .vis-select-group {
+        /* Label sitting next to a status chip on the same line (e.g. "Email
+           Address" + a "Verified" badge) without the two ever competing for
+           the label's own line-height. */
+        .form-label-row {
             display: flex;
             align-items: center;
-            flex: 0 1 auto;
-            min-width: 0;
-            border-left: 1px solid var(--hairline);
-        }
-        .vis-select-label {
-            padding: 0 0 0 10px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: var(--muted);
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .vis-select {
-            width: 130px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--ink-2);
-            padding-left: 6px;
+            justify-content: space-between;
+            gap: 8px;
         }
 
-        /* Same "travel together" grouping as .vis-select-group, so the plate
-           icon can never be stranded on a different line than its input. */
-        .vehicle-plate-group {
+        /* "Quick switch" segmented control — replaces a <select> for a small,
+           fixed set of mutually-exclusive choices (visibility: Public /
+           Connections / Private). Real radio inputs so it's a real form
+           control (keyboard operable, submits like any other field); the
+           inputs are visually hidden via .sr-only and each label doubles as
+           the visible "button" via the adjacent-sibling selector below. */
+        .quick-switch {
             display: flex;
-            align-items: center;
-            flex: 0 0 140px;
-            min-width: 0;
-            border-left: 1px solid var(--hairline);
+            gap: 2px;
+            padding: 3px;
+            background: var(--surface-2);
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--r-md);
         }
-        .vehicle-plate-group .input-field {
+        .quick-switch label {
             flex: 1;
-            min-width: 0;
-            padding-left: 8px;
+            text-align: center;
+            padding: 8px 6px;
+            border-radius: calc(var(--r-md) - 3px);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            user-select: none;
+            transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+        }
+        .quick-switch input:checked + label {
+            background: var(--surface);
+            color: var(--ink);
+            font-weight: 800;
+            box-shadow: var(--shadow-1);
+        }
+        .quick-switch input:focus-visible + label {
+            outline: 2px solid var(--ch-yellow);
+            outline-offset: 1px;
         }
 
-        /* On narrow screens a 3-up (or 2-up) input row has no room to breathe —
-           drop the trailing control to its own full-width line instead of
-           squeezing every control until its text truncates. */
-        @media (max-width: 560px) {
-            .input-wrap:has(.vis-select-group),
-            .input-wrap:has(.vehicle-plate-group) {
-                flex-wrap: wrap;
-            }
-            .input-wrap .vis-select-group,
-            .input-wrap .vehicle-plate-group {
-                flex: 1 1 100%;
-                width: 100%;
-                border-left: 0;
-                border-top: 1px solid var(--hairline);
-            }
-            .input-wrap .vis-select-group .vis-select-label {
-                padding-left: 16px;
-            }
-            .input-wrap .vis-select-group .vis-select {
-                flex: 1;
-                width: auto;
+        /* Two fields side by side (e.g. Car Model / Plate Number) — each its
+           own full input-wrap, rather than squeezed into one shared box. */
+        .form-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 380px) {
+            .form-grid-2col {
+                grid-template-columns: 1fr;
             }
         }
 

@@ -107,6 +107,10 @@ class AdminReportController extends Controller
             ->map(fn (int $count, ?string $type) => ['type' => $type ?: 'Unknown', 'count' => $count])
             ->values()->all();
 
+        $aiDailyTrendRows = collect($aiUsage['daily_trend'] ?? [])
+            ->map(fn (int $count, string $day) => ['date' => $day, 'calls' => $count])
+            ->values()->all();
+
         // [sheet title, columns, rows] — columns: header label, source key, cell type.
         $sheets = [
             ['Report Info', [
@@ -215,6 +219,16 @@ class AdminReportController extends Controller
                 ['header' => 'Error Type', 'key' => 'type', 'type' => 'string'],
                 ['header' => 'Count', 'key' => 'count', 'type' => 'int'],
             ], $errorBreakdownRows],
+            ['AI Usage Top Users (30d)', [
+                ['header' => 'User', 'key' => 'name', 'type' => 'string'],
+                ['header' => 'Calls', 'key' => 'calls', 'type' => 'int'],
+                ['header' => 'Input Tokens', 'key' => 'input_tokens', 'type' => 'int'],
+                ['header' => 'Output Tokens', 'key' => 'output_tokens', 'type' => 'int'],
+            ], $aiUsage['top_users'] ?? []],
+            ['AI Usage Daily Trend', [
+                ['header' => 'Date', 'key' => 'date', 'type' => 'string'],
+                ['header' => 'Calls', 'key' => 'calls', 'type' => 'int'],
+            ], $aiDailyTrendRows],
             ['Thesis Module Evidence', [
                 ['header' => 'Objective', 'key' => 'objective', 'type' => 'string'],
                 ['header' => 'Evidence', 'key' => 'evidence', 'type' => 'int'],

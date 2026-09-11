@@ -30,6 +30,17 @@ class ChatbotService
         'notifications.index' => ['filter'],
     ];
 
+    /**
+     * Routes a navigate suggestion must not be sent to unless the user's role
+     * is in this list — mirrors a real server-side gate the destination
+     * enforces (e.g. TripController::ensureCanManage() hard 403s trips.create
+     * for anyone but a driver), so without this check Hexa could hand a
+     * passenger a button that 403s the moment they tap it.
+     */
+    private const NAVIGATE_ROLE_RESTRICTIONS = [
+        'trips.create' => ['driver'],
+    ];
+
     private Client $http;
 
     public function __construct(private readonly AiUsageLogger $usage)
@@ -275,6 +286,7 @@ RESPOND IN VALID JSON ONLY. This applies even when your reply is a multi-point c
 
 2. NAVIGATE: {"intent":"navigate","reply":"<msg>","route":"<trips.index|trips.create|payments.index|explore.index|connections.index|saved-routes.index|settings.index|notifications.index>","params":{<optional, see below>}}
    - "params" is OPTIONAL — only include a key when the user actually stated that preference in this message. Never invent/default a filter they didn't ask for; omit "params" entirely (or leave it {}) when they just asked to see the page.
+   - trips.create is DRIVER ONLY (creating a trip needs an approved driver account — passengers and admin cannot create one). If the role above is not DRIVER and the user asks how to create/post a trip, do NOT return navigate to trips.create — return intent "general" instead, explain only drivers can do that, and point a passenger to Explore to find a ride.
    - Resolve any date the user gives (e.g. "bulan ni", "minggu depan", "esok") into real YYYY-MM-DD values yourself using "Now" above, same as you already do for trip_datetime.
    - Allowed keys per route (anything else is dropped, so don't invent other keys):
      trips.index: date_from, date_to (YYYY-MM-DD), visibility ("public"|"private"), status_filter ("all"|"upcoming"|"completed"|"draft"|"cancelled"), trip_search (free text)
@@ -455,6 +467,16 @@ PROMPT;
             $route = (string) ($decoded['route'] ?? '');
 
             if (\in_array($route, $allowed, true)) {
+                $allowedRoles = self::NAVIGATE_ROLE_RESTRICTIONS[$route] ?? null;
+                if ($allowedRoles !== null && ! \in_array((string) $user->role, $allowedRoles, true)) {
+                    return [
+                        'intent' => 'general',
+                        'reply'  => $language === 'en'
+                            ? 'Only drivers can create trips. Use Explore to find a ride instead.'
+                            : 'Hanya pemandu boleh buat trip. Guna Explore untuk cari tumpangan.',
+                    ];
+                }
+
                 return [
                     'intent' => 'navigate',
                     'reply'  => $reply,
