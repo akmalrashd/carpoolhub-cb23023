@@ -77,11 +77,7 @@
                 </div>
             </a>
         @empty
-            <div class="chat-empty">
-                <i class="fa-regular fa-comments"></i>
-                <p>No trip chats yet.</p>
-                <span>A chat appears here once you have an upcoming trip with other people on it.</span>
-            </div>
+            <x-empty icon="fa-regular fa-comments" title="No trip chats yet" body="A chat appears here once you have an upcoming trip with other people on it." />
         @endforelse
     </div>
 </div>

@@ -202,33 +202,6 @@
     color: var(--danger);
 }
 
-.chat-empty {
-    display: grid;
-    justify-items: center;
-    gap: 8px;
-    padding: 56px 16px;
-    text-align: center;
-    color: var(--muted);
-    border: 1px dashed var(--hairline-strong);
-    border-radius: 16px;
-}
-
-.chat-empty i {
-    font-size: 30px;
-    opacity: .5;
-}
-
-.chat-empty p {
-    margin: 0;
-    font-weight: 700;
-    color: var(--ink);
-}
-
-.chat-empty span {
-    font-size: 13px;
-    max-width: 320px;
-}
-
 /* ── Thread page ── */
 .chat-thread-page {
     max-width: 640px;
