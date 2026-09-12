@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Conversation;
+use App\Models\ConversationParticipant;
+use App\Models\Message;
 use App\Models\Trip;
 use App\Models\TripPayment;
 use App\Services\Ai\PassengerRiskScoringService;
@@ -33,6 +36,11 @@ class RefreshController extends Controller
 
         return response()->json([
             'unread_count' => $unreadCount,
+            // Piggybacks on this same 5s poll rather than running a second
+            // one — the "Chat" nav badge previously only updated on a fresh
+            // page load, so a passenger sitting on an already-open page
+            // never saw it appear after their request got approved.
+            'chat_unread_count' => ConversationParticipant::unreadCountFor($user),
             'notifications' => $notifications->map(fn ($item) => [
                 'id'         => (int) $item->id,
                 'type'       => (string) ($item->type ?? 'system'),
@@ -146,6 +154,46 @@ class RefreshController extends Controller
                 'photo_url' => $participant->user?->profile_photo_url,
             ])->values()->all(),
             'rollups' => $rollups,
+        ]);
+    }
+
+    /**
+     * Fallback safety net behind the Ably live push — picks up any message
+     * missed by a dropped socket connection. Same "is this user an active
+     * participant" gate as ChatController, duplicated rather than shared
+     * since this one only ever needs the boolean, not the row.
+     */
+    public function chatMessages(Request $request, Conversation $conversation): JsonResponse
+    {
+        $isActiveParticipant = ConversationParticipant::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('user_id', $request->user()->id)
+            ->whereNull('left_at')
+            ->exists();
+
+        if (! $isActiveParticipant) {
+            abort(403);
+        }
+
+        $afterId = (int) $request->query('after_id', 0);
+
+        $messages = Message::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('id', '>', $afterId)
+            ->with('sender')
+            ->orderBy('id')
+            ->get();
+
+        return response()->json([
+            'messages' => $messages->map(fn (Message $message) => [
+                'id' => $message->id,
+                'type' => $message->type,
+                'body' => $message->body,
+                'sender_id' => $message->sender_id,
+                'sender_name' => $message->sender?->name ?? 'Deleted user',
+                'sender_avatar_url' => $message->sender?->profile_photo_url,
+                'created_at' => $message->created_at?->toIso8601String(),
+            ])->values(),
         ]);
     }
 

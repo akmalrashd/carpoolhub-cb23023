@@ -6,6 +6,7 @@
             ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon' => 'fa-solid fa-house', 'label' => 'Home'],
             ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
             ['route' => 'trips.index', 'active' => ['trips.*'], 'icon' => 'fa-solid fa-car-side', 'label' => 'My Trips'],
+            ['route' => 'chats.index', 'active' => ['chats.*'], 'icon' => 'fa-regular fa-comment-dots', 'label' => 'Chat', 'badge' => $headerChatUnreadCount ?? 0],
             ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
         ],
         default => [
@@ -14,6 +15,7 @@
             ['route' => 'saved-routes.index', 'active' => ['saved-routes.*'], 'icon' => 'fa-solid fa-route', 'label' => 'Routes'],
             ['route' => 'explore.index', 'active' => ['explore.*'], 'icon' => 'fa-solid fa-compass', 'label' => 'Explore'],
             ['route' => 'connections.index', 'active' => ['connections.*'], 'icon' => 'fa-solid fa-user-group', 'label' => 'Connections'],
+            ...($role === 'driver' ? [['route' => 'chats.index', 'active' => ['chats.*'], 'icon' => 'fa-regular fa-comment-dots', 'label' => 'Chat', 'badge' => $headerChatUnreadCount ?? 0]] : []),
         ],
     };
 @endphp
@@ -25,7 +27,13 @@
         <nav class="desktop-nav">
             @foreach($mainNavItems as $item)
                 <a href="{{ route($item['route']) }}" class="{{ request()->routeIs(...$item['active']) ? 'active' : '' }}" title="{{ $item['label'] }}">
-                    <i class="{{ $item['icon'] }}"></i><span class="desktop-nav-label">{{ $item['label'] }}</span>
+                    <span class="desktop-nav-icon">
+                        <i class="{{ $item['icon'] }}"></i>
+                        @if(($item['badge'] ?? 0) > 0)
+                            <span class="notification-badge">{{ $item['badge'] > 99 ? '99+' : $item['badge'] }}</span>
+                        @endif
+                    </span>
+                    <span class="desktop-nav-label">{{ $item['label'] }}</span>
                 </a>
             @endforeach
         </nav>

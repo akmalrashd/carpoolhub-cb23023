@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     {{-- user-scalable=no stops pinch zoom of the page itself; the Leaflet maps
-         still zoom, they drive it from JS. viewport-fit=cover lets the layout
-         reach under a notch, which the safe-area rules then pad back. --}}
+         still zoom, they drive it from JS. Deliberately no viewport-fit=cover
+         — see the NOTE in pwa-head.blade.php's <style> block for why: it
+         switched env(safe-area-inset-bottom) from 0 to 34px on an iPhone and
+         silently grew the bottom nav by a third. Without cover, iOS already
+         lays the viewport out inside the safe area, so every env(...) call
+         across this app's CSS stays a correct, harmless 0 fallback. --}}
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
     <title>CarpoolHub</title>
     {{-- Base stylesheet: Tailwind preflight, the design tokens, and the utilities
@@ -72,6 +76,15 @@
             ->where('user_id', auth()->id())
             ->where('is_read', false)
             ->count();
+    }
+
+    // Drives the small unread dot on the bottom-nav/sidebar "Chat" icon — a
+    // participant row is "unread" once the conversation's latest message id
+    // has moved past what they last read (ChatController::show/markRead
+    // and ChatService::postMessage keep last_read_message_id current).
+    $headerChatUnreadCount = 0;
+    if (auth()->check()) {
+        $headerChatUnreadCount = \App\Models\ConversationParticipant::unreadCountFor(auth()->user());
     }
 @endphp
 
@@ -1043,6 +1056,27 @@
             if (real) real.style.display = '';
         }
 
+        // The "Chat" nav badge previously only rendered on a fresh page
+        // load — a passenger sitting on an already-open page never saw it
+        // appear the moment their join request got approved. Piggybacks on
+        // this same 5s poll instead of running a second one.
+        function updateChatBadge(count) {
+            document.querySelectorAll('.mobile-bottom-nav a[href*="/chats"] .icon, .desktop-nav a[href*="/chats"] .desktop-nav-icon').forEach(function (iconEl) {
+                var badge = iconEl.querySelector('.notification-badge');
+                if (count > 0) {
+                    var text = count > 99 ? '99+' : String(count);
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'notification-badge';
+                        iconEl.appendChild(badge);
+                    }
+                    badge.textContent = text;
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
+        }
+
         function pollNotifications() {
             if (notificationsInFlight || !shouldPollNotifications()) {
                 return;
@@ -1066,6 +1100,7 @@
                 .then(function (payload) {
                     if (payload) {
                         refreshNotificationDropdown(payload);
+                        updateChatBadge(payload.chat_unread_count || 0);
                         if (notifFirstLoad) {
                             hideNotifSkeleton();
                             notifFirstLoad = false;

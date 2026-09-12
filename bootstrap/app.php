@@ -61,6 +61,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // URL redirect fired. 15 minutes gives those two a fair chance first.
         $schedule->command('payments:reconcile-gateway-transactions')
             ->everyFifteenMinutes();
+
+        // Off-peak, once a day is plenty — a chat's grace period is measured
+        // in days, so there's no urgency to purge it the same hour it expires.
+        $schedule->command('chats:purge-expired')
+            ->dailyAt('03:00');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

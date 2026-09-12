@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Connection;
+use App\Models\Conversation;
 use App\Models\SavedRoute;
 use App\Models\Trip;
 use App\Models\TripCancellationLog;
@@ -24,6 +25,10 @@ class TripService
     use FormatsTripLabel;
 
     private static bool $lifecycleSynced = false;
+
+    public function __construct(
+        private readonly ChatService $chatService,
+    ) {}
 
     public function paginateForUser(User $user, int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
@@ -566,6 +571,12 @@ class TripService
                 ->pluck('id');
 
             $this->logTripCancellation($tripIds, $actor, $reason);
+
+            // Must run before the hard-delete below — scheduleClosure() looks
+            // the conversation up by trip_id, and once the Trip row is gone
+            // that's still fine (nullOnDelete), but doing it first keeps this
+            // simple and avoids relying on that FK timing.
+            $this->chatService->scheduleClosure($baseTrip, Conversation::PURGE_REASON_TRIP_CANCELLED);
 
             UserNotification::query()
                 ->where('related_type', 'trip')

@@ -43,7 +43,11 @@
 <span {{ $attributes->merge(['class' => 'cp-avatar']) }}
       style="width:{{ $dim }};height:{{ $dim }};font-size:{{ $fs }};{{ $resolvedSrc ? '' : 'background:'.$color.';color:#fff;' }}">
     @if($resolvedSrc)
-        <img src="{{ $resolvedSrc }}" alt="{{ $resolvedName }}">
+        {{-- Some photo sources (e.g. hotlinked Google account avatars) can
+             intermittently fail to load client-side even though the URL is
+             valid — fall back to the initial avatar instead of a broken image icon. --}}
+        <img src="{{ $resolvedSrc }}" alt="{{ $resolvedName }}"
+             onerror="var p=this.parentElement;this.remove();p.style.background={{ Js::from($color) }};p.style.color='#fff';p.textContent={{ Js::from($initial) }};">
     @else
         {{ $initial }}
     @endif

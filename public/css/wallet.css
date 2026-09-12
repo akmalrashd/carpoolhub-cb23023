@@ -31,12 +31,33 @@
 
 /* ── Balance card ── */
 .wallet-balance-card {
-    border-radius: 18px;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    background: linear-gradient(160deg, #0f172a 0%, #16213a 55%, #1e293b 100%);
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow:
+        0 24px 48px -16px rgba(8, 12, 24, .55),
+        0 2px 0 rgba(255, 255, 255, .04) inset;
     color: #fff;
-    padding: 22px 20px;
+    padding: 24px 22px;
     display: grid;
-    gap: 14px;
+    gap: 18px;
+}
+
+/* Soft corner sheen — the one bit of "premium card" texture, kept subtle
+   enough not to fight the amount/text for attention. */
+.wallet-balance-card-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 90% at 100% 0%, rgba(250, 204, 21, .14), transparent 55%),
+        radial-gradient(80% 60% at 0% 100%, rgba(59, 130, 246, .10), transparent 60%);
+}
+
+.wallet-balance-top {
+    position: relative;
 }
 
 .wallet-balance-label {
@@ -48,40 +69,52 @@
 }
 
 .wallet-balance-amount {
-    font-size: 34px;
+    margin-top: 4px;
+    font-size: 36px;
     font-weight: 900;
     font-family: var(--font-display), sans-serif;
+    letter-spacing: -.01em;
 }
 
 .wallet-balance-stats {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, .14);
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, .1);
 }
 
 .wallet-balance-stat {
     display: grid;
-    gap: 2px;
+    gap: 3px;
+    padding: 12px;
+    border-radius: 13px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .06);
+    min-width: 0;
 }
 
 .wallet-balance-stat span {
-    font-size: 11px;
+    display: block;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.3;
     color: rgba(255, 255, 255, .6);
 }
 
 .wallet-balance-stat strong {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
 }
 
 .wallet-withdraw-btn {
+    position: relative;
     width: 100%;
-    min-height: 46px;
-    border-radius: 12px;
+    min-height: 48px;
+    border-radius: 13px;
     border: none;
-    background: #facc15;
+    background: linear-gradient(135deg, #fde047, #eab308);
     color: #1e1b0f;
     font-size: 14px;
     font-weight: 900;
@@ -90,10 +123,18 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
+    box-shadow: 0 10px 24px -8px rgba(250, 204, 21, .55);
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
 .wallet-withdraw-btn:hover {
-    background: #eab308;
+    background: linear-gradient(135deg, #facc15, #d4a10a);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -8px rgba(250, 204, 21, .65);
+}
+
+.wallet-withdraw-btn:active {
+    transform: translateY(0);
 }
 
 /* ── Sections ── */
@@ -320,6 +361,7 @@
 .wallet-modal-body {
     padding: 16px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     gap: 12px;
 }
@@ -336,39 +378,84 @@
 .wallet-modal-warning {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    padding: 12px;
-    border-radius: 12px;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
     background: #fef9c3;
-    color: #854d0e;
-    font-size: 13px;
+    border: 1px solid #fde68a;
 }
 
-.wallet-modal-warning a {
-    color: inherit;
-    text-decoration: underline;
-    font-weight: 700;
+.wallet-modal-warning-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #fef08a;
+    color: #854d0e;
+    font-size: 14px;
+}
+
+.wallet-modal-warning-body {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.wallet-modal-warning-text {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #854d0e;
+    line-height: 1.4;
+}
+
+.wallet-modal-warning-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    padding: 7px 12px;
+    border-radius: 9px;
+    background: #854d0e;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background .15s ease;
+}
+
+.wallet-modal-warning-link:hover {
+    background: #78350f;
+}
+
+.wallet-modal-warning-link i {
+    font-size: 10px;
 }
 
 #walletWithdrawForm {
     display: grid;
-    gap: 6px;
+    gap: 10px;
 }
 
 .wallet-modal-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
-    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
 }
 
 .wallet-modal-input {
     width: 100%;
-    min-height: 44px;
-    border-radius: 10px;
-    border: 1px solid var(--hairline-strong);
-    background: var(--surface);
+    min-height: 46px;
+    border-radius: 14px;
+    border: 1px solid var(--hairline);
+    background: var(--surface-2);
     color: var(--ink);
-    padding: 0 12px;
+    padding: 0 14px;
     font-size: 15px;
     font-weight: 700;
     outline: none;
@@ -395,6 +482,7 @@
     display: grid;
     gap: 8px;
     margin-top: 4px;
+    min-width: 0;
 }
 
 .wallet-modal-destination-label {
@@ -409,6 +497,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
     border-radius: 14px;
     border: 1px solid var(--hairline);
     background: var(--surface-2);
@@ -444,6 +533,16 @@
     font-weight: 600;
     color: var(--muted);
     margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wallet-modal-destination-number {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-top: 1px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

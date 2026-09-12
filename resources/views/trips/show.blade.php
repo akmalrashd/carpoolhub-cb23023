@@ -22,6 +22,16 @@
     $passengerCount = $passengers->count();
     $includeDriverInSplit = ((int) $trip->participant_count) > $passengerCount;
     $splitType = $includeDriverInSplit ? 'Driver Included in Fare Split' : 'Driver Excluded from Fare Split';
+
+    $tripConversation = \App\Models\Conversation::query()->where('trip_id', $trip->id)->first();
+    $isChatParticipant = $tripConversation && \App\Models\ConversationParticipant::query()
+        ->where('conversation_id', $tripConversation->id)
+        ->where('user_id', auth()->id())
+        ->whereNull('left_at')
+        ->exists();
+    $canStartPrivateChat = ! $tripConversation
+        && $trip->visibility === 'private'
+        && auth()->id() === $trip->driver_id;
 @endphp
 
 @push('styles')
@@ -50,6 +60,11 @@
             <div class="ts-card-actions">
                 @if(($trip->visibility ?? 'private') === 'public' && (auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id))
                     <a href="{{ route('trips.requests.index', $trip) }}" class="btn btn-soft btn-sm">Manage Requests</a>
+                @endif
+                @if($tripConversation && $isChatParticipant)
+                    <a href="{{ route('chats.show', $tripConversation) }}" class="btn btn-soft btn-sm"><i class="fa-regular fa-comment-dots"></i> Open Chat</a>
+                @elseif($canStartPrivateChat)
+                    <button type="button" class="btn btn-soft btn-sm" id="startGroupChatBtn"><i class="fa-regular fa-comment-dots"></i> Start Group Chat</button>
                 @endif
                 @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
                     <a href="{{ route('trips.edit', $trip) }}" class="btn btn-ghost btn-sm">Edit Trip</a>
@@ -258,6 +273,49 @@
         };
 
         window.setInterval(poll, 5000);
+    })();
+
+    (() => {
+        const btn = document.getElementById('startGroupChatBtn');
+        if (!btn) return;
+
+        const pickerUrl = @json($canStartPrivateChat ? route('trips.chat.picker-options', $trip) : null);
+        const createUrl = @json($canStartPrivateChat ? route('trips.chat.create', $trip) : null);
+        const csrf = @json(csrf_token());
+
+        btn.addEventListener('click', async () => {
+            let options = [];
+            try {
+                const response = await fetch(pickerUrl, { headers: { Accept: 'application/json' } });
+                const payload = await response.json();
+                options = payload.connections || [];
+            } catch {
+                alert('Could not load your connections.');
+                return;
+            }
+
+            if (options.length === 0) {
+                alert('You have no accepted connections to start a group chat with yet.');
+                return;
+            }
+
+            const names = options.map((o) => o.name);
+            const picked = prompt(`Start a group chat with who? Type name(s) separated by commas (or leave blank for just yourself):\n${names.join(', ')}`);
+            if (picked === null) return;
+
+            const pickedNames = picked.split(',').map((n) => n.trim().toLowerCase()).filter(Boolean);
+            const ids = options
+                .filter((o) => pickedNames.includes(o.name.toLowerCase()))
+                .map((o) => o.id);
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = createUrl;
+            form.innerHTML = `<input type="hidden" name="_token" value="${csrf}">`
+                + ids.map((id) => `<input type="hidden" name="connection_user_ids[]" value="${id}">`).join('');
+            document.body.appendChild(form);
+            form.submit();
+        });
     })();
 </script>
 @endsection

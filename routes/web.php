@@ -11,17 +11,20 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Controllers\AdminConversationController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminSystemSettingsController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminWithdrawalController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\FuelPriceController;
 use App\Http\Controllers\GatewayPaymentController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PrivateChatController;
 use App\Http\Controllers\PushController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RefreshController;
@@ -147,6 +150,15 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::patch('/trip-join-requests/{joinRequest}/mark-absent', [TripJoinRequestController::class, 'markAbsent'])->name('trips.join-requests.mark-absent');
     Route::patch('/trip-join-requests/{joinRequest}/cancel', [TripJoinRequestController::class, 'cancel'])->name('trips.join-requests.cancel');
     Route::patch('/trips/{trip}/leave', [TripJoinRequestController::class, 'leave'])->name('trips.leave');
+
+    // Private-trip group chat only — public trips get a conversation
+    // automatically (ChatService::syncParticipants), driven from the approve/
+    // cancel/remove flows above, not from a route a passenger or driver hits
+    // directly.
+    Route::post('/trips/{trip}/chat', [PrivateChatController::class, 'create'])->name('trips.chat.create');
+    Route::post('/trips/{trip}/chat/invite', [PrivateChatController::class, 'invite'])->name('trips.chat.invite');
+    Route::delete('/trips/{trip}/chat/members/{user}', [PrivateChatController::class, 'remove'])->name('trips.chat.remove-member');
+    Route::get('/trips/{trip}/chat/picker-options', [PrivateChatController::class, 'pickerOptions'])->name('trips.chat.picker-options');
     Route::get('/connections', [ConnectionController::class, 'index'])->name('connections.index');
     Route::post('/connections/requests', [ConnectionController::class, 'store'])->name('connections.requests.store');
     Route::patch('/connections/{connection}/respond', [ConnectionController::class, 'respond'])->name('connections.respond');
@@ -172,6 +184,12 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
 
     Route::get('/wallet', [WalletController::class, 'index'])->middleware('role:driver')->name('wallet.index');
     Route::post('/wallet/withdrawals', [WalletController::class, 'requestWithdrawal'])->middleware('role:driver')->name('wallet.withdrawals.store');
+
+    Route::get('/chats', [ChatController::class, 'index'])->name('chats.index');
+    Route::get('/chats/ably-token', [ChatController::class, 'ablyToken'])->name('chats.ably-token');
+    Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
+    Route::post('/chats/{conversation}/messages', [ChatController::class, 'store'])->middleware('throttle:30,1')->name('chats.messages.store');
+    Route::patch('/chats/{conversation}/read', [ChatController::class, 'markRead'])->name('chats.read');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
@@ -213,6 +231,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
         Route::get('/trips/{trip}/requests', [RefreshController::class, 'tripRequests'])->name('refresh.trips.requests');
         Route::get('/trips/{trip}/status', [RefreshController::class, 'tripStatus'])->name('refresh.trips.status');
         Route::get('/payments/summary', [RefreshController::class, 'paymentsSummary'])->name('refresh.payments.summary');
+        Route::get('/chats/{conversation}/messages', [RefreshController::class, 'chatMessages'])->name('refresh.chats.messages');
     });
 
     Route::prefix('/admin')->middleware('role:admin')->group(function (): void {
@@ -232,5 +251,10 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
         Route::get('/withdrawals', [AdminWithdrawalController::class, 'index'])->name('admin.withdrawals.index');
         Route::patch('/withdrawals/{withdrawalRequest}/mark-paid', [AdminWithdrawalController::class, 'markPaid'])->name('admin.withdrawals.mark-paid');
         Route::patch('/withdrawals/{withdrawalRequest}/reject', [AdminWithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
+
+        // Read-only dispute/safety oversight, reached from the Audit Log page
+        // — deliberately not a bottom-nav/admin_nav entry of its own.
+        Route::get('/conversations', [AdminConversationController::class, 'index'])->name('admin.conversations.index');
+        Route::get('/conversations/{conversation}', [AdminConversationController::class, 'show'])->name('admin.conversations.show');
     });
 });

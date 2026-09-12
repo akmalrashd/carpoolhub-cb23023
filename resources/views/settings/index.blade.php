@@ -109,7 +109,11 @@
                 <div class="settings-hero-avatar-wrap">
                     <div class="settings-hero-avatar" onclick="document.getElementById('avatarFileInput').click()" title="Click to upload profile photo" @unless($photoUrl) style="background:{{ $user->avatar_color }};" @endunless>
                         @if($photoUrl)
-                            <img src="{{ $photoUrl }}" alt="{{ $user->name }}">
+                            {{-- Hotlinked photo sources (e.g. Google account avatars) can
+                                 intermittently fail to load client-side — fall back to the
+                                 initial avatar instead of leaving a broken image icon. --}}
+                            <img src="{{ $photoUrl }}" alt="{{ $user->name }}"
+                                 onerror="var p=this.parentElement;this.remove();p.style.background={{ Js::from($user->avatar_color) }};p.textContent={{ Js::from($user->avatar_initial) }};">
                         @else
                             <span>{{ $user->avatar_initial }}</span>
                         @endif

@@ -28,6 +28,7 @@ class TripJoinRequestService
 
     public function __construct(
         private readonly PassengerRiskScoringService $passengerRiskScoringService,
+        private readonly ChatService $chatService,
     ) {}
 
     public function listForTrip(User $actor, Trip $trip)
@@ -141,6 +142,7 @@ class TripJoinRequestService
 
         if ($wasApproved && $trip) {
             $this->detachPassengerFromTripGroup($trip, $passenger->id);
+            $this->chatService->syncParticipants($trip);
         }
 
         if ($wasApproved) {
@@ -203,6 +205,7 @@ class TripJoinRequestService
         }
 
         $this->detachPassengerFromTripGroup($baseTrip, $passenger->id);
+        $this->chatService->syncParticipants($baseTrip);
 
         $label = $this->tripLabel($baseTrip);
         UserNotification::query()->create([
@@ -257,6 +260,7 @@ class TripJoinRequestService
                 $this->assertNoProcessedPayments($trip);
                 $this->attachPassengerToTripGroup($trip, $joinRequest->user_id);
                 $this->linkAcceptedRoutePoint($joinRequest, $trip);
+                $this->chatService->syncParticipants($trip);
             } else {
                 $joinRequest->routePoint?->update(['status' => 'rejected']);
             }
@@ -320,6 +324,8 @@ class TripJoinRequestService
             'attendance_source' => 'driver_removed',
             'attendance_note' => $reason,
         ]);
+
+        $this->chatService->syncParticipants($trip);
 
         $label = $this->tripLabel($trip);
         $isAdminActing = $actor->id !== $trip->driver_id;

@@ -1,0 +1,570 @@
+/* ── Shared page chrome (list + thread) ── */
+.chat-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 16px 32px;
+    display: grid;
+    gap: 16px;
+    overflow-x: hidden;
+}
+
+.chat-eyebrow {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+}
+
+.chat-title {
+    margin: 2px 0 0;
+    font-size: 24px;
+    font-weight: 900;
+    font-family: var(--font-display), sans-serif;
+    color: var(--ink);
+}
+
+.chat-sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ── List page ── */
+.chat-list {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.chat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    background: var(--surface);
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+}
+
+.chat-row.is-unread {
+    background: var(--ch-yellow-tint);
+    border-color: var(--ch-yellow-line);
+}
+
+/* 2x2-ish cluster: a bigger top-left avatar plus up to two more, with a
+   count badge as the 4th "slot" once there are more people than fit — clean
+   and minimal, just a white border between overlapping circles, no colour
+   rings or decoration. */
+.chat-avatar-cluster {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.chat-avatar-cluster .cluster-slot {
+    position: absolute;
+}
+
+.chat-avatar-cluster .cluster-slot .cp-avatar {
+    border: 2px solid var(--surface);
+}
+
+.chat-avatar-cluster.count-1 .cluster-slot-0 {
+    /* size="md" avatar is 36px in a 56px box — (56-36)/2 centers it exactly. */
+    top: 10px;
+    left: 10px;
+}
+
+.chat-avatar-cluster.count-2 .cluster-slot-0 {
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+
+.chat-avatar-cluster.count-2 .cluster-slot-1 {
+    bottom: 6px;
+    right: 6px;
+    z-index: 1;
+}
+
+.chat-avatar-cluster.count-3 .cluster-slot-0,
+.chat-avatar-cluster.count-4plus .cluster-slot-0 {
+    top: 0;
+    left: 0;
+    z-index: 3;
+}
+
+.chat-avatar-cluster.count-3 .cluster-slot-1,
+.chat-avatar-cluster.count-4plus .cluster-slot-1 {
+    top: 0;
+    right: 0;
+    z-index: 2;
+}
+
+.chat-avatar-cluster.count-3 .cluster-slot-2,
+.chat-avatar-cluster.count-4plus .cluster-slot-2 {
+    bottom: 0;
+    left: 12px;
+    z-index: 1;
+}
+
+.chat-avatar-cluster.count-4plus .cluster-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--success);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--surface);
+}
+
+.chat-row-main {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.chat-row-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.chat-row-title {
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-row-time {
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+.chat-row-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.chat-row-preview {
+    font-size: 13px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.chat-row-unread-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--info);
+    flex-shrink: 0;
+}
+
+.chat-row-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 1px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.chat-row-badge.is-closing {
+    color: var(--danger);
+}
+
+.chat-empty {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 56px 16px;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed var(--hairline-strong);
+    border-radius: 16px;
+}
+
+.chat-empty i {
+    font-size: 30px;
+    opacity: .5;
+}
+
+.chat-empty p {
+    margin: 0;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.chat-empty span {
+    font-size: 13px;
+    max-width: 320px;
+}
+
+/* ── Thread page ── */
+.chat-thread-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0;
+    min-height: calc(100dvh - var(--mobile-header-h) - var(--bottom-nav-h) - env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-thread-header {
+    position: sticky;
+    top: var(--mobile-header-h);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--hairline);
+}
+
+.chat-thread-back {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    color: var(--ink);
+    flex-shrink: 0;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.chat-thread-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.chat-thread-info:disabled {
+    cursor: default;
+}
+
+.chat-thread-avatars {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.chat-thread-avatar {
+    margin-left: -10px;
+    border: 2px solid var(--surface);
+}
+
+.chat-thread-avatar:first-child {
+    margin-left: 0;
+}
+
+.chat-thread-avatar-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--success);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+}
+
+.chat-thread-headtext {
+    display: block;
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-thread-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-thread-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-thread-invite-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 14px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.chat-thread-banner {
+    margin: 12px 16px 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--warning-soft);
+    color: var(--warning-ink);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chat-thread-messages {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 16px 12px;
+}
+
+.chat-bubble-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.chat-bubble-row.is-own {
+    flex-direction: row-reverse;
+}
+
+.chat-bubble-row.is-system {
+    justify-content: center;
+}
+
+.chat-bubble-avatar {
+    flex-shrink: 0;
+}
+
+.chat-bubble-col {
+    max-width: 76%;
+    display: grid;
+    gap: 2px;
+}
+
+.chat-bubble-sender {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-left: 4px;
+}
+
+.chat-bubble {
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.45;
+    word-break: break-word;
+    background: var(--surface-2);
+    color: var(--ink);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-bubble-row.is-own .chat-bubble {
+    background: var(--ch-yellow);
+    color: var(--ch-yellow-ink);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-bubble-time {
+    font-size: 10px;
+    color: var(--muted);
+    margin: 0 4px;
+}
+
+.chat-bubble-row.is-own .chat-bubble-time {
+    text-align: right;
+}
+
+.chat-bubble-system {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 2px 12px;
+}
+
+.chat-composer {
+    position: sticky;
+    bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--hairline);
+}
+
+.chat-composer-input {
+    flex: 1;
+    resize: none;
+    max-height: 96px;
+    min-height: 42px;
+    border: 1px solid var(--hairline-strong);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font: inherit;
+    font-size: 14px;
+    background: var(--surface-2);
+    color: var(--ink);
+}
+
+.chat-composer-send {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--r-md);
+    flex-shrink: 0;
+    background: var(--ch-yellow);
+    color: var(--ch-yellow-ink);
+    border: none;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.chat-composer-send:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.chat-composer-locked {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--hairline);
+}
+
+/* Immersive full-screen chat on mobile — a native chat app doesn't share
+   the screen with a site header/bottom nav while you're in a thread, so
+   this page takes the whole viewport and becomes its own mini app-shell
+   (its own top bar + composer) instead of stacking under/over the site
+   chrome. :has() is well-supported on the mobile browsers this PWA
+   actually targets. Desktop keeps the normal in-page layout (more room
+   there for the sidebar/topbar to coexist with the thread). */
+@media (max-width: 1023.98px) {
+    body:has(.chat-thread-page) .mobile-header,
+    body:has(.chat-thread-page) .mobile-bottom-nav {
+        display: none !important;
+    }
+
+    body:has(.chat-thread-page) .main-content {
+        padding: 0;
+    }
+
+    .chat-thread-page {
+        position: fixed;
+        inset: 0;
+        z-index: 2500;
+        min-height: 0;
+        background: var(--canvas);
+    }
+
+    .chat-thread-header {
+        position: static;
+        padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    }
+
+    .chat-thread-messages {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .chat-thread-banner {
+        flex-shrink: 0;
+    }
+
+    .chat-composer,
+    .chat-composer-locked {
+        position: static;
+        flex-shrink: 0;
+        /* env(safe-area-inset-bottom) reads 0 across this whole app on
+           purpose (see the NOTE in pwa-head.blade.php — viewport-fit=cover
+           was tried and reverted). --bottom-nav-h's own visual bottom
+           breathing room is a plain fixed value, not a safe-area inset, so
+           this bar (replacing the bottom-nav as this page's bottom-most
+           chrome) matches it the same way: a fixed pad, not env(). */
+        padding-bottom: 28px;
+        transition: padding-bottom .15s ease;
+    }
+
+    /* That 28px is only for the home-indicator/gesture-bar area showing
+       below the composer when it's the bottom-most thing on screen. Once
+       the on-screen keyboard is up (body.keyboard-open — the same class
+       layouts/app.blade.php already uses to slide .mobile-bottom-nav away
+       on focus), the keyboard covers that area instead, so keeping the pad
+       would just float the input awkwardly above the keys with dead space
+       underneath it. */
+    body.keyboard-open .chat-composer,
+    body.keyboard-open .chat-composer-locked {
+        padding-bottom: 10px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .chat-thread-header {
+        top: var(--desktop-topbar-h);
+    }
+
+    .chat-composer {
+        bottom: 0;
+    }
+}

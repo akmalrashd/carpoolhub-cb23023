@@ -19,8 +19,11 @@
     </div>
 
     <div class="wallet-balance-card">
-        <div class="wallet-balance-label">Available Balance</div>
-        <div class="wallet-balance-amount">RM {{ number_format($summary['balance'], 2) }}</div>
+        <div class="wallet-balance-card-glow"></div>
+        <div class="wallet-balance-top">
+            <div class="wallet-balance-label">Available Balance</div>
+            <div class="wallet-balance-amount">RM {{ number_format($summary['balance'], 2) }}</div>
+        </div>
         <div class="wallet-balance-stats">
             <div class="wallet-balance-stat">
                 <span>Lifetime earned</span>
@@ -91,8 +94,13 @@
 
             @if(!$hasBankDetails)
                 <div class="wallet-modal-warning">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    Add your bank details in <a href="{{ route('settings.index') }}">Settings</a> before requesting a withdrawal.
+                    <span class="wallet-modal-warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                    <div class="wallet-modal-warning-body">
+                        <p class="wallet-modal-warning-text">You need to add your bank details before requesting a withdrawal.</p>
+                        <a href="{{ route('settings.index') }}#payment" class="wallet-modal-warning-link">
+                            Add bank details <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
             @else
                 <form method="POST" action="{{ route('wallet.withdrawals.store') }}" id="walletWithdrawForm">
@@ -111,7 +119,8 @@
                             <span class="wallet-modal-destination-avatar"><i class="fa-solid fa-building-columns"></i></span>
                             <div class="wallet-modal-destination-details">
                                 <div class="wallet-modal-destination-bank">{{ $user->payment_bank_name }}</div>
-                                <div class="wallet-modal-destination-account">{{ $user->payment_account_name }} &middot; {{ $user->payment_account_number }}</div>
+                                <div class="wallet-modal-destination-account">{{ $user->payment_account_name }}</div>
+                                <div class="wallet-modal-destination-number">{{ $user->payment_account_number }}</div>
                             </div>
                             <a href="{{ route('settings.index') }}#payment" class="wallet-modal-destination-edit" aria-label="Change bank details">
                                 <i class="fa-solid fa-pen"></i>
