@@ -222,10 +222,6 @@ class TripController extends Controller
         if ($user->driver_verification_status !== 'approved') {
             abort(403, 'Your driver account is not approved to manage trips yet.');
         }
-
-        if ($user->driving_license_expiry && $user->driving_license_expiry->isPast()) {
-            abort(403, 'Your driving license has expired. Please update it in Settings before creating or editing trips.');
-        }
     }
 
     private function buildGroupPaymentRollups(Trip $trip): array

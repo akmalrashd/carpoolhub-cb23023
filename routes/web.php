@@ -15,10 +15,12 @@ use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminSystemSettingsController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminWithdrawalController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\FuelPriceController;
+use App\Http\Controllers\GatewayPaymentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PushController;
 use App\Http\Controllers\PaymentController;
@@ -28,6 +30,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\TripJoinRequestController;
+use App\Http\Controllers\WalletController;
 use App\Mail\ResetPasswordMail;
 use App\Mail\VerifyEmailMail;
 use App\Models\User;
@@ -69,6 +72,14 @@ Route::view('/legal/terms', 'legal.terms')->name('legal.terms');
 // inside the controller) is what verifies the caller instead. Excluded from
 // CSRF verification in bootstrap/app.php for the same reason.
 Route::post('/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegram.webhook');
+
+// Public — called by ToyyibPay's servers, not the browser. No session to
+// authenticate against; the MD5 hash (checked inside GatewayPaymentService)
+// is what verifies the caller instead. Excluded from CSRF verification in
+// bootstrap/app.php for the same reason. Cannot be reached at all while this
+// app only runs on localhost — see GatewayPaymentController::return() for
+// how the flow still works correctly without it locally.
+Route::post('/payments/gateway/callback', [GatewayPaymentController::class, 'callback'])->name('payments.gateway.callback');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -155,6 +166,12 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::patch('/payments/{payment}/reject-paid', [PaymentController::class, 'rejectPaid'])->name('payments.reject-paid');
     Route::patch('/payments/{payment}/reverse', [PaymentController::class, 'reverse'])->name('payments.reverse');
     Route::post('/payments/{payment}/send-reminder', [PaymentController::class, 'sendReminder'])->name('payments.send-reminder');
+    Route::post('/payments/{payment}/gateway/toyyibpay', [GatewayPaymentController::class, 'pay'])->name('payments.gateway.pay');
+    Route::post('/payments/gateway/toyyibpay/bulk', [GatewayPaymentController::class, 'payBulk'])->name('payments.gateway.pay-bulk');
+    Route::get('/payments/gateway/return', [GatewayPaymentController::class, 'return'])->name('payments.gateway.return');
+
+    Route::get('/wallet', [WalletController::class, 'index'])->middleware('role:driver')->name('wallet.index');
+    Route::post('/wallet/withdrawals', [WalletController::class, 'requestWithdrawal'])->middleware('role:driver')->name('wallet.withdrawals.store');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
@@ -211,5 +228,9 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
         Route::post('/messages', [AdminMessageController::class, 'store'])->name('admin.messages.store');
         Route::get('/system-settings', [AdminSystemSettingsController::class, 'index'])->name('admin.system-settings.index');
         Route::patch('/system-settings', [AdminSystemSettingsController::class, 'update'])->name('admin.system-settings.update');
+        Route::patch('/system-settings/gateway', [AdminSystemSettingsController::class, 'updateGateway'])->name('admin.system-settings.update-gateway');
+        Route::get('/withdrawals', [AdminWithdrawalController::class, 'index'])->name('admin.withdrawals.index');
+        Route::patch('/withdrawals/{withdrawalRequest}/mark-paid', [AdminWithdrawalController::class, 'markPaid'])->name('admin.withdrawals.mark-paid');
+        Route::patch('/withdrawals/{withdrawalRequest}/reject', [AdminWithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
     });
 });

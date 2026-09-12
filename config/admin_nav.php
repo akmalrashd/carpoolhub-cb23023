@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Single source of truth for the 5 admin tools (Users, Reports, Audit Log,
- * Messages, Settings). Previously hardcoded separately in the desktop
+ * Single source of truth for the 6 admin tools (Users, Reports, Audit Log,
+ * Messages, Settings, Withdrawals). Previously hardcoded separately in the desktop
  * sidebar, the "Create" quick-action menu (desktop + mobile), and the
  * mobile drawer — which had already drifted out of sync (the mobile
  * quick-action menu was missing 3 of the 5). Add/remove an admin tool here
@@ -60,5 +60,15 @@ return [
         'bento_icon' => 'fa-solid fa-sliders',
         'bento_desc' => 'Fuel price fallback and platform config.',
         'bento_keywords' => 'settings fuel price config system',
+    ],
+    [
+        'route' => 'admin.withdrawals.index',
+        'active' => ['admin.withdrawals.*'],
+        'label' => 'Withdrawals',
+        'icon' => 'fa-solid fa-money-bill-transfer',
+        'bento_title' => 'Review Withdrawals',
+        'bento_icon' => 'fa-solid fa-money-bill-transfer',
+        'bento_desc' => 'Approve and pay out driver wallet withdrawals.',
+        'bento_keywords' => 'withdraw payout bank transfer driver wallet money',
     ],
 ];

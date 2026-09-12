@@ -66,6 +66,7 @@ class UserNotification extends Model
             'route' => route('saved-routes.index'),
             'settings' => route('settings.index'),
             'trip_join_request' => $this->resolveJoinRequestUrl($relatedId),
+            'wallet_transaction', 'withdrawal_request' => route('wallet.index'),
             default => route('notifications.index'),
         };
     }

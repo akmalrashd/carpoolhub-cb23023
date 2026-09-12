@@ -1187,6 +1187,8 @@
                                                     data-requests-b64="{{ $requestPayloadB64 }}"
                                                     data-route-name="{{ $routeName }}"
                                                     data-trip-id="{{ $trip->id }}"
+                                                    data-trip-ref="{{ $tripRef }}"
+                                                    data-trip-datetime="{{ $trip->trip_datetime?->format('Y-m-d H:i') ?: '-' }}"
                                                     data-open-state="{{ $trip->is_open_for_request ? 'Open' : 'Closed' }}"
                                                     data-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
                                                     data-seats="{{ is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-' }}"

@@ -479,6 +479,66 @@ class PaymentService
         });
     }
 
+    /**
+     * Auto-confirms a payment settled through a payment gateway (ToyyibPay) —
+     * no driver/admin actor, no approval step, because the gateway's own
+     * success status IS the confirmation the passenger actually paid. Kept
+     * separate from confirmPaid() rather than folded into it since that
+     * method's whole shape (actor, permission check) assumes a logged-in
+     * human confirming someone else's claim; here there's no claim to
+     * verify, just a fact to record.
+     *
+     * Idempotent: GatewayPaymentService::finalize() already guards against
+     * being called twice for the same gateway transaction via a row lock,
+     * but this second check makes the method safe to call from anywhere.
+     */
+    public function confirmPaidViaGateway(TripPayment $payment, string $paymentMethod, ?string $gatewayRefno = null): TripPayment
+    {
+        $payment->loadMissing('trip', 'user');
+
+        if ($payment->payment_status === TripPayment::STATUS_PAID) {
+            return $payment;
+        }
+
+        if ($payment->trip && $payment->trip->status === 'draft') {
+            throw ValidationException::withMessages([
+                'payment' => 'Draft trips do not require payment yet.',
+            ]);
+        }
+        $this->ensureTripPaymentWindowOpen($payment);
+
+        return DB::transaction(function () use ($payment, $paymentMethod, $gatewayRefno): TripPayment {
+            $this->logPaymentStatusChange($payment, null, TripPayment::STATUS_PAID);
+
+            $refSuffix = $gatewayRefno ? " (ref {$gatewayRefno})" : '';
+            $payment->update([
+                'payment_status' => TripPayment::STATUS_PAID,
+                'marked_paid_at' => now(),
+                'confirmed_by' => null,
+                'confirmed_at' => now(),
+                'payment_method' => $paymentMethod,
+                'remarks' => "Auto-confirmed via ToyyibPay{$refSuffix}",
+            ]);
+
+            $label = $this->tripLabel($payment);
+            UserNotification::query()->create([
+                'user_id' => $payment->user_id,
+                'type' => 'payment',
+                'title' => 'Payment Successful',
+                'message' => 'Your payment of RM'.number_format((float) $payment->amount_due, 2)." for the {$label} was completed via ToyyibPay and confirmed automatically.",
+                'related_type' => 'trip_payment',
+                'related_id' => $payment->id,
+                'is_read' => false,
+            ]);
+
+            if ($payment->user) {
+                $this->passengerRiskScoringService->refreshRiskProfile($payment->user);
+            }
+
+            return $payment->refresh();
+        });
+    }
+
     public function reversePayment(User $admin, TripPayment $payment, string $reason): TripPayment
     {
         abort_unless($admin->role === 'admin', 403);
@@ -831,7 +891,7 @@ class PaymentService
      * has no evidence left to check. Call this before, not after,
      * $payment->update(...).
      */
-    private function logPaymentStatusChange(TripPayment $payment, User $actor, string $toStatus, ?string $reason = null): void
+    private function logPaymentStatusChange(TripPayment $payment, ?User $actor, string $toStatus, ?string $reason = null): void
     {
         TripPaymentStatusLog::create([
             'trip_payment_id' => $payment->id,
@@ -840,8 +900,8 @@ class PaymentService
             'amount_due' => $payment->amount_due,
             'from_status' => $payment->payment_status,
             'to_status' => $toStatus,
-            'actor_id' => $actor->id,
-            'actor_role' => $actor->role,
+            'actor_id' => $actor?->id,
+            'actor_role' => $actor?->role ?? 'system',
             'reason' => $reason,
             'previous_state' => [
                 'marked_paid_at' => optional($payment->marked_paid_at)->toIso8601String(),

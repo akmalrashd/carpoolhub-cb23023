@@ -356,9 +356,6 @@
                                 $selfieStatus = $user->selfie_photo
                                     ? ($docStatusMap[$user->driver_verification_status] ?? $docStatusMap['pending'])
                                     : $missingDocStatus;
-                                $licenseExpiryText = $licenseStatus['class'] === 'is-verified' && $user->driving_license_expiry
-                                    ? ' • Exp: ' . $user->driving_license_expiry->format('m/Y')
-                                    : '';
                             @endphp
                             <div class="settings-subcard">
                                 <div class="settings-subcard-head">
@@ -415,7 +412,7 @@
                                             </span>
                                             <div class="doc-status-text">
                                                 <strong>Driver's License</strong>
-                                                <span class="doc-status-line {{ $licenseStatus['class'] }}"><i class="fa-solid {{ $licenseStatus['icon'] }}"></i> {{ $licenseStatus['label'] }}{{ $licenseExpiryText }}</span>
+                                                <span class="doc-status-line {{ $licenseStatus['class'] }}"><i class="fa-solid {{ $licenseStatus['icon'] }}"></i> {{ $licenseStatus['label'] }}</span>
                                             </div>
                                             <button type="button" class="doc-status-btn {{ $user->driving_license_photo ? '' : 'is-primary' }}" onclick="document.getElementById('licenseInput').click()">
                                                 {{ $user->driving_license_photo ? 'Replace' : 'Upload' }}
@@ -442,21 +439,6 @@
                                             <input type="file" id="selfieInput" name="selfie_photo" accept="image/*" class="qr-file-input" onchange="previewQr(this, 'selfiePreview', 'selfieEmptyIcon')">
                                         </div>
                                         @error('selfie_photo')
-                                            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="form-group" style="margin-top:14px;">
-                                        <label class="form-label" for="drivingLicenseExpiry">License Expiry Date</label>
-                                        <div class="input-wrap @error('driving_license_expiry') has-error @enderror">
-                                            <span class="input-icon"><i class="fa-solid fa-calendar-days"></i></span>
-                                            <input type="date" id="drivingLicenseExpiry" name="driving_license_expiry" class="input-field"
-                                                value="{{ old('driving_license_expiry', $user->driving_license_expiry?->toDateString()) }}">
-                                            @if($user->driving_license_expiry && $user->driving_license_expiry->isPast())
-                                                <span class="badge badge-danger" style="margin-left:8px;">Expired</span>
-                                            @endif
-                                        </div>
-                                        @error('driving_license_expiry')
                                             <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
                                         @enderror
                                     </div>

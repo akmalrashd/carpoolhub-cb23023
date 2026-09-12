@@ -159,17 +159,18 @@
 .lr-close-footer:hover { background: var(--surface-2); border-color: var(--hairline-strong); }
 /* â”€â”€ Edit Drawer â”€â”€ */
 .eu-backdrop { display: none; position: fixed; inset: 0; z-index: 8500; background: rgba(11,18,32,.45); backdrop-filter: blur(4px); align-items: flex-end; justify-content: center; padding: 0; }
-@media (min-width: 600px) { .eu-backdrop { align-items: center; padding: 20px; } }
-.eu-drawer { background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,.18); width: 100%; max-width: 420px; padding: 6px 20px 28px; animation: eu-up .22s cubic-bezier(.34,1.56,.64,1); transition: transform .25s cubic-bezier(.16,1,.3,1); }
-@media (min-width: 600px) { .eu-drawer { border-radius: 16px; animation: lr-in .22s cubic-bezier(.34,1.56,.64,1); } }
+@media (min-width: 641px) { .eu-backdrop { align-items: center; padding: 20px; } }
+.eu-drawer { background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,.18); width: 100%; max-width: 100%; padding: 6px 20px 28px; animation: eu-up .22s cubic-bezier(.34,1.56,.64,1); transition: transform .25s cubic-bezier(.16,1,.3,1); }
+@media (min-width: 641px) { .eu-drawer { max-width: 420px; border-radius: 16px; animation: lr-in .22s cubic-bezier(.34,1.56,.64,1); } }
 @keyframes eu-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
 /* Drag-to-dismiss handle (mobile sheet only — desktop centers this drawer
    instead, where dragging wouldn't make sense). */
-@media (max-width: 599px) {
+@media (max-width: 640px) {
     .eu-drag-handle { touch-action: none; cursor: grab; }
 }
 .eu-pill  { width: 40px; height: 4px; border-radius: 999px; background: var(--hairline-strong); margin: 10px auto 18px; }
-.eu-title { font-size: 16px; font-weight: 800; font-family: var(--font-display), sans-serif; color: var(--ink); margin: 0 0 4px; }
+.eu-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.eu-title { font-size: 16px; font-weight: 800; font-family: var(--font-display), sans-serif; color: var(--ink); margin: 0; }
 .eu-sub   { font-size: 12px; color: var(--muted); margin: 0 0 18px; }
 .eu-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
 .eu-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }

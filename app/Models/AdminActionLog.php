@@ -52,6 +52,7 @@ class AdminActionLog extends Model
             'user' => ['badge-info', 'fa-user-gear', 'User'],
             'driver' => ['badge-yellow', 'fa-id-card', 'Driver'],
             'payment' => ['badge-success', 'fa-wallet', 'Payment'],
+            'withdrawal' => ['badge-success', 'fa-money-bill-transfer', 'Withdrawal'],
             'message' => ['badge-warning', 'fa-paper-plane', 'Message'],
             'settings' => ['badge-dark', 'fa-sliders', 'Settings'],
             default => ['badge', 'fa-circle-info', ucfirst($this->category)],

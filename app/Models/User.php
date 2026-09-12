@@ -51,7 +51,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'driver_verification_reason',
         'driver_verified_at',
         'driver_reviewed_by',
-        'driving_license_expiry',
     ];
 
     /**
@@ -78,7 +77,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_active' => 'boolean',
             'suspended_until' => 'datetime',
-            'driving_license_expiry' => 'date',
             'driver_verified_at' => 'datetime',
         ];
     }
@@ -181,6 +179,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function tripPayments(): HasMany
     {
         return $this->hasMany(TripPayment::class);
+    }
+
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
+    public function withdrawalRequests(): HasMany
+    {
+        return $this->hasMany(WithdrawalRequest::class);
     }
 
     public function tripJoinRequests(): HasMany

@@ -7,8 +7,10 @@ use App\Http\Requests\Payment\MarkPaidRequest;
 use App\Http\Requests\Payment\RejectPaidRequest;
 use App\Http\Requests\Payment\ReversePaymentRequest;
 use App\Http\Requests\Payment\SendReminderRequest;
+use App\Models\SystemSetting;
 use App\Models\TripPayment;
 use App\Services\PaymentService;
+use App\Services\ToyyibPayService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +22,7 @@ class PaymentController extends Controller
 {
     public function __construct(
         private readonly PaymentService $paymentService,
+        private readonly ToyyibPayService $toyyibPayService,
     ) {
     }
 
@@ -94,6 +97,12 @@ class PaymentController extends Controller
 
         $initialLoad = false;
 
+        // Computed once here rather than per row in the blade loop — reading
+        // SystemSetting inside the loop would be an N-query pattern this
+        // page otherwise explicitly avoids (see PaymentService::statusBreakdown()).
+        $toyyibPayConfigured = $this->toyyibPayService->isConfigured();
+        $gatewayFeeFlatAmount = (float) (SystemSetting::get('gateway_fee_flat_amount') ?? '1.00');
+
         return view(
             'payments.index',
             compact(
@@ -109,7 +118,9 @@ class PaymentController extends Controller
                 'filters',
                 'summaryLabel',
                 'initialLoad',
-                'allPaymentsUnfiltered'
+                'allPaymentsUnfiltered',
+                'toyyibPayConfigured',
+                'gatewayFeeFlatAmount'
             )
         );
     }

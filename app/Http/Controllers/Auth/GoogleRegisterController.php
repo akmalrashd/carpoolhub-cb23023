@@ -51,7 +51,6 @@ class GoogleRegisterController extends Controller
             'vehicle_plate'          => ['required_if:role,driver', 'nullable', 'string', 'max:20'],
             'driving_license_photo'  => ['required_if:role,driver', 'nullable', 'image', 'max:4096'],
             'selfie_photo'           => ['required_if:role,driver', 'nullable', 'image', 'max:5120'],
-            'driving_license_expiry' => ['required_if:role,driver', 'nullable', 'date', 'after:today'],
         ], [
             'vehicle_model.required_if'         => 'Vehicle model is required for drivers.',
             'vehicle_plate.required_if'         => 'Vehicle plate is required for drivers.',
@@ -61,8 +60,6 @@ class GoogleRegisterController extends Controller
             'selfie_photo.required_if'          => 'A selfie holding your license is required for drivers.',
             'selfie_photo.image'                => 'Selfie photo must be an image (JPG, PNG, etc).',
             'selfie_photo.max'                  => 'Selfie photo must not exceed 5MB.',
-            'driving_license_expiry.required_if' => 'Your license expiry date is required for drivers.',
-            'driving_license_expiry.after'       => 'Your license appears to be already expired — please renew before registering as a driver.',
         ]);
 
         $isDriver = $data['role'] === 'driver';
@@ -89,7 +86,6 @@ class GoogleRegisterController extends Controller
             'vehicle_plate'         => $data['vehicle_plate'] ?? null,
             'driving_license_photo' => $licenseBase64,
             'selfie_photo'          => $selfieBase64,
-            'driving_license_expiry' => $data['driving_license_expiry'] ?? null,
             'is_active'             => ! $isDriver,
             'driver_verification_status' => $isDriver ? 'pending' : null,
         ]);

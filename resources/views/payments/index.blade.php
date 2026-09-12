@@ -569,6 +569,7 @@
                                 'bank_account' => 'Bank Account',
                                 'digital_wallet' => 'Digital Wallet',
                                 'others' => 'Others',
+                                'toyyibpay' => 'ToyyibPay',
                                 default => '-',
                             };
                             $reminderMeta = $reminderState[$payment->id] ?? ['can_send' => true, 'seconds_left' => 0];
@@ -590,6 +591,11 @@
                             $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
                             $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                             $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
+                            // Same formula as GatewayPaymentService::computeFee() — FPX (flat)
+                            // and DuitNow QR (1% or flat, whichever higher) cost the same in
+                            // practice under RM100, so one number covers both channels.
+                            $paymentGatewayFee = round(max($gatewayFeeFlatAmount, (float) $payment->amount_due * 0.01), 2);
+                            $paymentGatewayTotal = round((float) $payment->amount_due + $paymentGatewayFee, 2);
                             $fareBreakdown = $paymentFareBreakdown($payment);
                             $isDriverQueueRecord = ((int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id()) || ($isAdmin && (int) ($payment->trip?->driver_id ?? 0) !== (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id());
                             $counterpartyName = $isDriverQueueRecord
@@ -778,6 +784,11 @@
                                             data-driver-account-number="{{ $driverAccountNumber }}"
                                             data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                             data-driver-tng-qr="{{ $driverTngQr }}"
+                                            data-payment-id="{{ $payment->id }}"
+                                            data-toyyibpay-eligible="{{ $toyyibPayConfigured ? '1' : '0' }}"
+                                            data-toyyibpay-pay-action="{{ route('payments.gateway.pay', $payment) }}"
+                                            data-gateway-fee="{{ number_format($paymentGatewayFee, 2) }}"
+                                            data-amount-charged="{{ number_format($paymentGatewayTotal, 2) }}"
                                         ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                     </form>
                                 @elseif($payment->payment_status === 'pending_confirmation')
@@ -820,6 +831,7 @@
                                     <button
                                         type="button"
                                         class="payments-btn payments-btn-primary open-payment-receipt-btn"
+                                        data-payment-id="{{ $payment->id }}"
                                         data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
                                         data-trip-ref="{{ $tripRef }}"
                                         data-trip-mode="{{ ($payment->trip?->is_return_trip ?? false) ? 'Return' : 'Outbound' }}"
@@ -914,6 +926,7 @@
                                     'bank_account' => 'Bank Account',
                                     'digital_wallet' => 'Digital Wallet',
                                     'others' => 'Others',
+                                    'toyyibpay' => 'ToyyibPay',
                                     default => '-',
                                 };
                                 $reminderMeta = $reminderState[$payment->id] ?? ['can_send' => true, 'seconds_left' => 0];
@@ -935,6 +948,11 @@
                                 $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
                                 $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                                 $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
+                                // Same formula as GatewayPaymentService::computeFee() — FPX (flat)
+                                // and DuitNow QR (1% or flat, whichever higher) cost the same in
+                                // practice under RM100, so one number covers both channels.
+                                $paymentGatewayFee = round(max($gatewayFeeFlatAmount, (float) $payment->amount_due * 0.01), 2);
+                                $paymentGatewayTotal = round((float) $payment->amount_due + $paymentGatewayFee, 2);
                                 $fareBreakdown = $paymentFareBreakdown($payment);
                                 $isDriverQueueRecord = ((int) ($payment->trip?->driver_id ?? 0) === (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id()) || ($isAdmin && (int) ($payment->trip?->driver_id ?? 0) !== (int) auth()->id() && (int) $payment->user_id !== (int) auth()->id());
                                 $counterpartyName = $isDriverQueueRecord
@@ -1174,6 +1192,11 @@
                                                 data-driver-duitnow-qr="{{ $driverDuitnowQr }}"
                                                 style="width:100%;"
                                                 data-driver-tng-qr="{{ $driverTngQr }}"
+                                                data-payment-id="{{ $payment->id }}"
+                                                data-toyyibpay-eligible="{{ $toyyibPayConfigured ? '1' : '0' }}"
+                                                data-toyyibpay-pay-action="{{ route('payments.gateway.pay', $payment) }}"
+                                                data-gateway-fee="{{ number_format($paymentGatewayFee, 2) }}"
+                                                data-amount-charged="{{ number_format($paymentGatewayTotal, 2) }}"
                                             ><i class="fa-solid fa-credit-card"></i> Pay</button>
                                         </form>
                                     @elseif($payment->payment_status === 'pending_confirmation')
@@ -1186,6 +1209,7 @@
                                                 type="button"
                                                 class="payments-btn payment-table-action open-payment-receipt-btn"
                                                 style="width:100%;"
+                                                data-payment-id="{{ $payment->id }}"
                                                 data-receipt-no="PAY-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}"
                                                 data-trip-ref="{{ $tripRef }}"
                                                 data-trip-mode="{{ ($payment->trip?->is_return_trip ?? false) ? 'Return' : 'Outbound' }}"
@@ -1509,6 +1533,7 @@
                                 'bank_account' => 'Bank Account',
                                 'digital_wallet' => 'Digital Wallet',
                                 'others' => 'Others',
+                                'toyyibpay' => 'ToyyibPay',
                                 default => '-',
                             };
                             $reminderMeta = $reminderState[$payment->id] ?? ['can_send' => true, 'seconds_left' => 0];
@@ -1697,6 +1722,7 @@
                                 'bank_account' => 'Bank Account',
                                 'digital_wallet' => 'Digital Wallet',
                                 'others' => 'Others',
+                                'toyyibpay' => 'ToyyibPay',
                                 default => '-',
                             };
                             $participantsPayload = $payment->trip?->participants?->map(function ($participant) {
@@ -2300,43 +2326,65 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <form method="POST" id="bulkMarkPaidModalForm" action="{{ route('payments.bulk-confirm') }}">
-                @csrf
-                @method('PATCH')
-                <div id="bulkMarkPaidHiddenInputs"></div>
-                <div class="mark-paid-modal-body">
-                    <div class="mark-paid-info-box">
-                        <div>
-                            <div class="mark-paid-passenger-name" id="bulkMarkPaidSelectedCount">0 payments selected</div>
-                            <div style="font-size:12px; color:var(--muted);">Bulk Confirmation</div>
-                        </div>
-                        <div class="mark-paid-amount-val" id="bulkMarkPaidTotalAmount">RM 0.00</div>
+            <div class="mark-paid-modal-body">
+                <div class="mark-paid-info-box">
+                    <div>
+                        <div class="mark-paid-passenger-name" id="bulkMarkPaidSelectedCount">0 payments selected</div>
+                        <div style="font-size:12px; color:var(--muted);">Bulk Confirmation</div>
                     </div>
-                    
-                    <div class="bulk-paid-passengers-card" id="bulkMarkPaidPassengersWrap">
-                        <div class="bulk-paid-passengers-title" id="bulkMarkPaidPassengersTitle">
-                            <i class="fa-solid fa-users"></i> Selected Passengers / Counterparties
-                        </div>
-                        <div class="bulk-paid-passengers-list" id="bulkMarkPaidPassengersList">
-                        </div>
-                    </div>
-                    
-                    <div class="mark-paid-inputs-row">
-                        <select name="payment_method" class="mark-paid-select" id="bulkMarkPaidMethod" required>
-                            <option value="" disabled selected>Select method</option>
-                            <option value="duitnow_qr">DuitNow QR / Instant Transfer</option>
-                            <option value="cash">Cash / Tunai</option>
-                            <option value="bank_transfer">Bank Transfer</option>
-                            <option value="other">Other / Lain-lain</option>
-                        </select>
-                        <input type="text" name="remarks" class="mark-paid-input" id="bulkMarkPaidRemarks" placeholder="Remarks">
-                    </div>
-
-                    <button type="submit" class="mark-paid-submit-btn" id="bulkMarkPaidSubmitBtn">
-                        Mark Selected as Paid
-                    </button>
+                    <div class="mark-paid-amount-val" id="bulkMarkPaidTotalAmount">RM 0.00</div>
                 </div>
-            </form>
+
+                <div class="bulk-paid-passengers-card" id="bulkMarkPaidPassengersWrap">
+                    <div class="bulk-paid-passengers-title" id="bulkMarkPaidPassengersTitle">
+                        <i class="fa-solid fa-users"></i> Selected Passengers / Counterparties
+                    </div>
+                    <div class="bulk-paid-passengers-list" id="bulkMarkPaidPassengersList">
+                    </div>
+                </div>
+
+                {{-- Shown only when every selected payment is owed to the same
+                     driver — a single bill/transfer can only settle to one
+                     wallet, so mixing drivers falls back to the plain form below. --}}
+                <div class="payment-method-tabs" id="bulkPaidMethodTabs" role="tablist" style="display:none;">
+                    <button type="button" class="payment-method-tab is-active" data-bulk-tab-target="manual">Bank Transfer</button>
+                    <button type="button" class="payment-method-tab" data-bulk-tab-target="gateway">Pay Online</button>
+                </div>
+
+                <div class="payment-method-tab-panel" data-bulk-tab-panel="manual">
+                    <div class="payment-paynow-driver" id="bulkPaidDriverInfo" style="display:none;"></div>
+
+                    <form method="POST" id="bulkMarkPaidModalForm" action="{{ route('payments.bulk-confirm') }}">
+                        @csrf
+                        @method('PATCH')
+                        <div id="bulkMarkPaidHiddenInputs"></div>
+                        <div class="mark-paid-inputs-row">
+                            <select name="payment_method" class="mark-paid-select" id="bulkMarkPaidMethod" required>
+                                <option value="" disabled selected>Select method</option>
+                                <option value="duitnow_qr">DuitNow QR / Instant Transfer</option>
+                                <option value="cash">Cash / Tunai</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="other">Other / Lain-lain</option>
+                            </select>
+                            <input type="text" name="remarks" class="mark-paid-input" id="bulkMarkPaidRemarks" placeholder="Remarks">
+                        </div>
+
+                        <button type="submit" class="mark-paid-submit-btn" id="bulkMarkPaidSubmitBtn">
+                            Mark Selected as Paid
+                        </button>
+                    </form>
+                </div>
+
+                <div class="payment-method-tab-panel" data-bulk-tab-panel="gateway" hidden>
+                    <div class="gateway-pay-summary" id="bulkGatewaySummary"></div>
+                    <p class="gateway-pay-note"><i class="fa-solid fa-circle-info"></i> You'll be taken to ToyyibPay's secure checkout (Online Banking / DuitNow QR). Once payment succeeds, every selected payment is confirmed automatically — no driver approval needed.</p>
+                    <form method="POST" action="{{ route('payments.gateway.pay-bulk') }}" id="bulkGatewayForm" class="trip-paynow-gateway-form">
+                        @csrf
+                        <div id="bulkGatewayHiddenInputs"></div>
+                        <button type="submit" class="trip-paynow-submit" id="bulkGatewaySubmitBtn">Pay via ToyyibPay</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2430,6 +2478,12 @@
         </div>
     </div>
 
-    <script>window.CH_PAYMENTS = { csrf: @json(csrf_token()), endpointBase: @json(route('refresh.payments.summary')) };</script>
+    <script>window.CH_PAYMENTS = {
+        csrf: @json(csrf_token()),
+        endpointBase: @json(route('refresh.payments.summary')),
+        toyyibPayConfigured: @json($toyyibPayConfigured),
+        gatewayFeeFlatAmount: @json($gatewayFeeFlatAmount),
+        bulkGatewayPayAction: @json(route('payments.gateway.pay-bulk')),
+    };</script>
     <script src="{{ asset('js/payments-index.js') }}?v={{ filemtime(public_path('js/payments-index.js')) }}"></script>
 @endsection

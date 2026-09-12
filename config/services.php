@@ -47,4 +47,10 @@ return [
         'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
     ],
 
+    'toyyibpay' => [
+        'secret_key' => env('TOYYIBPAY_SECRET_KEY'),
+        'category_code' => env('TOYYIBPAY_CATEGORY_CODE'),
+        'base_url' => env('TOYYIBPAY_BASE_URL', 'https://dev.toyyibpay.com'),
+    ],
+
 ];

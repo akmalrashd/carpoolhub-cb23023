@@ -69,9 +69,6 @@ class SettingsService
         $vehiclePlate = array_key_exists('vehicle_plate', $data)
             ? (($data['vehicle_plate'] !== '') ? strtoupper((string) $data['vehicle_plate']) : null)
             : $user->vehicle_plate;
-        $licenseExpiry = array_key_exists('driving_license_expiry', $data) && $data['driving_license_expiry']
-            ? $data['driving_license_expiry']
-            : $user->driving_license_expiry?->toDateString();
 
         // A driver resubmitting any verification-relevant field re-enters the
         // review queue. Compared against values resolved from $user's
@@ -86,7 +83,6 @@ class SettingsService
             || $selfiePath !== $user->getOriginal('selfie_photo')
             || $vehicleModel !== $user->getOriginal('vehicle_model')
             || $vehiclePlate !== $user->getOriginal('vehicle_plate')
-            || $licenseExpiry !== $user->getOriginal('driving_license_expiry')
         );
 
         $updates = [
@@ -105,7 +101,6 @@ class SettingsService
             'payment_qr_tng' => $tngQrPath,
             'selfie_photo' => $selfiePath,
             'driving_license_photo' => $licensePath,
-            'driving_license_expiry' => $licenseExpiry,
         ];
 
         if ($verificationFieldsChanged) {

@@ -279,10 +279,45 @@
             }
         }
 
+        // Arriving via a deep link (e.g. the Wallet page's "change bank
+        // details" shortcut) lands on the right tab, but the panel itself
+        // can still start below the fold under the hero/completion banner —
+        // this brings it into view without hiding its heading under the
+        // sticky mobile header / fixed desktop topbar.
+        function scrollToSettingsPanel(tabName) {
+            const panel = document.getElementById(`panel-${tabName}`);
+            if (!panel) return;
+
+            // Desktop and mobile each have their own header element, only one
+            // of which is actually rendered at a time (the other is
+            // display:none) — offsetHeight is 0 for whichever is hidden, so
+            // picking whichever reports a real height always finds the one
+            // actually on screen, regardless of source order.
+            const desktopHeader = document.querySelector('.desktop-topbar');
+            const mobileHeader = document.querySelector('.mobile-header');
+            const headerHeight = (desktopHeader && desktopHeader.offsetHeight > 0)
+                ? desktopHeader.offsetHeight
+                : ((mobileHeader && mobileHeader.offsetHeight > 0) ? mobileHeader.offsetHeight : 0);
+
+            const targetTop = panel.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+
+            // Instant, not smooth — this runs the moment the page has just
+            // finished its own load/paint, so an animated scroll on top of
+            // that reads as a long, janky settle rather than a snappy landing.
+            window.scrollTo({ top: Math.max(targetTop, 0), behavior: 'auto' });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const target = resolveInitialSettingsTab();
             if (target) {
                 switchSettingsTab(target);
+                if (location.hash.replace('#', '') === target) {
+                    // Only for a real deep link — not the error-tab/sessionStorage
+                    // restores above, which land the user back where they were.
+                    // One frame so the panel's just-toggled is-active class has
+                    // actually painted before its position is measured.
+                    requestAnimationFrame(() => scrollToSettingsPanel(target));
+                }
             } else {
                 updateQuickbar('profile');
             }

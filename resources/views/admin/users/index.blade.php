@@ -130,15 +130,6 @@
                                 {{ $pdVehicle }}
                             </div>
                         @endif
-                        @if($pd->driving_license_expiry)
-                            <div class="dac-meta" style="margin-top:1px;">
-                                <i class="fa-solid fa-calendar-days" style="font-size:10px;opacity:.6;margin-right:3px;"></i>
-                                Expires {{ $pd->driving_license_expiry->format('d M Y') }}
-                                @if($pd->driving_license_expiry->isPast())
-                                    <span class="status-pill status-rejected" style="margin-left:6px;">Expired</span>
-                                @endif
-                            </div>
-                        @endif
                     </div>
                 </div>
                 {{-- Verification thumbnail on the RIGHT (Driving License only) --}}
@@ -533,7 +524,10 @@
     <div class="eu-drawer">
         <div class="eu-drag-handle">
             <div class="eu-pill"></div>
-            <div class="eu-title" id="eu-title">Edit User</div>
+            <div class="eu-top-row">
+                <div class="eu-title" id="eu-title">Edit User</div>
+                <button type="button" class="lr-close-x" onclick="closeEditDrawer()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>
         <div class="eu-sub" id="eu-sub">Update role and account status</div>
         <form id="eu-form" method="POST">
@@ -583,7 +577,10 @@
     <div class="eu-drawer">
         <div class="eu-drag-handle">
             <div class="eu-pill"></div>
-            <div class="eu-title" id="rj-title">Reject Driver Application</div>
+            <div class="eu-top-row">
+                <div class="eu-title" id="rj-title">Reject Driver Application</div>
+                <button type="button" class="lr-close-x" onclick="closeRejectModal()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>
         <div class="eu-sub">This reason is shown to the driver so they know what to fix.</div>
         <form id="rj-form" method="POST">
@@ -828,7 +825,7 @@ window.CarpoolBottomSheet?.enable({
     card: document.querySelector('#edit-drawer .eu-drawer'),
     head: document.querySelector('#edit-drawer .eu-drag-handle'),
     closeFn: closeEditDrawer,
-    breakpoint: 599,
+    breakpoint: 640,
 });
 function toggleEditReasonField(){
     var status = document.getElementById('eu-status').value;
@@ -885,7 +882,7 @@ window.CarpoolBottomSheet?.enable({
     card: document.querySelector('#reject-modal .eu-drawer'),
     head: document.querySelector('#reject-modal .eu-drag-handle'),
     closeFn: closeRejectModal,
-    breakpoint: 599,
+    breakpoint: 640,
 });
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLicenseModal();closeEditDrawer();closeRejectModal();}});

@@ -85,12 +85,59 @@
     </form>
 </div>
 
+<div class="card card-pad-lg" style="margin-top:16px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:4px;">
+        <div class="ss-header-icon"><i class="fa-solid fa-wallet"></i></div>
+        <div>
+            <h3 class="h3" style="margin:0;">Online Payment & Wallet</h3>
+            <p class="t-sm text-muted" style="margin:2px 0 0;">Controls the ToyyibPay "Pay Online" option on the Pay Now popup and driver withdrawal requests.</p>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ route('admin.system-settings.update-gateway') }}" id="gw-form" style="margin-top:18px;">
+        @csrf
+        @method('PATCH')
+
+        <div class="ss-field-row">
+            <div class="ss-field-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+            <div class="ss-field-main">
+                <div class="field-label" style="margin-bottom:6px;">Gateway fee (RM, charged to passenger on top of fare)</div>
+                <input type="number" step="0.01" min="0" max="50" name="gateway_fee_flat_amount" class="input @error('gateway_fee_flat_amount') has-error @enderror"
+                    value="{{ old('gateway_fee_flat_amount', $gatewaySettings['gateway_fee_flat_amount']) }}">
+                @error('gateway_fee_flat_amount')
+                    <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                @enderror
+            </div>
+        </div>
+
+        <div class="ss-field-row">
+            <div class="ss-field-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div class="ss-field-main">
+                <div class="field-label" style="margin-bottom:6px;">Minimum withdrawal amount (RM)</div>
+                <input type="number" step="0.01" min="0" max="1000" name="wallet_min_withdrawal_amount" class="input @error('wallet_min_withdrawal_amount') has-error @enderror"
+                    value="{{ old('wallet_min_withdrawal_amount', $gatewaySettings['wallet_min_withdrawal_amount']) }}">
+                @error('wallet_min_withdrawal_amount')
+                    <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
+                @enderror
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="gw-submit-btn" style="margin-top:6px;">
+            <i class="fa-solid fa-floppy-disk"></i> <span id="gw-submit-label">Save Payment Settings</span>
+        </button>
+    </form>
+</div>
+
 </div>{{-- /au-page --}}
 
 <script>
     document.getElementById('ss-form').addEventListener('submit', function () {
         document.getElementById('ss-submit-btn').disabled = true;
         document.getElementById('ss-submit-label').textContent = 'Saving…';
+    });
+    document.getElementById('gw-form').addEventListener('submit', function () {
+        document.getElementById('gw-submit-btn').disabled = true;
+        document.getElementById('gw-submit-label').textContent = 'Saving…';
     });
 </script>
 

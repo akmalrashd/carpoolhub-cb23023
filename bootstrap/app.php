@@ -55,6 +55,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // access promptly, not sit needlessly suspended for up to a day.
         $schedule->command('users:reactivate-expired-suspensions')
             ->everyFiveMinutes();
+
+        // Third safety net behind the ToyyibPay Return URL and Callback —
+        // catches a passenger who paid but closed the tab before the Return
+        // URL redirect fired. 15 minutes gives those two a fair chance first.
+        $schedule->command('payments:reconcile-gateway-transactions')
+            ->everyFifteenMinutes();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
@@ -63,10 +69,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'no-cache' => PreventCaching::class,
         ]);
 
-        // Telegram's servers call this directly — no browser session, no
-        // CSRF token to send. The X-Telegram-Bot-Api-Secret-Token header
-        // (verified inside TelegramController::webhook) is the real guard.
-        $middleware->validateCsrfTokens(except: ['telegram/webhook']);
+        // Telegram's and ToyyibPay's servers call these directly — no
+        // browser session, no CSRF token to send. The
+        // X-Telegram-Bot-Api-Secret-Token header and the ToyyibPay MD5 hash
+        // (verified inside their respective controllers) are the real guards.
+        $middleware->validateCsrfTokens(except: ['telegram/webhook', 'payments/gateway/callback']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

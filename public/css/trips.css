@@ -2246,7 +2246,7 @@
             position: relative;
             display: grid;
             grid-template-columns: 14px minmax(0,1fr);
-            gap: 10px;
+            gap: 8px;
             min-width: 0;
         }
         .trip-route-point:first-child::after {
@@ -2273,20 +2273,20 @@
             min-width: 0;
         }
         .trip-route-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            display: block;
             font-size: 10px;
             font-weight: 800;
-            letter-spacing: .05em;
+            letter-spacing: .08em;
+            line-height: 1;
             text-transform: uppercase;
             color: var(--muted);
         }
         .trip-route-value {
             display: block;
-            margin-top: 3px;
+            margin-top: 2px;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 800;
+            line-height: 1.25;
             color: var(--ink);
             word-break: break-word;
         }

@@ -10,6 +10,105 @@ const escapeHtmlText = (value) => String(value ?? '')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
+const qrPreviewHtml = (url, label) => {
+    const safeUrl = String(url || '').trim();
+    return safeUrl
+        ? `<img src="${escapeHtmlText(safeUrl)}" alt="${escapeHtmlText(label)}">`
+        : '<span class="driver-payment-qr-empty"><i class="fa-solid fa-qrcode"></i>No QR uploaded</span>';
+};
+
+/**
+ * Wires the dot-click + touch-swipe interactivity for a DuitNow/TnG QR
+ * carousel — shared by the individual Pay Now modal and the bulk "Mark
+ * Selected as Paid" modal's Pay Online tab, both of which render the same
+ * [data-qr-carousel] markup via qrPreviewHtml() above.
+ */
+const wireQrCarousel = (container) => {
+    const qrCarousel = container?.querySelector('[data-qr-carousel]');
+    if (!qrCarousel) return;
+
+    const track = qrCarousel.querySelector('[data-qr-track]');
+    const titleText = qrCarousel.querySelector('[data-qr-title-text]');
+    const dots = Array.from(qrCarousel.querySelectorAll('.qr-dot'));
+    const slides = Array.from(track.children);
+    const slideTitles = ['DuitNow QR', 'TnG eWallet QR'];
+    let activeIndex = 0;
+
+    // Default to whichever QR the driver actually uploaded — no point
+    // opening on an empty slide when the other one has an image.
+    const hasQr = (slide) => !!slide.querySelector('img');
+    if (!hasQr(slides[0]) && hasQr(slides[1])) {
+        activeIndex = 1;
+    }
+
+    // The track is width: slides.length * 100% (of the wrap), so a
+    // transform percentage — resolved against the track's OWN width, not
+    // the wrap's — must be scaled down by slides.length per step, otherwise
+    // each step overshoots by a full extra slide.
+    const stepPercent = 100 / slides.length;
+    const render = () => {
+        track.style.transform = `translateX(-${activeIndex * stepPercent}%)`;
+        dots.forEach((dot, i) => dot.classList.toggle('is-active', i === activeIndex));
+        if (titleText) titleText.textContent = slideTitles[activeIndex] || '';
+    };
+    render();
+
+    dots.forEach((dot, i) => dot.addEventListener('click', () => {
+        activeIndex = i;
+        render();
+    }));
+
+    // Swipe support — a dot tap alone isn't how anyone actually expects to
+    // browse a carousel on a phone.
+    const trackWrap = qrCarousel.querySelector('.driver-payment-qr-track-wrap');
+    if (!trackWrap) return;
+
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let deltaX = 0;
+
+    trackWrap.addEventListener('touchstart', (e) => {
+        dragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        deltaX = 0;
+        track.style.transition = 'none';
+    }, { passive: true });
+
+    trackWrap.addEventListener('touchmove', (e) => {
+        if (!dragging) return;
+        const touch = e.touches[0];
+        deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        // A mostly-vertical gesture is a page scroll, not a swipe — leave
+        // the track alone so scrolling still works.
+        if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+
+        let dragPercent = (deltaX / trackWrap.offsetWidth) * stepPercent;
+        // Rubber-band resistance past the first/last slide instead of
+        // dragging into empty space beyond the track.
+        if (activeIndex === 0 && deltaX > 0) dragPercent *= 0.35;
+        if (activeIndex === slides.length - 1 && deltaX < 0) dragPercent *= 0.35;
+        track.style.transform = `translateX(${-activeIndex * stepPercent + dragPercent}%)`;
+    }, { passive: true });
+
+    const endDrag = () => {
+        if (!dragging) return;
+        dragging = false;
+        track.style.transition = '';
+        const threshold = trackWrap.offsetWidth * 0.18;
+        if (deltaX < -threshold && activeIndex < slides.length - 1) {
+            activeIndex += 1;
+        } else if (deltaX > threshold && activeIndex > 0) {
+            activeIndex -= 1;
+        }
+        render();
+    };
+    trackWrap.addEventListener('touchend', endDrag);
+    trackWrap.addEventListener('touchcancel', endDrag);
+};
+
 const showModalSkeleton = (listEl) => {
     if (!listEl) return;
     listEl.innerHTML = `
@@ -159,13 +258,6 @@ window.isPaymentRowHidden = function (row) {
                     <span class="trip-payment-popup-message">${escapeHtml(message)}</span>
                 </div>
             `;
-    const qrPreviewHtml = (url, label) => {
-        const safeUrl = String(url || '').trim();
-        return safeUrl
-            ? `<img src="${escapeHtml(safeUrl)}" alt="${escapeHtml(label)}">`
-            : '<span class="driver-payment-qr-empty"><i class="fa-solid fa-qrcode"></i>No QR uploaded</span>';
-    };
-
     document.addEventListener('click', (event) => {
         const button = event.target instanceof Element
             ? event.target.closest('.open-payment-paynow-btn')
@@ -196,6 +288,33 @@ window.isPaymentRowHidden = function (row) {
         document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
 
+        const isGatewayEligible = button.dataset.toyyibpayEligible === '1';
+        const gatewayFee = escapeHtml(button.dataset.gatewayFee || '0.00');
+        const gatewayTotal = escapeHtml(button.dataset.amountCharged || button.dataset.amount || '0.00');
+        const gatewayPayAction = escapeHtml(button.dataset.toyyibpayPayAction || '#');
+
+        const tabsHtml = isGatewayEligible ? `
+                            <div class="payment-method-tabs" role="tablist">
+                                <button type="button" class="payment-method-tab is-active" data-tab-target="manual">Bank Transfer</button>
+                                <button type="button" class="payment-method-tab" data-tab-target="gateway">Pay Online</button>
+                            </div>
+                    ` : '';
+
+        const gatewayPanelHtml = isGatewayEligible ? `
+                            <div class="payment-method-tab-panel" data-tab-panel="gateway" hidden>
+                                <div class="gateway-pay-summary">
+                                    <div class="gateway-pay-row"><span>Fare</span><strong>RM ${escapeHtml(button.dataset.amount || '0.00')}</strong></div>
+                                    <div class="gateway-pay-row"><span>ToyyibPay fee</span><strong>RM ${gatewayFee}</strong></div>
+                                    <div class="gateway-pay-row gateway-pay-total"><span>Total to pay</span><strong>RM ${gatewayTotal}</strong></div>
+                                </div>
+                                <p class="gateway-pay-note"><i class="fa-solid fa-circle-info"></i> You'll be taken to ToyyibPay's secure checkout (Online Banking / DuitNow QR). Once payment succeeds, it's confirmed automatically — no driver approval needed.</p>
+                                <form method="POST" action="${gatewayPayAction}" class="trip-paynow-gateway-form">
+                                    <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                                    <button type="submit" class="trip-paynow-submit">Pay RM ${gatewayTotal} via ToyyibPay</button>
+                                </form>
+                            </div>
+                    ` : '';
+
         setTimeout(() => {
             list.innerHTML = `
                         <article class="trip-payment-review-item">
@@ -212,153 +331,85 @@ window.isPaymentRowHidden = function (row) {
                                     ${fareBreakdown}
                                 </span>
                             </div>
-                            <div class="payment-paynow-driver">
-                                <div class="driver-payment-head">
-                                    <span class="driver-payment-avatar">${driverAvatar}</span>
-                                    <span class="driver-payment-meta">
-                                        <span class="driver-payment-name">${escapeHtml(driverName)}</span>
-                                        <span class="driver-payment-email">${escapeHtml(driverEmail)}</span>
-                                    </span>
-                                </div>
-                                <div class="payment-paynow-body">
-                                    <div class="trip-details-pairs">
-                                        <div class="request-modal-line">
-                                            <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
-                                            <span class="request-modal-value">${escapeHtml(button.dataset.driverBank || '-')}</span>
-                                        </div>
-                                        <div class="request-modal-line">
-                                            <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
-                                            <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountName || '-')}</span>
-                                        </div>
-                                        <div class="request-modal-line">
-                                            <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
-                                            <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountNumber || '-')}</span>
-                                        </div>
+                            ${tabsHtml}
+                            <div class="payment-method-tab-panel" data-tab-panel="manual">
+                                <div class="payment-paynow-driver">
+                                    <div class="driver-payment-head">
+                                        <span class="driver-payment-avatar">${driverAvatar}</span>
+                                        <span class="driver-payment-meta">
+                                            <span class="driver-payment-name">${escapeHtml(driverName)}</span>
+                                            <span class="driver-payment-email">${escapeHtml(driverEmail)}</span>
+                                        </span>
                                     </div>
-                                    <div class="driver-payment-qr-single" data-qr-carousel>
-                                        <div class="driver-payment-qr-carousel-head">
-                                            <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i> <span data-qr-title-text>DuitNow QR</span></span>
-                                            <span class="driver-payment-qr-dots">
-                                                <button type="button" class="qr-dot is-active" data-qr-index="0" aria-label="Show DuitNow QR"></button>
-                                                <button type="button" class="qr-dot" data-qr-index="1" aria-label="Show TnG eWallet QR"></button>
-                                            </span>
+                                    <div class="payment-paynow-body">
+                                        <div class="trip-details-pairs">
+                                            <div class="request-modal-line">
+                                                <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
+                                                <span class="request-modal-value">${escapeHtml(button.dataset.driverBank || '-')}</span>
+                                            </div>
+                                            <div class="request-modal-line">
+                                                <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
+                                                <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountName || '-')}</span>
+                                            </div>
+                                            <div class="request-modal-line">
+                                                <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
+                                                <span class="request-modal-value">${escapeHtml(button.dataset.driverAccountNumber || '-')}</span>
+                                            </div>
                                         </div>
-                                        <div class="driver-payment-qr-carousel">
-                                            <div class="driver-payment-qr-track-wrap">
-                                                <div class="driver-payment-qr-track" data-qr-track>
-                                                    <div class="driver-payment-qr-slide">
-                                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
-                                                    </div>
-                                                    <div class="driver-payment-qr-slide">
-                                                        <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverTngQr, 'TnG eWallet QR')}</div>
+                                        <div class="driver-payment-qr-single" data-qr-carousel>
+                                            <div class="driver-payment-qr-carousel-head">
+                                                <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i> <span data-qr-title-text>DuitNow QR</span></span>
+                                                <span class="driver-payment-qr-dots">
+                                                    <button type="button" class="qr-dot is-active" data-qr-index="0" aria-label="Show DuitNow QR"></button>
+                                                    <button type="button" class="qr-dot" data-qr-index="1" aria-label="Show TnG eWallet QR"></button>
+                                                </span>
+                                            </div>
+                                            <div class="driver-payment-qr-carousel">
+                                                <div class="driver-payment-qr-track-wrap">
+                                                    <div class="driver-payment-qr-track" data-qr-track>
+                                                        <div class="driver-payment-qr-slide">
+                                                            <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
+                                                        </div>
+                                                        <div class="driver-payment-qr-slide">
+                                                            <div class="driver-payment-qr-preview">${qrPreviewHtml(button.dataset.driverTngQr, 'TnG eWallet QR')}</div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                <form method="POST" action="${escapeHtml(button.dataset.action || '#')}" class="trip-paynow-form">
+                                    <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
+                                    <input type="hidden" name="_method" value="PATCH">
+                                    <div class="trip-paynow-fields">
+                                        <select class="trip-paynow-input" name="payment_method" required>
+                                            <option value="" disabled selected>Select method</option>
+                                            <option value="duitnow_qr">DuitNow QR</option>
+                                            <option value="bank_account">Bank Account</option>
+                                            <option value="digital_wallet">Digital Wallet</option>
+                                            <option value="others">Others</option>
+                                        </select>
+                                        <input class="trip-paynow-input" type="text" name="remarks" placeholder="Remarks">
+                                    </div>
+                                    <button type="submit" class="trip-paynow-submit">Mark as paid</button>
+                                </form>
                             </div>
-                            <form method="POST" action="${escapeHtml(button.dataset.action || '#')}" class="trip-paynow-form">
-                                <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
-                                <input type="hidden" name="_method" value="PATCH">
-                                <div class="trip-paynow-fields">
-                                    <select class="trip-paynow-input" name="payment_method" required>
-                                        <option value="" disabled selected>Select method</option>
-                                        <option value="duitnow_qr">DuitNow QR</option>
-                                        <option value="bank_account">Bank Account</option>
-                                        <option value="digital_wallet">Digital Wallet</option>
-                                        <option value="others">Others</option>
-                                    </select>
-                                    <input class="trip-paynow-input" type="text" name="remarks" placeholder="Remarks">
-                                </div>
-                                <button type="submit" class="trip-paynow-submit">Mark as paid</button>
-                            </form>
+                            ${gatewayPanelHtml}
                         </article>
                     `;
 
-            const qrCarousel = list.querySelector('[data-qr-carousel]');
-            if (qrCarousel) {
-                const track = qrCarousel.querySelector('[data-qr-track]');
-                const titleText = qrCarousel.querySelector('[data-qr-title-text]');
-                const dots = Array.from(qrCarousel.querySelectorAll('.qr-dot'));
-                const slides = Array.from(track.children);
-                const slideTitles = ['DuitNow QR', 'TnG eWallet QR'];
-                let activeIndex = 0;
+            const tabButtons = Array.from(list.querySelectorAll('.payment-method-tab'));
+            tabButtons.forEach((tabBtn) => {
+                tabBtn.addEventListener('click', () => {
+                    tabButtons.forEach((otherBtn) => otherBtn.classList.toggle('is-active', otherBtn === tabBtn));
+                    list.querySelectorAll('[data-tab-panel]').forEach((panel) => {
+                        panel.hidden = panel.dataset.tabPanel !== tabBtn.dataset.tabTarget;
+                    });
+                });
+            });
 
-                // Default to whichever QR the driver actually uploaded — no point
-                // opening on an empty slide when the other one has an image.
-                const hasQr = (slide) => !!slide.querySelector('img');
-                if (!hasQr(slides[0]) && hasQr(slides[1])) {
-                    activeIndex = 1;
-                }
-
-                // The track is width: slides.length * 100% (of the wrap), so a
-                // transform percentage — resolved against the track's OWN width,
-                // not the wrap's — must be scaled down by slides.length per step,
-                // otherwise each step overshoots by a full extra slide.
-                const stepPercent = 100 / slides.length;
-                const render = () => {
-                    track.style.transform = `translateX(-${activeIndex * stepPercent}%)`;
-                    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === activeIndex));
-                    if (titleText) titleText.textContent = slideTitles[activeIndex] || '';
-                };
-                render();
-
-                dots.forEach((dot, i) => dot.addEventListener('click', () => {
-                    activeIndex = i;
-                    render();
-                }));
-
-                // Swipe support — a dot tap alone isn't how anyone actually
-                // expects to browse a carousel on a phone.
-                const trackWrap = qrCarousel.querySelector('.driver-payment-qr-track-wrap');
-                if (trackWrap) {
-                    let dragging = false;
-                    let startX = 0;
-                    let startY = 0;
-                    let deltaX = 0;
-
-                    trackWrap.addEventListener('touchstart', (e) => {
-                        dragging = true;
-                        startX = e.touches[0].clientX;
-                        startY = e.touches[0].clientY;
-                        deltaX = 0;
-                        track.style.transition = 'none';
-                    }, { passive: true });
-
-                    trackWrap.addEventListener('touchmove', (e) => {
-                        if (!dragging) return;
-                        const touch = e.touches[0];
-                        deltaX = touch.clientX - startX;
-                        const deltaY = touch.clientY - startY;
-                        // A mostly-vertical gesture is a page scroll, not a swipe —
-                        // leave the track alone so scrolling still works.
-                        if (Math.abs(deltaY) > Math.abs(deltaX)) return;
-
-                        let dragPercent = (deltaX / trackWrap.offsetWidth) * stepPercent;
-                        // Rubber-band resistance past the first/last slide instead
-                        // of dragging into empty space beyond the track.
-                        if (activeIndex === 0 && deltaX > 0) dragPercent *= 0.35;
-                        if (activeIndex === slides.length - 1 && deltaX < 0) dragPercent *= 0.35;
-                        track.style.transform = `translateX(${-activeIndex * stepPercent + dragPercent}%)`;
-                    }, { passive: true });
-
-                    const endDrag = () => {
-                        if (!dragging) return;
-                        dragging = false;
-                        track.style.transition = '';
-                        const threshold = trackWrap.offsetWidth * 0.18;
-                        if (deltaX < -threshold && activeIndex < slides.length - 1) {
-                            activeIndex += 1;
-                        } else if (deltaX > threshold && activeIndex > 0) {
-                            activeIndex -= 1;
-                        }
-                        render();
-                    };
-                    trackWrap.addEventListener('touchend', endDrag);
-                    trackWrap.addEventListener('touchcancel', endDrag);
-                }
-            }
+            wireQrCarousel(list);
         }, 240);
     }, true);
 
@@ -1106,6 +1157,140 @@ window.isPaymentRowHidden = function (row) {
                 if (submitBtn) submitBtn.textContent = 'Mark ' + checkedItems.length + ' Selected as Paid';
                 if (selectEl) selectEl.selectedIndex = 0;
                 if (remarksEl) remarksEl.value = '';
+
+                // ── Driver payout info + "Pay Online" combine, only when
+                // every selected payment is owed to the SAME driver — one
+                // bank transfer / one ToyyibPay bill can only settle to one
+                // wallet, so a mixed selection falls back to the plain form
+                // above exactly as before.
+                const tabsEl = document.getElementById('bulkPaidMethodTabs');
+                const driverInfoEl = document.getElementById('bulkPaidDriverInfo');
+                const gatewaySummaryEl = document.getElementById('bulkGatewaySummary');
+                const gatewayHiddenInputsEl = document.getElementById('bulkGatewayHiddenInputs');
+                const gatewaySubmitBtn = document.getElementById('bulkGatewaySubmitBtn');
+
+                // Read the direction per row (data-payment-perspective, set
+                // server-side) rather than trusting the page's active status
+                // tab (All/Unpaid/Pending/Confirmed) — that text never says
+                // "pay" vs "collect" at all, and a passenger-only account's
+                // "All" tab is every bit as pay-only as its "Unpaid" tab.
+                const allSelectedArePay = checkedItems.length > 0
+                    && checkedItems.every(({ row }) => row?.dataset.paymentPerspective === 'pay');
+                const driverNames = Object.keys(passengerMap);
+                const singleDriver = allSelectedArePay && driverNames.length === 1;
+
+                // Every row for the same driver carries identical driver-*
+                // dataset values on its own Pay button — any one will do.
+                let representativeButton = null;
+                if (singleDriver) {
+                    for (const { row } of checkedItems) {
+                        const btn = row?.querySelector('.open-payment-paynow-btn');
+                        if (btn) { representativeButton = btn; break; }
+                    }
+                }
+
+                if (driverInfoEl) {
+                    if (representativeButton) {
+                        const driverName = representativeButton.dataset.driverName || driverNames[0] || '-';
+                        const driverEmail = representativeButton.dataset.driverEmail || '-';
+                        const driverPhoto = String(representativeButton.dataset.driverPhoto || '').trim();
+                        const driverAvatar = driverPhoto
+                            ? `<img src="${escapeHtmlText(driverPhoto)}" alt="${escapeHtmlText(driverName)}">`
+                            : escapeHtmlText((driverName.trim().charAt(0) || 'D').toUpperCase());
+
+                        driverInfoEl.style.display = '';
+                        driverInfoEl.innerHTML = `
+                            <div class="driver-payment-head">
+                                <span class="driver-payment-avatar">${driverAvatar}</span>
+                                <span class="driver-payment-meta">
+                                    <span class="driver-payment-name">${escapeHtmlText(driverName)}</span>
+                                    <span class="driver-payment-email">${escapeHtmlText(driverEmail)}</span>
+                                </span>
+                            </div>
+                            <div class="payment-paynow-body">
+                                <div class="trip-details-pairs">
+                                    <div class="request-modal-line">
+                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-building-columns"></i>Bank / Wallet</span>
+                                        <span class="request-modal-value">${escapeHtmlText(representativeButton.dataset.driverBank || '-')}</span>
+                                    </div>
+                                    <div class="request-modal-line">
+                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Account Holder</span>
+                                        <span class="request-modal-value">${escapeHtmlText(representativeButton.dataset.driverAccountName || '-')}</span>
+                                    </div>
+                                    <div class="request-modal-line">
+                                        <span class="request-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Account Number</span>
+                                        <span class="request-modal-value">${escapeHtmlText(representativeButton.dataset.driverAccountNumber || '-')}</span>
+                                    </div>
+                                </div>
+                                <div class="driver-payment-qr-single" data-qr-carousel>
+                                    <div class="driver-payment-qr-carousel-head">
+                                        <span class="driver-payment-qr-title"><i class="fa-solid fa-qrcode"></i> <span data-qr-title-text>DuitNow QR</span></span>
+                                        <span class="driver-payment-qr-dots">
+                                            <button type="button" class="qr-dot is-active" data-qr-index="0" aria-label="Show DuitNow QR"></button>
+                                            <button type="button" class="qr-dot" data-qr-index="1" aria-label="Show TnG eWallet QR"></button>
+                                        </span>
+                                    </div>
+                                    <div class="driver-payment-qr-carousel">
+                                        <div class="driver-payment-qr-track-wrap">
+                                            <div class="driver-payment-qr-track" data-qr-track>
+                                                <div class="driver-payment-qr-slide">
+                                                    <div class="driver-payment-qr-preview">${qrPreviewHtml(representativeButton.dataset.driverDuitnowQr, 'DuitNow QR')}</div>
+                                                </div>
+                                                <div class="driver-payment-qr-slide">
+                                                    <div class="driver-payment-qr-preview">${qrPreviewHtml(representativeButton.dataset.driverTngQr, 'TnG eWallet QR')}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        wireQrCarousel(driverInfoEl);
+                    } else {
+                        driverInfoEl.style.display = 'none';
+                        driverInfoEl.innerHTML = '';
+                    }
+                }
+
+                const gatewayEligible = !!representativeButton
+                    && representativeButton.dataset.toyyibpayEligible === '1'
+                    && !!window.CH_PAYMENTS?.toyyibPayConfigured;
+
+                if (tabsEl) {
+                    tabsEl.style.display = gatewayEligible ? '' : 'none';
+
+                    if (gatewayEligible) {
+                        const flatFee = Number(window.CH_PAYMENTS?.gatewayFeeFlatAmount || 1);
+                        const fee = Math.max(flatFee, totalSum * 0.01);
+                        const total = totalSum + fee;
+
+                        if (gatewaySummaryEl) {
+                            gatewaySummaryEl.innerHTML = `
+                                <div class="gateway-pay-row"><span>Fare total (${checkedItems.length})</span><strong>RM ${totalSum.toFixed(2)}</strong></div>
+                                <div class="gateway-pay-row"><span>ToyyibPay fee</span><strong>RM ${fee.toFixed(2)}</strong></div>
+                                <div class="gateway-pay-row gateway-pay-total"><span>Total to pay</span><strong>RM ${total.toFixed(2)}</strong></div>
+                            `;
+                        }
+                        if (gatewaySubmitBtn) gatewaySubmitBtn.textContent = `Pay RM ${total.toFixed(2)} via ToyyibPay`;
+                        if (gatewayHiddenInputsEl) {
+                            gatewayHiddenInputsEl.innerHTML = '';
+                            checkedItems.forEach(({ cb }) => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'payment_ids[]';
+                                input.value = cb.value;
+                                gatewayHiddenInputsEl.appendChild(input);
+                            });
+                        }
+                    }
+
+                    // Always reopen on the manual tab, regardless of eligibility.
+                    const bulkTabButtons = Array.from(tabsEl.querySelectorAll('.payment-method-tab'));
+                    bulkTabButtons.forEach((tabBtn) => tabBtn.classList.toggle('is-active', tabBtn.dataset.bulkTabTarget === 'manual'));
+                    bulkModal.querySelectorAll('[data-bulk-tab-panel]').forEach((panel) => {
+                        panel.hidden = panel.dataset.bulkTabPanel !== 'manual';
+                    });
+                }
             }
 
             bulkModal.classList.add('show');
@@ -1129,6 +1314,16 @@ window.isPaymentRowHidden = function (row) {
         }
         bulkModal.addEventListener('click', (e) => {
             if (e.target === bulkModal) closeBulkMarkPaidModal();
+        });
+
+        bulkModal.addEventListener('click', (e) => {
+            const tabBtn = e.target instanceof Element ? e.target.closest('[data-bulk-tab-target]') : null;
+            if (!tabBtn) return;
+
+            bulkModal.querySelectorAll('[data-bulk-tab-target]').forEach((btn) => btn.classList.toggle('is-active', btn === tabBtn));
+            bulkModal.querySelectorAll('[data-bulk-tab-panel]').forEach((panel) => {
+                panel.hidden = panel.dataset.bulkTabPanel !== tabBtn.dataset.bulkTabTarget;
+            });
         });
     }
 
@@ -2523,3 +2718,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.updatePaymentsVisibility === 'function') window.updatePaymentsVisibility();
     }, 150);
 });
+
+// After ToyyibPay redirects back (GatewayPaymentController::return), land back
+// on this same page and re-open the SAME popup showing a success state —
+// reuses the existing receipt modal wholesale rather than building a new one.
+(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('gateway') !== 'success') return;
+
+    const paymentId = params.get('trip_payment');
+    if (!paymentId) return;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const receiptBtn = document.querySelector(`.open-payment-receipt-btn[data-payment-id="${paymentId}"]`);
+            if (receiptBtn) receiptBtn.click();
+        }, 300);
+    });
+
+    // Strip the query params so a refresh/back-navigation doesn't re-open it.
+    const cleanUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, document.title, cleanUrl);
+})();

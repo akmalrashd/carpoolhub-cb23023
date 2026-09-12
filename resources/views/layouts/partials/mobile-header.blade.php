@@ -153,13 +153,13 @@
                                         <span class="bento-side-desc">Pre-define a route template.</span>
                                     </div>
                                 </a>
-                                <a href="{{ route('settings.index') }}" class="bento-side-item" data-bento-item data-keywords="payment account bank duitnow qr receive money wallet setup">
+                                <a href="{{ route('settings.index') }}" class="bento-side-item" data-bento-item data-keywords="payment account bank duitnow qr receive money wallet payout setup">
                                     <span class="bento-side-icon-circle">
                                         <i class="fa-solid fa-qrcode"></i>
                                     </span>
                                     <div class="bento-side-info">
-                                        <strong class="bento-side-name">Setup Wallet</strong>
-                                        <span class="bento-side-desc">Add bank or DuitNow payment details.</span>
+                                        <strong class="bento-side-name">Payout Details</strong>
+                                        <span class="bento-side-desc">Add your bank or DuitNow details for driver payouts.</span>
                                     </div>
                                 </a>
                             @endif
@@ -263,6 +263,12 @@
                     </div>
                 </a>
                 <div class="profile-dropdown-divider"></div>
+                @if(auth()->user()->role === 'driver')
+                    <a href="{{ route('wallet.index') }}" class="profile-menu-link">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span>Wallet</span>
+                    </a>
+                @endif
                 <a href="{{ route('profile.index') }}" class="profile-menu-link">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Settings</span>
