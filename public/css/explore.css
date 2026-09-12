@@ -345,8 +345,8 @@
             border: 2px solid #86efac;
         }
         .xp-timeline-dot.dest {
-            background: #1e293b;
-            border: 2px solid #94a3b8;
+            background: #2563eb;
+            border: 2px solid #93c5fd;
         }
         .xp-timeline-dot.custom {
             background: var(--ch-yellow-deep);
@@ -512,7 +512,7 @@
             background: #16a34a;
         }
         .xp-map-pin.destination {
-            background: #1e293b;
+            background: #2563eb;
         }
         .xp-map-popup {
             display: grid;
@@ -647,7 +647,7 @@
             flex-shrink: 0;
         }
         .xp-legend-dot.pickup      { background: #16a34a; }
-        .xp-legend-dot.destination { background: #1e293b; }
+        .xp-legend-dot.destination { background: #2563eb; }
         .xp-legend-dot.custom      { background: var(--ch-yellow-deep); }
 
         /* ── Pagination ────────────────────────────────────────────── */
@@ -821,8 +821,8 @@
             box-shadow: 0 0 0 4px #dcfce7;
         }
         .xp-modal-point-dot.dest {
-            background: #1e293b;
-            box-shadow: 0 0 0 4px #e2e8f0;
+            background: #2563eb;
+            box-shadow: 0 0 0 4px #dbeafe;
         }
         .xp-modal-point span {
             display: block;

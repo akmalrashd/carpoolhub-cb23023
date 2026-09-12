@@ -278,7 +278,7 @@
             z-index: 1;
         }
         .hp-trip-dot.pickup { background: var(--success); }
-        .hp-trip-dot.destination { background: var(--ink-3); }
+        .hp-trip-dot.destination { background: var(--info); }
         .hp-trip-point-label {
             display: block;
             color: var(--muted);
@@ -530,7 +530,7 @@
             z-index: 1;
         }
         .hp-pub-dot.pickup { background: var(--success); }
-        .hp-pub-dot.destination { background: var(--ink-3); }
+        .hp-pub-dot.destination { background: var(--info); }
         .hp-pub-point-label {
             display: block;
             color: var(--muted);

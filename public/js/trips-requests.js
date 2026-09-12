@@ -685,12 +685,8 @@
                             passengerCountEl.textContent = `${n} passengers`;
                         }
                     }
-                    if (pointALabelEl) {
-                        pointALabelEl.innerHTML = '<i class="fa-solid fa-location-dot"></i>Pickup Point';
-                    }
-                    if (pointBLabelEl) {
-                        pointBLabelEl.innerHTML = '<i class="fa-solid fa-flag-checkered"></i>Destination Point';
-                    }
+                    if (pointALabelEl) pointALabelEl.textContent = 'Pickup Point';
+                    if (pointBLabelEl) pointBLabelEl.textContent = 'Destination Point';
                     if (pickupPointEl) pickupPointEl.textContent = btn.dataset.pickupName || '-';
                     if (destinationPointEl) destinationPointEl.textContent = btn.dataset.destinationName || '-';
                     if (emailEl) {

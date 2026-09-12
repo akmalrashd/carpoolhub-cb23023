@@ -268,14 +268,20 @@
                         <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-road"></i>Route Name</span>
                         <span class="trip-modal-value" id="tripModalRouteName">-</span>
                     </div>
-                    <div class="trip-point-cards">
-                        <div class="trip-point-card pickup">
-                            <span class="trip-point-label" id="tripModalPointALabel"><i class="fa-solid fa-location-dot"></i>Pickup Point</span>
-                            <span class="trip-point-value" id="tripModalPickupPoint">-</span>
+                    <div class="trip-route-timeline">
+                        <div class="trip-route-point">
+                            <span class="trip-route-dot pickup"></span>
+                            <span class="trip-route-text">
+                                <span class="trip-route-label" id="tripModalPointALabel">Pickup Point</span>
+                                <span class="trip-route-value" id="tripModalPickupPoint">-</span>
+                            </span>
                         </div>
-                        <div class="trip-point-card destination">
-                            <span class="trip-point-label" id="tripModalPointBLabel"><i class="fa-solid fa-flag-checkered"></i>Destination Point</span>
-                            <span class="trip-point-value" id="tripModalDestinationPoint">-</span>
+                        <div class="trip-route-point">
+                            <span class="trip-route-dot destination"></span>
+                            <span class="trip-route-text">
+                                <span class="trip-route-label" id="tripModalPointBLabel">Destination Point</span>
+                                <span class="trip-route-value" id="tripModalDestinationPoint">-</span>
+                            </span>
                         </div>
                     </div>
                     <div class="trip-map-card">

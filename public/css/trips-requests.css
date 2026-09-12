@@ -432,46 +432,61 @@
             line-height: 1.2;
             word-break: break-word;
         }
-        .trip-point-cards {
+        /* Same clean dot-timeline the "My Trips" and Payments trip-details
+           modals use (trips.css / payments.css) — this page had its own
+           older boxed-card-with-icon version that never got unified with
+           the rest, and used a noticeably darker blue for the destination
+           label than the dot-timeline's var(--info). */
+        .trip-route-timeline {
             display: grid;
             gap: 7px;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            align-items: start;
         }
-        .trip-point-card {
-            border: 1px solid var(--hairline);
-            background: var(--surface-2);
-            border-radius: var(--r-sm);
-            padding: 8px 10px;
+        .trip-route-point {
+            position: relative;
             display: grid;
-            gap: 3px;
-            align-content: start;
-            min-height: 100%;
+            grid-template-columns: 14px minmax(0,1fr);
+            gap: 10px;
+            min-width: 0;
         }
-        .trip-point-card.pickup {
-            border-color: var(--success-soft);
-            background: var(--success-soft);
+        .trip-route-point:first-child::after {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 14px;
+            bottom: -9px;
+            border-left: 2px dashed var(--hairline-strong);
         }
-        .trip-point-card.destination {
-            border-color: var(--info-soft);
-            background: var(--info-soft);
+        .trip-route-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            margin-top: 2px;
+            border: 2px solid var(--surface);
+            box-shadow: 0 0 0 1px var(--hairline-strong);
+            position: relative;
+            z-index: 1;
         }
-        .trip-point-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .03em;
+        .trip-route-dot.pickup { background: var(--success); }
+        .trip-route-dot.destination { background: var(--info); }
+        .trip-route-text {
+            min-width: 0;
+        }
+        .trip-route-label {
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            color: var(--muted);
         }
-        .trip-point-card.pickup .trip-point-label { color: var(--success-ink); }
-        .trip-point-card.destination .trip-point-label { color: var(--info-ink); }
-        .trip-point-value {
-            color: var(--ink);
+        .trip-route-value {
+            display: block;
+            margin-top: 3px;
             font-size: 13px;
             font-weight: 700;
-            line-height: 1.3;
+            color: var(--ink);
             word-break: break-word;
         }
         .trip-map-card {
@@ -798,7 +813,6 @@
         }
         @media (max-width: 420px) {
             .trip-details-pairs { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-            .trip-point-cards { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         }
         @media (min-width: 768px) {
             .summary-metrics-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
