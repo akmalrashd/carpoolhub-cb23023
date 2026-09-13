@@ -9,7 +9,11 @@
       "Bash(grep -rn 'protected $hidden\\\\|protected $appends\\\\|protected $with' c:/xampp/htdocs/CarpoolHub/app/Models/User.php)",
       "Bash(bash -n deploy.sh)",
       "Bash(composer validate *)",
-      "Bash(php -r ' *)"
+      "Bash(php -r ' *)",
+      "Bash(rm -f \"C:/xampp/htdocs/CarpoolHub-Laravel/scripts\"/_tmp-*.mjs \"C:/xampp/htdocs/CarpoolHub-Laravel/scripts\"/_tmp-*.png)"
+    ],
+    "additionalDirectories": [
+      "C:\\xampp\\htdocs\\CarpoolHub-Laravel\\scripts"
     ]
   }
 }

@@ -3,6 +3,7 @@
     if (!CFG) return;
 
     const messagesEl = document.getElementById('chatMessages');
+    const messagesInnerEl = document.getElementById('chatMessagesInner');
     const form = document.getElementById('chatComposerForm');
     const input = document.getElementById('chatComposerInput');
     const sendBtn = document.getElementById('chatComposerSend');
@@ -23,7 +24,8 @@
         .replace(/'/g, '&#39;');
 
     const scrollToBottom = () => {
-        window.scrollTo({ top: document.body.scrollHeight });
+        if (!messagesEl) return;
+        messagesEl.scrollTop = messagesEl.scrollHeight;
     };
 
     // This app has no multi-timezone support — every viewer is assumed to
@@ -117,17 +119,17 @@
     }
 
     function appendMessage(message) {
-        if (!messagesEl || renderedIds.has(Number(message.id))) return;
+        if (!messagesInnerEl || renderedIds.has(Number(message.id))) return;
         renderedIds.add(Number(message.id));
         lastMessageId = Math.max(lastMessageId, Number(message.id));
 
         const dateKey = message.created_at ? dateKeyFor(message.created_at) : null;
         if (dateKey && dateKey !== lastDateKey) {
             lastDateKey = dateKey;
-            messagesEl.appendChild(buildDateSeparator(dateKey));
+            messagesInnerEl.appendChild(buildDateSeparator(dateKey));
         }
 
-        messagesEl.appendChild(buildBubble(message));
+        messagesInnerEl.appendChild(buildBubble(message));
         scrollToBottom();
         markReadIfVisible();
     }
@@ -262,6 +264,47 @@
         }
     }
     window.setInterval(poll, 25000);
+
+    // ── Trip Details / Manage Requests freshness ─────────────────────
+    // Neither popup has its own live channel — they're just read off the
+    // header trigger button's data-* attributes at the moment it's
+    // clicked. Quietly refreshing that dataset in the background (instead
+    // of touching trip-details-modal.js / trip-requests-modal.js, which
+    // are shared with trips/index.blade.php) is enough to make both
+    // popups reflect a join request, approval, or trip edit made
+    // elsewhere without the viewer reloading this page first.
+    const tripModalBtn = document.querySelector('.chat-thread-info.open-trip-modal-btn');
+    let tripModalRefreshInFlight = false;
+    async function refreshTripModalData() {
+        if (!CFG.tripModalRefreshUrl || !tripModalBtn || tripModalRefreshInFlight || document.visibilityState !== 'visible') return;
+        tripModalRefreshInFlight = true;
+        try {
+            const response = await fetch(CFG.tripModalRefreshUrl, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
+            if (!response.ok) return;
+            const payload = await response.json();
+            const data = payload.trip_modal_data;
+
+            if (!data) {
+                // The trip was cancelled/removed while this page was open —
+                // same "nothing left to show" state the initial page load
+                // handles by disabling the trigger entirely.
+                tripModalBtn.disabled = true;
+                return;
+            }
+
+            Object.entries(data).forEach(([key, value]) => {
+                tripModalBtn.dataset[key] = value ?? '';
+            });
+        } catch {
+            // silent — next tick tries again
+        } finally {
+            tripModalRefreshInFlight = false;
+        }
+    }
+    if (tripModalBtn) window.setInterval(refreshTripModalData, 20000);
 
     // ── Ably realtime ────────────────────────────────────────────────
     function initAbly() {

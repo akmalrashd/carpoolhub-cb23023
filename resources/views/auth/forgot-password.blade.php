@@ -76,7 +76,7 @@
 
                 <div class="login-card-header">
                     <h1 class="login-card-title">Forgot password?</h1>
-                    <p class="login-card-sub">No worries — enter your email and we'll send you a reset link.</p>
+                    <p class="login-card-sub">No worries, enter your email and we'll send you a reset link.</p>
                 </div>
 
                 {{-- Session status (e.g. reset link sent) --}}

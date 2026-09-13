@@ -80,7 +80,7 @@
                             <tr>
                                 <td style="padding-top:20px; padding-bottom:14px;">
                                     <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.6; color:#94A3B8;">
-                                        Didn't request this? You can safely ignore this email — your
+                                        Didn't request this? You can safely ignore this email, your
                                         password won't be changed.
                                     </p>
                                 </td>

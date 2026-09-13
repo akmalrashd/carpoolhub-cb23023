@@ -201,11 +201,11 @@
             Malaysian commuters and campus communities. Use it honestly, treat other
             drivers and passengers with respect, and don't post harmful or illegal
             content. Fares are agreed and paid <strong>directly between driver and
-            passenger</strong> (usually by DuitNow or Touch 'n Go bank transfer) — CarpoolHub
+            passenger</strong> (usually by DuitNow or Touch 'n Go bank transfer). CarpoolHub
             never processes, holds, or guarantees any payment, and is not a party to
             the arrangement between you and the other user. Drivers go through a
             one-time license and identity check before they can post trips. We remove
-            content and suspend or ban accounts that break these rules — especially
+            content and suspend or ban accounts that break these rules, especially
             for fraud, harassment, fake trips, or unsafe conduct. We don't sell your
             data, and you can delete your account at any time. This is a summary
             only; the full Terms below govern your use.
@@ -255,9 +255,9 @@
         <section class="legal-section" id="s2">
             <h2>2. Acceptance & Changes to the Terms</h2>
             <p>
-                By creating an account or using any part of the Service — including
+                By creating an account or using any part of the Service, including
                 posting or joining trips, the Explore search, the AI chat assistant,
-                payments tracking, Connections, or notifications — you confirm that
+                payments tracking, Connections, or notifications, you confirm that
                 you have read, understood, and agree to be bound by these Terms. If
                 you do not agree, do not use the Service.
             </p>
@@ -274,8 +274,8 @@
             <h2>3. Eligibility</h2>
             <p>
                 You must be at least 18 years old, or at least 13 years old with the
-                consent and awareness of a parent or guardian, to use CarpoolHub —
-                driving requires a valid Malaysian driving licence regardless of age.
+                consent and awareness of a parent or guardian, to use CarpoolHub.
+                Driving requires a valid Malaysian driving licence regardless of age.
                 By registering, you confirm that you meet this requirement. Posting
                 trips as a driver additionally requires a one-time verification of
                 your driving licence and identity (see section 6); riding as a
@@ -287,7 +287,7 @@
             <h2>4. Your Account</h2>
             <ul>
                 <li>You are responsible for keeping your login credentials confidential and for all activity under your account.</li>
-                <li>You agree to provide accurate, current information when registering — including your real name, a working contact method, and, if you register as a driver, your actual vehicle and licence details.</li>
+                <li>You agree to provide accurate, current information when registering, including your real name, a working contact method, and, if you register as a driver, your actual vehicle and licence details.</li>
                 <li>You must not share your account, or use another person's account, without their explicit permission.</li>
                 <li>You must not create multiple accounts to evade a suspension or ban; doing so will result in all related accounts being permanently banned.</li>
                 <li>We may suspend or terminate accounts that violate these Terms, at our reasonable discretion.</li>
@@ -298,17 +298,17 @@
             <h2>5. Features</h2>
             <p>CarpoolHub currently provides the following features. Features may be added, changed, or removed over time.</p>
             <ul>
-                <li><strong>Post & Join Trips</strong> — drivers post one-way or two-way trips with a route, schedule, seat limit, and fare; passengers request to join public trips or are added directly to private ones.</li>
-                <li><strong>Explore & Matching</strong> — search public trips by route, date, and seat availability, with trips ranked using a matching score based on route fit, timing, seats, fare, your Connections, and your trip history.</li>
-                <li><strong>Fare Splitting</strong> — the trip fare is split among confirmed passengers automatically, with an additional fee if a passenger requests a custom pickup or drop-off point that detours from the driver's route.</li>
-                <li><strong>Payments Tracking</strong> — a record-keeping tool for marking a fare as paid and letting the driver confirm or query it. CarpoolHub does not process the payment itself (see section 13).</li>
-                <li><strong>Attendance & Absence Records</strong> — drivers can mark a confirmed passenger absent (from shortly before departure onward) or remove them with a stated reason, building a reliability history for that passenger.</li>
-                <li><strong>Driver Verification</strong> — a one-time licence and identity check before a new driver's account is activated (see section 6).</li>
-                <li><strong>Passenger Risk Insights</strong> — an internal reliability indicator shown only to the trip's driver, computed from that passenger's own payment, cancellation, and attendance history (see section 10).</li>
-                <li><strong>AI Chat Assistant</strong> — a conversational assistant that can help draft a new trip or saved route, suggest a fare based on distance, and answer general questions about using the app.</li>
-                <li><strong>Connections</strong> — add other users as trusted contacts to see their trips more easily in Explore.</li>
-                <li><strong>Saved Routes</strong> — save a frequently-driven route for quicker trip creation.</li>
-                <li><strong>Notifications</strong> — in-app and optional push notifications about activity relevant to you (join requests, payment updates, trip changes).</li>
+                <li><strong>Post & Join Trips</strong>: drivers post one-way or two-way trips with a route, schedule, seat limit, and fare; passengers request to join public trips or are added directly to private ones.</li>
+                <li><strong>Explore & Matching</strong>: search public trips by route, date, and seat availability, with trips ranked using a matching score based on route fit, timing, seats, fare, your Connections, and your trip history.</li>
+                <li><strong>Fare Splitting</strong>: the trip fare is split among confirmed passengers automatically, with an additional fee if a passenger requests a custom pickup or drop-off point that detours from the driver's route.</li>
+                <li><strong>Payments Tracking</strong>: a record-keeping tool for marking a fare as paid and letting the driver confirm or query it. CarpoolHub does not process the payment itself (see section 13).</li>
+                <li><strong>Attendance & Absence Records</strong>: drivers can mark a confirmed passenger absent (from shortly before departure onward) or remove them with a stated reason, building a reliability history for that passenger.</li>
+                <li><strong>Driver Verification</strong>: a one-time licence and identity check before a new driver's account is activated (see section 6).</li>
+                <li><strong>Passenger Risk Insights</strong>: an internal reliability indicator shown only to the trip's driver, computed from that passenger's own payment, cancellation, and attendance history (see section 10).</li>
+                <li><strong>AI Chat Assistant</strong>: a conversational assistant that can help draft a new trip or saved route, suggest a fare based on distance, and answer general questions about using the app.</li>
+                <li><strong>Connections</strong>: add other users as trusted contacts to see their trips more easily in Explore.</li>
+                <li><strong>Saved Routes</strong>: save a frequently-driven route for quicker trip creation.</li>
+                <li><strong>Notifications</strong>: in-app and optional push notifications about activity relevant to you (join requests, payment updates, trip changes).</li>
             </ul>
         </section>
 
@@ -317,14 +317,14 @@
             <p>
                 To post trips as a driver, you must submit a photo of your driving
                 licence and a selfie holding that licence. Your account remains
-                inactive — unable to post or join any trip — until an administrator
+                inactive (unable to post or join any trip) until an administrator
                 has reviewed and approved this submission.
             </p>
             <ul>
                 <li>You must submit your own, genuine, current driving licence. Submitting someone else's licence, or a fraudulent or altered document, will result in a permanent ban.</li>
                 <li>You may not attempt to bypass, automate, or manipulate the verification review.</li>
                 <li>Your licence and selfie photos are used only for this one-time review and to resolve safety disputes; they are never shown to passengers or displayed publicly (see section 7).</li>
-                <li>Verification is a trust signal only, confirming you hold a valid licence and control the vehicle details on file — it is not a background check and does not guarantee a driver's conduct, and we may revoke it at any time if misuse is suspected or confirmed.</li>
+                <li>Verification is a trust signal only, confirming you hold a valid licence and control the vehicle details on file. It is not a background check and does not guarantee a driver's conduct, and we may revoke it at any time if misuse is suspected or confirmed.</li>
             </ul>
         </section>
 
@@ -336,7 +336,7 @@
                 them visible) your email and phone number. A driver you have an
                 approved seat with can additionally see your trip and payment status
                 for that trip. Your driving licence photo, selfie, and full payment
-                account details are never shown to other users — a driver's DuitNow /
+                account details are never shown to other users. A driver's DuitNow /
                 Touch 'n Go QR code is the only payment detail passengers see, and
                 only for trips they've joined. You can control what's visible to
                 others from your account settings at any time.
@@ -363,8 +363,8 @@
                 CarpoolHub connects drivers and passengers; it is not a party to any
                 trip, and does not itself provide transportation. We do not guarantee
                 a driver's punctuality, driving standard, or vehicle condition, nor a
-                passenger's attendance or payment. All arrangements — including the
-                agreed fare, pickup point, and schedule — are solely between the
+                passenger's attendance or payment. All arrangements, including the
+                agreed fare, pickup point, and schedule, are solely between the
                 driver and passenger.
             </p>
             <p>
@@ -380,12 +380,12 @@
             <p>
                 To help drivers make an informed decision when reviewing a join
                 request, CarpoolHub computes an internal reliability indicator for
-                each passenger from their own history on the Service — payment
+                each passenger from their own history on the Service: payment
                 reliability, cancelled requests, and marked absences. This indicator:
             </p>
             <ul>
                 <li>Is shown only to the driver of the specific trip being requested, never publicly or to the passenger themselves.</li>
-                <li>Is a decision-support signal, not a determination of fault or an accusation — a low score does not mean a rule was broken, only that the underlying history suggests caution.</li>
+                <li>Is a decision-support signal, not a determination of fault or an accusation. A low score does not mean a rule was broken, only that the underlying history suggests caution.</li>
                 <li>Carries no monetary value, is not a credit score, and is not shared with any party outside CarpoolHub.</li>
                 <li>Is recalculated as your history changes, and is not retained after your account is deleted.</li>
             </ul>
@@ -394,7 +394,7 @@
         <section class="legal-section" id="s11">
             <h2>11. Enforcement & Account Suspension</h2>
             <p>
-                Violations — whether reported by users or identified by us — may lead
+                Violations, whether reported by users or identified by us, may lead
                 to the following actions, applied at our reasonable discretion based
                 on the severity and frequency of the violation:
             </p>
@@ -437,13 +437,13 @@
         <section class="legal-section" id="s13">
             <h2>13. Fares & Payments</h2>
             <p>
-                CarpoolHub is free to use — there is no subscription or fee to create
+                CarpoolHub is free to use. There is no subscription or fee to create
                 an account, post a trip, or join one.
             </p>
             <ul>
                 <li>Fares are set by the driver and split among passengers by the app; the agreed amount is payable <strong>directly to the driver</strong>, typically by DuitNow or Touch 'n Go e-wallet bank transfer, using the payment details the driver has added to their own profile.</li>
                 <li>CarpoolHub does not process, transmit, or hold any funds, is not a payment institution, and is not a party to the payment. We only let a passenger mark a fare as paid and a driver confirm or query it, for both parties' record-keeping.</li>
-                <li>Because we never touch the funds, we cannot issue a refund. A payment dispute — non-payment, a wrong amount, or a disagreement over a paid fare — is between the driver and passenger; CarpoolHub may assist by sharing the in-app record of what was marked, but cannot compel or reverse a bank transfer.</li>
+                <li>Because we never touch the funds, we cannot issue a refund. A payment dispute (non-payment, a wrong amount, or a disagreement over a paid fare) is between the driver and passenger; CarpoolHub may assist by sharing the in-app record of what was marked, but cannot compel or reverse a bank transfer.</li>
                 <li>Suspension or a ban does not entitle you to anything from CarpoolHub in connection with a fare, since no fare is ever paid to us.</li>
             </ul>
         </section>
@@ -501,7 +501,7 @@
                 To the maximum extent permitted by Malaysian law, Prsdnt Worldwide
                 shall not be liable for any indirect, incidental, special, or
                 consequential damages arising from your use of, or inability to use,
-                the Service — including losses arising from a ride, a payment
+                the Service, including losses arising from a ride, a payment
                 dispute between users, a driver's or passenger's conduct, or an
                 accident. Nothing in these Terms excludes or limits liability that
                 cannot be excluded or limited under applicable law.
@@ -574,23 +574,23 @@
 
             <h3>What We Collect</h3>
             <ul>
-                <li><strong>Account data</strong> — your name, email, phone number, and profile photo, used to create and manage your account.</li>
-                <li><strong>Trip data</strong> — pickup and destination points, schedule, seat count, fare, and trip notes you create or join.</li>
-                <li><strong>Driver verification data</strong> — your vehicle model and plate number, and (for drivers) a photo of your driving licence and a selfie holding it, submitted for the one-time review in section 6 of the Terms. These photos are only visible to administrators reviewing your application, and are never shown to passengers or displayed publicly.</li>
-                <li><strong>Payment record data</strong> — the fare amount, payment status (unpaid, marked paid, confirmed), and, for drivers, the bank account name/number and DuitNow/Touch 'n Go QR image you choose to add so passengers can pay you directly. We do not process any payment or hold any funds — see section 13 of the Terms.</li>
-                <li><strong>Connections data</strong> — the contacts you add and their response, used to operate the Connections feature.</li>
-                <li><strong>AI assistant data</strong> — messages you send to the in-app AI assistant, used to draft trips, suggest fares, and answer your questions. These messages are processed by our AI provider (see Third-Party Services below) solely to generate a response.</li>
-                <li><strong>Notification data</strong> — if you enable push notifications, your browser/device push subscription token, removed when you disable notifications or delete your account.</li>
-                <li><strong>Usage & device data</strong> — pages visited, features used, session timestamps, and technical information such as IP address and browser type from server logs, used to run the Service securely and diagnose issues.</li>
-                <li><strong>Support & reports</strong> — the content of reports, appeals, and support requests you send, so we can respond and keep records.</li>
+                <li><strong>Account data</strong>: your name, email, phone number, and profile photo, used to create and manage your account.</li>
+                <li><strong>Trip data</strong>: pickup and destination points, schedule, seat count, fare, and trip notes you create or join.</li>
+                <li><strong>Driver verification data</strong>: your vehicle model and plate number, and (for drivers) a photo of your driving licence and a selfie holding it, submitted for the one-time review in section 6 of the Terms. These photos are only visible to administrators reviewing your application, and are never shown to passengers or displayed publicly.</li>
+                <li><strong>Payment record data</strong>: the fare amount, payment status (unpaid, marked paid, confirmed), and, for drivers, the bank account name/number and DuitNow/Touch 'n Go QR image you choose to add so passengers can pay you directly. We do not process any payment or hold any funds (see section 13 of the Terms).</li>
+                <li><strong>Connections data</strong>: the contacts you add and their response, used to operate the Connections feature.</li>
+                <li><strong>AI assistant data</strong>: messages you send to the in-app AI assistant, used to draft trips, suggest fares, and answer your questions. These messages are processed by our AI provider (see Third-Party Services below) solely to generate a response.</li>
+                <li><strong>Notification data</strong>: if you enable push notifications, your browser/device push subscription token, removed when you disable notifications or delete your account.</li>
+                <li><strong>Usage & device data</strong>: pages visited, features used, session timestamps, and technical information such as IP address and browser type from server logs, used to run the Service securely and diagnose issues.</li>
+                <li><strong>Support & reports</strong>: the content of reports, appeals, and support requests you send, so we can respond and keep records.</li>
             </ul>
             <p>We do not collect identity card (IC/NRIC) numbers, passport details, or banking passwords/credentials.</p>
 
             <h3>How We Use Your Data</h3>
             <ul>
-                <li>To provide and personalise your experience — trip matching, fare suggestions, and the AI assistant.</li>
+                <li>To provide and personalise your experience: trip matching, fare suggestions, and the AI assistant.</li>
                 <li>To operate driver verification and keep the community safe.</li>
-                <li>To send account-related messages — join-request updates, payment status changes, and important service notices.</li>
+                <li>To send account-related messages: join-request updates, payment status changes, and important service notices.</li>
                 <li>To analyse usage, measure feature adoption, and fix issues.</li>
                 <li>To detect, prevent, and investigate fraud, fake trips, and abuse.</li>
                 <li>To comply with legal obligations and respond to lawful requests.</li>
@@ -613,8 +613,8 @@
 
             <h3>Third-Party Services</h3>
             <ul>
-                <li><strong>Anthropic (Claude)</strong> — powers the in-app AI chat assistant. Messages you send it are processed to generate a reply; see Anthropic's own privacy policy for how they handle API data.</li>
-                <li><strong>Hostinger</strong> — our hosting provider, storing the Service's database and files.</li>
+                <li><strong>Anthropic (Claude)</strong>: powers the in-app AI chat assistant. Messages you send it are processed to generate a reply; see Anthropic's own privacy policy for how they handle API data.</li>
+                <li><strong>Hostinger</strong>: our hosting provider, storing the Service's database and files.</li>
             </ul>
 
             <h3>Data Retention</h3>
@@ -630,7 +630,7 @@
             <h3>Data Storage & Security</h3>
             <p>
                 Communication between your device and our servers is encrypted using
-                HTTPS (TLS), and passwords are hashed — we never store them in plain
+                HTTPS (TLS), and passwords are hashed, we never store them in plain
                 text. We apply reasonable security measures, including access
                 controls on driver verification documents. No system can guarantee
                 absolute security; please use a strong, unique password and contact
@@ -641,10 +641,10 @@
             <h3>Your Rights & Account Deletion (PDPA 2010)</h3>
             <p>Under Malaysia's Personal Data Protection Act 2010, you have the right to:</p>
             <ul>
-                <li><strong>Access</strong> — request a copy of the personal data we hold about you.</li>
-                <li><strong>Correction</strong> — ask us to update inaccurate or outdated information.</li>
-                <li><strong>Withdraw consent</strong> — stop us from processing your data (this may limit your ability to use certain features).</li>
-                <li><strong>Account & data deletion</strong> — request deletion of your account and associated personal data.</li>
+                <li><strong>Access</strong>: request a copy of the personal data we hold about you.</li>
+                <li><strong>Correction</strong>: ask us to update inaccurate or outdated information.</li>
+                <li><strong>Withdraw consent</strong>: stop us from processing your data (this may limit your ability to use certain features).</li>
+                <li><strong>Account & data deletion</strong>: request deletion of your account and associated personal data.</li>
             </ul>
             <p>
                 To exercise any of these rights, email legal@prsdntworldwide.com with

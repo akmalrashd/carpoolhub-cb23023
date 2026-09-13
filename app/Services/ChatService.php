@@ -27,6 +27,9 @@ use Illuminate\Validation\ValidationException;
  */
 class ChatService
 {
+    /** Below this many days left before a conversation closes, the payment reminder switches to "closes soon" copy. */
+    private const PAYMENT_REMINDER_FINAL_NOTICE_WITHIN_DAYS = 3;
+
     public function syncParticipants(Trip $trip): ?Conversation
     {
         if ($trip->visibility !== 'public') {
@@ -50,6 +53,10 @@ class ChatService
                 ['trip_id' => $trip->id],
                 $this->buildConversationAttributes($trip)
             );
+
+            if ($conversation->wasRecentlyCreated) {
+                $this->postHexaWelcome($conversation);
+            }
 
             $existing = ConversationParticipant::query()
                 ->where('conversation_id', $conversation->id)
@@ -132,6 +139,7 @@ class ChatService
 
         return DB::transaction(function () use ($trip, $driver, $memberIds): Conversation {
             $conversation = Conversation::create($this->buildConversationAttributes($trip));
+            $this->postHexaWelcome($conversation);
 
             ConversationParticipant::create([
                 'conversation_id' => $conversation->id,
@@ -254,12 +262,57 @@ class ChatService
         return $message;
     }
 
+    /**
+     * One-time, per conversation — safety/rules framing for scam prevention
+     * (verify the real driver via the car icon next to their name, agree on
+     * pay-now-vs-pay-later directly with them) posted as soon as a
+     * conversation exists, before any join/group-started system message.
+     */
+    public function postHexaWelcome(Conversation $conversation): Message
+    {
+        return $this->postBotMessage($conversation, <<<'TEXT'
+        Hi, I'm Hexa 👋 A few quick safety tips for this chat:
+        • Keep pickup details and payment arrangements inside this chat. Never deal with anyone who contacts you outside the app.
+        • Your driver's name always has a small car icon 🚗 next to it here. Before you pay or share details, make sure you're really talking to them.
+        • Agree with your driver whether you're paying before or after the ride, and keep a screenshot or receipt either way.
+        • Double-check that the car and plate number match what's shown in the app before you get in. Your safety is ultimately your own responsibility, since CarpoolHub only provides the platform connecting drivers and passengers and isn't liable for the actions of other users.
+        • This chat closes automatically a while after the trip ends, so sort out anything important before then.
+        Have a safe trip!
+        TEXT, Message::TYPE_BOT);
+    }
+
+    /**
+     * Recurring nudge, named passengers and all — their payment status is
+     * already visible to the driver on the Payments page, so naming them
+     * here adds no new privacy exposure. See SendChatPaymentReminder for the
+     * daily trigger/cooldown.
+     *
+     * @param  \Illuminate\Support\Collection<int, \App\Models\TripPayment>  $outstanding
+     */
+    public function postPaymentReminder(Conversation $conversation, \Illuminate\Support\Collection $outstanding, int $daysUntilClose): Message
+    {
+        $names = $outstanding->pluck('user.name')->filter()->unique()->implode(', ');
+        $total = number_format((float) $outstanding->sum('amount_due'), 2);
+        $verb = $outstanding->pluck('user_id')->unique()->count() === 1 ? 'has' : 'have';
+
+        $body = $daysUntilClose <= self::PAYMENT_REMINDER_FINAL_NOTICE_WITHIN_DAYS
+            ? "Hi, it's Hexa. This chat closes in {$daysUntilClose} day(s) and {$names} still {$verb} an outstanding payment for this trip (RM{$total} total). Please settle up before the chat closes."
+            : "Hi, it's Hexa again. {$names} still {$verb} an outstanding payment for this trip (RM{$total} total). Please settle up with your driver soon.";
+
+        return $this->postBotMessage($conversation, $body, Message::TYPE_PAYMENT_REMINDER);
+    }
+
     private function postSystemMessage(Conversation $conversation, string $body): Message
+    {
+        return $this->postBotMessage($conversation, $body, Message::TYPE_SYSTEM);
+    }
+
+    private function postBotMessage(Conversation $conversation, string $body, string $type): Message
     {
         $message = Message::create([
             'conversation_id' => $conversation->id,
             'sender_id' => null,
-            'type' => Message::TYPE_SYSTEM,
+            'type' => $type,
             'body' => $body,
             'created_at' => now(),
         ]);

@@ -55,7 +55,7 @@
                             <div class="dac-meta">{{ $withdrawal->user?->email }}</div>
                             <div class="dac-meta" style="margin-top:1px;">
                                 <i class="fa-solid fa-building-columns" style="font-size:10px;opacity:.6;margin-right:3px;"></i>
-                                {{ $withdrawal->destination_bank_name }} — {{ $withdrawal->destination_account_name }} ({{ $withdrawal->destination_account_number }})
+                                {{ $withdrawal->destination_bank_name }} · {{ $withdrawal->destination_account_name }} ({{ $withdrawal->destination_account_number }})
                             </div>
                         </div>
                     </div>

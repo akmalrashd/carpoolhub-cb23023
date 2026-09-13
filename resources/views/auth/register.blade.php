@@ -46,7 +46,7 @@
 
             <p class="brand-tagline">
                 Create a free account and start splitting fares, matching
-                routes, and riding with verified drivers — all in one app.
+                routes, and riding with verified drivers, all in one app.
             </p>
 
             <ul class="brand-features">
@@ -353,7 +353,7 @@
                                         >
                                     </label>
                                 </div>
-                                <span class="file-upload-hint">Image only — JPG, PNG, or WEBP · Max 4MB</span>
+                                <span class="file-upload-hint">Image only · JPG, PNG, or WEBP · Max 4MB</span>
                                 <span class="field-error" id="license-client-error" hidden>
                                     <i class="fa-solid fa-triangle-exclamation"></i>
                                     <span></span>
@@ -385,7 +385,7 @@
                                         >
                                     </label>
                                 </div>
-                                <span class="file-upload-hint">Image only — JPG, PNG, or WEBP · Max 5MB</span>
+                                <span class="file-upload-hint">Image only · JPG, PNG, or WEBP · Max 5MB</span>
                                 <span class="field-error" id="selfie-client-error" hidden>
                                     <i class="fa-solid fa-triangle-exclamation"></i>
                                     <span></span>

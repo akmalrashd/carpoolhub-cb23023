@@ -110,7 +110,7 @@
                 @empty
                     <div class="xs2-empty-state">
                         <i class="fa-regular fa-clock"></i>
-                        <p>No recent searches yet — try searching a destination above.</p>
+                        <p>No recent searches yet. Try searching a destination above.</p>
                     </div>
                 @endforelse
             </div>
@@ -128,7 +128,7 @@
                 @empty
                     <div class="xs2-empty-state">
                         <i class="fa-solid fa-compass"></i>
-                        <p>No suggested destinations yet — check back once more trips are posted.</p>
+                        <p>No suggested destinations yet. Check back once more trips are posted.</p>
                     </div>
                 @endforelse
             </div>

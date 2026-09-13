@@ -165,8 +165,8 @@ const aiChat = (() => {
     // Escaped because WELCOME is handed to addBubbleHtml(), which assigns it via
     // innerHTML — a display name containing markup would otherwise execute.
     const WELCOME = {
-        ms: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 Saya Hexa — apa yang boleh saya bantu hari ni?`,
-        en: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 I'm Hexa — what can I help you with today?`,
+        ms: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 Saya Hexa, apa yang boleh saya bantu hari ni?`,
+        en: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 I'm Hexa, what can I help you with today?`,
     };
 
     const PLACEHOLDER = { ms: 'Taip mesej...', en: 'Type a message...' };

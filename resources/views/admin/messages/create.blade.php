@@ -12,7 +12,7 @@
 <div>
     <p class="au-eyebrow">Admin Panel</p>
     <h1 class="au-title">Message Users</h1>
-    <p class="au-sub">Notify one user, everyone with a given role, or the whole platform — delivered through each recipient's existing in-app/push/Telegram notifications.</p>
+    <p class="au-sub">Notify one user, everyone with a given role, or the whole platform. Delivered through each recipient's existing in-app/push/Telegram notifications.</p>
 </div>
 
 @include('layouts.partials.admin-subnav')

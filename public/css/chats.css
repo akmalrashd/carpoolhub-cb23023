@@ -34,6 +34,7 @@
 /* ── List page ── */
 .chat-list {
     display: grid;
+    align-content: start;
     gap: 10px;
     min-width: 0;
 }
@@ -54,6 +55,43 @@
 .chat-row.is-unread {
     background: var(--ch-yellow-tint);
     border-color: var(--ch-yellow-line);
+}
+
+.chat-row-hidden {
+    display: none;
+}
+
+/* Desktop split-view only — the thread currently open in the right pane. */
+.chat-row.is-active {
+    border-color: var(--ch-yellow);
+    border-width: 2px;
+    padding: 13px;
+}
+
+.chat-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.chat-search input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: none;
+    outline: none;
+    font: inherit;
+    color: var(--ink);
+}
+
+.chat-search input::placeholder {
+    color: var(--muted);
 }
 
 /* 2x2-ish cluster: a bigger top-left avatar plus up to two more, with a
@@ -202,6 +240,95 @@
     color: var(--danger);
 }
 
+/* ── Split view (list + thread side by side) ──
+   Mobile: only one pane at a time — chats/index.blade.php shows just the
+   list (.chat-split-empty and .chat-split-thread never render there
+   anyway), chats/show.blade.php shows just the thread full-screen (the
+   list pane exists in the DOM for the desktop layout below, so it's
+   explicitly hidden here rather than left to flow underneath).
+   Desktop (>=1024px): both panes side by side, list on the left. */
+.chat-split-empty {
+    display: none;
+}
+
+body:has(.chat-thread-page) .chat-split-list {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    body:has(.chat-split) .main-content {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .chat-split {
+        display: grid;
+        grid-template-columns: 460px 1fr;
+        grid-template-rows: 100%;
+        height: calc(100vh - var(--desktop-topbar-h));
+    }
+
+    .chat-split-list {
+        display: block !important;
+        border-right: 1px solid var(--hairline);
+        background: var(--surface);
+        height: 100%;
+        overflow: hidden;
+    }
+
+    /* Title + search stay put; only the row list itself scrolls, not the
+       whole pane from the top. */
+    .chat-split-list .chat-page {
+        max-width: none;
+        height: 100%;
+        padding: 20px 16px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow: hidden;
+    }
+
+    .chat-split-list .chat-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding-bottom: 20px;
+    }
+
+    .chat-split-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background: var(--canvas);
+    }
+
+    .chat-split-thread {
+        height: 100%;
+        min-width: 0;
+    }
+
+    .chat-split-thread .chat-thread-page {
+        max-width: none;
+        margin: 0;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .chat-split-thread .chat-thread-freeze {
+        position: static;
+    }
+
+    .chat-split-thread .chat-thread-messages {
+        overflow-y: auto;
+    }
+
+    .chat-split-thread .chat-composer,
+    .chat-split-thread .chat-composer-locked {
+        position: static;
+    }
+}
+
 /* ── Thread page ── */
 .chat-thread-page {
     max-width: 640px;
@@ -210,6 +337,12 @@
     min-height: calc(100dvh - var(--mobile-header-h) - var(--bottom-nav-h) - env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
+    /* Opaque so the site's ambient bg-pattern layer (fixed behind every
+       page) never shows through the message list — this was always missing
+       on desktop specifically (the mobile fixed-overlay rule below already
+       sets it) but stayed invisible while .chat-thread-messages' overflow
+       bug kept the pane from ever rendering as a clean bounded box. */
+    background: var(--surface);
 }
 
 /* Header + notice banner stick together as one frozen block, so the
@@ -307,12 +440,15 @@
 }
 
 .chat-thread-sub {
+    /* Wraps instead of truncating — this line can carry the driver's
+       vehicle plate/model, which is safety-critical (see the Hexa welcome
+       message's "check the plate matches" tip) and must never be hidden
+       behind an ellipsis. */
     display: block;
     font-size: 11px;
     color: var(--muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 1.4;
 }
 
 .chat-thread-invite-btn {
@@ -428,9 +564,20 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    gap: 10px;
     padding: 16px 16px 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+}
+
+/* margin-top:auto pins a short conversation to the bottom (collapses to 0,
+   rather than going negative, once content overflows) — see the comment in
+   chats/show.blade.php for why this replaced justify-content:flex-end. */
+.chat-thread-messages-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
 }
 
 .chat-date-separator {
@@ -485,6 +632,76 @@
     color: var(--muted);
     margin-left: 3px;
     vertical-align: 1px;
+}
+
+.chat-bubble-avatar-hexa {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--ch-yellow);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-bubble-sender-hexa {
+    color: var(--ch-yellow-ink);
+}
+
+.chat-bubble-hexa {
+    background: var(--ch-yellow-tint);
+    border: 1px solid var(--ch-yellow-line);
+}
+
+.chat-bubble-hexa p,
+.chat-bubble-hexa-list {
+    margin: 0 0 8px;
+}
+
+.chat-bubble-hexa > *:last-child {
+    margin-bottom: 0;
+}
+
+.chat-bubble-hexa-list {
+    /* app.css resets all ul/ol to list-style:none app-wide — restored here
+       since, unlike the rest of the app, this list genuinely wants a native
+       marker with correct hanging indent for wrapped lines. */
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.chat-bubble-hexa-list li {
+    margin-bottom: 6px;
+}
+
+.chat-bubble-hexa-list li:last-child {
+    margin-bottom: 0;
+}
+
+.chat-bubble-hexa-icon {
+    font-size: 15px;
+    color: var(--ch-yellow-ink);
+    margin: 0 2px;
+    vertical-align: -1px;
+}
+
+.chat-bubble-hexa-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-self: start;
+    margin-top: 2px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    background: var(--success);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.chat-bubble-hexa-cta-arrow {
+    font-size: 10px;
 }
 
 .chat-bubble {
@@ -718,12 +935,3 @@
     }
 }
 
-@media (min-width: 1024px) {
-    .chat-thread-freeze {
-        top: var(--desktop-topbar-h);
-    }
-
-    .chat-composer {
-        bottom: 0;
-    }
-}

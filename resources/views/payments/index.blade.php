@@ -770,6 +770,7 @@
                                             data-action="{{ route('payments.mark-paid', $payment) }}"
                                             data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
                                             data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"
+                                            data-trip-id="{{ $payment->trip_id }}"
                                             data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                             data-route="{{ $routeLabel }}"
                                             data-amount="{{ number_format((float) $payment->amount_due, 2) }}"
@@ -1177,6 +1178,7 @@
                                                 data-action="{{ route('payments.mark-paid', $payment) }}"
                                                 data-passenger="{{ $payment->user?->name ?: auth()->user()->name }}"
                                                 data-initials="{{ $paymentInitials($payment->user?->name ?: auth()->user()->name) }}"
+                                                data-trip-id="{{ $payment->trip_id }}"
                                                 data-trip="{{ $payment->trip?->trip_ref ?: 'TRP-' . str_pad($payment->trip_id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-route="{{ $routeLabel }}"
                                                 data-amount="{{ number_format((float) $payment->amount_due, 2) }}"
@@ -2377,7 +2379,7 @@
 
                 <div class="payment-method-tab-panel" data-bulk-tab-panel="gateway" hidden>
                     <div class="gateway-pay-summary" id="bulkGatewaySummary"></div>
-                    <p class="gateway-pay-note"><i class="fa-solid fa-circle-info"></i> You'll be taken to ToyyibPay's secure checkout (Online Banking / DuitNow QR). Once payment succeeds, every selected payment is confirmed automatically — no driver approval needed.</p>
+                    <p class="gateway-pay-note"><i class="fa-solid fa-circle-info"></i> You'll be taken to ToyyibPay's secure checkout (Online Banking / DuitNow QR). Once payment succeeds, every selected payment is confirmed automatically, no driver approval needed.</p>
                     <form method="POST" action="{{ route('payments.gateway.pay-bulk') }}" id="bulkGatewayForm" class="trip-paynow-gateway-form">
                         @csrf
                         <div id="bulkGatewayHiddenInputs"></div>

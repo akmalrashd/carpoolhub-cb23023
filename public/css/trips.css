@@ -655,6 +655,29 @@
             font-weight: 900;
             white-space: nowrap;
         }
+        /* .is-pending keeps the yellow base above (awaiting action, same
+           attention colour used everywhere else in this app). */
+        .trip-payment-review-status.is-approved {
+            border-color: var(--success);
+            background: var(--success-soft);
+            color: var(--success-ink);
+        }
+        .trip-payment-review-status.is-removed,
+        .trip-payment-review-status.is-rejected {
+            border-color: var(--danger);
+            background: var(--danger-soft);
+            color: var(--danger-ink);
+        }
+        .trip-payment-review-status.is-absent {
+            border-color: #fde68a;
+            background: #fffbeb;
+            color: #92400e;
+        }
+        .trip-payment-review-status.is-cancelled {
+            border-color: var(--hairline-strong);
+            background: var(--surface-2);
+            color: var(--muted);
+        }
         .trip-payment-review-amount {
             border-radius: 10px;
             background: var(--surface-2);

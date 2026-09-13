@@ -11,7 +11,7 @@
 <div>
     <p class="au-eyebrow">Admin Panel</p>
     <h1 class="au-title">Conversations</h1>
-    <p class="au-sub">Read-only — open any trip chat to investigate a dispute or safety report. Nothing here can be edited or deleted.</p>
+    <p class="au-sub">Read-only. Open any trip chat to investigate a dispute or safety report. Nothing here can be edited or deleted.</p>
 </div>
 
 @include('layouts.partials.admin-subnav')

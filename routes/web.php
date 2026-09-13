@@ -233,6 +233,9 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
         Route::get('/trips/{trip}/status', [RefreshController::class, 'tripStatus'])->name('refresh.trips.status');
         Route::get('/payments/summary', [RefreshController::class, 'paymentsSummary'])->name('refresh.payments.summary');
         Route::get('/chats/{conversation}/messages', [RefreshController::class, 'chatMessages'])->name('refresh.chats.messages');
+        Route::get('/chats/list', [RefreshController::class, 'chatList'])->name('refresh.chats.list');
+        Route::get('/chats/{conversation}/row', [RefreshController::class, 'chatRow'])->name('refresh.chats.row');
+        Route::get('/chats/{conversation}/trip-modal', [ChatController::class, 'tripModalRefresh'])->name('refresh.chats.trip-modal');
     });
 
     Route::prefix('/admin')->middleware('role:admin')->group(function (): void {

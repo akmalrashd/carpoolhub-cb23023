@@ -262,7 +262,7 @@
                     {{-- Hidden Avatar Input triggered by Hero Avatar Camera button --}}
                     <input type="file" name="profile_photo" id="avatarFileInput" accept="image/*" class="sr-only" onchange="previewAvatar(this)">
                     <p class="avatar-pending-hint" id="avatarPendingHint" hidden>
-                        <i class="fa-solid fa-circle-info"></i> New photo selected — click <strong>Save Profile Details</strong> below to apply it.
+                        <i class="fa-solid fa-circle-info"></i> New photo selected, click <strong>Save Profile Details</strong> below to apply it.
                     </p>
                     @error('profile_photo')
                         <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
@@ -331,7 +331,7 @@
                                 @error('phone')
                                     <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span>
                                 @enderror
-                                <span class="field-hint">Used for trip coordination — visibility controls who else on CarpoolHub can see it.</span>
+                                <span class="field-hint">Used for trip coordination. Visibility controls who else on CarpoolHub can see it.</span>
 
                                 <span class="form-label" style="display:block;margin-top:12px;">Phone visibility to other members</span>
                                 <div class="quick-switch" role="radiogroup" aria-label="Who can see your phone number">
@@ -370,7 +370,7 @@
                                 @if($user->driver_verification_status === 'rejected' && $user->driver_verification_reason)
                                     <div class="settings-alert error">
                                         <i class="fa-solid fa-triangle-exclamation"></i>
-                                        <span><strong>Application rejected:</strong> {{ $user->driver_verification_reason }} — update your details below and save to resubmit.</span>
+                                        <span><strong>Application rejected:</strong> {{ $user->driver_verification_reason }}. Update your details below and save to resubmit.</span>
                                     </div>
                                 @endif
 
@@ -405,7 +405,7 @@
                                 {{-- Driver Verification Documents — editable; resubmitting sends the account back for review (see SettingsService::updateProfile). --}}
                                 <div>
                                     <label class="form-label">Required Document Status</label>
-                                    <p class="field-hint" style="margin:2px 0 10px;">Uploading a new license or selfie sends your account back for admin review — you'll be notified once it's checked again.</p>
+                                    <p class="field-hint" style="margin:2px 0 10px;">Uploading a new license or selfie sends your account back for admin review. You'll be notified once it's checked again.</p>
 
                                     <div class="doc-status-list">
                                         {{-- License Photo --}}
@@ -624,7 +624,7 @@
                             @if($user->google_id)
                                 Signed in with Google via {{ $user->email }}.
                             @else
-                                Faster login — must match this account's email ({{ $user->email }}).
+                                Faster login, must match this account's email ({{ $user->email }}).
                             @endif
                         </div>
                     </div>
@@ -683,7 +683,7 @@
                         </div>
 
                         <div class="form-actions">
-                            <span class="form-note-inline"><i class="fa-solid fa-circle-info"></i> Signs you out of every other device — this one stays signed in.</span>
+                            <span class="form-note-inline"><i class="fa-solid fa-circle-info"></i> Signs you out of every other device. This one stays signed in.</span>
                             <button type="submit" class="btn-submit-yellow">
                                 <i class="fa-solid fa-shield-halved"></i>
                                 Update Password
@@ -741,7 +741,7 @@
                                 <div class="channel-row-desc">Reliable, instant alerts on any device.</div>
                                 <ul class="channel-perk-list">
                                     <li><i class="fa-solid fa-bolt"></i> Works on phone &amp; desktop</li>
-                                    <li><i class="fa-solid fa-mobile-screen-button"></i> Opens as a Mini App — no login needed</li>
+                                    <li><i class="fa-solid fa-mobile-screen-button"></i> Opens as a Mini App, no login needed</li>
                                 </ul>
                             @else
                                 <div class="channel-row-desc">Telegram isn't set up on this server yet.</div>

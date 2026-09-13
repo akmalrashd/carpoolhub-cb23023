@@ -588,7 +588,7 @@
             <div class="eu-field">
                 <label class="eu-label" for="rj-reason">Reason</label>
                 <textarea id="rj-reason" name="reason" class="eu-select" rows="4"
-                    placeholder="e.g. License photo is blurry — please re-upload a clearer photo." required></textarea>
+                    placeholder="e.g. License photo is blurry, please re-upload a clearer photo." required></textarea>
             </div>
             <button type="submit" class="lr-reject-btn" style="width:100%; justify-content:center;">
                 <i class="fa-solid fa-circle-xmark"></i> Confirm Rejection

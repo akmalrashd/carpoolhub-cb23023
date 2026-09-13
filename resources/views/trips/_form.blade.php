@@ -88,7 +88,7 @@
                 </button>
             </li>
         </ol>
-        <p class="tf-wizard-step-caption" id="tripWizardStepCaption">Step 1 of 5 — Saved Route</p>
+        <p class="tf-wizard-step-caption" id="tripWizardStepCaption">Step 1 of 5 · Saved Route</p>
     </nav>
 @endif
 
@@ -615,11 +615,11 @@
             <div class="tf-map-stops">
                 <div class="tf-map-stop-row">
                     <span class="tf-map-stop-dot pickup"></span>
-                    <span id="mapPickupLabel" style="font-size:12px;color:var(--ink-2)">Pickup — select a route</span>
+                    <span id="mapPickupLabel" style="font-size:12px;color:var(--ink-2)">Pickup, select a route</span>
                 </div>
                 <div class="tf-map-stop-row">
                     <span class="tf-map-stop-dot destination"></span>
-                    <span id="mapDestinationLabel" style="font-size:12px;color:var(--ink-2)">Destination — select a route</span>
+                    <span id="mapDestinationLabel" style="font-size:12px;color:var(--ink-2)">Destination, select a route</span>
                 </div>
             </div>
         </div>
@@ -1117,7 +1117,7 @@
 
             if (wizardStepCaption) {
                 wizardStepCaption.textContent = 'Step ' + currentStep + ' of ' + wizardStepCards.length
-                    + ' — ' + (wizardStepLabels[currentStep - 1] || '');
+                    + ' · ' + (wizardStepLabels[currentStep - 1] || '');
             }
         }
 
@@ -1340,8 +1340,8 @@
                 if (outboundDirectionSection) outboundDirectionSection.classList.add('is-disabled');
                 if (swapOutboundDirectionBtn) swapOutboundDirectionBtn.disabled = true;
                 if (directionHelpText) directionHelpText.textContent = 'Select a saved route and trip type first, then set the actual pickup and destination here.';
-                if (mapPickupLabel) mapPickupLabel.textContent = 'Pickup — select a route';
-                if (mapDestinationLabel) mapDestinationLabel.textContent = 'Destination — select a route';
+                if (mapPickupLabel) mapPickupLabel.textContent = 'Pickup, select a route';
+                if (mapDestinationLabel) mapDestinationLabel.textContent = 'Destination, select a route';
                 return;
             }
 

@@ -15,7 +15,7 @@
         <div class="pg-header-actions">
             <button type="button" class="btn btn-ghost btn-sm notif-delete-all-btn" id="notif-delete-all-btn"
                     data-url="{{ route('notifications.delete-all') }}"
-                    title="Delete all notifications — this cannot be undone">
+                    title="Delete all notifications. This cannot be undone">
                 <i class="fa-solid fa-trash"></i> Delete All
             </button>
             <form method="POST" action="{{ route('notifications.read-all') }}" style="margin:0;" id="notif-mark-all-form">
@@ -128,7 +128,7 @@
             <div class="ch-empty-state-card">
                 <div class="ch-empty-state-icon-box"><i class="fa-regular fa-bell-slash"></i></div>
                 <h3 class="ch-empty-state-title">No notifications yet</h3>
-                <p class="ch-empty-state-body">You're all caught up — check back later.</p>
+                <p class="ch-empty-state-body">You're all caught up, check back later.</p>
             </div>
         @endforelse
 

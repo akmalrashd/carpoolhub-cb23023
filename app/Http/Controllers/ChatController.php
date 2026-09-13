@@ -26,8 +26,16 @@ class ChatController extends Controller
 
     public function index(Request $request): View
     {
-        $user = $request->user();
+        return view('chats.index', $this->buildConversationsListData($request->user()));
+    }
 
+    /**
+     * The chats.partials.list pane — same data shape whether it's rendering
+     * full-width (chats/index) or as the desktop split-view's left column
+     * (chats/show, see the "list on the left, thread on the right" layout).
+     */
+    private function buildConversationsListData(User $user): array
+    {
         $conversations = Conversation::query()
             ->whereHas('participants', fn ($query) => $query->where('user_id', $user->id)->whereNull('left_at'))
             ->with([
@@ -48,10 +56,10 @@ class ChatController extends Controller
             ->get()
             ->keyBy('conversation_id');
 
-        return view('chats.index', [
+        return [
             'conversations' => $conversations,
             'unreadByConversation' => $unreadByConversation,
-        ]);
+        ];
     }
 
     public function show(Request $request, Conversation $conversation): View
@@ -68,15 +76,37 @@ class ChatController extends Controller
 
         $this->markRead($request, $conversation);
 
-        return view('chats.show', [
-            'conversation' => $conversation,
-            'messages' => $messages,
-            'isChatAdmin' => (bool) $participant->is_chat_admin,
-            'isOpen' => ! $conversation->opens_at || now()->gte($conversation->opens_at),
-            // Feeds the shared "Trip Details" popup (trips/partials/trip-details-modal
-            // + public/js/trip-details-modal.js) — null once the trip itself has been
-            // hard-deleted (cancelled), since there's nothing left to show.
-            'tripModalData' => $conversation->trip ? $this->buildTripModalData($conversation->trip, $request->user()) : null,
+        return view('chats.show', array_merge(
+            $this->buildConversationsListData($request->user()),
+            [
+                'conversation' => $conversation,
+                'messages' => $messages,
+                'isChatAdmin' => (bool) $participant->is_chat_admin,
+                'isOpen' => ! $conversation->opens_at || now()->gte($conversation->opens_at),
+                // Feeds the shared "Trip Details" popup (trips/partials/trip-details-modal
+                // + public/js/trip-details-modal.js) — null once the trip itself has been
+                // hard-deleted (cancelled), since there's nothing left to show.
+                'tripModalData' => $conversation->trip ? $this->buildTripModalData($conversation->trip, $request->user()) : null,
+            ]
+        ));
+    }
+
+    /**
+     * Keeps the header's "Trip Details" trigger button quietly up to date
+     * while the thread stays open — its data-* attributes are only ever
+     * read at the moment someone clicks it, so refreshing them in the
+     * background (chats-show.js polls this) is enough to make both that
+     * popup and "Manage requests" reflect whatever changed elsewhere
+     * (a new join request, an approval, an edited trip) without the
+     * viewer having to reload the page first.
+     */
+    public function tripModalRefresh(Request $request, Conversation $conversation): JsonResponse
+    {
+        $this->activeParticipantOrFail($request, $conversation);
+        $conversation->load('trip');
+
+        return response()->json([
+            'trip_modal_data' => $conversation->trip ? $this->buildTripModalData($conversation->trip, $request->user()) : null,
         ]);
     }
 
@@ -318,10 +348,35 @@ class ChatController extends Controller
      * see routes/channels.php for why this replaces Laravel's stock
      * /broadcasting/auth for this app.
      */
+    /**
+     * Scoped either to one conversation (the thread page passes
+     * conversation_id) or to every conversation the caller is currently an
+     * active participant of (the chat list page omits it, since it needs
+     * one token covering all of its rows rather than one round-trip per row).
+     */
     public function ablyToken(Request $request): JsonResponse
     {
-        $conversation = Conversation::query()->findOrFail((int) $request->query('conversation_id'));
-        $this->activeParticipantOrFail($request, $conversation);
+        $conversationIdParam = $request->query('conversation_id');
+
+        if ($conversationIdParam) {
+            $conversation = Conversation::query()->findOrFail((int) $conversationIdParam);
+            $this->activeParticipantOrFail($request, $conversation);
+            $capability = ['private:conversation.'.$conversation->id => ['subscribe']];
+        } else {
+            $conversationIds = ConversationParticipant::query()
+                ->where('user_id', $request->user()->id)
+                ->whereNull('left_at')
+                ->pluck('conversation_id');
+
+            if ($conversationIds->isEmpty()) {
+                return response()->json(['error' => 'No active conversations.'], 404);
+            }
+
+            $capability = [];
+            foreach ($conversationIds as $id) {
+                $capability['private:conversation.'.$id] = ['subscribe'];
+            }
+        }
 
         $key = config('broadcasting.connections.ably.key');
         if (! $key) {
@@ -334,7 +389,7 @@ class ChatController extends Controller
 
         $ably = new AblyRest(['key' => $key]);
         $tokenRequest = $ably->auth->createTokenRequest([
-            'capability' => json_encode(['private:conversation.'.$conversation->id => ['subscribe']]),
+            'capability' => json_encode($capability),
             'clientId' => (string) $request->user()->id,
         ]);
 

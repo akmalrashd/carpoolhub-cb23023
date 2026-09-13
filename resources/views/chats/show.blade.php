@@ -16,8 +16,14 @@
     $others = $conversation->participants->filter(fn ($p) => $p->user_id !== $me->id)->values();
     $memberCount = $conversation->participants->count();
     $othersExtra = max(0, $others->count() - 3);
-    $subParts = array_filter([
+    $driverVehicle = array_filter([$conversation->driver?->vehicle_plate, $conversation->driver?->vehicle_model]);
+    $titleParts = array_filter([
         $conversation->trip_ref_snapshot,
+        $conversation->route_snapshot ?: 'Trip chat',
+    ]);
+    $subParts = array_filter([
+        $conversation->driver ? 'Driver: '.$conversation->driver->name : null,
+        $driverVehicle ? implode(' · ', $driverVehicle) : null,
         $memberCount.' '.\Illuminate\Support\Str::plural('member', $memberCount),
     ]);
     $pickerOptionsUrl = $conversation->trip_id ? route('trips.chat.picker-options', $conversation->trip_id) : null;
@@ -36,7 +42,17 @@
     }
 @endphp
 
-<div class="chat-thread-page">
+<div class="chat-split">
+    {{-- Desktop-only left pane ("list on the left, thread on the right") —
+         hidden on mobile via CSS, where the thread already fills the whole
+         screen (see the immersive @media rules below). --}}
+    <div class="chat-split-list">
+        <div class="chat-page">
+            @include('chats.partials.list', ['conversations' => $conversations, 'me' => $me, 'unreadByConversation' => $unreadByConversation, 'activeConversationId' => $conversation->public_id])
+        </div>
+    </div>
+    <div class="chat-split-thread">
+    <div class="chat-thread-page">
     <div class="chat-thread-freeze">
     <div class="chat-thread-header" id="chatThreadHead">
         <a href="{{ route('chats.index') }}" class="chat-thread-back" aria-label="Back to chats">
@@ -96,7 +112,7 @@
                 @endif
             </span>
             <span class="chat-thread-headtext">
-                <span class="chat-thread-title">{{ $conversation->route_snapshot ?: 'Trip chat' }}</span>
+                <span class="chat-thread-title">{{ implode(' · ', $titleParts) }}</span>
                 <span class="chat-thread-sub">{{ implode(' · ', $subParts) }}</span>
             </span>
         </button>
@@ -133,6 +149,14 @@
     </div>
 
     <div class="chat-thread-messages" id="chatMessages">
+        {{-- margin-top:auto on this inner wrapper (not justify-content:flex-end
+             on the scroller above) is what pins a short conversation to the
+             bottom — flex-end + overflow is a known trap: once content
+             overflows, the start-side overflow lands in negative scroll
+             space browsers won't let you scroll into, permanently hiding
+             the earliest messages. auto margins collapse to 0 instead, so a
+             long conversation just scrolls normally from the very top. --}}
+        <div class="chat-thread-messages-inner" id="chatMessagesInner">
         @php
             $tz = \App\Models\Trip::TIMEZONE;
             $lastDateKey = null;
@@ -155,20 +179,76 @@
                 <div class="chat-bubble-row is-system">
                     <span class="chat-bubble-system">{{ $message->body }}</span>
                 </div>
+            @elseif($message->isFromHexa())
+                @php
+                    // Hexa's body is stored as plain text (bullets marked with
+                    // "• ", same as any other message — keeps chat export
+                    // readable and the messages table free of HTML) — grouped
+                    // here into paragraphs/lists purely for display, so wrapped
+                    // bullet lines hang-indent under their own text instead of
+                    // under the bullet. The 🚗 stays in the stored text (reads
+                    // fine in a plain-text export) but renders as the same
+                    // Font Awesome icon shown next to the driver's name, so
+                    // what Hexa describes visually matches what's on screen.
+                    $hexaBlocks = [];
+                    $hexaBullets = [];
+                    foreach (preg_split('/\n/', trim($message->body)) as $hexaLine) {
+                        $hexaLine = trim($hexaLine);
+                        if ($hexaLine === '') continue;
+                        if (str_starts_with($hexaLine, '• ')) {
+                            $hexaBullets[] = mb_substr($hexaLine, 2);
+                            continue;
+                        }
+                        if ($hexaBullets) {
+                            $hexaBlocks[] = ['type' => 'list', 'items' => $hexaBullets];
+                            $hexaBullets = [];
+                        }
+                        $hexaBlocks[] = ['type' => 'p', 'text' => $hexaLine];
+                    }
+                    if ($hexaBullets) {
+                        $hexaBlocks[] = ['type' => 'list', 'items' => $hexaBullets];
+                    }
+                    $hexaIconify = fn (string $text) => str_replace('🚗', '<i class="fa-solid fa-car chat-bubble-hexa-icon"></i>', e($text));
+                @endphp
+                <div class="chat-bubble-row">
+                    <span class="chat-bubble-avatar chat-bubble-avatar-hexa"><x-mascot size="20" /></span>
+                    <div class="chat-bubble-col">
+                        <span class="chat-bubble-sender chat-bubble-sender-hexa">Hexa</span>
+                        <div class="chat-bubble chat-bubble-hexa">
+                            @foreach($hexaBlocks as $hexaBlock)
+                                @if($hexaBlock['type'] === 'list')
+                                    <ul class="chat-bubble-hexa-list">
+                                        @foreach($hexaBlock['items'] as $hexaItem)
+                                            <li>{!! $hexaIconify($hexaItem) !!}</li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <p>{!! $hexaIconify($hexaBlock['text']) !!}</p>
+                                @endif
+                            @endforeach
+                        </div>
+                        @if($message->type === \App\Models\Message::TYPE_PAYMENT_REMINDER && $conversation->trip_id)
+                            <a href="{{ route('payments.index', ['trip_id' => $conversation->trip_id, 'pay' => 1]) }}" class="chat-bubble-hexa-cta">
+                                <i class="fa-solid fa-wallet"></i> Pay Now <i class="fa-solid fa-arrow-up-right-from-square chat-bubble-hexa-cta-arrow"></i>
+                            </a>
+                        @endif
+                        <span class="chat-bubble-time">{{ $localCreatedAt?->format('g:i A') }}</span>
+                    </div>
+                </div>
             @else
                 <div class="chat-bubble-row {{ $isOwn ? 'is-own' : '' }}">
                     @unless($isOwn)
                         <x-avatar :user="$message->sender" size="sm" class="chat-bubble-avatar" />
                     @endunless
                     <div class="chat-bubble-col">
-                        @if(! $isOwn && $memberCount > 2)
+                        @unless($isOwn)
                             <span class="chat-bubble-sender">
                                 {{ $message->sender?->name ?? 'Deleted user' }}
                                 @if($message->sender_id === $conversation->driver_id)
                                     <i class="fa-solid fa-car chat-bubble-driver-icon" title="Driver"></i>
                                 @endif
                             </span>
-                        @endif
+                        @endunless
                         @if($message->type === 'image')
                             <button type="button" class="chat-bubble-image-link" data-lightbox-src="{{ $message->body }}">
                                 <img src="{{ $message->body }}" alt="Photo" class="chat-bubble-image">
@@ -181,6 +261,7 @@
                 </div>
             @endif
         @endforeach
+        </div>
     </div>
 
     @if($isOpen)
@@ -200,6 +281,8 @@
             This chat opens {{ $conversation->opens_at?->diffForHumans() }}.
         </div>
     @endif
+</div>
+    </div>
 </div>
 
 {{-- Photo lightbox — opened in-page (not a new tab/link) since navigating to
@@ -231,6 +314,7 @@
     readUrl: @json(route('chats.read', $conversation)),
     pickerOptionsUrl: @json($pickerOptionsUrl),
     inviteUrl: @json($inviteUrl),
+    tripModalRefreshUrl: @json($tripModalData ? route('refresh.chats.trip-modal', $conversation) : null),
 };</script>
 <script src="https://cdn.ably.com/lib/ably.min-2.js" crossorigin="anonymous"></script>
 <script src="{{ asset('js/chats-show.js') }}?v={{ filemtime(public_path('js/chats-show.js')) }}"></script>

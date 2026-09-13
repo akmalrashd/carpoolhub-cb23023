@@ -46,7 +46,7 @@
             </h2>
 
             <p class="brand-tagline">
-                Google confirmed who you are — now tell us how you'll ride,
+                Google confirmed who you are, now tell us how you'll ride,
                 so we can match you with the right trips.
             </p>
         </div>
@@ -66,7 +66,7 @@
 
                 <div class="login-card-header">
                     <h1 class="login-card-title">Finish signing up</h1>
-                    <p class="login-card-sub">You're signing in with Google — just a couple more details.</p>
+                    <p class="login-card-sub">You're signing in with Google, just a couple more details.</p>
                 </div>
 
                 {{-- Validation errors --}}
@@ -249,7 +249,7 @@
                                         >
                                     </label>
                                 </div>
-                                <span class="file-upload-hint">Image only — JPG, PNG, or WEBP · Max 4MB</span>
+                                <span class="file-upload-hint">Image only · JPG, PNG, or WEBP · Max 4MB</span>
                                 <span class="field-error" id="license-client-error" hidden>
                                     <i class="fa-solid fa-triangle-exclamation"></i>
                                     <span></span>
@@ -281,7 +281,7 @@
                                         >
                                     </label>
                                 </div>
-                                <span class="file-upload-hint">Image only — JPG, PNG, or WEBP · Max 5MB</span>
+                                <span class="file-upload-hint">Image only · JPG, PNG, or WEBP · Max 5MB</span>
                                 <span class="field-error" id="selfie-client-error" hidden>
                                     <i class="fa-solid fa-triangle-exclamation"></i>
                                     <span></span>

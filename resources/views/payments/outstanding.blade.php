@@ -10,7 +10,7 @@
             <div class="payments-page-header-left">
                 <p class="payments-eyebrow">Payments</p>
                 <h1 class="payments-h1">Outstanding Summary</h1>
-                <p class="payments-sub">Every unpaid or pending amount, broken down by month and who it's with — useful if you'd rather settle in one go than per trip.</p>
+                <p class="payments-sub">Every unpaid or pending amount, broken down by month and who it's with, useful if you'd rather settle in one go than per trip.</p>
             </div>
             <a href="{{ route('payments.index') }}" class="btn btn-ghost btn-sm">
                 <i class="fa-solid fa-arrow-left"></i> Back to Payments
@@ -19,7 +19,7 @@
 
         <section class="payments-card">
             <h2 class="payments-section-title">What You Owe</h2>
-            <p class="payments-section-subtitle">Trips where you rode — outstanding until the driver confirms.</p>
+            <p class="payments-section-subtitle">Trips where you rode, outstanding until the driver confirms.</p>
 
             <div class="debt-summary-card">
                 <div class="debt-summary-top">
@@ -47,7 +47,7 @@
                     </div>
                 @empty
                     <div class="debt-item">
-                        <div class="debt-meta">Nothing outstanding — you're all settled up.</div>
+                        <div class="debt-meta">Nothing outstanding, you're all settled up.</div>
                     </div>
                 @endforelse
             </div>
@@ -55,7 +55,7 @@
 
         <section class="payments-card">
             <h2 class="payments-section-title">Owed to You</h2>
-            <p class="payments-section-subtitle">Trips you drove — passengers who haven't settled yet.</p>
+            <p class="payments-section-subtitle">Trips you drove, passengers who haven't settled yet.</p>
 
             <div class="debt-summary-card">
                 <div class="debt-summary-top">

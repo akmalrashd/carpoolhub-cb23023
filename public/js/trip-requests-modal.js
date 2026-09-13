@@ -233,6 +233,22 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+            // The header badge used to just echo request.status verbatim, so
+            // a passenger who was approved and later removed/marked absent
+            // kept showing "approved" up top even though the note below
+            // already said otherwise — attendance_status (set after
+            // approval) always wins over the original join-request status
+            // once it's no longer just "joined".
+            const statusBadge = (request) => {
+                if (request.attendance_status === 'removed') return { label: 'Removed', cls: 'is-removed' };
+                if (request.attendance_status === 'absent') return { label: 'Absent', cls: 'is-absent' };
+                switch (request.status) {
+                    case 'approved': return { label: 'Approved', cls: 'is-approved' };
+                    case 'rejected': return { label: 'Rejected', cls: 'is-rejected' };
+                    case 'cancelled': return { label: 'Cancelled', cls: 'is-cancelled' };
+                    default: return { label: 'Pending', cls: 'is-pending' };
+                }
+            };
             const responseForm = (request, action, label, classes, icon) => {
                 if (action === 'reject') {
                     return `
@@ -703,7 +719,7 @@
                                     <span class="trip-payment-review-route">${escapeHtml(request.trip)} · ${escapeHtml(request.requested_at || '-')}</span>
                                 </span>
                             </div>
-                            <span class="trip-payment-review-status">${escapeHtml(request.status || 'pending')}</span>
+                            <span class="trip-payment-review-status ${statusBadge(request).cls}">${escapeHtml(statusBadge(request).label)}</span>
                         </div>
                         <div class="trip-request-route-grid">
                             <div class="trip-request-route-item">

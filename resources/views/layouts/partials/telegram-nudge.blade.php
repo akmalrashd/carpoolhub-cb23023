@@ -22,7 +22,7 @@
             <h3 class="tg-nudge-title">Connect Telegram</h3>
             <p class="tg-nudge-desc">
                 Get instant alerts for trip updates, join requests, and
-                payments — even when CarpoolHub is closed. Takes one tap.
+                payments, even when CarpoolHub is closed. Takes one tap.
             </p>
 
             <form method="POST" action="{{ route('telegram.link') }}" class="tg-nudge-form">

@@ -48,7 +48,7 @@
             </h2>
 
             <p class="brand-tagline">
-                Connect with colleagues and neighbours heading your way —
+                Connect with colleagues and neighbours heading your way,
                 split fares fairly, ride with verified drivers, and make
                 your daily commute simpler.
             </p>
@@ -215,7 +215,7 @@
                 @if (Route::has('register'))
                 <p class="register-prompt">
                     Don't have an account?
-                    <a href="{{ route('register') }}">Sign up — it's free</a>
+                    <a href="{{ route('register') }}">Sign up, it's free</a>
                 </p>
                 @endif
 

@@ -10,8 +10,8 @@
 @php
     $liveSource = $livePrices['source'] ?? 'unknown';
     $liveFields = [
-        'fuel_price_ron95_budi' => ['label' => 'RON95 — BUDI subsidised', 'icon' => 'fa-gas-pump', 'live' => $livePrices['RON95']['budi'] ?? null],
-        'fuel_price_ron95_market' => ['label' => 'RON95 — market rate', 'icon' => 'fa-gas-pump', 'live' => $livePrices['RON95']['market'] ?? null],
+        'fuel_price_ron95_budi' => ['label' => 'RON95 (BUDI subsidised)', 'icon' => 'fa-gas-pump', 'live' => $livePrices['RON95']['budi'] ?? null],
+        'fuel_price_ron95_market' => ['label' => 'RON95 (market rate)', 'icon' => 'fa-gas-pump', 'live' => $livePrices['RON95']['market'] ?? null],
         'fuel_price_ron97_market' => ['label' => 'RON97', 'icon' => 'fa-gas-pump', 'live' => $livePrices['RON97']['market'] ?? null],
         'fuel_price_diesel_market' => ['label' => 'Diesel', 'icon' => 'fa-truck', 'live' => $livePrices['Diesel']['market'] ?? null],
     ];
@@ -43,14 +43,14 @@
         <div class="ss-header-icon"><i class="fa-solid fa-gas-pump"></i></div>
         <div>
             <h3 class="h3" style="margin:0;">Fuel Price Fallback</h3>
-            <p class="t-sm text-muted" style="margin:2px 0 0;">Used only when the live data.gov.my API is unreachable — the app checks these values first, before the hardcoded default baked into the code.</p>
+            <p class="t-sm text-muted" style="margin:2px 0 0;">Used only when the live data.gov.my API is unreachable. The app checks these values first, before the hardcoded default baked into the code.</p>
         </div>
     </div>
 
     <div class="ss-live-status">
         <span class="badge {{ $liveSource === 'data.gov.my' ? 'badge-success' : ($liveSource === 'admin_override' ? 'badge-warning' : 'badge-danger') }}">
             <i class="fa-solid {{ $liveSource === 'data.gov.my' ? 'fa-signal' : 'fa-triangle-exclamation' }}"></i>
-            {{ match($liveSource) { 'data.gov.my' => 'Live API is currently working', 'admin_override' => 'API is down — using this fallback right now', default => 'API is down — using the hardcoded default' } }}
+            {{ match($liveSource) { 'data.gov.my' => 'Live API is currently working', 'admin_override' => 'API is down, using this fallback right now', default => 'API is down, using the hardcoded default' } }}
         </span>
         @if(!empty($livePrices['as_of']))
             <span class="t-xs text-muted">as of {{ $livePrices['as_of'] }}</span>

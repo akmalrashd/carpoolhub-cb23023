@@ -15,7 +15,7 @@
     <div>
         <p class="wallet-eyebrow">Driver</p>
         <h1 class="wallet-title">Wallet</h1>
-        <p class="wallet-sub">Earnings from trip payments made via ToyyibPay land here — withdraw anytime to your bank account.</p>
+        <p class="wallet-sub">Earnings from trip payments made via ToyyibPay land here. Withdraw anytime to your bank account.</p>
     </div>
 
     <div class="wallet-balance-card">

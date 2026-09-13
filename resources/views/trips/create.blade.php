@@ -20,7 +20,7 @@
          of above the page title. --}}
     <div id="aiPrefillBanner" hidden style="margin:16px var(--page-gutter, 28px) 0;padding:10px 14px;border-radius:10px;background:var(--ch-yellow-tint);border:1px solid var(--ch-yellow-line);color:var(--ch-yellow-ink);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:10px">
         <x-mascot size="22" variant="yellow" state="idle" />
-        <span>Hexa pre-filled this trip — review the details below before publishing.</span>
+        <span>Hexa pre-filled this trip. Review the details below before publishing.</span>
     </div>
 
     @include('trips._form', ['submitLabel' => 'Publish trip', 'trip' => null, 'selectedParticipants' => []])

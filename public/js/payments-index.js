@@ -219,6 +219,24 @@ window.isPaymentRowHidden = function (row) {
             }, 2400);
         }
     }
+
+    // Arrived from a Hexa chat reminder ("?trip_id=X&pay=1") — jump straight
+    // to this trip's own Pay Now popup, since that's the actual action the
+    // reminder is nudging towards. Independent of the highlight above:
+    // .open-trip-modal-btn (used there) and .open-payment-paynow-btn (an
+    // unpaid row's own pay button) are mutually exclusive per payment status,
+    // so an unpaid row never has the former to piggyback on.
+    if (focusIds.length > 0 && params.get('pay') === '1') {
+        const payButtons = focusIds.flatMap((tripId) => [
+            ...document.querySelectorAll(`.open-payment-paynow-btn[data-trip-id="${tripId}"]`),
+        ]);
+        const myPayButtons = payButtons.filter((btn) => btn.closest('#my-payments-list'));
+        const payButton = (myPayButtons.length > 0 ? myPayButtons : payButtons)[0];
+        if (payButton) {
+            payButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.setTimeout(() => payButton.click(), 400);
+        }
+    }
 })();
 
 (() => {

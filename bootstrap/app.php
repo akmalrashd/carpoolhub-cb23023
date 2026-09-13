@@ -50,6 +50,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('notifications:payment-grace-reminder')
             ->dailyAt('09:00');
 
+        // Daily, inside the chat itself rather than a notification — the chat is
+        // only alive for chat_retention_days_after days after the trip, well before
+        // the monthly reliability-score deadline the two reminders above track, so
+        // this is a separate, lighter-weight nudge that stops once the chat closes.
+        $schedule->command('chats:payment-reminder')
+            ->dailyAt('11:00');
+
         // Every 5 minutes, not daily like the reminders above — a temporary
         // suspension can expire at any minute and the account should regain
         // access promptly, not sit needlessly suspended for up to a day.

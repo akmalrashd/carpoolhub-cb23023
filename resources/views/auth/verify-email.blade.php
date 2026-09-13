@@ -46,7 +46,7 @@
 
             <p class="brand-tagline">
                 Confirming your email keeps CarpoolHub trips, payments, and
-                messages going to a real inbox — yours.
+                messages going to a real inbox, yours.
             </p>
         </div>
     </aside>

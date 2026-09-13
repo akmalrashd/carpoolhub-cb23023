@@ -148,7 +148,7 @@
                                             </span>
                                             <div class="bento-info">
                                                 <strong class="bento-name">My Trips</strong>
-                                                <span class="bento-desc">{{ auth()->user()?->role === 'admin' ? 'Oversee every trip on the platform — upcoming, past, and draft.' : 'View and manage your upcoming, past, and draft journeys.' }}</span>
+                                                <span class="bento-desc">{{ auth()->user()?->role === 'admin' ? 'Oversee every trip on the platform, upcoming, past, and draft.' : 'View and manage your upcoming, past, and draft journeys.' }}</span>
                                             </div>
                                         </a>
                                     </div>

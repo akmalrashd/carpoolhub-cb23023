@@ -197,6 +197,86 @@ class RefreshController extends Controller
         ]);
     }
 
+    /**
+     * Full chat-list re-render, polled by chats-index.js as the safety net
+     * behind its per-conversation Ably subscriptions — the only path that
+     * also picks up a conversation the page never subscribed to in the
+     * first place (a brand new one created while this page was already
+     * open). Mirrors ChatController::index()'s own query exactly, since the
+     * list must look identical whichever one produced it.
+     */
+    public function chatList(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $conversations = Conversation::query()
+            ->whereHas('participants', fn ($query) => $query->where('user_id', $user->id)->whereNull('left_at'))
+            ->with([
+                'driver',
+                'participants' => fn ($query) => $query->whereNull('left_at')->with('user'),
+                'messages' => fn ($query) => $query->latest('id')->limit(1),
+            ])
+            ->orderByDesc(
+                Message::query()->select('created_at')
+                    ->whereColumn('messages.conversation_id', 'conversations.id')
+                    ->latest('id')->limit(1)
+            )
+            ->get();
+
+        $unreadByConversation = ConversationParticipant::query()
+            ->where('user_id', $user->id)
+            ->whereNull('left_at')
+            ->get()
+            ->keyBy('conversation_id');
+
+        $rowsHtml = $conversations->map(fn (Conversation $conversation) => view('chats.partials.row', [
+            'conversation' => $conversation,
+            'me' => $user,
+            'unreadRecord' => $unreadByConversation->get($conversation->id),
+        ])->render())->implode('');
+
+        return response()->json(['html' => $rowsHtml]);
+    }
+
+    /**
+     * Single-row re-render, fetched by chats-index.js the instant an Ably
+     * message.sent event arrives for a conversation already on screen —
+     * far cheaper than re-rendering the whole list for one change.
+     */
+    public function chatRow(Request $request, Conversation $conversation): JsonResponse
+    {
+        $user = $request->user();
+
+        $isActiveParticipant = ConversationParticipant::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('user_id', $user->id)
+            ->whereNull('left_at')
+            ->exists();
+
+        if (! $isActiveParticipant) {
+            abort(403);
+        }
+
+        $conversation->load([
+            'driver',
+            'participants' => fn ($query) => $query->whereNull('left_at')->with('user'),
+            'messages' => fn ($query) => $query->latest('id')->limit(1),
+        ]);
+
+        $unreadRecord = ConversationParticipant::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        return response()->json([
+            'html' => view('chats.partials.row', [
+                'conversation' => $conversation,
+                'me' => $user,
+                'unreadRecord' => $unreadRecord,
+            ])->render(),
+        ]);
+    }
+
     public function paymentsSummary(Request $request): JsonResponse
     {
         $user = $request->user();
