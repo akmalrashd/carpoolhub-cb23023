@@ -218,6 +218,12 @@
     min-width: 0;
 }
 
+.chat-row-preview-sender {
+    color: var(--muted);
+    font-weight: 700;
+    margin-right: 3px;
+}
+
 .chat-row-unread-dot {
     width: 9px;
     height: 9px;

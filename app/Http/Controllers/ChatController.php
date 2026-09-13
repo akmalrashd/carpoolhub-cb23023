@@ -41,7 +41,7 @@ class ChatController extends Controller
             ->with([
                 'driver',
                 'participants' => fn ($query) => $query->whereNull('left_at')->with('user'),
-                'messages' => fn ($query) => $query->latest('id')->limit(1),
+                'messages' => fn ($query) => $query->latest('id')->limit(1)->with('sender'),
             ])
             ->orderByDesc(
                 Message::query()->select('created_at')

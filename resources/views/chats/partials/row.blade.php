@@ -26,6 +26,14 @@
     $isOpenYet = ! $conversation->opens_at || now()->gte($conversation->opens_at);
     $titleParts = array_filter([$conversation->trip_ref_snapshot, $conversation->route_snapshot ?: 'Trip chat']);
     $isActive = isset($activeConversationId) && $activeConversationId === $conversation->public_id;
+    $previewSender = null;
+    if ($lastMessage && ! $lastMessage->isSystem()) {
+        $previewSender = match (true) {
+            $lastMessage->isFromHexa() => 'Hexa',
+            $lastMessage->sender_id === $me->id => 'You',
+            default => $lastMessage->sender?->name ?? 'Deleted user',
+        };
+    }
 @endphp
 <a
     href="{{ route('chats.show', $conversation) }}"
@@ -54,6 +62,7 @@
         <div class="chat-row-bottom">
             <span class="chat-row-preview">
                 @if($lastMessage)
+                    @if($previewSender)<strong class="chat-row-preview-sender">{{ $previewSender }}:</strong>@endif
                     @if($lastMessage->type === 'image')
                         <i class="fa-solid fa-camera"></i> Photo
                     @else
