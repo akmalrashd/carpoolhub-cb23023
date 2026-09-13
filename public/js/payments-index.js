@@ -1755,8 +1755,8 @@ window.isPaymentRowHidden = function (row) {
     };
     const availableAtTitle = (seconds) => {
         const target = new Date(Date.now() + seconds * 1000);
-        const datePart = target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        const timePart = target.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        const datePart = target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kuala_Lumpur' });
+        const timePart = target.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kuala_Lumpur' });
         return `Available again at ${datePart}, ${timePart}`;
     };
 

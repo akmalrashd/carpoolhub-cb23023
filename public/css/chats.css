@@ -212,10 +212,16 @@
     flex-direction: column;
 }
 
-.chat-thread-header {
+/* Header + notice banner stick together as one frozen block, so the
+   banner doesn't scroll away with the messages beneath it. */
+.chat-thread-freeze {
     position: sticky;
     top: var(--mobile-header-h);
     z-index: 500;
+    background: var(--surface);
+}
+
+.chat-thread-header {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -324,16 +330,98 @@
 }
 
 .chat-thread-banner {
-    margin: 12px 16px 0;
-    padding: 10px 14px;
+    margin: 8px 16px;
+    padding: 9px 11px;
     border-radius: 12px;
-    background: var(--warning-soft);
-    color: var(--warning-ink);
-    font-size: 12px;
-    font-weight: 600;
+    background: var(--info-soft);
+    color: var(--info-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chat-thread-banner-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.chat-thread-banner-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    margin-top: 1px;
+}
+
+.chat-thread-banner-headline {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.chat-thread-banner-details summary {
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.chat-thread-banner-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.chat-thread-banner-details summary::after {
+    content: '\f078';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 9px;
+    margin-left: 5px;
+}
+
+.chat-thread-banner-details[open] summary::after {
+    content: '\f077';
+}
+
+.chat-thread-banner-details p {
+    margin: 6px 0 0;
+    font-size: 11px;
+    line-height: 1.45;
+    font-weight: 500;
+}
+
+.chat-thread-banner-details p + p {
+    margin-top: 4px;
+}
+
+.chat-thread-banner-foot {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
+    /* Lines the "Why is this chat monitored?" toggle up with the headline
+       text above it (which is indented past the shield icon). */
+    padding-left: 19px;
+}
+
+.chat-thread-banner-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-thread-export-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--info-ink);
+    border: 1px solid rgba(30, 58, 138, 0.18);
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 .chat-thread-messages {
@@ -343,6 +431,22 @@
     justify-content: flex-end;
     gap: 10px;
     padding: 16px 16px 12px;
+}
+
+.chat-date-separator {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0;
+}
+
+.chat-date-separator span {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 4px 12px;
 }
 
 .chat-bubble-row {
@@ -376,6 +480,13 @@
     margin-left: 4px;
 }
 
+.chat-bubble-driver-icon {
+    font-size: 9px;
+    color: var(--muted);
+    margin-left: 3px;
+    vertical-align: 1px;
+}
+
 .chat-bubble {
     padding: 10px 14px;
     border-radius: 16px;
@@ -404,6 +515,59 @@
     text-align: right;
 }
 
+.chat-bubble-image-link {
+    display: block;
+    line-height: 0;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.chat-bubble-image {
+    max-width: 220px;
+    max-height: 260px;
+    border-radius: 14px;
+    display: block;
+    object-fit: cover;
+    border: 1px solid var(--hairline);
+}
+
+.chat-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    /* Above every existing fixed layer (desktop topbar is 2100, the Trip
+       Details modal 2600) — this is meant to sit over all of them. */
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.chat-lightbox.is-open {
+    display: block;
+}
+
+.chat-lightbox-viewport {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.chat-lightbox-img {
+    max-width: 92vw;
+    max-height: 92vh;
+    object-fit: contain;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    will-change: transform;
+}
+
 .chat-bubble-system {
     font-size: 12px;
     color: var(--muted);
@@ -420,6 +584,25 @@
     padding: 10px 16px;
     background: var(--surface);
     border-top: 1px solid var(--hairline);
+}
+
+.chat-composer-attach {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--r-md);
+    flex-shrink: 0;
+    background: var(--surface-2);
+    color: var(--ink);
+    border: 1px solid var(--hairline-strong);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.chat-composer-attach:disabled {
+    opacity: .5;
+    cursor: not-allowed;
 }
 
 .chat-composer-input {
@@ -491,8 +674,11 @@
         background: var(--canvas);
     }
 
-    .chat-thread-header {
+    .chat-thread-freeze {
         position: static;
+    }
+
+    .chat-thread-header {
         padding-top: calc(12px + env(safe-area-inset-top, 0px));
     }
 
@@ -533,7 +719,7 @@
 }
 
 @media (min-width: 1024px) {
-    .chat-thread-header {
+    .chat-thread-freeze {
         top: var(--desktop-topbar-h);
     }
 

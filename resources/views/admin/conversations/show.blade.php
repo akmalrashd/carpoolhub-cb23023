@@ -35,7 +35,7 @@
                     <div class="chat-bubble-col">
                         <span class="chat-bubble-sender">{{ $message->sender?->name ?? 'Deleted user' }}</span>
                         <div class="chat-bubble">{{ $message->body }}</div>
-                        <span class="chat-bubble-time">{{ $message->created_at?->format('d M Y, g:i A') }}</span>
+                        <span class="chat-bubble-time">{{ $message->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, g:i A') }}</span>
                     </div>
                 </div>
             @endif

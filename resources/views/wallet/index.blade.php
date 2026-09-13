@@ -45,7 +45,7 @@
             <div class="wallet-withdrawal-row">
                 <div class="wallet-withdrawal-main">
                     <div class="wallet-withdrawal-amount">RM {{ number_format($withdrawal->amount, 2) }}</div>
-                    <div class="wallet-withdrawal-date">{{ $withdrawal->created_at->format('d M Y, H:i') }}</div>
+                    <div class="wallet-withdrawal-date">{{ $withdrawal->created_at->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') }}</div>
                     @if($withdrawal->status === 'rejected' && $withdrawal->rejection_reason)
                         <div class="wallet-withdrawal-reason"><i class="fa-solid fa-circle-info"></i> {{ $withdrawal->rejection_reason }}</div>
                     @endif
@@ -67,7 +67,7 @@
                 </div>
                 <div class="wallet-txn-main">
                     <div class="wallet-txn-desc">{{ $txn->description ?: ucfirst(str_replace('_', ' ', $txn->reason)) }}</div>
-                    <div class="wallet-txn-date">{{ $txn->created_at?->format('d M Y, H:i') }}</div>
+                    <div class="wallet-txn-date">{{ $txn->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') }}</div>
                 </div>
                 <div class="wallet-txn-amount {{ $txn->direction }}">{{ $txn->direction === 'credit' ? '+' : '-' }}RM {{ number_format($txn->amount, 2) }}</div>
             </div>

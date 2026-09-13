@@ -58,6 +58,7 @@ function confirmTripCancel(form, confirmMessage) {
     const contactActionsEl   = document.getElementById('tripModalContactActions');
     const editBtnEl          = document.getElementById('tripModalEditBtn');
     const deleteFormEl       = document.getElementById('tripModalDeleteForm');
+    const requestsBtnEl      = document.getElementById('tripModalRequestsBtn');
 
     const warnIfUnavailable = (el, label) => {
         if (!el) return;
@@ -326,6 +327,47 @@ function confirmTripCancel(form, confirmMessage) {
                 }
             }
 
+            // "Manage requests" trigger, reusing the exact same popup as
+            // trips/index.blade.php's own row button (public/js/
+            // trip-requests-modal.js) — this button just needs class
+            // "open-trip-requests-review" plus that popup's own expected
+            // dataset; most of it (trip id/ref/route/pickup/destination) is
+            // already on this same trigger button under other names.
+            if (requestsBtnEl) {
+                const canManageRequests = canManage && String(btn.dataset.canManageRequests || '0') === '1';
+                requestsBtnEl.style.display = canManageRequests ? '' : 'none';
+                if (canManageRequests) {
+                    requestsBtnEl.dataset.requestsB64 = btn.dataset.requestsB64 || '';
+                    requestsBtnEl.dataset.routeName = btn.dataset.routeName || '';
+                    requestsBtnEl.dataset.tripId = btn.dataset.tripId || '';
+                    requestsBtnEl.dataset.tripRef = tripRef;
+                    requestsBtnEl.dataset.tripDatetime = btn.dataset.outboundDatetime || '-';
+                    requestsBtnEl.dataset.tripStatus = btn.dataset.status || '-';
+                    requestsBtnEl.dataset.isOpenForRequest = btn.dataset.requestsIsOpenForRequest || '0';
+                    requestsBtnEl.dataset.seats = btn.dataset.requestsSeats || '-';
+                    requestsBtnEl.dataset.toggleUrl = btn.dataset.requestsToggleUrl || '';
+                    requestsBtnEl.dataset.pickupName = btn.dataset.pickupName || '';
+                    requestsBtnEl.dataset.destinationName = btn.dataset.destinationName || '';
+                    requestsBtnEl.dataset.pickupLat = btn.dataset.pickupLat || '';
+                    requestsBtnEl.dataset.pickupLng = btn.dataset.pickupLng || '';
+                    requestsBtnEl.dataset.destinationLat = btn.dataset.destinationLat || '';
+                    requestsBtnEl.dataset.destinationLng = btn.dataset.destinationLng || '';
+
+                    const pendingCount = Number.parseInt(btn.dataset.requestsPendingCount || '0', 10) || 0;
+                    let badge = requestsBtnEl.querySelector('.trip-request-badge');
+                    if (pendingCount > 0) {
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'trip-request-badge';
+                            requestsBtnEl.appendChild(badge);
+                        }
+                        badge.textContent = pendingCount > 9 ? '9+' : String(pendingCount);
+                    } else if (badge) {
+                        badge.remove();
+                    }
+                }
+            }
+
             modal.classList.add('show');
             modal.setAttribute('aria-hidden', 'false');
             document.body.classList.add('modal-open');
@@ -375,6 +417,12 @@ function confirmTripCancel(form, confirmMessage) {
     modal.addEventListener('click', (event) => {
         if (event.target === modal) closeModal();
     });
+
+    // Close this popup first so the two don't stack — the click still
+    // bubbles up to trip-requests-modal.js's own document-level listener
+    // (matched by the "open-trip-requests-review" class), which opens the
+    // Manage Requests popup right after.
+    requestsBtnEl?.addEventListener('click', closeModal);
 
     // Drag-to-dismiss on mobile — see public/js/bottom-sheet-drag.js.
     // The grabber pill above trip-modal-head was purely decorative

@@ -107,7 +107,7 @@
             return [
                 'icon' => 'fa-regular fa-clock',
                 'label' => $compact,
-                'title' => 'Available again at ' . \Illuminate\Support\Carbon::now()->addSeconds($secondsLeft)->format('d M Y, H:i'),
+                'title' => 'Available again at ' . \Illuminate\Support\Carbon::now()->addSeconds($secondsLeft)->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i'),
             ];
         };
         $driverUnpaidAmount = (float) ($summary['driver']['unpaid']['amount'] ?? 0);
@@ -666,7 +666,7 @@
                             data-payment-status="{{ $statusText }}"
                             data-payment-method="{{ $methodLabel }}"
                             data-payment-remarks="{{ $payment->remarks ?: '-' }}"
-                            data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                            data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                             data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                             data-participants='@json($participantsPayload)'
                             data-passenger-count="{{ count($participantsPayload) }}"
@@ -726,7 +726,7 @@
                                         data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-method="{{ $methodLabel }}"
                                         data-remarks="{{ $payment->remarks ?: '-' }}"
-                                        data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                        data-marked="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                         data-approve-action="{{ route('payments.confirm-paid', $payment) }}"
                                         data-reject-action="{{ route('payments.reject-paid', $payment) }}"
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
@@ -822,7 +822,7 @@
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
-                                        data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                        data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-participants='@json($participantsPayload)'
                                         data-passenger-count="{{ count($participantsPayload) }}"
@@ -843,8 +843,8 @@
                                         data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
                                         data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
                                         data-method="{{ $methodLabel }}"
-                                        data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
-                                        data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
+                                        data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-' }}"
+                                        data-confirmed-at="{{ $payment->confirmed_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-' }}"
                                     ><i class="{{ $paymentActionIcon }}"></i> {{ $paymentActionLabel }}</button>
                                     @if($isAdmin)
                                         <button
@@ -1016,7 +1016,7 @@
                                 data-payment-status="{{ $statusText }}"
                                 data-payment-method="{{ $methodLabel }}"
                                 data-payment-remarks="{{ $payment->remarks ?: '-' }}"
-                                data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                 data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                 data-participants='@json($participantsPayload)'
                                 data-passenger-count="{{ count($participantsPayload) }}"
@@ -1089,7 +1089,7 @@
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
-                                        data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                        data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-participants='@json($participantsPayload)'
                                         data-passenger-count="{{ count($participantsPayload) }}"
@@ -1125,7 +1125,7 @@
                                                 data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                                 data-method="{{ $methodLabel }}"
                                                 data-remarks="{{ $payment->remarks ?: '-' }}"
-                                                data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                                data-marked="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                                 data-approve-action="{{ route('payments.confirm-paid', $payment) }}"
                                                 data-reject-action="{{ route('payments.reject-paid', $payment) }}"
                                             ><i class="fa-solid fa-clipboard-check"></i> Review</button>
@@ -1221,8 +1221,8 @@
                                                 data-extra-fee="RM {{ number_format((float) $fareBreakdown['extra'], 2) }}"
                                                 data-has-extra="{{ $fareBreakdown['has_extra'] ? '1' : '0' }}"
                                                 data-method="{{ $methodLabel }}"
-                                                data-marked-at="{{ $payment->marked_paid_at?->format('d M Y, H:i') ?: '-' }}"
-                                                data-confirmed-at="{{ $payment->confirmed_at?->format('d M Y, H:i') ?: '-' }}"
+                                                data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-' }}"
+                                                data-confirmed-at="{{ $payment->confirmed_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-' }}"
                                             ><i class="fa-solid fa-receipt"></i> Receipt</button>
                                             @if($isAdmin)
                                                 <button
@@ -1590,7 +1590,7 @@
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
-                                        data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                        data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-participants='@json($participantsPayload)'
                                         data-passenger-count="{{ count($participantsPayload) }}"
@@ -1614,7 +1614,7 @@
                                 </div>
                                 <div class="payment-mobile-line">
                                     <span>Marked At</span>
-                                    <strong>{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}</strong>
+                                    <strong>{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}</strong>
                                 </div>
                             </div>
                             <div class="queue-actions">
@@ -1629,7 +1629,7 @@
                                         data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                         data-method="{{ $methodLabel }}"
                                         data-remarks="{{ $payment->remarks ?: '-' }}"
-                                        data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                        data-marked="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                         data-approve-action="{{ route('payments.confirm-paid', $payment) }}"
                                         data-reject-action="{{ route('payments.reject-paid', $payment) }}"
                                     >
@@ -1775,7 +1775,7 @@
                                         data-payment-status="{{ $statusText }}"
                                         data-payment-method="{{ $methodLabel }}"
                                         data-payment-remarks="{{ $payment->remarks ?: '-' }}"
-                                        data-marked-at="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                        data-marked-at="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                         data-paired-trip-id="{{ $pairedTripId ?? '' }}"
                                         data-participants='@json($participantsPayload)'
                                         data-passenger-count="{{ count($participantsPayload) }}"
@@ -1788,7 +1788,7 @@
                                         <div style="font-size:11px;color:#64748b;font-weight:700;">Base RM {{ number_format((float) $fareBreakdown['base'], 2) }} + Extra RM {{ number_format((float) $fareBreakdown['extra'], 2) }}</div>
                                     @endif
                                 </td>
-                                <td>{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}</td>
+                                <td>{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}</td>
                                 <td><span class="status-chip {{ $statusClass }}">{{ $statusText }}</span></td>
                                 <td class="right">
                                     <div class="queue-actions">
@@ -1803,7 +1803,7 @@
                                                 data-amount="RM {{ number_format((float) $payment->amount_due, 2) }}"
                                                 data-method="{{ $methodLabel }}"
                                                 data-remarks="{{ $payment->remarks ?: '-' }}"
-                                                data-marked="{{ $payment->marked_paid_at?->format('Y-m-d H:i') ?: '-' }}"
+                                                data-marked="{{ $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('Y-m-d H:i') ?: '-' }}"
                                                 data-approve-action="{{ route('payments.confirm-paid', $payment) }}"
                                                 data-reject-action="{{ route('payments.reject-paid', $payment) }}"
                                             >

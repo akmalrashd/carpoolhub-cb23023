@@ -201,7 +201,7 @@ class ChatService
         $this->postSystemMessage($conversation, "{$name} was removed from the group.");
     }
 
-    public function postMessage(Conversation $conversation, User $sender, string $body): Message
+    public function postMessage(Conversation $conversation, User $sender, string $body, string $type = Message::TYPE_TEXT): Message
     {
         $participant = ConversationParticipant::query()
             ->where('conversation_id', $conversation->id)
@@ -217,15 +217,29 @@ class ChatService
             throw ValidationException::withMessages(['body' => 'This chat is not open yet.']);
         }
 
-        $body = trim($body);
-        if ($body === '') {
-            throw ValidationException::withMessages(['body' => 'Message cannot be empty.']);
+        if ($type === Message::TYPE_IMAGE) {
+            // The client already resizes/compresses before sending (see
+            // chats-show.js) — this is a hard backstop, not the primary
+            // control, mainly so a broadcast never blows past Ably's
+            // per-message size limit.
+            if (! preg_match('/^data:image\/(jpeg|png|webp);base64,/', $body)) {
+                throw ValidationException::withMessages(['body' => 'Invalid image.']);
+            }
+            if (strlen($body) > 400_000) {
+                throw ValidationException::withMessages(['body' => 'Image is too large.']);
+            }
+        } else {
+            $type = Message::TYPE_TEXT;
+            $body = trim($body);
+            if ($body === '') {
+                throw ValidationException::withMessages(['body' => 'Message cannot be empty.']);
+            }
         }
 
         $message = Message::create([
             'conversation_id' => $conversation->id,
             'sender_id' => $sender->id,
-            'type' => Message::TYPE_TEXT,
+            'type' => $type,
             'body' => $body,
             'created_at' => now(),
         ]);

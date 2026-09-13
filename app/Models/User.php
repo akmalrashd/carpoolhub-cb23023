@@ -276,7 +276,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $parts = array_filter([
             $this->deactivation_reason,
-            $this->suspended_until ? 'Auto-reactivates '.$this->suspended_until->format('d M Y, h:ia') : null,
+            $this->suspended_until ? 'Auto-reactivates '.$this->suspended_until->clone()->setTimezone(Trip::TIMEZONE)->format('d M Y, h:ia') : null,
         ]);
 
         return $parts ? implode(' · ', $parts) : null;

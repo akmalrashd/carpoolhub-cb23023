@@ -147,7 +147,7 @@
                         data-status="{{ $pd->driver_verification_status }}"
                         data-reason="{{ $pd->driver_verification_reason }}"
                         data-deactivation-reason="{{ $pd->deactivation_reason }}"
-                        data-joined="{{ $pd->created_at?->format('d M Y') ?? '—' }}"
+                        data-joined="{{ $pd->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y') ?? '—' }}"
                         {{-- data-license deliberately omitted: it held a byte-identical
                              copy of src, doubling this page's weight (these are
                              multi-MB base64 data URIs). openLicenseFromEl already
@@ -251,7 +251,7 @@
                             <div class="t-xs text-muted" style="margin-top:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $acctStatus['reason'] }}">{{ $acctStatus['reason'] }}</div>
                         @endif
                     </td>
-                    <td style="font-size:13px;color:var(--muted);white-space:nowrap;">{{ $driver->created_at?->format('d M Y') ?? 'â€”' }}</td>
+                    <td style="font-size:13px;color:var(--muted);white-space:nowrap;">{{ $driver->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y') ?? 'â€”' }}</td>
                     <td>
                         <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
                             <button type="button" class="au-qbtn"
@@ -265,7 +265,7 @@
                                 data-status="{{ $driver->driver_verification_status }}"
                                 data-reason="{{ $driver->driver_verification_reason }}"
                                 data-deactivation-reason="{{ $driver->deactivation_reason }}"
-                                data-joined="{{ $driver->created_at?->format('d M Y') ?? '—' }}"
+                                data-joined="{{ $driver->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y') ?? '—' }}"
                                 data-license="{{ $driver->driving_license_photo ?? '' }}"
                                 data-selfie="{{ $driver->selfie_photo ?? '' }}"
                                 onclick="openLicenseFromBtn(this)"
@@ -407,7 +407,7 @@
                             <div class="t-xs text-muted" style="margin-top:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $acctStatus['reason'] }}">{{ $acctStatus['reason'] }}</div>
                         @endif
                     </td>
-                    <td style="font-size:13px;color:var(--muted);white-space:nowrap;">{{ $user->created_at?->format('d M Y') ?? 'â€”' }}</td>
+                    <td style="font-size:13px;color:var(--muted);white-space:nowrap;">{{ $user->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y') ?? 'â€”' }}</td>
                     <td>
                         <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
                             <button class="au-qbtn au-qbtn-edit"

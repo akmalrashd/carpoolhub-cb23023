@@ -9,10 +9,13 @@ use App\Models\Message;
 use App\Models\Trip;
 use App\Models\User;
 use App\Services\ChatService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ChatController extends Controller
@@ -85,7 +88,10 @@ class ChatController extends Controller
      */
     private function buildTripModalData(Trip $trip, User $viewer): array
     {
-        $trip->loadMissing(['driver', 'savedRoute', 'returnTrip', 'participants.user', 'passengerRoutePoints.user']);
+        $trip->loadMissing([
+            'driver', 'savedRoute', 'returnTrip', 'participants.user', 'passengerRoutePoints.user',
+            'joinRequests.user.riskProfile', 'joinRequests.routePoint',
+        ]);
 
         $hasReturn = (bool) $trip->returnTrip;
         $pickupName = $trip->pickup_name ?? 'Pickup';
@@ -142,7 +148,100 @@ class ChatController extends Controller
         $canManage = $isAdmin || $viewer->id === $trip->driver_id;
         $canDelete = $isAdmin || ! in_array($trip->status, ['cancelled'], true);
 
-        return [
+        // Feeds the "Manage requests" trigger inside this same modal — same
+        // gating and payload shape as the per-row @php block in
+        // trips/index.blade.php that drives its own "Requests" button.
+        $canManageTripPayment = in_array($viewer->role, ['admin', 'driver'], true)
+            && ($isAdmin || $viewer->id === $trip->driver_id);
+        $canManageRequests = $canManageTripPayment
+            && ($trip->visibility ?? 'private') === 'public'
+            && in_array($statusSlug, ['scheduled', 'recorded'], true);
+
+        $requestsExtra = [
+            'canManageRequests' => $canManageRequests ? '1' : '0',
+        ];
+
+        if ($canManageRequests) {
+            $seatsTaken = $passengerCount;
+            $seatsAvailable = $trip->seat_limit !== null
+                ? ((int) $trip->seat_limit + ($driverIncludedInSplit ? 1 : 0))
+                : ($trip->available_seats ?? '-');
+            $seatsTakenDisplay = $seatsTaken + ($driverIncludedInSplit ? 1 : 0);
+            $pendingRequestCount = (int) ($trip->joinRequests?->where('status', 'pending')->count() ?? 0);
+
+            $requestPayload = $trip->joinRequests
+                ->filter(fn ($joinRequest) => in_array((string) $joinRequest->status, ['pending', 'approved'], true))
+                ->map(function ($joinRequest) use ($trip, $tripRef) {
+                    $routePoint = $joinRequest->routePoint;
+                    $participant = $trip->participants->firstWhere('user_id', $joinRequest->user_id);
+
+                    return [
+                        'id' => $joinRequest->id,
+                        'passenger' => $joinRequest->user?->name ?: 'Passenger',
+                        'initials' => collect(explode(' ', $joinRequest->user?->name ?: 'P'))->filter()->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode(''),
+                        'status' => (string) $joinRequest->status,
+                        'requested_at' => $joinRequest->created_at?->diffForHumans() ?: '-',
+                        'note' => $joinRequest->request_note ?: '',
+                        'pickup' => $routePoint ? ($routePoint->uses_default_pickup ? 'Default pickup' : ($routePoint->pickup_name ?: 'Custom pickup')) : 'Default pickup',
+                        'dropoff' => $routePoint ? ($routePoint->uses_default_dropoff ? 'Default drop-off' : ($routePoint->dropoff_name ?: 'Custom drop-off')) : 'Default drop-off',
+                        'pickup_meta' => $routePoint && ! $routePoint->uses_default_pickup
+                            ? trim(collect([
+                                $routePoint->pickup_distance_km !== null ? number_format((float) $routePoint->pickup_distance_km, 2).' km from route' : null,
+                                $routePoint->requested_pickup_time?->format('d M Y, H:i'),
+                            ])->filter()->implode(' · '))
+                            : "Uses driver's route starting point",
+                        'dropoff_meta' => $routePoint && ! $routePoint->uses_default_dropoff
+                            ? trim(collect([
+                                $routePoint->dropoff_distance_km !== null ? number_format((float) $routePoint->dropoff_distance_km, 2).' km from route' : null,
+                                $routePoint->detour_distance_km !== null ? 'Detour '.number_format((float) $routePoint->detour_distance_km, 2).' km' : null,
+                            ])->filter()->implode(' · '))
+                            : "Uses driver's route ending point",
+                        'fare' => $routePoint?->extra_fee_amount !== null ? number_format((float) $routePoint->extra_fee_amount, 2) : null,
+                        'detour_km' => $routePoint?->detour_distance_km !== null ? (float) $routePoint->detour_distance_km : null,
+                        'detour_min' => $routePoint?->detour_duration_minutes !== null ? (int) $routePoint->detour_duration_minutes : null,
+                        'deviationKm' => $routePoint?->detour_distance_km !== null ? (float) $routePoint->detour_distance_km : 0,
+                        'name' => $joinRequest->user?->name ?: 'Passenger',
+                        'pickup_point' => [
+                            'lat' => $routePoint && ! $routePoint->uses_default_pickup && $routePoint->pickup_latitude !== null ? (float) $routePoint->pickup_latitude : null,
+                            'lng' => $routePoint && ! $routePoint->uses_default_pickup && $routePoint->pickup_longitude !== null ? (float) $routePoint->pickup_longitude : null,
+                            'label' => $routePoint && ! $routePoint->uses_default_pickup ? (($joinRequest->user?->name ?: 'Passenger').' pickup') : null,
+                        ],
+                        'dropoff_point' => [
+                            'lat' => $routePoint && ! $routePoint->uses_default_dropoff && $routePoint->dropoff_latitude !== null ? (float) $routePoint->dropoff_latitude : null,
+                            'lng' => $routePoint && ! $routePoint->uses_default_dropoff && $routePoint->dropoff_longitude !== null ? (float) $routePoint->dropoff_longitude : null,
+                            'label' => $routePoint && ! $routePoint->uses_default_dropoff ? (($joinRequest->user?->name ?: 'Passenger').' drop-off') : null,
+                        ],
+                        'pickup_lat' => $routePoint?->pickup_latitude !== null ? (float) $routePoint->pickup_latitude : null,
+                        'pickup_lng' => $routePoint?->pickup_longitude !== null ? (float) $routePoint->pickup_longitude : null,
+                        'dropoff_lat' => $routePoint?->dropoff_latitude !== null ? (float) $routePoint->dropoff_latitude : null,
+                        'dropoff_lng' => $routePoint?->dropoff_longitude !== null ? (float) $routePoint->dropoff_longitude : null,
+                        'fit' => $routePoint?->route_fit_score !== null ? ((int) $routePoint->route_fit_score.'%') : null,
+                        'fit_label' => $routePoint?->route_fit_label ?: 'Driver review',
+                        'respond_url' => route('trips.join-requests.respond', $joinRequest),
+                        'trip' => $tripRef,
+                        'risk_score' => $joinRequest->user?->riskProfile?->risk_score ?? 70,
+                        'risk_level' => $joinRequest->user?->riskProfile?->risk_level ?? 'Moderate Risk',
+                        'risk_reliability' => $joinRequest->user?->riskProfile?->payment_reliability_score ?? 5.0,
+                        'risk_cancelled' => $joinRequest->user?->riskProfile?->cancelled_request_count ?? 0,
+                        'risk_absent' => $joinRequest->user?->riskProfile?->attendance_absent_count ?? 0,
+                        'risk_unpaid' => $joinRequest->user?->riskProfile?->overdue_case_count ?? 0,
+                        'attendance_status' => $participant?->attendance_status,
+                        'attendance_note' => $participant?->attendance_note,
+                        'remove_url' => route('trips.join-requests.remove', $joinRequest),
+                        'absence_url' => route('trips.join-requests.mark-absent', $joinRequest),
+                        'absence_available' => (bool) ($trip->trip_datetime && now()->gte($trip->trip_datetime->clone()->subMinutes(\App\Services\TripJoinRequestService::ABSENCE_WINDOW_MINUTES))),
+                    ];
+                })
+                ->values();
+
+            $requestsExtra['requestsB64'] = base64_encode($requestPayload->toJson());
+            $requestsExtra['requestsSeats'] = is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-';
+            $requestsExtra['requestsIsOpenForRequest'] = $trip->is_open_for_request ? '1' : '0';
+            $requestsExtra['requestsToggleUrl'] = route('trips.requests.toggle-open', $trip);
+            $requestsExtra['requestsPendingCount'] = $pendingRequestCount;
+        }
+
+        return array_merge($requestsExtra, [
             'tripId' => $trip->id,
             'tripRef' => $tripRef,
             'routeName' => $routeName,
@@ -171,7 +270,7 @@ class ChatController extends Controller
             'canDelete' => $canDelete ? '1' : '0',
             'editUrl' => route('trips.edit', $trip),
             'deleteUrl' => route('trips.destroy', $trip),
-        ];
+        ]);
     }
 
     /**
@@ -187,11 +286,20 @@ class ChatController extends Controller
         $this->activeParticipantOrFail($request, $conversation);
 
         $validated = $request->validate([
-            'body' => ['required', 'string', 'max:2000'],
+            'type' => ['nullable', 'in:text,image'],
+            // The 400KB image ceiling really lives in ChatService::postMessage
+            // (it needs the exact same check as the type-agnostic fallback
+            // path) — this max:2000 only bites for plain text.
+            'body' => ['required', 'string', Rule::when(($request->input('type') ?? 'text') !== 'image', ['max:2000'])],
         ]);
 
         try {
-            $message = $this->chatService->postMessage($conversation, $request->user(), $validated['body']);
+            $message = $this->chatService->postMessage(
+                $conversation,
+                $request->user(),
+                $validated['body'],
+                $validated['type'] ?? Message::TYPE_TEXT
+            );
         } catch (ValidationException $exception) {
             return response()->json(['message' => $exception->getMessage()], 422);
         }
@@ -251,6 +359,74 @@ class ChatController extends Controller
         }
 
         return $request->wantsJson() ? response()->json(['ok' => true]) : null;
+    }
+
+    /**
+     * A plain-text export — one line per message in WhatsApp's own
+     * "date, time - Sender: body" convention, ahead of a short metadata
+     * header identifying exactly which conversation/trip it came from.
+     * This is what the in-thread notice points users to before a
+     * conversation is purged: something they can hand to admin that
+     * still means something once the live chat itself is gone.
+     */
+    public function export(Request $request, Conversation $conversation): Response
+    {
+        $this->activeParticipantOrFail($request, $conversation);
+
+        $conversation->load(['driver', 'participants.user']);
+        $messages = Message::query()
+            ->where('conversation_id', $conversation->id)
+            ->with('sender')
+            ->orderBy('id')
+            ->get();
+
+        $tz = Trip::TIMEZONE;
+        $fmt = fn (?Carbon $date) => $date ? $date->clone()->setTimezone($tz)->format('d/m/Y, g:i A') : '-';
+
+        $members = $conversation->participants
+            ->map(fn ($participant) => trim(
+                ($participant->user?->name ?: 'Deleted user')
+                .' ('.($participant->user?->email ?: '-').')'
+                .($participant->left_at ? ' [left]' : '')
+            ))
+            ->implode('; ');
+
+        $lines = [
+            'CarpoolHub Chat Export',
+            str_repeat('=', 40),
+            'Conversation ID: '.$conversation->id,
+            'Trip Reference: '.($conversation->trip_ref_snapshot ?: '-'),
+            'Route: '.($conversation->route_snapshot ?: '-'),
+            'Trip Date: '.$fmt($conversation->trip_datetime_snapshot),
+            'Driver: '.($conversation->driver?->name ?: '-').' ('.($conversation->driver?->email ?: '-').')',
+            'Members ('.$conversation->participants->count().'): '.$members,
+            'Chat opened: '.$fmt($conversation->opens_at),
+            'Scheduled deletion: '.($conversation->scheduled_purge_at ? $fmt($conversation->scheduled_purge_at) : 'Not yet scheduled'),
+            'Exported by: '.$request->user()->name.' ('.$request->user()->email.') on '.$fmt(now()),
+            str_repeat('=', 40),
+            '',
+        ];
+
+        foreach ($messages as $message) {
+            $timestamp = $fmt($message->created_at);
+
+            if ($message->isSystem()) {
+                $lines[] = "{$timestamp} - System: {$message->body}";
+
+                continue;
+            }
+
+            $sender = $message->sender?->name ?? 'Deleted user';
+            $body = $message->type === Message::TYPE_IMAGE ? '<Photo omitted>' : $message->body;
+            $lines[] = "{$timestamp} - {$sender}: {$body}";
+        }
+
+        $filename = 'CarpoolHub Chat - '.preg_replace('/[^A-Za-z0-9 _-]/', '-', $conversation->trip_ref_snapshot ?: (string) $conversation->id).'.txt';
+
+        return response(implode("\n", $lines), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.addslashes($filename).'"',
+        ]);
     }
 
     private function activeParticipantOrFail(Request $request, Conversation $conversation): ConversationParticipant

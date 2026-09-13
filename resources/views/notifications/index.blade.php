@@ -105,7 +105,7 @@
                         @if($notification->created_at?->isAfter(now()->subDay()))
                             {{ $notification->created_at->diffForHumans() }}
                         @else
-                            {{ $notification->created_at?->format('d M Y, H:i') }}
+                            {{ $notification->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') }}
                         @endif
                     </span>
                 </div>

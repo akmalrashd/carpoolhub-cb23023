@@ -213,7 +213,7 @@
                 @php [$badgeClass, $badgeIcon, $badgeLabel] = $log->badge; @endphp
                 <tr>
                     <td style="font-size:13px;color:var(--muted);white-space:nowrap;">
-                        {{ $log->created_at?->format('d M Y, h:i A') }}
+                        {{ $log->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, h:i A') }}
                         <div class="t-xs text-muted">{{ $log->created_at?->diffForHumans() }}</div>
                     </td>
                     <td style="font-weight:600;">
@@ -269,12 +269,12 @@
                     $prevBits = collect([
                         $prev['payment_method'] ?? null,
                         !empty($prev['remarks']) ? \Illuminate\Support\Str::limit($prev['remarks'], 40) : null,
-                        !empty($prev['marked_paid_at']) ? 'marked ' . \Illuminate\Support\Carbon::parse($prev['marked_paid_at'])->format('d M, h:ia') : null,
+                        !empty($prev['marked_paid_at']) ? 'marked ' . \Illuminate\Support\Carbon::parse($prev['marked_paid_at'])->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M, h:ia') : null,
                     ])->filter();
                 @endphp
                 <tr>
                     <td style="font-size:13px;color:var(--muted);white-space:nowrap;">
-                        {{ $log->created_at?->format('d M Y, h:i A') }}
+                        {{ $log->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, h:i A') }}
                         <div class="t-xs text-muted">{{ $log->created_at?->diffForHumans() }}</div>
                     </td>
                     <td style="font-weight:600;">{{ $log->payer?->name ?? 'Unknown' }}<div class="t-xs text-muted">RM {{ number_format((float) $log->amount_due, 2) }}</div></td>
@@ -328,7 +328,7 @@
                 @endphp
                 <tr>
                     <td style="font-size:13px;color:var(--muted);white-space:nowrap;">
-                        {{ $log->created_at?->format('d M Y, h:i A') }}
+                        {{ $log->created_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, h:i A') }}
                         <div class="t-xs text-muted">{{ $log->created_at?->diffForHumans() }}</div>
                     </td>
                     <td style="font-size:13px;color:var(--ink);max-width:260px;">

@@ -13,6 +13,8 @@ class Message extends Model
 
     public const TYPE_SYSTEM = 'system';
 
+    public const TYPE_IMAGE = 'image';
+
     protected $fillable = [
         'conversation_id',
         'sender_id',

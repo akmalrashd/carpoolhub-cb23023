@@ -190,6 +190,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
     Route::post('/chats/{conversation}/messages', [ChatController::class, 'store'])->middleware('throttle:30,1')->name('chats.messages.store');
     Route::patch('/chats/{conversation}/read', [ChatController::class, 'markRead'])->name('chats.read');
+    Route::get('/chats/{conversation}/export', [ChatController::class, 'export'])->name('chats.export');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');

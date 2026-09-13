@@ -124,7 +124,7 @@
         <p class="report-title">Admin Report &mdash; Reports &amp; Analytics</p>
     </div>
     <div class="report-meta">
-        Generated <strong>{{ now()->format('d M Y, h:i A') }}</strong><br>
+        Generated <strong>{{ now(\App\Models\Trip::TIMEZONE)->format('d M Y, h:i A') }}</strong><br>
         Scope: <strong>All-time</strong> (except the Overview KPIs on the live page, which can be date-filtered)
     </div>
 </div>
@@ -338,7 +338,7 @@
 </div>
 @endif
 
-<footer>CarpoolHub Admin Report &middot; generated {{ now()->format('d M Y, h:i A') }} &middot; internal use only</footer>
+<footer>CarpoolHub Admin Report &middot; generated {{ now(\App\Models\Trip::TIMEZONE)->format('d M Y, h:i A') }} &middot; internal use only</footer>
 
 <script>
     window.addEventListener('load', () => {

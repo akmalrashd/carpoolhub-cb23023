@@ -87,6 +87,9 @@
         </div>
         <div class="trip-contact-bar">
             <div class="trip-actions-filled" id="tripModalManageActions" style="display:none;">
+                <button type="button" class="trip-action-btn is-filled requests-btn open-trip-requests-review" id="tripModalRequestsBtn" title="Manage requests" style="display:none;">
+                    <i class="fa-solid fa-inbox"></i> Requests
+                </button>
                 <a href="#" class="trip-action-btn is-filled edit-btn" id="tripModalEditBtn">
                     <i class="fa-regular fa-pen-to-square"></i> Edit
                 </a>

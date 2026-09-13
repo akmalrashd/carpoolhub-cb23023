@@ -366,8 +366,8 @@
                                         'receipt_no' => 'PAY-' . str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT),
                                         'method' => $payment->payment_method ? ucfirst(str_replace('_', ' ', (string) $payment->payment_method)) : 'DuitNow',
                                         'marked_at' => $payment->marked_paid_at?->diffForHumans() ?: '-',
-                                        'marked_at_full' => $payment->marked_paid_at?->format('d M Y, H:i') ?: '-',
-                                        'confirmed_at' => $payment->confirmed_at?->format('d M Y, H:i') ?: '-',
+                                        'marked_at_full' => $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-',
+                                        'confirmed_at' => $payment->confirmed_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-',
                                         'route_name' => $routeName,
                                         'driver' => $trip->driver?->name ?: '-',
                                         'driver_email' => $trip->driver?->email ?: '-',
@@ -639,6 +639,14 @@
                                         data-can-delete="{{ ($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true)) ? '1' : '0' }}"
                                         data-edit-url="{{ route('trips.edit', $trip) }}"
                                         data-delete-url="{{ route('trips.destroy', $trip) }}"
+                                        data-can-manage-requests="{{ $canManageRequests ? '1' : '0' }}"
+                                        @if($canManageRequests)
+                                            data-requests-b64="{{ $requestPayloadB64 }}"
+                                            data-requests-seats="{{ is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-' }}"
+                                            data-requests-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
+                                            data-requests-toggle-url="{{ route('trips.requests.toggle-open', $trip) }}"
+                                            data-requests-pending-count="{{ $pendingRequestCount }}"
+                                        @endif
                                     >
                                         <i class="fa-regular fa-eye"></i>
                                         <span>View Details</span>
@@ -879,8 +887,8 @@
                                             'receipt_no' => 'PAY-' . str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT),
                                             'method' => $payment->payment_method ? ucfirst(str_replace('_', ' ', (string) $payment->payment_method)) : 'DuitNow',
                                             'marked_at' => $payment->marked_paid_at?->diffForHumans() ?: '-',
-                                            'marked_at_full' => $payment->marked_paid_at?->format('d M Y, H:i') ?: '-',
-                                            'confirmed_at' => $payment->confirmed_at?->format('d M Y, H:i') ?: '-',
+                                            'marked_at_full' => $payment->marked_paid_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-',
+                                            'confirmed_at' => $payment->confirmed_at?->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i') ?: '-',
                                             'route_name' => $routeName,
                                             'driver' => $trip->driver?->name ?: '-',
                                             'driver_email' => $trip->driver?->email ?: '-',
@@ -1139,6 +1147,14 @@
                                         data-can-delete="{{ ($isAdmin || !in_array($trip->status, ['cancelled', 'completed'], true)) ? '1' : '0' }}"
                                         data-edit-url="{{ route('trips.edit', $trip) }}"
                                         data-delete-url="{{ route('trips.destroy', $trip) }}"
+                                        data-can-manage-requests="{{ $canManageRequests ? '1' : '0' }}"
+                                        @if($canManageRequests)
+                                            data-requests-b64="{{ $requestPayloadB64 }}"
+                                            data-requests-seats="{{ is_numeric($seatsAvailable) ? max(0, $seatsAvailable - $seatsTakenDisplay) : '-' }}"
+                                            data-requests-is-open-for-request="{{ $trip->is_open_for_request ? '1' : '0' }}"
+                                            data-requests-toggle-url="{{ route('trips.requests.toggle-open', $trip) }}"
+                                            data-requests-pending-count="{{ $pendingRequestCount }}"
+                                        @endif
                                     >
                                         <i class="fa-regular fa-eye"></i>
                                         <span>View Details</span>
@@ -1307,109 +1323,7 @@
         </div>
     </div>
 
-    <div class="trip-payment-review-modal" id="tripRequestsReviewModal" aria-hidden="true">
-        <div class="trip-payment-review-card" role="dialog" aria-modal="true" aria-labelledby="tripRequestsReviewTitle">
-            <div class="trip-payment-review-head">
-                <div>
-                    <h3 class="trip-payment-review-title" id="tripRequestsReviewTitle">Manage requests</h3>
-                </div>
-                <button type="button" class="trip-payment-review-close" id="tripRequestsReviewClose" aria-label="Close">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="trip-payment-review-list" id="tripRequestsReviewList"></div>
-        </div>
-    </div>
-
-    <div class="trip-payment-review-modal" id="tripRejectRequestModal" aria-hidden="true">
-        <div class="trip-payment-review-card trip-reject-request-card" role="dialog" aria-modal="true" aria-labelledby="tripRejectRequestTitle">
-            <div class="trip-payment-review-head">
-                <div>
-                    <h3 class="trip-payment-review-title" id="tripRejectRequestTitle">Reject Request</h3>
-                    <p class="trip-payment-review-sub">State the reason why this join request is rejected.</p>
-                </div>
-                <button type="button" class="trip-payment-review-close" id="tripRejectRequestCloseTop" aria-label="Close">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="trip-payment-review-list">
-                <div class="trip-secondary-grid" style="grid-template-columns: repeat(2, minmax(0,1fr));">
-                    <div class="trip-secondary-item">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Passenger</span>
-                        <span class="trip-modal-value" id="tripRejectRequestPassenger">-</span>
-                    </div>
-                    <div class="trip-secondary-item">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
-                        <span class="trip-modal-value" id="tripRejectRequestTrip">-</span>
-                    </div>
-                </div>
-                <div>
-                    <label class="trip-modal-label trip-icon-label trip-reject-reason-label" for="tripRejectRequestReason">
-                        <i class="fa-solid fa-triangle-exclamation" style="color:#eab308;"></i>Rejection Reason
-                    </label>
-                    <textarea
-                        class="trip-request-tool trip-reject-reason-input"
-                        id="tripRejectRequestReason"
-                        rows="4"
-                        placeholder="Explain briefly why this request was rejected..."
-                        required
-                    ></textarea>
-                </div>
-                <div class="trip-reject-request-actions">
-                    <button type="button" class="trip-action-btn" id="tripRejectRequestCancel">Cancel</button>
-                    <button type="button" class="trip-payment-review-btn danger trip-reject-request-confirm" id="tripRejectRequestConfirm">
-                        <i class="fa-solid fa-xmark"></i> Reject Request
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Remove-participant reason modal — mirrors the reject-request modal above,
-         but targets an already-approved passenger instead of a pending request. --}}
-    <div class="trip-payment-review-modal" id="tripRemoveParticipantModal" aria-hidden="true">
-        <div class="trip-payment-review-card trip-reject-request-card" role="dialog" aria-modal="true" aria-labelledby="tripRemoveParticipantTitle">
-            <div class="trip-payment-review-head">
-                <div>
-                    <h3 class="trip-payment-review-title" id="tripRemoveParticipantTitle">Remove Passenger</h3>
-                    <p class="trip-payment-review-sub">State the reason why this passenger is being removed from the trip.</p>
-                </div>
-                <button type="button" class="trip-payment-review-close" id="tripRemoveParticipantCloseTop" aria-label="Close">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="trip-payment-review-list">
-                <div class="trip-secondary-grid" style="grid-template-columns: repeat(2, minmax(0,1fr));">
-                    <div class="trip-secondary-item">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-user"></i>Passenger</span>
-                        <span class="trip-modal-value" id="tripRemoveParticipantPassenger">-</span>
-                    </div>
-                    <div class="trip-secondary-item">
-                        <span class="trip-modal-label trip-icon-label"><i class="fa-solid fa-hashtag"></i>Trip Ref</span>
-                        <span class="trip-modal-value" id="tripRemoveParticipantTrip">-</span>
-                    </div>
-                </div>
-                <div>
-                    <label class="trip-modal-label trip-icon-label trip-reject-reason-label" for="tripRemoveParticipantReason">
-                        <i class="fa-solid fa-triangle-exclamation" style="color:#eab308;"></i>Removal Reason
-                    </label>
-                    <textarea
-                        class="trip-request-tool trip-reject-reason-input"
-                        id="tripRemoveParticipantReason"
-                        rows="4"
-                        placeholder="Explain briefly why this passenger is being removed..."
-                        required
-                    ></textarea>
-                </div>
-                <div class="trip-reject-request-actions">
-                    <button type="button" class="trip-action-btn" id="tripRemoveParticipantCancel">Cancel</button>
-                    <button type="button" class="trip-payment-review-btn danger trip-reject-request-confirm" id="tripRemoveParticipantConfirm">
-                        <i class="fa-solid fa-user-xmark"></i> Remove Passenger
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('trips.partials.trip-requests-modal')
 
     {{-- "My Request" — the passenger-side counterpart of "Manage requests" above.
          Shows just the viewer's own request on a public trip they don't drive,
@@ -1505,5 +1419,6 @@
 
     <script>window.CH_TRIPS = { csrf: @json(csrf_token()) };</script>
     <script src="{{ asset('js/trip-details-modal.js') }}?v={{ filemtime(public_path('js/trip-details-modal.js')) }}"></script>
+    <script src="{{ asset('js/trip-requests-modal.js') }}?v={{ filemtime(public_path('js/trip-requests-modal.js')) }}"></script>
     <script src="{{ asset('js/trips-index.js') }}?v={{ filemtime(public_path('js/trips-index.js')) }}"></script>
 @endsection

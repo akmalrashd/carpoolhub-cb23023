@@ -183,7 +183,7 @@ class GoogleAuthController extends Controller
         // back in, not just that they're stuck — otherwise "contact support"
         // is the only path even though this one resolves itself.
         $until = $user->suspended_until
-            ? ' It will be automatically lifted on '.$user->suspended_until->format('d M Y, h:ia').'.'
+            ? ' It will be automatically lifted on '.$user->suspended_until->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, h:ia').'.'
             : '';
 
         if ($user->role !== 'driver') {

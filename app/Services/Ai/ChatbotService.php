@@ -190,7 +190,7 @@ class ChatbotService
 
     private function buildSystemPrompt(User $user, string $language, string $pendingContext = ''): string
     {
-        $now   = Carbon::now()->format('d M Y, H:i');
+        $now   = Carbon::now(\App\Models\Trip::TIMEZONE)->format('d M Y, H:i');
         $isBm  = $language !== 'en';
         $role  = (string) $user->role;
 
