@@ -642,7 +642,8 @@
                     </div>
                 </details>
                 <div class="xp-modal-join-fields" id="exploreModalJoinFields">
-                    <textarea class="xp-modal-note" id="exploreModalNote" name="request_note" form="exploreModalJoinForm" placeholder="Optional note for the driver"></textarea>
+                    <span class="xp-modal-pref-label">Question for the driver? (optional)</span>
+                    <textarea class="xp-modal-note" id="exploreModalNote" name="request_note" form="exploreModalJoinForm" placeholder="E.g. can you swing by near the LRT station?"></textarea>
                 </div>
             </div>
             <form class="xp-modal-foot" id="exploreModalJoinForm" method="POST">
