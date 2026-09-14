@@ -110,6 +110,21 @@
                 </form>
             </div>
             <div class="trip-actions-filled" id="tripModalContactActions" style="display:none;">
+                {{-- The passenger-side counterpart of "Manage requests" — shown first,
+                     ahead of Chat, matching the same left-to-right order the trips-list
+                     row's own Action-column icons already use for these two buttons.
+                     Reuses the exact "My Request" popup/JS from trips/index.blade.php
+                     (public/js/trips-index.js binds every .open-my-request-review
+                     element present at page load), so it only ever has something to
+                     open on that page — data-request-b64 is simply absent everywhere
+                     else this modal is reused (e.g. the chat thread page), which
+                     keeps this row hidden there instead of opening a dead popup. --}}
+                <div class="trip-contact-row" id="tripModalMyRequestWrap" style="display:none;">
+                    <p class="trip-contact-row-label">You have a request for this trip.</p>
+                    <button type="button" class="trip-action-btn is-filled myrequest-btn open-my-request-review" id="tripModalMyRequestBtn">
+                        <i class="fa-solid fa-inbox"></i> My Request
+                    </button>
+                </div>
                 {{-- Public trips: everyone stays in the monitored in-app chat, no
                      external fallback — see the Hexa welcome message's own "keep
                      it inside this chat" tip. Disabled + a toast (not hidden) once
@@ -138,6 +153,15 @@
                             <i class="fa-brands fa-whatsapp"></i>
                         </a>
                     </div>
+                </div>
+                {{-- Independent of the chat/external-contact toggle above — a
+                     completed public trip can have both a live chat and a
+                     still-unrated driver at once. --}}
+                <div class="trip-contact-row" id="tripModalRateWrap" style="display:none;">
+                    <p class="trip-contact-row-label">How was your ride? Rate your driver.</p>
+                    <a href="#" class="trip-action-btn is-filled rate-btn open-rate-trip-modal-btn" id="tripModalRateBtn">
+                        <i class="fa-solid fa-star"></i> Rate Trip
+                    </a>
                 </div>
             </div>
         </div>

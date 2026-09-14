@@ -1,6 +1,31 @@
+/* Per-thread logic only (message list, composer, polling, Ably, Trip
+   Details header freshness) — everything that depends on which specific
+   conversation is open. Re-executed on every chat switch by
+   chat-thread-controller.js's mount() (a fresh <script> element re-runs
+   even though the file was already loaded once), NOT just once at initial
+   page load, since #chatMessages/#chatComposerForm/etc. are replaced along
+   with the rest of the thread pane's markup each time.
+
+   Because this file runs more than once per page view, every setInterval
+   and the Ably connection below register their own teardown against
+   window.__chatThreadSignal (a fresh AbortController the controller creates
+   right before injecting each new thread's HTML+scripts) — without that,
+   switching chats N times would leave N-1 stale pollers/connections still
+   running in the background, each still fetching for a conversation that's
+   no longer on screen. Element-specific listeners (composer form/input,
+   attach button) don't need this: their elements are removed from the DOM
+   by the same swap, which drops those listeners along with them.
+
+   The invite-connections picker and the photo lightbox used to live in this
+   file too, but both only ever needed to react to shell-level, load-once
+   markup that survives a thread swap (see chat-invite-connections.js /
+   chat-lightbox.js), so they were pulled out entirely rather than carrying
+   this file's re-run/teardown complexity for no reason. */
 (() => {
     const CFG = window.CH_CHAT;
     if (!CFG) return;
+
+    const signal = window.__chatThreadSignal;
 
     const messagesEl = document.getElementById('chatMessages');
     const messagesInnerEl = document.getElementById('chatMessagesInner');
@@ -26,6 +51,22 @@
     const scrollToBottom = () => {
         if (!messagesEl) return;
         messagesEl.scrollTop = messagesEl.scrollHeight;
+    };
+
+    // Initial mount only — chatUnreadSeparator (chats/partials/thread.blade.php)
+    // marks where the messages that were still unread when this thread was
+    // opened begin, computed server-side from the watermark captured before
+    // ChatController::show()'s own markRead() call moves it. A chat with
+    // several unread messages should land there (WhatsApp-style), not jump
+    // straight to the very bottom and skip past the earlier ones.
+    const scrollToUnreadOrBottom = () => {
+        if (!messagesEl) return;
+        const marker = document.getElementById('chatUnreadSeparator');
+        if (marker) {
+            messagesEl.scrollTop = Math.max(0, marker.offsetTop - messagesEl.clientHeight * 0.25);
+            return;
+        }
+        scrollToBottom();
     };
 
     // This app has no multi-timezone support — every viewer is assumed to
@@ -166,7 +207,7 @@
         input.addEventListener('input', () => {
             input.style.height = 'auto';
             input.style.height = Math.min(input.scrollHeight, 96) + 'px';
-        });
+        }, { signal });
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -184,14 +225,14 @@
                 sendBtn.disabled = false;
                 input.focus();
             }
-        });
+        }, { signal });
 
         input.addEventListener('keydown', (event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 form.requestSubmit();
             }
-        });
+        }, { signal });
     }
 
     // ── Photo attachment ─────────────────────────────────────────────
@@ -225,7 +266,7 @@
     }
 
     if (attachBtn && attachInput) {
-        attachBtn.addEventListener('click', () => attachInput.click());
+        attachBtn.addEventListener('click', () => attachInput.click(), { signal });
 
         attachInput.addEventListener('change', async () => {
             const file = attachInput.files && attachInput.files[0];
@@ -241,7 +282,7 @@
             } finally {
                 attachBtn.disabled = false;
             }
-        });
+        }, { signal });
     }
 
     // ── Polling fallback (catches anything a dropped Ably connection missed) ──
@@ -263,7 +304,8 @@
             pollInFlight = false;
         }
     }
-    window.setInterval(poll, 25000);
+    const pollIntervalId = window.setInterval(poll, 25000);
+    signal?.addEventListener('abort', () => window.clearInterval(pollIntervalId));
 
     // ── Trip Details / Manage Requests freshness ─────────────────────
     // Neither popup has its own live channel — they're just read off the
@@ -304,7 +346,10 @@
             tripModalRefreshInFlight = false;
         }
     }
-    if (tripModalBtn) window.setInterval(refreshTripModalData, 20000);
+    if (tripModalBtn) {
+        const tripModalIntervalId = window.setInterval(refreshTripModalData, 20000);
+        signal?.addEventListener('abort', () => window.clearInterval(tripModalIntervalId));
+    }
 
     // ── Ably realtime ────────────────────────────────────────────────
     function initAbly() {
@@ -317,229 +362,12 @@
         });
 
         ably.connection.on('failed', () => { /* poll() above still covers delivery */ });
+        signal?.addEventListener('abort', () => ably.close());
 
         const channel = ably.channels.get(`private:conversation.${CFG.conversationId}`);
         channel.subscribe('message.sent', (msg) => appendMessage(msg.data));
     }
     initAbly();
 
-    // ── Invite from connections (private trip groups only) ──────────
-    const inviteBtn = document.getElementById('chatInviteBtn');
-    const inviteModal = document.getElementById('inviteConnectionsModal');
-    const inviteList = document.getElementById('inviteConnectionsList');
-    const inviteSearch = document.getElementById('inviteConnectionsSearch');
-    const inviteCloseBtn = document.getElementById('inviteConnectionsClose');
-    const inviteCancelBtn = document.getElementById('inviteConnectionsCancelBtn');
-    const inviteSubmitBtn = document.getElementById('inviteConnectionsSubmitBtn');
-    const inviteCountEl = document.getElementById('inviteConnectionsCount');
-
-    if (inviteBtn && inviteModal && CFG.pickerOptionsUrl && CFG.inviteUrl) {
-        const closeInviteModal = () => {
-            inviteModal.classList.remove('is-open');
-            inviteModal.setAttribute('aria-hidden', 'true');
-            document.body.style.overflow = '';
-        };
-
-        const updateInviteCount = () => {
-            const checked = inviteList.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)').length;
-            if (inviteCountEl) inviteCountEl.textContent = `Invite (${checked})`;
-            if (inviteSubmitBtn) inviteSubmitBtn.disabled = checked === 0;
-        };
-
-        const renderInviteList = (connections) => {
-            if (!inviteList) return;
-
-            if (connections.length === 0) {
-                inviteList.innerHTML = '<div style="padding:16px; color:var(--muted);">You have no accepted connections to invite yet.</div>';
-                return;
-            }
-
-            // Already-in-chat connections sink to the bottom — greyed out
-            // and locked (see the disabled checkbox below), so the ones an
-            // admin can actually act on stay first rather than mixed in.
-            const sorted = [...connections].sort((a, b) => Number(a.is_member) - Number(b.is_member));
-
-            inviteList.style.gap = '0';
-            inviteList.innerHTML = sorted.map((c, i) => `
-                <label
-                    data-search="${escapeHtml(`${c.name} ${c.email}`.toLowerCase())}"
-                    style="display:flex; flex-direction:row; align-items:center; gap:12px; padding:8px 2px; ${i < sorted.length - 1 ? 'border-bottom:1px solid var(--hairline);' : ''} cursor:${c.is_member ? 'default' : 'pointer'}; opacity:${c.is_member ? '0.5' : '1'};"
-                >
-                    <span style="width:40px; height:40px; border-radius:999px; border:2px solid var(--hairline-strong); display:grid; place-items:center; font-size:16px; font-weight:800; font-family:var(--font-display), sans-serif; flex-shrink:0; overflow:hidden; ${window.CarpoolAvatar.bgStyle(c.id)}">${window.CarpoolAvatar.innerHtml({ name: c.name, id: c.id })}</span>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-family:var(--font-display), sans-serif; font-size:14px; font-weight:800; color:var(--ink);">${escapeHtml(c.name)}</div>
-                        <div style="font-size:12px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(c.email)}</div>
-                    </div>
-                    <input type="checkbox" value="${escapeHtml(c.id)}" ${c.is_member ? 'checked disabled' : ''} style="width:20px; height:20px; flex-shrink:0;">
-                </label>
-            `).join('');
-
-            updateInviteCount();
-        };
-
-        if (inviteModal) {
-            window.CarpoolBottomSheet?.enable({
-                modal: inviteModal,
-                card: inviteModal.querySelector('.trip-payment-review-card'),
-                head: inviteModal.querySelector('.trip-payment-review-head'),
-                closeFn: closeInviteModal,
-            });
-            inviteCloseBtn?.addEventListener('click', closeInviteModal);
-            inviteCancelBtn?.addEventListener('click', closeInviteModal);
-            inviteModal.addEventListener('click', (event) => {
-                if (event.target === inviteModal) closeInviteModal();
-            });
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && inviteModal.classList.contains('is-open')) closeInviteModal();
-            });
-            inviteList?.addEventListener('change', updateInviteCount);
-            inviteSearch?.addEventListener('input', () => {
-                const term = inviteSearch.value.trim().toLowerCase();
-                inviteList?.querySelectorAll('[data-search]').forEach((row) => {
-                    row.hidden = term !== '' && !row.dataset.search.includes(term);
-                });
-            });
-            inviteSubmitBtn?.addEventListener('click', () => {
-                const ids = Array.from(inviteList.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)')).map((el) => el.value);
-                if (ids.length === 0) return;
-
-                const form2 = document.createElement('form');
-                form2.method = 'POST';
-                form2.action = CFG.inviteUrl;
-                form2.innerHTML = `<input type="hidden" name="_token" value="${escapeHtml(CFG.csrf)}">`
-                    + ids.map((id) => `<input type="hidden" name="connection_user_ids[]" value="${id}">`).join('');
-                document.body.appendChild(form2);
-                form2.submit();
-            });
-        }
-
-        inviteBtn.addEventListener('click', async () => {
-            if (inviteSearch) inviteSearch.value = '';
-            inviteList.style.gap = '0';
-            inviteList.innerHTML = '<div style="padding:16px; color:var(--muted);">Loading...</div>';
-            inviteModal.classList.add('is-open');
-            inviteModal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-
-            let connections = [];
-            try {
-                const response = await fetch(CFG.pickerOptionsUrl, { headers: { Accept: 'application/json' } });
-                const payload = await response.json();
-                connections = payload.connections || [];
-            } catch {
-                inviteList.innerHTML = '<div style="padding:16px; color:var(--danger-ink,#dc2626);">Could not load your connections. Please try again.</div>';
-                return;
-            }
-
-            renderInviteList(connections);
-        });
-    }
-
-    // ── Photo lightbox — pinch-zoom + pan, tap backdrop to close ─────
-    // Opens in-page rather than navigating to the data: URI directly:
-    // several mobile browsers show a blank page for a top-level
-    // navigation to a data: URI, and this app's global viewport meta
-    // disables native pinch-zoom (see pwa-head.blade.php), so zooming
-    // here is done by hand via touch tracking instead of relying on it.
-    const lightbox = document.getElementById('chatLightbox');
-    const lightboxViewport = document.getElementById('chatLightboxViewport');
-    const lightboxImg = document.getElementById('chatLightboxImg');
-
-    if (lightbox && lightboxViewport && lightboxImg) {
-        let scale = 1;
-        let originX = 0;
-        let originY = 0;
-        let pinchStartDistance = 0;
-        let pinchStartScale = 1;
-        let panStartX = 0;
-        let panStartY = 0;
-        let panOriginX = 0;
-        let panOriginY = 0;
-        let isPanning = false;
-
-        const applyTransform = () => {
-            lightboxImg.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
-        };
-
-        const resetTransform = () => {
-            scale = 1;
-            originX = 0;
-            originY = 0;
-            applyTransform();
-        };
-
-        const openLightbox = (src) => {
-            lightboxImg.src = src;
-            resetTransform();
-            lightbox.classList.add('is-open');
-            lightbox.setAttribute('aria-hidden', 'false');
-        };
-
-        const closeLightbox = () => {
-            lightbox.classList.remove('is-open');
-            lightbox.setAttribute('aria-hidden', 'true');
-            lightboxImg.src = '';
-        };
-
-        messagesEl?.addEventListener('click', (event) => {
-            const trigger = event.target.closest('[data-lightbox-src]');
-            if (!trigger) return;
-            openLightbox(trigger.dataset.lightboxSrc);
-        });
-
-        // Tapping the dark backdrop (viewport minus the image itself) closes
-        // it — a tap that lands on the image is a zoom gesture, not a close.
-        lightboxViewport.addEventListener('click', (event) => {
-            if (event.target === lightboxImg) return;
-            closeLightbox();
-        });
-
-        const touchDistance = (touches) => {
-            const dx = touches[0].clientX - touches[1].clientX;
-            const dy = touches[0].clientY - touches[1].clientY;
-            return Math.hypot(dx, dy);
-        };
-
-        lightboxViewport.addEventListener('touchstart', (event) => {
-            if (event.touches.length === 2) {
-                pinchStartDistance = touchDistance(event.touches);
-                pinchStartScale = scale;
-                isPanning = false;
-            } else if (event.touches.length === 1 && scale > 1) {
-                isPanning = true;
-                panStartX = event.touches[0].clientX;
-                panStartY = event.touches[0].clientY;
-                panOriginX = originX;
-                panOriginY = originY;
-            }
-        }, { passive: true });
-
-        lightboxViewport.addEventListener('touchmove', (event) => {
-            if (event.touches.length === 2) {
-                event.preventDefault();
-                const distance = touchDistance(event.touches);
-                if (pinchStartDistance > 0) {
-                    scale = Math.min(4, Math.max(1, pinchStartScale * (distance / pinchStartDistance)));
-                    if (scale === 1) { originX = 0; originY = 0; }
-                    applyTransform();
-                }
-            } else if (event.touches.length === 1 && isPanning) {
-                event.preventDefault();
-                originX = panOriginX + (event.touches[0].clientX - panStartX);
-                originY = panOriginY + (event.touches[0].clientY - panStartY);
-                applyTransform();
-            }
-        }, { passive: false });
-
-        lightboxViewport.addEventListener('touchend', (event) => {
-            if (event.touches.length < 2) pinchStartDistance = 0;
-            if (event.touches.length === 0) isPanning = false;
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
-        });
-    }
-
-    scrollToBottom();
+    scrollToUnreadOrBottom();
 })();

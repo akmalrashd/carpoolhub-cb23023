@@ -206,6 +206,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(PassengerRiskProfile::class);
     }
 
+    public function ratingProfile(): HasOne
+    {
+        return $this->hasOne(DriverRatingProfile::class);
+    }
+
+    public function driverRatingsReceived(): HasMany
+    {
+        return $this->hasMany(DriverRating::class, 'driver_id');
+    }
+
+    public function driverRatingsGiven(): HasMany
+    {
+        return $this->hasMany(DriverRating::class, 'rater_user_id');
+    }
+
     public function reviewedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'driver_reviewed_by');

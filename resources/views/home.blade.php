@@ -391,7 +391,13 @@
                                                                 {{ $trip->driver?->avatar_initial ?? 'U' }}
                                                             @endif
                                                         </span>
-                                                        <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>                                                    </div>
+                                                        <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
+                                                        @if($trip->driver?->ratingProfile && $trip->driver->ratingProfile->rating_count > 0)
+                                                            <span class="hp-pub-driver-rating">
+                                                                <i class="fa-solid fa-star"></i> {{ number_format((float) $trip->driver->ratingProfile->rating_average, 1) }} ({{ $trip->driver->ratingProfile->rating_count }})
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                     <div class="hp-pub-divider"></div>
                                                     <div class="hp-pub-mobile-route">
                                                         <div class="hp-pub-point">
@@ -563,6 +569,28 @@
                             </div>
                             <a href="{{ route('trips.index') }}" class="btn btn-sm" style="background:var(--surface);color:var(--warning-ink);border-color:rgba(180,83,9,.30);white-space:nowrap;">
                                 Review <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Unrated-trip nudge — any passenger (not just drivers), so this
+                     sits outside the role-gated chain above. Only surfaces once a
+                     rating has sat unclaimed for a few days (DashboardController
+                     already applies that threshold) — the chat/notification
+                     touchpoints are what carry the first few days. --}}
+                @if(($unratedTripsCount ?? 0) > 0)
+                    <div class="hp-section" style="background:var(--warning-soft);border-color:rgba(180,83,9,.22);">
+                        <div class="hp-section-body" style="display:flex;align-items:center;gap:14px;">
+                            <div style="width:42px;height:42px;border-radius:var(--r-md);background:var(--warning);color:#fff;display:grid;place-items:center;font-size:18px;flex-shrink:0;">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <p style="margin:0 0 2px;font-size:15px;font-weight:800;color:var(--warning-ink);">Rate Your Driver{{ $unratedTripsCount > 1 ? 's' : '' }}</p>
+                                <p style="margin:0;font-size:13px;color:var(--warning);font-weight:600;">{{ (int) $unratedTripsCount }} recent trip(s) waiting for your rating</p>
+                            </div>
+                            <a href="{{ route('trips.index', ['needs_rating' => 1]) }}" class="btn btn-sm" style="background:var(--surface);color:var(--warning-ink);border-color:rgba(180,83,9,.30);white-space:nowrap;">
+                                Rate <i class="fa-solid fa-arrow-right"></i>
                             </a>
                         </div>
                     </div>
@@ -897,6 +925,11 @@
                                                             @endif
                                                         </span>
                                             <span class="hp-pub-driver-name">{{ $trip->driver?->name ?? '-' }}</span>
+                                            @if($trip->driver?->ratingProfile && $trip->driver->ratingProfile->rating_count > 0)
+                                                <span class="hp-pub-driver-rating">
+                                                    <i class="fa-solid fa-star"></i> {{ number_format((float) $trip->driver->ratingProfile->rating_average, 1) }} ({{ $trip->driver->ratingProfile->rating_count }})
+                                                </span>
+                                            @endif
                                         </div>
                                         <div class="hp-pub-divider"></div>
                                         <div class="hp-pub-mobile-route">

@@ -19,6 +19,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminWithdrawalController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ConnectionController;
+use App\Http\Controllers\DriverRatingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\FuelPriceController;
@@ -161,6 +162,12 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::post('/trips/{trip}/chat', [PrivateChatController::class, 'create'])->name('trips.chat.create');
     Route::get('/trips/{trip}/chat/circle-options', [PrivateChatController::class, 'circleOptions'])->name('trips.chat.circle-options');
     Route::post('/trips/{trip}/chat/circle/{conversation}', [PrivateChatController::class, 'linkCircle'])->name('trips.chat.link-circle');
+    // Passenger-to-driver, public trips only — a passenger rates the driver
+    // of a completed public trip they actually rode on (DriverRatingService::
+    // isEligibleToRate enforces the rest). driver-ratings.show is the
+    // aggregate-only read (average + count, never individual scores).
+    Route::post('/trips/{trip}/driver-rating', [DriverRatingController::class, 'store'])->name('driver-ratings.store');
+    Route::get('/users/{user}/driver-rating', [DriverRatingController::class, 'show'])->name('driver-ratings.show');
     Route::get('/connections', [ConnectionController::class, 'index'])->name('connections.index');
     Route::post('/connections/requests', [ConnectionController::class, 'store'])->name('connections.requests.store');
     Route::patch('/connections/{connection}/respond', [ConnectionController::class, 'respond'])->name('connections.respond');

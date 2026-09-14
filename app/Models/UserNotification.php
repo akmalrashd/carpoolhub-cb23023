@@ -68,6 +68,7 @@ class UserNotification extends Model
             'trip_join_request' => $this->resolveJoinRequestUrl($relatedId),
             'wallet_transaction', 'withdrawal_request' => route('wallet.index'),
             'unread_chat_reminder' => $this->resolveUnreadChatUrl($relatedId),
+            'driver_rating_invite' => $this->resolveDriverRatingUrl($relatedId),
             default => route('notifications.index'),
         };
     }
@@ -110,6 +111,26 @@ class UserNotification extends Model
         $conversation = Conversation::query()->select('id', 'public_id')->find($conversationId);
 
         return $conversation ? route('chats.show', $conversation) : route('chats.index');
+    }
+
+    /**
+     * related_id is the single unrated trip's id when there's exactly one
+     * (SendDriverRatingInviteReminder deep-links straight into it, cascading
+     * open the rating modal via ?open_rate=1 — see trips-index.js), or null
+     * when there are several — in which case this points at the same
+     * needs_rating=1 pre-filtered trips-list link the Home banner uses
+     * (TripService::paginateForUser()) rather than the unfiltered list.
+     * Checks the trip still exists rather than assuming it does — a
+     * cancelled trip hard-deletes the row (see TripService::delete()),
+     * which would otherwise 404 route generation.
+     */
+    private function resolveDriverRatingUrl(int $tripId): string
+    {
+        if ($tripId <= 0 || ! Trip::query()->whereKey($tripId)->exists()) {
+            return route('trips.index', ['needs_rating' => 1]);
+        }
+
+        return route('trips.index', ['focus_trip' => $tripId, 'open_rate' => 1]);
     }
 
     private function resolveJoinRequestUrl(int $joinRequestId): string

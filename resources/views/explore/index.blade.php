@@ -326,7 +326,13 @@
                                     </span>
                                     <div class="xp-driver-info">
                                         <span class="xp-driver-name">{{ $trip->driver?->name ?: '—' }}</span>
-                                        <span class="xp-driver-rating xp-desktop-label">{{ $trip->driver?->trips_count ?? 0 }} trips</span>
+                                        <span class="xp-driver-rating">
+                                            @if($trip->driver?->ratingProfile && $trip->driver->ratingProfile->rating_count > 0)
+                                                <i class="fa-solid fa-star"></i> {{ number_format((float) $trip->driver->ratingProfile->rating_average, 1) }} ({{ $trip->driver->ratingProfile->rating_count }})
+                                            @else
+                                                {{ $trip->driver?->trips_count ?? 0 }} trips
+                                            @endif
+                                        </span>
                                     </div>
                                     </div>
 

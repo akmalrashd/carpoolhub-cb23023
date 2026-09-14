@@ -58,10 +58,14 @@ function confirmTripCancel(form, confirmMessage) {
     const manageChatBtnEl    = document.getElementById('tripModalManageChatBtn');
     const manageChatBtnTextEl = document.getElementById('tripModalManageChatBtnText');
     const contactActionsEl   = document.getElementById('tripModalContactActions');
+    const myRequestWrapEl    = document.getElementById('tripModalMyRequestWrap');
+    const myRequestBtnEl     = document.getElementById('tripModalMyRequestBtn');
     const chatWrapEl         = document.getElementById('tripModalChatWrap');
     const chatBtnEl          = document.getElementById('tripModalChat');
     const chatNoteTextEl     = document.getElementById('tripModalChatNoteText');
     const externalContactEl  = document.getElementById('tripModalExternalContact');
+    const rateWrapEl         = document.getElementById('tripModalRateWrap');
+    const rateBtnEl          = document.getElementById('tripModalRateBtn');
     const editBtnEl          = document.getElementById('tripModalEditBtn');
     const deleteFormEl       = document.getElementById('tripModalDeleteForm');
     const requestsBtnEl      = document.getElementById('tripModalRequestsBtn');
@@ -326,6 +330,14 @@ function confirmTripCancel(form, confirmMessage) {
                 whatsappEl.dataset.unavailable = waUrl ? '' : '1';
             }
 
+            // Shown first, ahead of Chat — see the blade comment above
+            // #tripModalMyRequestWrap for why this only ever has something to
+            // open on the trips-list page. Same !important-defeating wrapper
+            // toggle as chatWrapEl/rateWrapEl below, for the same reason.
+            const requestB64 = btn.dataset.requestB64 || '';
+            if (myRequestWrapEl) myRequestWrapEl.style.display = requestB64 ? '' : 'none';
+            if (myRequestBtnEl && requestB64) myRequestBtnEl.dataset.requestB64 = requestB64;
+
             // Whichever trip currently has a linked conversation stays in-app
             // (matches the Hexa welcome message's "keep it inside this chat"
             // tip) — public trips always get one automatically, private trips
@@ -343,6 +355,27 @@ function confirmTripCancel(form, confirmMessage) {
                 chatBtnEl.classList.remove('is-disabled');
                 chatBtnEl.setAttribute('href', chatUrl);
                 if (chatNoteTextEl) chatNoteTextEl.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
+            }
+
+            // Independent of the chat/external-contact toggle above — a
+            // completed public trip can have both a live chat and a still-
+            // unrated driver at once. #tripModalRateBtn is a plain
+            // .trip-contact-row (not itself forced !important like
+            // .trip-actions-filled .trip-action-btn is), so a plain
+            // style.display toggle on the wrapper is enough here.
+            const canRate = String(btn.dataset.canRate || '0') === '1';
+            if (rateWrapEl) rateWrapEl.style.display = canRate ? '' : 'none';
+            if (rateBtnEl && canRate) {
+                // Reset every render — this single DOM node is reused across
+                // whichever trip's modal was last opened, so a "Rated"
+                // state left over from a previous trip must not leak in.
+                rateBtnEl.classList.remove('is-disabled');
+                rateBtnEl.innerHTML = '<i class="fa-solid fa-star"></i> Rate Trip';
+                rateBtnEl.dataset.tripId = btn.dataset.tripId || '';
+                rateBtnEl.dataset.tripRef = btn.dataset.tripRef || '';
+                rateBtnEl.dataset.rateUrl = btn.dataset.rateUrl || '';
+                rateBtnEl.dataset.driverName = btn.dataset.driverName || '';
+                rateBtnEl.dataset.routeName = btn.dataset.routeName || '';
             }
 
             // Action row: trip owners (or admins) get manage actions (Edit/Delete),

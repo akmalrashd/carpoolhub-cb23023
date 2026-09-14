@@ -65,6 +65,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('notifications:unread-chat-reminder')
             ->dailyAt('11:30');
 
+        // Runs right after the unread-chat reminder above, keeping every
+        // "daily chat/notification touch" clustered together. Posts a
+        // one-time Hexa "how was your ride?" chat message on newly-completed
+        // public trips, and — like the reminder above — deletes and
+        // recreates its own reminder for anyone still inside driver_rating_
+        // window_days. Self-clears the day someone rates and stops once a
+        // trip ages out of the window; no manual cleanup needed either way.
+        $schedule->command('ratings:invite-reminder')
+            ->dailyAt('11:45');
+
         // Every 5 minutes, not daily like the reminders above — a temporary
         // suspension can expire at any minute and the account should regain
         // access promptly, not sit needlessly suspended for up to a day.

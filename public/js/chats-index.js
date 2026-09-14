@@ -112,12 +112,29 @@
     initAbly();
 
     // ── Search filter — plain client-side text match, same "hide rows
-    // that don't match" pattern used by the Manage Requests search box. ──
+    // that don't match" pattern used by the Manage Requests search box.
+    // Matches the row's full textContent, which includes every
+    // participant's name via a hidden span (chats/partials/row.blade.php)
+    // — not just whichever name happens to show in the last-message
+    // preview. ──
     const searchInput = document.getElementById('chatSearchInput');
     searchInput?.addEventListener('input', () => {
         const term = searchInput.value.trim().toLowerCase();
         list.querySelectorAll('.chat-row').forEach((row) => {
             row.classList.toggle('chat-row-hidden', Boolean(term) && !row.textContent.toLowerCase().includes(term));
         });
+    });
+
+    // ── Seamless chat switching (WhatsApp Web style) — swap the thread
+    // pane in place via chat-thread-controller.js instead of a full page
+    // navigation. Only when CarpoolChatThread is actually available (it
+    // isn't loaded on every page that might reuse this list markup) — a
+    // plain <a href> is a perfectly fine fallback otherwise. ──
+    list.addEventListener('click', (event) => {
+        if (!window.CarpoolChatThread) return;
+        const row = event.target instanceof Element ? event.target.closest('.chat-row') : null;
+        if (!row) return;
+        event.preventDefault();
+        window.CarpoolChatThread.mount(row.href);
     });
 })();

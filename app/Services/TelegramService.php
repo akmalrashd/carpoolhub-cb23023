@@ -16,6 +16,7 @@ class TelegramService
         'connection' => '🤝',
         'route' => '📍',
         'chat' => '💬',
+        'rating' => '⭐',
         'system' => '🔔',
     ];
 

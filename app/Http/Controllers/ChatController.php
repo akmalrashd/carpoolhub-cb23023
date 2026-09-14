@@ -64,9 +64,19 @@ class ChatController extends Controller
         ];
     }
 
-    public function show(Request $request, Conversation $conversation): View
+    public function show(Request $request, Conversation $conversation): View|JsonResponse
     {
         $participant = $this->activeParticipantOrFail($request, $conversation);
+
+        // Captured before markRead() below moves the watermark — this is
+        // what the view uses to work out which messages were still unread
+        // the moment this page load started, so it can scroll to the first
+        // one (WhatsApp-style) instead of always jumping to the very
+        // bottom. Null only for a participant who has literally never read
+        // anything here before (their very first visit), in which case
+        // there's no "catching up" concept yet and the view falls back to
+        // the plain scroll-to-bottom behavior.
+        $priorLastReadMessageId = $participant->last_read_message_id;
 
         $conversation->load(['participants' => fn ($query) => $query->whereNull('left_at')->with('user'), 'trip']);
 
@@ -78,18 +88,33 @@ class ChatController extends Controller
 
         $this->markRead($request, $conversation);
 
+        $threadData = [
+            'conversation' => $conversation,
+            'messages' => $messages,
+            'isChatAdmin' => (bool) $participant->is_chat_admin,
+            'isOpen' => ! $conversation->opens_at || now()->gte($conversation->opens_at),
+            'priorLastReadMessageId' => $priorLastReadMessageId,
+            // Feeds the shared "Trip Details" popup (trips/partials/trip-details-modal
+            // + public/js/trip-details-modal.js) — null once the trip itself has been
+            // hard-deleted (cancelled), since there's nothing left to show.
+            'tripModalData' => $conversation->trip ? $this->buildTripModalData($conversation->trip, $request->user()) : null,
+        ];
+
+        // chat-thread-controller.js's mount() fetches this same route with
+        // Accept: application/json to swap the thread pane in place instead
+        // of a full page navigation (see that file's header comment) — it
+        // only ever needs the swappable half of the page, not the list pane
+        // or shell chrome around it, which chats.partials.thread doesn't
+        // include.
+        if ($request->wantsJson()) {
+            return response()->json([
+                'html' => view('chats.partials.thread', $threadData)->render(),
+            ]);
+        }
+
         return view('chats.show', array_merge(
             $this->buildConversationsListData($request->user()),
-            [
-                'conversation' => $conversation,
-                'messages' => $messages,
-                'isChatAdmin' => (bool) $participant->is_chat_admin,
-                'isOpen' => ! $conversation->opens_at || now()->gte($conversation->opens_at),
-                // Feeds the shared "Trip Details" popup (trips/partials/trip-details-modal
-                // + public/js/trip-details-modal.js) — null once the trip itself has been
-                // hard-deleted (cancelled), since there's nothing left to show.
-                'tripModalData' => $conversation->trip ? $this->buildTripModalData($conversation->trip, $request->user()) : null,
-            ]
+            $threadData
         ));
     }
 

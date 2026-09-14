@@ -10,6 +10,12 @@
          lays the viewport out inside the safe area, so every env(...) call
          across this app's CSS stays a correct, harmless 0 fallback. --}}
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    {{-- A global CSRF source for JS shared across multiple pages (e.g.
+         rate-trip-modal.js, triggerable from trips/index, Trip Details, and
+         the chat thread), instead of relying on each page's own ad-hoc
+         window.CH_*.csrf config object, which isn't guaranteed to exist on
+         every page a shared component might be included on. --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>CarpoolHub</title>
     {{-- Base stylesheet: Tailwind preflight, the design tokens, and the utilities
          the default paginator needs. Pre-compiled to a static file so the app has

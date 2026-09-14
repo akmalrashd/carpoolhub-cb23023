@@ -221,12 +221,14 @@
 
             // Deep-link: ?focus_trip=<id> (e.g. tapping a trip card on Home) also
             // opens that trip's details popup directly instead of just scrolling to it.
-            // ?open_requests=1 alongside it (a new-join-request notification) cascades
-            // one step further into the "Manage requests" popup on top of that — the
-            // request button's own dataset is populated synchronously inside the Trip
-            // Details click handler, so a short delay after it opens is all that's
-            // needed before the second click finds it ready.
+            // ?open_requests=1 or ?open_rate=1 alongside it (a new-join-request or
+            // driver-rating notification) cascades one step further into the
+            // "Manage requests" popup or the rating modal on top of that — both
+            // target buttons' own datasets are populated synchronously inside the
+            // Trip Details click handler, so a short delay after it opens is all
+            // that's needed before the second click finds them ready.
             const openRequests = params.get('open_requests') === '1';
+            const openRate = params.get('open_rate') === '1';
             const detailButtons = Array.from(document.querySelectorAll('.open-trip-modal-btn'))
                 .filter((el) => String(el.dataset.tripId || '').trim() === focusTrip);
             const detailBtn = detailButtons.find((el) => el instanceof HTMLElement && el.offsetParent !== null) || detailButtons[0];
@@ -236,6 +238,11 @@
                     if (openRequests) {
                         window.setTimeout(() => {
                             document.getElementById('tripModalRequestsBtn')?.click();
+                        }, 400);
+                    }
+                    if (openRate) {
+                        window.setTimeout(() => {
+                            document.getElementById('tripModalRateBtn')?.click();
                         }, 400);
                     }
                 }, 300);

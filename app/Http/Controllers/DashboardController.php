@@ -8,6 +8,7 @@ use App\Models\Trip;
 use App\Models\TripJoinRequest;
 use App\Models\TripPayment;
 use App\Models\UserNotification;
+use App\Services\DriverRatingService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -127,6 +128,14 @@ class DashboardController extends Controller
 
         $pendingJoinRequests = $stats['pending_requests'];
 
+        // Escalation-tier nudge (see the Driver Rating plan) — only surfaces
+        // once a rating has sat unclaimed for a few days, so this banner
+        // doesn't compete with the chat/notification touchpoints that
+        // already fire from day one.
+        $unratedTripsCount = app(DriverRatingService::class)->eligibleTripsToRate($user)
+            ->filter(fn ($trip) => $trip->trip_datetime <= Trip::now()->subDays(3))
+            ->count();
+
         $driverReviewQueue = TripPayment::query()
             ->with(['trip.savedRoute', 'user' => fn ($q) => $q->withoutHeavyMedia()])
             ->where('payment_status', 'pending_confirmation')
@@ -136,7 +145,7 @@ class DashboardController extends Controller
             ->get();
 
         $publicExploreTrips = Trip::query()
-            ->with(['savedRoute', 'participants', 'driver' => fn ($q) => $q->withoutHeavyMedia()])
+            ->with(['savedRoute', 'participants', 'driver' => fn ($q) => $q->withoutHeavyMedia(), 'driver.ratingProfile'])
             ->whereNull('parent_trip_id')
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)
@@ -160,7 +169,8 @@ class DashboardController extends Controller
             'upcomingJoinedTrip',
             'pendingJoinRequests',
             'driverReviewQueue',
-            'publicExploreTrips'
+            'publicExploreTrips',
+            'unratedTripsCount'
         ));
     }
 }

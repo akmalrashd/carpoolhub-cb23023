@@ -127,6 +127,11 @@ class Trip extends Model
         return $this->hasMany(TripPayment::class);
     }
 
+    public function driverRatings(): HasMany
+    {
+        return $this->hasMany(DriverRating::class);
+    }
+
     public function joinRequests(): HasMany
     {
         return $this->hasMany(TripJoinRequest::class);

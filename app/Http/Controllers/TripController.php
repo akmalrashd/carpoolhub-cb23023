@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Trip\StoreTripRequest;
 use App\Http\Requests\Trip\UpdateTripRequest;
+use App\Models\DriverRating;
 use App\Models\SavedRoute;
 use App\Models\Trip;
 use App\Models\User;
@@ -26,6 +27,10 @@ class TripController extends Controller
             'visibility' => ['nullable', 'in:public,private'],
             'status_filter' => ['nullable', 'in:all,upcoming,completed,draft,cancelled'],
             'trip_search' => ['nullable', 'string', 'max:100'],
+            // Link-only override (Home banner / rating notification "Rate"
+            // button) — deliberately not a UI filter control, see
+            // TripService::paginateForUser().
+            'needs_rating' => ['nullable', 'boolean'],
         ]);
 
         $filters['status_filter'] = $filters['status_filter'] ?? 'all';
@@ -38,6 +43,7 @@ class TripController extends Controller
             'filters' => $filters,
             'tripStatusCounts' => $tripStatusCounts,
             'initialLoad' => false,
+            'ratedTripIds' => DriverRating::ratedTripIdsFor($request->user()),
         ]);
     }
 

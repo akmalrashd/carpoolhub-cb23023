@@ -44,6 +44,14 @@
     data-conversation-channel-id="{{ $conversation->id }}"
     data-last-message-id="{{ $lastMessage->id ?? 0 }}"
 >
+    {{-- Search matches this row's full text (chats-index.js), which
+         otherwise only ever contains the trip/route title plus whichever
+         name happened to send the LAST message — searching for a passenger
+         who joined but hasn't spoken yet would find nothing. This adds
+         every participant's name into that same searchable text, invisibly
+         (kept out of layout, not just visually hidden, so it can't shift
+         anything). --}}
+    <span hidden>{{ $others->pluck('user.name')->filter()->implode(' ') }}</span>
     <div class="chat-avatar-cluster count-{{ $clusterCount }}">
         @foreach($clusterSlots as $i => $participant)
             <span class="cluster-slot cluster-slot-{{ $i }}">

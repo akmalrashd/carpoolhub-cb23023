@@ -69,6 +69,7 @@
                     'system'     => ['class' => 'notif-icon-system',     'icon' => 'fa-solid fa-gear'],
                     'alert'      => ['class' => 'notif-icon-alert',      'icon' => 'fa-solid fa-triangle-exclamation'],
                     'chat'       => ['class' => 'notif-icon-chat',       'icon' => 'fa-solid fa-comment-dots'],
+                    'rating'     => ['class' => 'notif-icon-rating',     'icon' => 'fa-solid fa-star'],
                 ];
                 $iconCfg  = $iconMap[$type] ?? ['class' => 'notif-icon-default', 'icon' => 'fa-solid fa-bell'];
                 $isUnread = ! $notification->is_read;

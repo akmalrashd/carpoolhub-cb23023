@@ -578,6 +578,12 @@
                             }
                             $canOpenPaymentReview = $canManageTripPayment && $paymentReviewPayload->isNotEmpty() && $paymentActionLabel === 'Review Payment';
                             $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'recorded'], true);
+                            $isJoinedPassenger = $trip->participants->contains(fn ($p) => (int) $p->user_id === auth()->id() && $p->attendance_status === 'joined' && ! $p->is_driver);
+                            $canRateThisTrip = ($trip->visibility ?? 'private') === 'public'
+                                && $trip->trip_datetime && $trip->trip_datetime <= \App\Models\Trip::now()
+                                && (int) $trip->driver_id !== auth()->id()
+                                && $isJoinedPassenger
+                                && ! $ratedTripIds->contains($trip->id);
                         @endphp
                         <article class="trip-mobile-item open-trip-card" data-trip-anchor="{{ $trip->id }}">
                             <div style="display:flex; gap:10px; align-items:flex-start;">
@@ -622,6 +628,15 @@
                                             data-circle-options-url="{{ route('trips.chat.circle-options', $trip) }}"
                                             data-chat-create-url="{{ route('trips.chat.create', $trip) }}"
                                             data-link-circle-url-template="{{ route('trips.chat.link-circle', [$trip, '__ID__']) }}"
+                                        @endif
+                                        @if($canRateThisTrip)
+                                            data-can-rate="1"
+                                            data-rate-url="{{ route('driver-ratings.store', $trip) }}"
+                                            data-driver-name="{{ $trip->driver?->name ?: 'your driver' }}"
+                                            data-route-name="{{ $routeName }}"
+                                        @endif
+                                        @if($myRequestRow)
+                                            data-request-b64="{{ $myRequestPayloadB64 }}"
                                         @endif
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
                                         data-mode="{{ $modeText }}"
@@ -732,6 +747,11 @@
                                             <a href="{{ route('chats.show', $trip->conversation) }}" class="trip-action-btn is-filled chat-btn @if($myRequestRow) icon-only @endif" title="Chat">
                                                 <i class="fa-solid fa-comment-dots"></i> @if(!$myRequestRow) Chat @endif
                                             </a>
+                                            @if($canRateThisTrip)
+                                                <a href="{{ route('chats.show', $trip->conversation) }}?open_rate=1" class="trip-action-btn is-filled rate-btn icon-only" title="Rate Trip" aria-label="Rate Trip">
+                                                    <i class="fa-solid fa-star"></i>
+                                                </a>
+                                            @endif
                                         @else
                                             <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-action-btn is-filled email-btn @if($myRequestRow) icon-only @endif" title="Email driver" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
                                                 <i class="fa-regular fa-envelope"></i> @if(!$myRequestRow) Email @endif
@@ -1107,6 +1127,12 @@
                                 }
                                 $canOpenPaymentReview = $canManageTripPayment && $paymentReviewPayload->isNotEmpty() && $paymentActionLabel === 'Review Payment';
                                 $canManageRequests = $canManageTripPayment && ($trip->visibility ?? 'private') === 'public' && in_array($statusSlug, ['scheduled', 'recorded'], true);
+                            $isJoinedPassenger = $trip->participants->contains(fn ($p) => (int) $p->user_id === auth()->id() && $p->attendance_status === 'joined' && ! $p->is_driver);
+                            $canRateThisTrip = ($trip->visibility ?? 'private') === 'public'
+                                && $trip->trip_datetime && $trip->trip_datetime <= \App\Models\Trip::now()
+                                && (int) $trip->driver_id !== auth()->id()
+                                && $isJoinedPassenger
+                                && ! $ratedTripIds->contains($trip->id);
                             @endphp
                             <tr class="open-trip-card" data-trip-anchor="{{ $trip->id }}">
                                 @if($hasCheckboxes)
@@ -1143,6 +1169,15 @@
                                             data-circle-options-url="{{ route('trips.chat.circle-options', $trip) }}"
                                             data-chat-create-url="{{ route('trips.chat.create', $trip) }}"
                                             data-link-circle-url-template="{{ route('trips.chat.link-circle', [$trip, '__ID__']) }}"
+                                        @endif
+                                        @if($canRateThisTrip)
+                                            data-can-rate="1"
+                                            data-rate-url="{{ route('driver-ratings.store', $trip) }}"
+                                            data-driver-name="{{ $trip->driver?->name ?: 'your driver' }}"
+                                            data-route-name="{{ $routeName }}"
+                                        @endif
+                                        @if($myRequestRow)
+                                            data-request-b64="{{ $myRequestPayloadB64 }}"
                                         @endif
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
                                         data-mode="{{ $modeText }}"
@@ -1267,6 +1302,11 @@
                                                 <a href="{{ route('chats.show', $trip->conversation) }}" class="trip-row-icon-btn is-filled chat-btn" title="Chat" aria-label="Chat">
                                                     <i class="fa-solid fa-comment-dots"></i>
                                                 </a>
+                                                @if($canRateThisTrip)
+                                                    <a href="{{ route('chats.show', $trip->conversation) }}?open_rate=1" class="trip-row-icon-btn is-filled rate-btn" title="Rate Trip" aria-label="Rate Trip">
+                                                        <i class="fa-solid fa-star"></i>
+                                                    </a>
+                                                @endif
                                             @else
                                                 <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-row-icon-btn is-filled email-btn" title="Email driver" aria-label="Email" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
                                                     <i class="fa-regular fa-envelope"></i>
@@ -1418,6 +1458,7 @@
 
     @include('trips.partials.trip-details-modal')
     @include('trips.partials.circle-chooser-modal')
+    @include('trips.partials.rate-trip-modal')
 
     {{-- Floating Batch Delete Action Bar (1-to-1 matching Payments Floating Bar) --}}
     <form id="tripsBulkDeleteForm" action="{{ route('trips.bulk-destroy') }}" method="POST" onsubmit="return confirmTripCancel(this, 'Are you sure you want to delete all selected trips?');">
@@ -1446,6 +1487,7 @@
 
     <script>window.CH_TRIPS = { csrf: @json(csrf_token()) };</script>
     <script src="{{ asset('js/circle-chooser-modal.js') }}?v={{ filemtime(public_path('js/circle-chooser-modal.js')) }}"></script>
+    <script src="{{ asset('js/rate-trip-modal.js') }}?v={{ filemtime(public_path('js/rate-trip-modal.js')) }}"></script>
     <script src="{{ asset('js/trip-details-modal.js') }}?v={{ filemtime(public_path('js/trip-details-modal.js')) }}"></script>
     <script src="{{ asset('js/trip-requests-modal.js') }}?v={{ filemtime(public_path('js/trip-requests-modal.js')) }}"></script>
     <script src="{{ asset('js/trips-index.js') }}?v={{ filemtime(public_path('js/trips-index.js')) }}"></script>

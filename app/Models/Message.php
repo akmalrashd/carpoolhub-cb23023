@@ -19,6 +19,8 @@ class Message extends Model
 
     public const TYPE_PAYMENT_REMINDER = 'payment_reminder';
 
+    public const TYPE_RATING_INVITE = 'rating_invite';
+
     protected $fillable = [
         'conversation_id',
         'sender_id',
@@ -50,6 +52,6 @@ class Message extends Model
 
     public function isFromHexa(): bool
     {
-        return in_array($this->type, [self::TYPE_BOT, self::TYPE_PAYMENT_REMINDER], true);
+        return in_array($this->type, [self::TYPE_BOT, self::TYPE_PAYMENT_REMINDER, self::TYPE_RATING_INVITE], true);
     }
 }

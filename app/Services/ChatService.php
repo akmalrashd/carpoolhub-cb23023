@@ -418,6 +418,22 @@ class ChatService
         return $this->postBotMessage($conversation, $body, Message::TYPE_PAYMENT_REMINDER);
     }
 
+    /**
+     * One-time, per trip — posted by SendDriverRatingInviteReminder once a
+     * public trip completes, not repeated daily itself (the notification/
+     * Telegram reminder is what repeats; this chat message is just the
+     * first, most in-context nudge). Public-trip only by construction —
+     * only public trips ever reach this call site.
+     */
+    public function postRatingInvite(Trip $trip, Conversation $conversation): Message
+    {
+        return $this->postBotMessage(
+            $conversation,
+            "Hi, it's Hexa. Now that {$trip->trip_ref} has wrapped up, how was your ride? Take a second to rate your driver and help other passengers.",
+            Message::TYPE_RATING_INVITE
+        );
+    }
+
     private function postSystemMessage(Conversation $conversation, string $body): Message
     {
         return $this->postBotMessage($conversation, $body, Message::TYPE_SYSTEM);

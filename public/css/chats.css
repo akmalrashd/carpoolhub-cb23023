@@ -309,6 +309,23 @@ body:has(.chat-thread-page) .chat-split-list {
         background: var(--canvas);
     }
 
+    /* #chatThreadMount (chat-thread-controller.js's swap target) wraps
+       .chat-split-empty/.chat-split-thread rather than being replaced BY
+       them, so it needs the same sizing they'd otherwise get directly as
+       .chat-split's own grid item — see chats/show.blade.php's comment on
+       that element. The opacity dip is the only visual feedback while a
+       chat switch's fetch is in flight; it's brief enough (see
+       chat-thread-controller.js) that a spinner would just flash. */
+    .chat-split-thread-mount {
+        height: 100%;
+        min-width: 0;
+        transition: opacity .1s ease;
+    }
+
+    .chat-split-thread-mount.is-loading {
+        opacity: .5;
+    }
+
     .chat-split-thread {
         height: 100%;
         min-width: 0;
@@ -319,6 +336,13 @@ body:has(.chat-thread-page) .chat-split-list {
         margin: 0;
         height: 100%;
         min-height: 0;
+        /* The base .chat-thread-page rule (top of this file) falls back to
+           var(--surface) (white) — correct for the mobile full-screen
+           overlay above (which explicitly sets --canvas instead), but never
+           had a desktop equivalent, so the split-view's right pane rendered
+           plain white instead of matching the same cream background the
+           rest of the app (and the mobile thread) uses. */
+        background: var(--canvas);
     }
 
     .chat-split-thread .chat-thread-freeze {
@@ -602,6 +626,36 @@ body:has(.chat-thread-page) .chat-split-list {
     padding: 4px 12px;
 }
 
+/* WhatsApp-style "you left off here" marker — chats-show.js scrolls to this
+   on page load instead of the very bottom, so a chat with several unread
+   messages doesn't skip straight past the ones read from the top down. */
+.chat-unread-separator {
+    display: flex;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.chat-unread-separator::before,
+.chat-unread-separator::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--ch-yellow-line);
+}
+
+.chat-unread-separator span {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: var(--ch-yellow-ink);
+    background: var(--ch-yellow-tint);
+    border-radius: 999px;
+    padding: 4px 12px;
+    margin: 0 8px;
+    white-space: nowrap;
+}
+
 .chat-bubble-row {
     display: flex;
     gap: 8px;
@@ -708,6 +762,15 @@ body:has(.chat-thread-page) .chat-split-list {
 
 .chat-bubble-hexa-cta-arrow {
     font-size: 10px;
+}
+
+/* Rate Trip reuses the shared CTA shape/sizing but not the green — green is
+   "Pay Now"'s money/success colour, mismatched for a star rating. Yellow
+   matches the star picker itself and the app's primary-action colour
+   (.btn-primary, shell.css) used on the modal's own Submit button. */
+.chat-bubble-hexa-cta.is-rating {
+    background: var(--ch-yellow);
+    color: var(--ch-yellow-ink);
 }
 
 .chat-bubble {

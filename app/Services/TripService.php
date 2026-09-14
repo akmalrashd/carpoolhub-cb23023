@@ -28,6 +28,7 @@ class TripService
 
     public function __construct(
         private readonly ChatService $chatService,
+        private readonly DriverRatingService $driverRatingService,
     ) {}
 
     public function paginateForUser(User $user, int $perPage = 10, array $filters = []): LengthAwarePaginator
@@ -58,6 +59,17 @@ class TripService
                 'conversation',
                 'returnTrip.conversation',
             ]);
+
+        // A hard override, not a filter combinable with the others — reached
+        // only via the Home banner / notification "Rate" link
+        // (?needs_rating=1), never a UI control on this page, so nothing
+        // else needs to layer on top of it.
+        if (! empty($filters['needs_rating'])) {
+            $eligibleTripIds = $this->driverRatingService->eligibleTripsToRate($user)->pluck('id');
+            $query->whereIn('id', $eligibleTripIds);
+
+            return $query->latest('trip_datetime')->orderByDesc('id')->paginate($perPage);
+        }
 
         $this->applyTripIndexFilters($query, $filters);
         $statusFilter = strtolower((string) ($filters['status_filter'] ?? ''));
@@ -154,7 +166,7 @@ class TripService
         $this->syncLifecycleStatuses();
 
         $query = Trip::query()
-            ->with(['savedRoute', 'participants', 'driver' => fn ($q) => $q->withoutHeavyMedia(), 'joinRequests' => fn ($joinQuery) => $joinQuery->where('user_id', $user->id)])
+            ->with(['savedRoute', 'participants', 'driver' => fn ($q) => $q->withoutHeavyMedia(), 'driver.ratingProfile', 'joinRequests' => fn ($joinQuery) => $joinQuery->where('user_id', $user->id)])
             ->whereNull('parent_trip_id')
             ->where('visibility', 'public')
             ->where('is_open_for_request', true)
@@ -586,6 +598,12 @@ class TripService
                 ->delete();
 
             Trip::query()->whereIn('id', $tripIds)->delete();
+
+            // driver_ratings.trip_id cascades on the delete above, so any
+            // ratings already given for these trips just vanished — bring
+            // the driver's cached aggregate back in sync with a real rescan
+            // rather than leaving it overstating their count/average.
+            $this->driverRatingService->recomputeForDriver($driverId);
 
             if ($passengerIds->isNotEmpty()) {
                 // ::create() per row, not insert() — see notifyParticipants() docblock.

@@ -719,6 +719,39 @@
         .trip-payment-review-actions form {
             margin: 0;
         }
+        /* Rate Your Driver modal — trips/partials/rate-trip-modal.blade.php.
+           Fill-state (.is-hover / .is-selected) is applied by JS to this
+           star and every star before it, not via a CSS ~ sibling trick, so
+           the same logic covers both mouse hover preview and the committed
+           click selection with one function (public/js/rate-trip-modal.js). */
+        .rate-trip-stars {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .rate-trip-star {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 30px;
+            line-height: 1;
+            padding: 4px;
+            color: var(--hairline-strong);
+            transition: color .12s ease, transform .12s ease;
+        }
+        .rate-trip-star.is-hover,
+        .rate-trip-star.is-selected {
+            color: var(--ch-yellow);
+        }
+        .rate-trip-star.is-selected {
+            transform: scale(1.08);
+        }
+        .rate-trip-hint {
+            margin: 10px 0 0;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--muted);
+        }
         .trip-payment-review-btn {
             width: 100%;
             min-height: 34px;
@@ -2823,6 +2856,13 @@
 }
 .is-filled.chat-btn.is-disabled i { color: var(--muted) !important; }
 
+/* Rate: distinct amber (not the brighter --ch-yellow chat uses) so the two
+   sit next to each other in the action row without reading as the same
+   button — star colour family, just a deeper shade. */
+.is-filled.rate-btn { background: #F59E0B !important; color: #ffffff !important; }
+.is-filled.rate-btn:hover { background: #D97706 !important; }
+.is-filled.rate-btn i { color: #ffffff !important; }
+
 /* Label left, action(s) right — used for both the Chat button (public
    trips) and the Email/WhatsApp icons (private trips) so the explanation
    sits right next to what to do about it. The label wraps freely (it's a
@@ -2871,6 +2911,45 @@
 .trip-actions-filled {
     display: flex;
     gap: 8px;
+}
+/* #tripModalContactActions holds label+button .trip-contact-row items
+   (My Request / Chat / external contact / Rate Trip) — up to two can be
+   visible at once (e.g. My Request + Chat), and the default row direction
+   above squeezed them side by side into two cramped, unevenly wrapping
+   columns. A 2-column grid stacks them instead: label column stays flexible
+   (1fr) so text keeps wrapping naturally on the left, and the button column
+   is "auto" — CSS Grid sizes every row's second column to the SAME width,
+   equal to the widest button among them (fit-to-content, not a hardcoded
+   px, so it keeps working if the copy ever changes), snug against the right
+   edge rather than stretched. display:contents on each .trip-contact-row
+   un-wraps it so its label/button become direct items of this grid.
+   #tripModalManageActions (Requests/Chat/Edit/Delete) is a different,
+   equal-width icon-row layout and stays untouched. */
+#tripModalContactActions {
+    /* .trip-contact-bar (this element's own parent) is itself a flex row;
+       without flex-grow this grid just hugs its own content width and sits
+       left-aligned inside that row, leaving a gap on the right where the
+       row still had space — flex:1 makes it actually claim the full row
+       width first, so the grid's 1fr column below has real space to expand
+       into and the button column lands flush against the true right edge. */
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    row-gap: 12px;
+    column-gap: 10px;
+    align-items: center;
+}
+#tripModalContactActions .trip-contact-row {
+    display: contents;
+}
+/* No justify-self override — grid's default justify-items:stretch is what
+   makes a narrower button (e.g. "Chat") actually widen to match the auto
+   track's width (set by the widest button, e.g. "My Request"), which is the
+   uniform-width part; flex:1 from the .trip-actions-filled rule above is a
+   no-op here since these are grid items, not flex items, once
+   display:contents takes their .trip-contact-row parent out of flex flow. */
+#tripModalContactActions .trip-contact-row-label {
+    text-align: right;
 }
 .trip-actions-filled .trip-action-btn {
     flex: 1;
