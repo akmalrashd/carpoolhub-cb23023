@@ -30,7 +30,7 @@ class PaymentService
     {
         $query = TripPayment::query()
             ->with([
-                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip',
+                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip', 'trip.conversation',
                 'trip.driver' => fn ($q) => $q->withoutHeavyMedia(),
                 'trip.participants.user' => fn ($q) => $q->withoutHeavyMedia(),
                 'trip.passengerRoutePoints.user' => fn ($q) => $q->withoutHeavyMedia(),
@@ -57,7 +57,7 @@ class PaymentService
     {
         $query = TripPayment::query()
             ->with([
-                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip',
+                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip', 'trip.conversation',
                 'trip.driver' => fn ($q) => $q->withoutHeavyMedia(),
                 'trip.participants.user' => fn ($q) => $q->withoutHeavyMedia(),
                 'trip.passengerRoutePoints.user' => fn ($q) => $q->withoutHeavyMedia(),
@@ -328,7 +328,7 @@ class PaymentService
             // eager-loads everything a row draws (paired trip, participants, custom
             // stop fees). Without them each row lazy-loaded its own relations.
             ->with([
-                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip',
+                'trip.savedRoute', 'trip.parentTrip', 'trip.returnTrip', 'trip.conversation',
                 'trip.driver' => fn ($q) => $q->withoutHeavyMedia(),
                 'trip.participants.user' => fn ($q) => $q->withoutHeavyMedia(),
                 'trip.passengerRoutePoints.user' => fn ($q) => $q->withoutHeavyMedia(),

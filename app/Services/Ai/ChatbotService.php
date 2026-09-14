@@ -39,6 +39,24 @@ class ChatbotService
      */
     private const NAVIGATE_ROLE_RESTRICTIONS = [
         'trips.create' => ['driver'],
+        'wallet.index' => ['driver'],
+    ];
+
+    /**
+     * Per-route fallback reply when NAVIGATE_ROLE_RESTRICTIONS blocks a
+     * suggestion — keyed the same way so a rejected route always gets a
+     * message that actually explains that specific restriction, not a
+     * generic one written for a different route.
+     */
+    private const NAVIGATE_ROLE_DENIED_MESSAGE = [
+        'trips.create' => [
+            'en' => 'Only drivers can create trips. Use Explore to find a ride instead.',
+            'ms' => 'Hanya pemandu boleh buat trip. Guna Explore untuk cari tumpangan.',
+        ],
+        'wallet.index' => [
+            'en' => 'Wallet is only for drivers, to track their trip earnings and withdrawals.',
+            'ms' => 'Wallet hanya untuk pemandu, untuk jejak pendapatan trip dan pengeluaran duit.',
+        ],
     ];
 
     private Client $http;
@@ -284,9 +302,10 @@ Now: {$now} | User: {$user->name} | {$roleContext}
 
 RESPOND IN VALID JSON ONLY. This applies even when your reply is a multi-point clarifying question (e.g. asking for date, pickup, destination, seats) — put the ENTIRE message, numbered list included, as one JSON string value in "reply". Never send plain markdown/prose outside the JSON envelope, and never wrap the JSON itself in a \`\`\` code fence.{$tripDraftSchema}
 
-2. NAVIGATE: {"intent":"navigate","reply":"<msg>","route":"<trips.index|trips.create|payments.index|explore.index|connections.index|saved-routes.index|settings.index|notifications.index>","params":{<optional, see below>}}
+2. NAVIGATE: {"intent":"navigate","reply":"<msg>","route":"<trips.index|trips.create|payments.index|explore.index|connections.index|saved-routes.index|settings.index|notifications.index|chats.index|wallet.index>","params":{<optional, see below>}}
    - "params" is OPTIONAL — only include a key when the user actually stated that preference in this message. Never invent/default a filter they didn't ask for; omit "params" entirely (or leave it {}) when they just asked to see the page.
    - trips.create is DRIVER ONLY (creating a trip needs an approved driver account — passengers and admin cannot create one). If the role above is not DRIVER and the user asks how to create/post a trip, do NOT return navigate to trips.create — return intent "general" instead, explain only drivers can do that, and point a passenger to Explore to find a ride.
+   - wallet.index is also DRIVER ONLY (it's their own trip earnings and withdrawals). If the role above is not DRIVER and the user asks about their wallet/earnings, do NOT return navigate to wallet.index — return intent "general" and explain it's driver-only.
    - Resolve any date the user gives (e.g. "bulan ni", "minggu depan", "esok") into real YYYY-MM-DD values yourself using "Now" above, same as you already do for trip_datetime.
    - Allowed keys per route (anything else is dropped, so don't invent other keys):
      trips.index: date_from, date_to (YYYY-MM-DD), visibility ("public"|"private"), status_filter ("all"|"upcoming"|"completed"|"draft"|"cancelled"), trip_search (free text)
@@ -294,8 +313,12 @@ RESPOND IN VALID JSON ONLY. This applies even when your reply is a multi-point c
      explore.index: destination, pickup, driver (free text each), date (YYYY-MM-DD), timeframe ("today"|"tomorrow"|"weekend"), seats ("1"|"2plus"), fare_max (number as string), sort ("nearest"|"latest")
      connections.index: q (free text name search)
      notifications.index: filter ("all"|"unread"|"trip"|"payment"|"connection"|"system"|"route")
-     trips.create, saved-routes.index, settings.index: no params — omit "params" for these.
+     trips.create, saved-routes.index, settings.index, chats.index, wallet.index: no params — omit "params" for these.
    - Word "reply" so it tells the user to tap the button below to get there — never just describe the destination as if it's already shown. If any filter was applied, name it in the same sentence.
+
+OTHER APP FEATURES (answer questions about these as GENERAL, or NAVIGATE there if asked to go):
+- Chat: every trip gets its own in-app group chat — auto-created for a PUBLIC trip the moment someone joins, or started manually by the driver (picking from their Connections) for a PRIVATE trip. You (Hexa) post the first message in every chat with safety tips (verify the driver via the car icon next to their name, keep pickup/payment talk inside the chat, never deal outside the app) and later post reminders naming passengers who still haven't paid. Each chat is deleted automatically some time after the trip ends — a PRIVATE trip with no chat yet just uses direct Email/WhatsApp instead, since those contacts are already trusted Connections.
+- Wallet (DRIVER ONLY): shows a driver's running trip earnings and lets them request a withdrawal of that balance to their bank/e-wallet.
 
 3. GENERAL: {"intent":"general","reply":"<answer>"}
 
@@ -463,17 +486,20 @@ PROMPT;
             $allowed = [
                 'trips.index', 'trips.create', 'payments.index', 'explore.index',
                 'connections.index', 'saved-routes.index', 'settings.index', 'notifications.index',
+                'chats.index', 'wallet.index',
             ];
             $route = (string) ($decoded['route'] ?? '');
 
             if (\in_array($route, $allowed, true)) {
                 $allowedRoles = self::NAVIGATE_ROLE_RESTRICTIONS[$route] ?? null;
                 if ($allowedRoles !== null && ! \in_array((string) $user->role, $allowedRoles, true)) {
+                    $deniedMessage = self::NAVIGATE_ROLE_DENIED_MESSAGE[$route][$language === 'en' ? 'en' : 'ms']
+                        ?? self::NAVIGATE_ROLE_DENIED_MESSAGE[$route]['en']
+                        ?? ($language === 'en' ? 'You can\'t access that page with your current role.' : 'Anda tidak boleh akses halaman itu dengan peranan semasa.');
+
                     return [
                         'intent' => 'general',
-                        'reply'  => $language === 'en'
-                            ? 'Only drivers can create trips. Use Explore to find a ride instead.'
-                            : 'Hanya pemandu boleh buat trip. Guna Explore untuk cari tumpangan.',
+                        'reply'  => $deniedMessage,
                     ];
                 }
 

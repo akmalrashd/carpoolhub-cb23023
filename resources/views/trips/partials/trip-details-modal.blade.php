@@ -103,12 +103,35 @@
                 </form>
             </div>
             <div class="trip-actions-filled" id="tripModalContactActions" style="display:none;">
-                <a href="#" class="trip-action-btn is-filled email-btn" id="tripModalEmail">
-                    <i class="fa-regular fa-envelope"></i> Email
-                </a>
-                <a href="#" target="_blank" rel="noopener" class="trip-action-btn is-filled whatsapp-btn" id="tripModalWhatsapp">
-                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                </a>
+                {{-- Public trips: everyone stays in the monitored in-app chat, no
+                     external fallback — see the Hexa welcome message's own "keep
+                     it inside this chat" tip. Disabled + a toast (not hidden) once
+                     the chat has been purged, since the trip itself can outlive it. --}}
+                <div class="trip-contact-row" id="tripModalChatWrap">
+                    <p class="trip-contact-row-label" id="tripModalChatNote">
+                        <span id="tripModalChatNoteText">Keep everything about this trip inside the chat so it stays safe and easy to track.</span>
+                    </p>
+                    <a href="#" class="trip-action-btn is-filled chat-btn" id="tripModalChat">
+                        <i class="fa-solid fa-comment-dots"></i> Chat
+                    </a>
+                </div>
+                {{-- Private trips: passengers are hand-picked from the driver's own
+                     Connections, so the "keep everything monitored" bar doesn't
+                     apply the same way — WhatsApp/Email direct contact stays, with
+                     a disclaimer since CarpoolHub has no record of it. --}}
+                <div class="trip-contact-row" id="tripModalExternalContact">
+                    <p class="trip-contact-row-label">
+                        This is a private trip, so you can contact the driver directly here since they're already one of your trusted Connections.
+                    </p>
+                    <div class="trip-contact-row-icons">
+                        <a href="#" class="trip-action-btn is-filled email-btn icon-only" id="tripModalEmail" title="Email">
+                            <i class="fa-regular fa-envelope"></i>
+                        </a>
+                        <a href="#" target="_blank" rel="noopener" class="trip-action-btn is-filled whatsapp-btn icon-only" id="tripModalWhatsapp" title="WhatsApp">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

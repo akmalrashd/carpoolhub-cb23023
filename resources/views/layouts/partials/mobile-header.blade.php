@@ -52,6 +52,15 @@
                                             <span class="bento-desc">{{ auth()->user()?->role === 'admin' ? 'Oversee every trip on the platform, upcoming, past, and draft.' : 'View and manage your upcoming, past, and draft journeys.' }}</span>
                                         </div>
                                     </a>
+                                    <a href="{{ route('chats.index') }}" class="bento-item" data-bento-item data-keywords="message inbox conversation driver passenger talk hexa safety whatsapp">
+                                        <span class="bento-icon-bg" style="background: rgba(13,148,136,0.12); color: #0d9488;">
+                                            <i class="fa-solid fa-comment-dots"></i>
+                                        </span>
+                                        <div class="bento-info">
+                                            <strong class="bento-name">Chat</strong>
+                                            <span class="bento-desc">Message your driver or passengers for each trip.</span>
+                                        </div>
+                                    </a>
                                 </div>
                             </div>
                             <!-- Section: Workspace -->
@@ -85,6 +94,17 @@
                                             <span class="bento-desc">{{ match(auth()->user()?->role) { 'admin' => 'Oversee every trip payment across the platform.', 'driver' => 'Track fares you owe and collect from your passengers.', default => 'Track what you owe and your payment history.' } }}</span>
                                         </div>
                                     </a>
+                                    @if(auth()->user()?->role === 'driver')
+                                        <a href="{{ route('wallet.index') }}" class="bento-item" data-bento-item data-keywords="earnings balance withdraw payout bank cashout income">
+                                            <span class="bento-icon-bg" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+                                                <i class="fa-solid fa-money-bill-wave"></i>
+                                            </span>
+                                            <div class="bento-info">
+                                                <strong class="bento-name">Wallet</strong>
+                                                <span class="bento-desc">Track your earnings and request withdrawals.</span>
+                                            </div>
+                                        </a>
+                                    @endif
                                     <a href="{{ route('settings.index') }}" class="bento-item" data-bento-item data-keywords="profile password bank account duitnow qr vehicle license photo verification logout security">
                                         <span class="bento-icon-bg" style="background: rgba(100,116,139,0.1); color: #64748b;">
                                             <i class="fa-solid fa-gears"></i>

@@ -91,6 +91,17 @@ class Trip extends Model
         return $this->belongsTo(User::class, 'driver_id');
     }
 
+    /**
+     * Nullable, unique per trip — created lazily by ChatService and hard-
+     * deleted by PurgeExpiredConversations once the retention window passes,
+     * so an old completed trip's own conversation() can legitimately be
+     * null even though the trip itself is still around.
+     */
+    public function conversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class);
+    }
+
     public function savedRoute(): BelongsTo
     {
         return $this->belongsTo(SavedRoute::class);

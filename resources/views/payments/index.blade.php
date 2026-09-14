@@ -647,6 +647,8 @@
                                         data-driver-id="{{ $payment->trip?->driver_id }}"
                                         data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                             data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $payment->trip?->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $payment->trip?->conversation ? route('chats.show', $payment->trip->conversation) : '' }}"
                             data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                             data-pickup-name="{{ $pickupName }}"
                             data-pickup-lat="{{ $pickupLat }}"
@@ -804,6 +806,8 @@
                                         data-driver-id="{{ $payment->trip?->driver_id }}"
                                         data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $payment->trip?->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $payment->trip?->conversation ? route('chats.show', $payment->trip->conversation) : '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"
                                         data-pickup-lat="{{ $pickupLat }}"
@@ -998,6 +1002,8 @@
                                         data-driver-id="{{ $payment->trip?->driver_id }}"
                                         data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                 data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $payment->trip?->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $payment->trip?->conversation ? route('chats.show', $payment->trip->conversation) : '' }}"
                                 data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                 data-pickup-name="{{ $pickupName }}"
                                 data-pickup-lat="{{ $pickupLat }}"
@@ -1071,6 +1077,8 @@
                                         data-driver-id="{{ $payment->trip?->driver_id }}"
                                         data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $payment->trip?->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $payment->trip?->conversation ? route('chats.show', $payment->trip->conversation) : '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"
                                         data-pickup-lat="{{ $pickupLat }}"
@@ -1573,6 +1581,8 @@
                                         data-driver-id="{{ $payment->trip?->driver_id }}"
                                         data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $payment->trip?->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $payment->trip?->conversation ? route('chats.show', $payment->trip->conversation) : '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"
                                         data-pickup-lat="{{ $pickupLat }}"
@@ -1758,6 +1768,8 @@
                                         data-driver-id="{{ $payment->trip?->driver_id }}"
                                         data-driver-photo="{{ $payment->trip?->driver?->profile_photo_url }}"
                                         data-driver-whatsapp-url="{{ $payment->trip?->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $payment->trip?->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $payment->trip?->conversation ? route('chats.show', $payment->trip->conversation) : '' }}"
                                         data-driver-phone="{{ $payment->trip?->driver?->whatsapp_digits ?: '' }}"
                                         data-pickup-name="{{ $pickupName }}"
                                         data-pickup-lat="{{ $pickupLat }}"
@@ -2107,12 +2119,27 @@
                     <button type="button" class="trip-action-btn is-filled" id="tripDetailsPaymentActionBtn"></button>
                 </div>
                 <div class="trip-actions-filled" id="tripDetailsContactActions">
-                    <a href="#" class="trip-action-btn is-filled email-btn" id="tripDetailsEmail">
-                        <i class="fa-regular fa-envelope"></i> Email
-                    </a>
-                    <a href="#" target="_blank" rel="noopener" class="trip-action-btn is-filled whatsapp-btn" id="tripDetailsWhatsapp">
-                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                    </a>
+                    <div class="trip-contact-row" id="tripDetailsChatWrap">
+                        <p class="trip-contact-row-label" id="tripDetailsChatNote">
+                            <span id="tripDetailsChatNoteText">Keep everything about this trip inside the chat so it stays safe and easy to track.</span>
+                        </p>
+                        <a href="#" class="trip-action-btn is-filled chat-btn" id="tripDetailsChat">
+                            <i class="fa-solid fa-comment-dots"></i> Chat
+                        </a>
+                    </div>
+                    <div class="trip-contact-row" id="tripDetailsExternalContact">
+                        <p class="trip-contact-row-label">
+                            This is a private trip, so you can contact the driver directly here since they're already one of your trusted Connections.
+                        </p>
+                        <div class="trip-contact-row-icons">
+                            <a href="#" class="trip-action-btn is-filled email-btn icon-only" id="tripDetailsEmail" title="Email">
+                                <i class="fa-regular fa-envelope"></i>
+                            </a>
+                            <a href="#" target="_blank" rel="noopener" class="trip-action-btn is-filled whatsapp-btn icon-only" id="tripDetailsWhatsapp" title="WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

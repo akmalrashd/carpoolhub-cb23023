@@ -2809,6 +2809,46 @@
 .is-filled.myrequest-btn { background: #2563eb !important; }
 .is-filled.myrequest-btn:hover { background: #1d4ed8 !important; }
 
+/* Chat: the app's own brand yellow — ties it visually to the rest of the
+   in-app chat feature (Hexa's bubble, etc.) rather than borrowing a color
+   already claimed by WhatsApp/Email/Requests above. */
+.is-filled.chat-btn { background: var(--ch-yellow) !important; color: var(--ch-yellow-ink) !important; }
+.is-filled.chat-btn:hover { filter: brightness(0.95); }
+.is-filled.chat-btn i { color: var(--ch-yellow-ink) !important; }
+.is-filled.chat-btn.is-disabled {
+    background: var(--surface-2) !important;
+    color: var(--muted) !important;
+    cursor: not-allowed;
+}
+.is-filled.chat-btn.is-disabled i { color: var(--muted) !important; }
+
+/* Label left, action(s) right — used for both the Chat button (public
+   trips) and the Email/WhatsApp icons (private trips) so the explanation
+   sits right next to what to do about it. The label wraps freely (it's a
+   full sentence, not a short tag) while the action stays put on the right. */
+.trip-contact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.trip-contact-row-label {
+    margin: 0;
+    min-width: 0;
+    flex: 1;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+.trip-contact-row-icons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
 .trip-request-badge {
     position: absolute;
     top: -6px;

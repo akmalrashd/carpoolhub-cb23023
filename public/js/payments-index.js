@@ -586,6 +586,10 @@ window.isPaymentRowHidden = function (row) {
         const tripDetailsMarkedAt = document.getElementById('tripDetailsMarkedAt');
         const tripDetailsWhatsapp = document.getElementById('tripDetailsWhatsapp');
         const tripDetailsEmail = document.getElementById('tripDetailsEmail');
+        const tripDetailsChatWrap = document.getElementById('tripDetailsChatWrap');
+        const tripDetailsChat = document.getElementById('tripDetailsChat');
+        const tripDetailsChatNoteText = document.getElementById('tripDetailsChatNoteText');
+        const tripDetailsExternalContact = document.getElementById('tripDetailsExternalContact');
         const tripDetailsPaymentActionWrap = document.getElementById('tripDetailsPaymentActionWrap');
         const tripDetailsPaymentActionBtn = document.getElementById('tripDetailsPaymentActionBtn');
         const tripDetailsContactActions = document.getElementById('tripDetailsContactActions');
@@ -632,12 +636,20 @@ window.isPaymentRowHidden = function (row) {
             el.textContent = value || '-';
             el.className = `trip-status-badge trip-status-${slug || 'draft'}`;
         };
+        document.addEventListener('click', (event) => {
+            const chatBtn = event.target instanceof Element ? event.target.closest('#tripDetailsChat') : null;
+            if (chatBtn && chatBtn.classList.contains('is-disabled')) {
+                event.preventDefault();
+                window.showToast('This chat has been deleted.', 'error');
+            }
+        });
+
         const warnIfUnavailable = (el, label) => {
             if (!el) return;
             el.addEventListener('click', (event) => {
                 if (el.dataset.unavailable === '1') {
                     event.preventDefault();
-                    if (window.showToast) window.showToast(`${label} not available for this driver.`, 'error');
+                    window.showToast(`${label} not available for this driver.`, 'error');
                 }
             });
         };
@@ -879,6 +891,26 @@ window.isPaymentRowHidden = function (row) {
             if (tripDetailsWhatsapp) {
                 tripDetailsWhatsapp.setAttribute('href', waUrl || '#');
                 tripDetailsWhatsapp.dataset.unavailable = waUrl ? '' : '1';
+            }
+
+            const isPublicTrip = (source.dataset.visibility || 'private') === 'public';
+            const chatUrl = source.dataset.chatUrl || '';
+            // Toggling the wrapper (a plain div), not tripDetailsChat itself —
+            // .trip-actions-filled .trip-action-btn forces display:inline-flex
+            // !important (trips.css), which would beat a plain style.display=
+            // 'none' set directly on the button.
+            if (tripDetailsChatWrap) tripDetailsChatWrap.style.display = isPublicTrip ? '' : 'none';
+            if (tripDetailsExternalContact) tripDetailsExternalContact.style.display = isPublicTrip ? 'none' : '';
+            if (tripDetailsChat && isPublicTrip) {
+                if (chatUrl) {
+                    tripDetailsChat.classList.remove('is-disabled');
+                    tripDetailsChat.setAttribute('href', chatUrl);
+                    if (tripDetailsChatNoteText) tripDetailsChatNoteText.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
+                } else {
+                    tripDetailsChat.classList.add('is-disabled');
+                    tripDetailsChat.setAttribute('href', '#');
+                    if (tripDetailsChatNoteText) tripDetailsChatNoteText.textContent = "This chat has already been deleted since some time has passed since the trip ended.";
+                }
             }
 
             const paymentActionRow = source.closest('.open-trip-card') || source;

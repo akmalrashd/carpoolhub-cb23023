@@ -120,7 +120,7 @@ class ChatController extends Controller
     {
         $trip->loadMissing([
             'driver', 'savedRoute', 'returnTrip', 'participants.user', 'passengerRoutePoints.user',
-            'joinRequests.user.riskProfile', 'joinRequests.routePoint',
+            'joinRequests.user.riskProfile', 'joinRequests.routePoint', 'conversation',
         ]);
 
         $hasReturn = (bool) $trip->returnTrip;
@@ -281,6 +281,8 @@ class ChatController extends Controller
             'driverEmail' => $trip->driver?->email ?: '',
             'driverWhatsappUrl' => $trip->driver?->whatsapp_url ?: '',
             'driverPhone' => $trip->driver?->whatsapp_digits ?: '',
+            'visibility' => $trip->visibility ?? 'private',
+            'chatUrl' => $trip->conversation ? route('chats.show', $trip->conversation) : '',
             'mode' => $hasReturn ? 'Two-Way' : 'One-Way',
             'status' => $statusLabel,
             'outboundDatetime' => $trip->trip_datetime?->format('Y-m-d H:i') ?: '-',

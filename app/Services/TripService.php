@@ -55,6 +55,8 @@ class TripService
                 'returnTrip.payments.user' => $withoutHeavyMedia,
                 'passengerRoutePoints.user' => $withoutHeavyMedia,
                 'returnTrip.passengerRoutePoints.user' => $withoutHeavyMedia,
+                'conversation',
+                'returnTrip.conversation',
             ]);
 
         $this->applyTripIndexFilters($query, $filters);

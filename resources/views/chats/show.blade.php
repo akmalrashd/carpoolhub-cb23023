@@ -71,6 +71,8 @@
                 data-driver-photo="{{ $tripModalData['driverPhoto'] }}"
                 data-driver-email="{{ $tripModalData['driverEmail'] }}"
                 data-driver-whatsapp-url="{{ $tripModalData['driverWhatsappUrl'] }}"
+                data-visibility="{{ $tripModalData['visibility'] }}"
+                data-chat-url="{{ $tripModalData['chatUrl'] }}"
                 data-driver-phone="{{ $tripModalData['driverPhone'] }}"
                 data-mode="{{ $tripModalData['mode'] }}"
                 data-status="{{ $tripModalData['status'] }}"

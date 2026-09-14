@@ -616,6 +616,8 @@
                                         data-driver-photo="{{ $trip->driver?->profile_photo_url }}"
                                         data-driver-email="{{ $trip->driver?->email ?: '' }}"
                                         data-driver-whatsapp-url="{{ $trip->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $trip->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '' }}"
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
                                         data-mode="{{ $modeText }}"
                                         data-status="{{ $statusLabel }}"
@@ -721,12 +723,18 @@
                                                 <i class="fa-solid fa-inbox"></i> My Request
                                             </button>
                                         @endif
-                                        <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-action-btn is-filled email-btn @if($myRequestRow) icon-only @endif" title="Email driver" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
-                                            <i class="fa-regular fa-envelope"></i> @if(!$myRequestRow) Email @endif
-                                        </a>
-                                        <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-action-btn is-filled whatsapp-btn @if($myRequestRow) icon-only @endif" target="_blank" title="Contact WhatsApp" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
-                                            <i class="fa-brands fa-whatsapp"></i> @if(!$myRequestRow) WhatsApp @endif
-                                        </a>
+                                        @if(($trip->visibility ?? 'private') === 'public')
+                                            <a href="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '#' }}" class="trip-action-btn is-filled chat-btn @if($myRequestRow) icon-only @endif @unless($trip->conversation) is-disabled @endunless" title="Chat" @unless($trip->conversation) onclick="alert('This chat has already been deleted since some time has passed since the trip ended.'); return false;" @endunless>
+                                                <i class="fa-solid fa-comment-dots"></i> @if(!$myRequestRow) Chat @endif
+                                            </a>
+                                        @else
+                                            <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-action-btn is-filled email-btn @if($myRequestRow) icon-only @endif" title="Email driver" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
+                                                <i class="fa-regular fa-envelope"></i> @if(!$myRequestRow) Email @endif
+                                            </a>
+                                            <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-action-btn is-filled whatsapp-btn @if($myRequestRow) icon-only @endif" target="_blank" title="Contact WhatsApp" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
+                                                <i class="fa-brands fa-whatsapp"></i> @if(!$myRequestRow) WhatsApp @endif
+                                            </a>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -1124,6 +1132,8 @@
                                         data-driver-photo="{{ $trip->driver?->profile_photo_url }}"
                                         data-driver-email="{{ $trip->driver?->email ?: '' }}"
                                         data-driver-whatsapp-url="{{ $trip->driver?->whatsapp_url ?: '' }}"
+                                        data-visibility="{{ $trip->visibility ?? 'private' }}"
+                                        data-chat-url="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '' }}"
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
                                         data-mode="{{ $modeText }}"
                                         data-status="{{ $statusLabel }}"
@@ -1243,12 +1253,18 @@
                                                     <i class="fa-solid fa-inbox"></i>
                                                 </button>
                                             @endif
-                                            <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-row-icon-btn is-filled email-btn" title="Email driver" aria-label="Email" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
-                                                <i class="fa-regular fa-envelope"></i>
-                                            </a>
-                                            <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-row-icon-btn is-filled whatsapp-btn" target="_blank" title="Contact WhatsApp" aria-label="WhatsApp" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
-                                                <i class="fa-brands fa-whatsapp"></i>
-                                            </a>
+                                            @if(($trip->visibility ?? 'private') === 'public')
+                                                <a href="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '#' }}" class="trip-row-icon-btn is-filled chat-btn @unless($trip->conversation) is-disabled @endunless" title="Chat" aria-label="Chat" @unless($trip->conversation) onclick="alert('This chat has already been deleted since some time has passed since the trip ended.'); return false;" @endunless>
+                                                    <i class="fa-solid fa-comment-dots"></i>
+                                                </a>
+                                            @else
+                                                <a href="mailto:{{ $trip->driver->email ?? '' }}" class="trip-row-icon-btn is-filled email-btn" title="Email driver" aria-label="Email" @if(!($trip->driver && $trip->driver->email)) onclick="alert('Email address not specified.'); return false;" @endif>
+                                                    <i class="fa-regular fa-envelope"></i>
+                                                </a>
+                                                <a href="{{ $trip->driver && $trip->driver->whatsapp_url ? $trip->driver->whatsapp_url : '#' }}" class="trip-row-icon-btn is-filled whatsapp-btn" target="_blank" title="Contact WhatsApp" aria-label="WhatsApp" @if(!($trip->driver && $trip->driver->whatsapp_url)) onclick="alert('WhatsApp contact not specified.'); return false;" @endif>
+                                                    <i class="fa-brands fa-whatsapp"></i>
+                                                </a>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>

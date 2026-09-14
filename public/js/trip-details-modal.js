@@ -56,16 +56,28 @@ function confirmTripCancel(form, confirmMessage) {
     const emailEl            = document.getElementById('tripModalEmail');
     const manageActionsEl    = document.getElementById('tripModalManageActions');
     const contactActionsEl   = document.getElementById('tripModalContactActions');
+    const chatWrapEl         = document.getElementById('tripModalChatWrap');
+    const chatBtnEl          = document.getElementById('tripModalChat');
+    const chatNoteTextEl     = document.getElementById('tripModalChatNoteText');
+    const externalContactEl  = document.getElementById('tripModalExternalContact');
     const editBtnEl          = document.getElementById('tripModalEditBtn');
     const deleteFormEl       = document.getElementById('tripModalDeleteForm');
     const requestsBtnEl      = document.getElementById('tripModalRequestsBtn');
+
+    document.addEventListener('click', (event) => {
+        const chatBtn = event.target instanceof Element ? event.target.closest('#tripModalChat') : null;
+        if (chatBtn && chatBtn.classList.contains('is-disabled')) {
+            event.preventDefault();
+            window.showToast('This chat has been deleted.', 'error');
+        }
+    });
 
     const warnIfUnavailable = (el, label) => {
         if (!el) return;
         el.addEventListener('click', (event) => {
             if (el.dataset.unavailable === '1') {
                 event.preventDefault();
-                if (window.showToast) window.showToast(`${label} not available for this driver.`, 'error');
+                window.showToast(`${label} not available for this driver.`, 'error');
             }
         });
     };
@@ -310,6 +322,32 @@ function confirmTripCancel(form, confirmMessage) {
             if (whatsappEl) {
                 whatsappEl.setAttribute('href', waUrl || '#');
                 whatsappEl.dataset.unavailable = waUrl ? '' : '1';
+            }
+
+            // Public trips stay in-app (matches the Hexa welcome message's "keep
+            // it inside this chat" tip) — private trips keep direct contact since
+            // passengers there are hand-picked from the driver's own Connections.
+            // Toggling the *wrapper* (a plain div, not itself a .trip-action-btn)
+            // rather than chatBtnEl directly, since .trip-actions-filled
+            // .trip-action-btn forces display:inline-flex !important on the
+            // button and would otherwise beat a plain style.display='none'.
+            const isPublicTrip = (btn.dataset.visibility || 'private') === 'public';
+            const chatUrl = btn.dataset.chatUrl || '';
+            if (chatWrapEl) chatWrapEl.style.display = isPublicTrip ? '' : 'none';
+            if (externalContactEl) externalContactEl.style.display = isPublicTrip ? 'none' : '';
+            if (chatBtnEl && isPublicTrip) {
+                if (chatUrl) {
+                    chatBtnEl.classList.remove('is-disabled');
+                    chatBtnEl.setAttribute('href', chatUrl);
+                    if (chatNoteTextEl) chatNoteTextEl.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
+                } else {
+                    // The trip outlived its chat (purged after the retention
+                    // window) — disable rather than hide, so it's still clear
+                    // there was a chat, not that the feature is missing.
+                    chatBtnEl.classList.add('is-disabled');
+                    chatBtnEl.setAttribute('href', '#');
+                    if (chatNoteTextEl) chatNoteTextEl.textContent = "This chat has already been deleted since some time has passed since the trip ended.";
+                }
             }
 
             // Action row: trip owners (or admins) get manage actions (Edit/Delete),
