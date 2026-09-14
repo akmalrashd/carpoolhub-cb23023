@@ -27,13 +27,20 @@ class PurgeExpiredConversations extends Command
     public function handle(): int
     {
         $explicitlyClosed = Conversation::query()
+            ->where('is_circle', false)
             ->whereNotNull('scheduled_purge_at')
             ->where('scheduled_purge_at', '<=', now())
             ->delete();
 
         $retentionDays = (int) (SystemSetting::get('chat_retention_days_after') ?? 3);
 
+        // A circle routinely sits with a stale trip_datetime_snapshot between
+        // uses (that's its normal steady state, not an edge case) — it must
+        // never be swept up here. See PruneCircleMessages for its own
+        // age-based cleanup, which prunes old messages instead of the
+        // conversation itself.
         $naturallyExpired = Conversation::query()
+            ->where('is_circle', false)
             ->whereNull('scheduled_purge_at')
             ->whereNotNull('trip_datetime_snapshot')
             ->where('trip_datetime_snapshot', '<=', now()->subDays($retentionDays))

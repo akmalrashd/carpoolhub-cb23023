@@ -25,6 +25,8 @@ class Conversation extends Model
         'opens_at',
         'scheduled_purge_at',
         'purge_reason',
+        'is_circle',
+        'name',
     ];
 
     protected function casts(): array
@@ -33,6 +35,7 @@ class Conversation extends Model
             'trip_datetime_snapshot' => 'datetime',
             'opens_at' => 'datetime',
             'scheduled_purge_at' => 'datetime',
+            'is_circle' => 'boolean',
         ];
     }
 
@@ -59,5 +62,10 @@ class Conversation extends Model
     public function isPrivate(): bool
     {
         return $this->visibility_snapshot === 'private';
+    }
+
+    public function isCircle(): bool
+    {
+        return (bool) $this->is_circle;
     }
 }

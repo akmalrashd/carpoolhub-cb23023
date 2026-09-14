@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Ably\AblyRest;
+use App\Models\Connection;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
 use App\Models\Message;
@@ -12,6 +13,7 @@ use App\Services\ChatService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
@@ -419,6 +421,87 @@ class ChatController extends Controller
     }
 
     /**
+     * Conversation-scoped (not trip-scoped) since a circle outlives
+     * whichever trip it's currently linked to — ChatService::
+     * addToPrivateGroup() already gates this on the actor being a chat
+     * admin, so there's nothing else to check here.
+     */
+    public function invite(Request $request, Conversation $conversation): RedirectResponse
+    {
+        $validated = $request->validate([
+            'connection_user_ids' => ['required', 'array', 'min:1'],
+            'connection_user_ids.*' => ['integer'],
+        ]);
+
+        try {
+            $this->chatService->addToPrivateGroup($conversation, $request->user(), $validated['connection_user_ids']);
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
+        }
+
+        return redirect()->route('chats.show', $conversation);
+    }
+
+    public function removeMember(Request $request, Conversation $conversation, int $user): RedirectResponse
+    {
+        $this->chatService->removeFromPrivateGroup($conversation, $request->user(), $user);
+
+        return redirect()->route('chats.show', $conversation);
+    }
+
+    /**
+     * Given how selectable connections for a private group are already
+     * scoped to the driver's accepted connections elsewhere (TripService::
+     * getSelectableParticipants), this reuses that same list for the "who
+     * can I invite" picker instead of re-deriving it. Includes email (the
+     * picker's own search filters on it) and is_member (a connection
+     * already active in this conversation — the picker shows them greyed
+     * out rather than omitting them, so the admin can see at a glance who's
+     * already in without the list silently shrinking).
+     */
+    public function pickerOptions(Request $request, Conversation $conversation): JsonResponse
+    {
+        $participant = $this->activeParticipantOrFail($request, $conversation);
+        if (! $participant->is_chat_admin) {
+            abort(403);
+        }
+
+        $connections = Connection::acceptedUserIdsFor($request->user());
+
+        $memberIds = ConversationParticipant::query()
+            ->where('conversation_id', $conversation->id)
+            ->whereNull('left_at')
+            ->pluck('user_id');
+
+        return response()->json([
+            'connections' => User::query()
+                ->whereIn('id', $connections)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email'])
+                ->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'is_member' => $memberIds->contains($user->id),
+                ])
+                ->values(),
+        ]);
+    }
+
+    /**
+     * The circle cap's release valve — see ChatService::deleteCircle(). No
+     * soft-delete, matching this app's existing convention, so the driver's
+     * circle-count frees up immediately.
+     */
+    public function destroyCircle(Request $request, Conversation $conversation): RedirectResponse
+    {
+        $this->chatService->deleteCircle($conversation, $request->user());
+
+        return redirect()->route('chats.index');
+    }
+
+    /**
      * A plain-text export — one line per message in WhatsApp's own
      * "date, time - Sender: body" convention, ahead of a short metadata
      * header identifying exactly which conversation/trip it came from.
@@ -452,13 +535,20 @@ class ChatController extends Controller
             'CarpoolHub Chat Export',
             str_repeat('=', 40),
             'Conversation ID: '.$conversation->id,
-            'Trip Reference: '.($conversation->trip_ref_snapshot ?: '-'),
+            ...($conversation->is_circle ? [
+                'Circle: '.($conversation->name ?: 'Unnamed circle'),
+                'Currently linked trip: '.($conversation->trip_ref_snapshot ?: 'Not linked to a trip'),
+            ] : [
+                'Trip Reference: '.($conversation->trip_ref_snapshot ?: '-'),
+            ]),
             'Route: '.($conversation->route_snapshot ?: '-'),
             'Trip Date: '.$fmt($conversation->trip_datetime_snapshot),
             'Driver: '.($conversation->driver?->name ?: '-').' ('.($conversation->driver?->email ?: '-').')',
             'Members ('.$conversation->participants->count().'): '.$members,
             'Chat opened: '.$fmt($conversation->opens_at),
-            'Scheduled deletion: '.($conversation->scheduled_purge_at ? $fmt($conversation->scheduled_purge_at) : 'Not yet scheduled'),
+            'Scheduled deletion: '.($conversation->is_circle
+                ? 'Never (persistent circle chat — only old messages are pruned)'
+                : ($conversation->scheduled_purge_at ? $fmt($conversation->scheduled_purge_at) : 'Not yet scheduled')),
             'Exported by: '.$request->user()->name.' ('.$request->user()->email.') on '.$fmt(now()),
             str_repeat('=', 40),
             '',
@@ -478,7 +568,10 @@ class ChatController extends Controller
             $lines[] = "{$timestamp} - {$sender}: {$body}";
         }
 
-        $filename = 'CarpoolHub Chat - '.preg_replace('/[^A-Za-z0-9 _-]/', '-', $conversation->trip_ref_snapshot ?: (string) $conversation->id).'.txt';
+        $filenameLabel = $conversation->is_circle
+            ? ($conversation->name ?: 'Circle chat')
+            : ($conversation->trip_ref_snapshot ?: (string) $conversation->id);
+        $filename = 'CarpoolHub Chat - '.preg_replace('/[^A-Za-z0-9 _-]/', '-', $filenameLabel).'.txt';
 
         return response(implode("\n", $lines), 200, [
             'Content-Type' => 'text/plain; charset=UTF-8',

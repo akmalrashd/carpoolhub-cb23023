@@ -15,6 +15,7 @@ class TelegramService
         'payment' => '💰',
         'connection' => '🤝',
         'route' => '📍',
+        'chat' => '💬',
         'system' => '🔔',
     ];
 

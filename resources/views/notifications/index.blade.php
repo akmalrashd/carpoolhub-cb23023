@@ -68,6 +68,7 @@
                     'connection' => ['class' => 'notif-icon-connection', 'icon' => 'fa-solid fa-user-group'],
                     'system'     => ['class' => 'notif-icon-system',     'icon' => 'fa-solid fa-gear'],
                     'alert'      => ['class' => 'notif-icon-alert',      'icon' => 'fa-solid fa-triangle-exclamation'],
+                    'chat'       => ['class' => 'notif-icon-chat',       'icon' => 'fa-solid fa-comment-dots'],
                 ];
                 $iconCfg  = $iconMap[$type] ?? ['class' => 'notif-icon-default', 'icon' => 'fa-solid fa-bell'];
                 $isUnread = ! $notification->is_read;

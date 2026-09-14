@@ -50,12 +50,23 @@
                             @endif
                         </div>
                         <div class="dac-info">
-                            <div class="dac-name">{{ $conversation->route_snapshot ?: 'Trip chat' }}</div>
-                            <div class="dac-meta">Driver: {{ $conversation->driver?->name ?: 'Unknown' }} · {{ $conversation->trip_ref_snapshot }}</div>
+                            <div class="dac-name">{{ $conversation->is_circle ? ($conversation->name ?: 'Circle chat') : ($conversation->route_snapshot ?: 'Trip chat') }}</div>
+                            <div class="dac-meta">
+                                Driver: {{ $conversation->driver?->name ?: 'Unknown' }}
+                                @if($conversation->is_circle)
+                                    · {{ $conversation->trip_id ? 'Linked: '.$conversation->trip_ref_snapshot : 'Not linked to a trip' }}
+                                @else
+                                    · {{ $conversation->trip_ref_snapshot }}
+                                @endif
+                            </div>
                         </div>
                     </div>
                     <div style="text-align:right;flex-shrink:0;">
-                        <span class="status-pill status-{{ $conversation->visibility_snapshot === 'public' ? 'active' : 'pending' }}">{{ ucfirst($conversation->visibility_snapshot) }}</span>
+                        @if($conversation->is_circle)
+                            <span class="status-pill status-active">Circle</span>
+                        @else
+                            <span class="status-pill status-{{ $conversation->visibility_snapshot === 'public' ? 'active' : 'pending' }}">{{ ucfirst($conversation->visibility_snapshot) }}</span>
+                        @endif
                         @if($conversation->scheduled_purge_at)
                             <div class="dac-meta" style="margin-top:4px;color:var(--danger-ink);">Closes {{ $conversation->scheduled_purge_at->diffForHumans() }}</div>
                         @endif

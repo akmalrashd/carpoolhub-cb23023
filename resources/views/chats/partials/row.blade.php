@@ -24,7 +24,9 @@
     $lastReadId = $unreadRecord?->last_read_message_id ?? 0;
     $hasUnread = $lastMessage && $lastMessage->id > $lastReadId && $lastMessage->sender_id !== $me->id;
     $isOpenYet = ! $conversation->opens_at || now()->gte($conversation->opens_at);
-    $titleParts = array_filter([$conversation->trip_ref_snapshot, $conversation->route_snapshot ?: 'Trip chat']);
+    $titleParts = $conversation->is_circle
+        ? array_filter([$conversation->name ?: 'Circle chat'])
+        : array_filter([$conversation->trip_ref_snapshot, $conversation->route_snapshot ?: 'Trip chat']);
     $isActive = isset($activeConversationId) && $activeConversationId === $conversation->public_id;
     $previewSender = null;
     if ($lastMessage && ! $lastMessage->isSystem()) {

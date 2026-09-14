@@ -222,6 +222,7 @@
         .notif-icon-connection { background: var(--warning-soft); color: var(--warning); border-color: rgba(180,83,9,.18); }
         .notif-icon-system     { background: var(--canvas);       color: var(--muted);   border-color: var(--hairline); }
         .notif-icon-alert      { background: var(--danger-soft);  color: var(--danger);  border-color: rgba(220,38,38,.18); }
+        .notif-icon-chat       { background: #EDE9FE;             color: #6D28D9;        border-color: rgba(109,40,217,.18); }
         .notif-icon-default    { background: var(--canvas);       color: var(--ink-3);   border-color: var(--hairline); }
 
         /* ── Row content ── */

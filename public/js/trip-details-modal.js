@@ -55,6 +55,8 @@ function confirmTripCancel(form, confirmMessage) {
     const whatsappEl         = document.getElementById('tripModalWhatsapp');
     const emailEl            = document.getElementById('tripModalEmail');
     const manageActionsEl    = document.getElementById('tripModalManageActions');
+    const manageChatBtnEl    = document.getElementById('tripModalManageChatBtn');
+    const manageChatBtnTextEl = document.getElementById('tripModalManageChatBtnText');
     const contactActionsEl   = document.getElementById('tripModalContactActions');
     const chatWrapEl         = document.getElementById('tripModalChatWrap');
     const chatBtnEl          = document.getElementById('tripModalChat');
@@ -324,30 +326,23 @@ function confirmTripCancel(form, confirmMessage) {
                 whatsappEl.dataset.unavailable = waUrl ? '' : '1';
             }
 
-            // Public trips stay in-app (matches the Hexa welcome message's "keep
-            // it inside this chat" tip) — private trips keep direct contact since
-            // passengers there are hand-picked from the driver's own Connections.
+            // Whichever trip currently has a linked conversation stays in-app
+            // (matches the Hexa welcome message's "keep it inside this chat"
+            // tip) — public trips always get one automatically, private trips
+            // only once the driver starts/links a circle (see the Driver
+            // Circles design), and fall back to direct contact until then.
             // Toggling the *wrapper* (a plain div, not itself a .trip-action-btn)
             // rather than chatBtnEl directly, since .trip-actions-filled
             // .trip-action-btn forces display:inline-flex !important on the
             // button and would otherwise beat a plain style.display='none'.
-            const isPublicTrip = (btn.dataset.visibility || 'private') === 'public';
             const chatUrl = btn.dataset.chatUrl || '';
-            if (chatWrapEl) chatWrapEl.style.display = isPublicTrip ? '' : 'none';
-            if (externalContactEl) externalContactEl.style.display = isPublicTrip ? 'none' : '';
-            if (chatBtnEl && isPublicTrip) {
-                if (chatUrl) {
-                    chatBtnEl.classList.remove('is-disabled');
-                    chatBtnEl.setAttribute('href', chatUrl);
-                    if (chatNoteTextEl) chatNoteTextEl.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
-                } else {
-                    // The trip outlived its chat (purged after the retention
-                    // window) — disable rather than hide, so it's still clear
-                    // there was a chat, not that the feature is missing.
-                    chatBtnEl.classList.add('is-disabled');
-                    chatBtnEl.setAttribute('href', '#');
-                    if (chatNoteTextEl) chatNoteTextEl.textContent = "This chat has already been deleted since some time has passed since the trip ended.";
-                }
+            const hasChatUrl = Boolean(chatUrl);
+            if (chatWrapEl) chatWrapEl.style.display = hasChatUrl ? '' : 'none';
+            if (externalContactEl) externalContactEl.style.display = hasChatUrl ? 'none' : '';
+            if (chatBtnEl && hasChatUrl) {
+                chatBtnEl.classList.remove('is-disabled');
+                chatBtnEl.setAttribute('href', chatUrl);
+                if (chatNoteTextEl) chatNoteTextEl.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
             }
 
             // Action row: trip owners (or admins) get manage actions (Edit/Delete),
@@ -363,6 +358,57 @@ function confirmTripCancel(form, confirmMessage) {
                     deleteFormEl.style.display = canDelete ? '' : 'none';
                     deleteFormEl.setAttribute('action', btn.dataset.deleteUrl || '#');
                 }
+
+                // A driver managing their own trip had no way to reach its
+                // chat from here at all — this button either opens the chat
+                // that already exists, (private trips only) starts/reuses a
+                // circle via the same chooser trips/show.blade.php uses, or
+                // — a public trip with no conversation yet (it's created by
+                // ChatService::syncParticipants() once the first passenger
+                // is approved, or may have since been purged) — shows
+                // disabled, matching the row-level chat-btn's own
+                // is-disabled convention, so the owner sees at a glance
+                // there's nothing to open instead of the button just
+                // vanishing.
+                if (manageChatBtnEl) {
+                    const manageChatUrl = btn.dataset.chatUrl || '';
+                    const circleOptionsUrl = btn.dataset.circleOptionsUrl || '';
+                    const chatCreateUrl = btn.dataset.chatCreateUrl || '';
+                    manageChatBtnEl.onclick = null;
+                    manageChatBtnEl.classList.remove('is-disabled');
+
+                    // .trip-actions-filled .trip-action-btn forces display:
+                    // inline-flex !important (trips.css) — see the identical
+                    // fix on requestsBtnEl below; a plain style.display
+                    // assignment on this button would be silently defeated
+                    // by it once a previous trip had shown it.
+                    manageChatBtnEl.style.setProperty('display', 'inline-flex', 'important');
+
+                    if (manageChatUrl) {
+                        if (manageChatBtnTextEl) manageChatBtnTextEl.textContent = 'Chat';
+                        manageChatBtnEl.setAttribute('href', manageChatUrl);
+                    } else if (circleOptionsUrl && chatCreateUrl) {
+                        if (manageChatBtnTextEl) manageChatBtnTextEl.textContent = 'Start Chat';
+                        manageChatBtnEl.setAttribute('href', '#');
+                        manageChatBtnEl.onclick = (event) => {
+                            event.preventDefault();
+                            window.CarpoolCircleChooser?.startFor({
+                                csrf: window.CH_TRIPS?.csrf || '',
+                                circleOptionsUrl,
+                                createUrl: chatCreateUrl,
+                                linkCircleUrlTemplate: btn.dataset.linkCircleUrlTemplate || '',
+                            });
+                        };
+                    } else {
+                        manageChatBtnEl.classList.add('is-disabled');
+                        if (manageChatBtnTextEl) manageChatBtnTextEl.textContent = 'Chat';
+                        manageChatBtnEl.setAttribute('href', '#');
+                        manageChatBtnEl.onclick = (event) => {
+                            event.preventDefault();
+                            window.showToast?.('No chat available for this trip yet.', 'error');
+                        };
+                    }
+                }
             }
 
             // "Manage requests" trigger, reusing the exact same popup as
@@ -373,7 +419,18 @@ function confirmTripCancel(form, confirmMessage) {
             // already on this same trigger button under other names.
             if (requestsBtnEl) {
                 const canManageRequests = canManage && String(btn.dataset.canManageRequests || '0') === '1';
-                requestsBtnEl.style.display = canManageRequests ? '' : 'none';
+                // .trip-actions-filled .trip-action-btn forces display:
+                // inline-flex !important (trips.css) — a plain style.display
+                // assignment on the button itself (this element has that
+                // class directly, unlike chatWrapEl's wrapper-div trick
+                // above) was silently defeated by it, so a private trip's
+                // Requests button — and any stale pending-count badge left
+                // over from the last public trip that did have one — never
+                // actually hid.
+                requestsBtnEl.style.setProperty('display', canManageRequests ? 'inline-flex' : 'none', 'important');
+
+                const existingBadge = requestsBtnEl.querySelector('.trip-request-badge');
+
                 if (canManageRequests) {
                     requestsBtnEl.dataset.requestsB64 = btn.dataset.requestsB64 || '';
                     requestsBtnEl.dataset.routeName = btn.dataset.routeName || '';
@@ -392,17 +449,14 @@ function confirmTripCancel(form, confirmMessage) {
                     requestsBtnEl.dataset.destinationLng = btn.dataset.destinationLng || '';
 
                     const pendingCount = Number.parseInt(btn.dataset.requestsPendingCount || '0', 10) || 0;
-                    let badge = requestsBtnEl.querySelector('.trip-request-badge');
                     if (pendingCount > 0) {
-                        if (!badge) {
-                            badge = document.createElement('span');
-                            badge.className = 'trip-request-badge';
-                            requestsBtnEl.appendChild(badge);
-                        }
+                        const badge = existingBadge ?? requestsBtnEl.appendChild(Object.assign(document.createElement('span'), { className: 'trip-request-badge' }));
                         badge.textContent = pendingCount > 9 ? '9+' : String(pendingCount);
-                    } else if (badge) {
-                        badge.remove();
+                    } else {
+                        existingBadge?.remove();
                     }
+                } else {
+                    existingBadge?.remove();
                 }
             }
 

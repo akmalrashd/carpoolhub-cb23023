@@ -67,6 +67,7 @@ class UserNotification extends Model
             'settings' => route('settings.index'),
             'trip_join_request' => $this->resolveJoinRequestUrl($relatedId),
             'wallet_transaction', 'withdrawal_request' => route('wallet.index'),
+            'unread_chat_reminder' => $this->resolveUnreadChatUrl($relatedId),
             default => route('notifications.index'),
         };
     }
@@ -95,6 +96,22 @@ class UserNotification extends Model
             : route('payments.index') . '#queue-summary';
     }
 
+    /**
+     * related_id is the single unread conversation's id when there's
+     * exactly one (SendUnreadChatReminder deep-links straight into it),
+     * or null when there are several (falls back to the chat list).
+     */
+    private function resolveUnreadChatUrl(int $conversationId): string
+    {
+        if ($conversationId <= 0) {
+            return route('chats.index');
+        }
+
+        $conversation = Conversation::query()->select('id', 'public_id')->find($conversationId);
+
+        return $conversation ? route('chats.show', $conversation) : route('chats.index');
+    }
+
     private function resolveJoinRequestUrl(int $joinRequestId): string
     {
         if ($joinRequestId <= 0) {
@@ -114,6 +131,11 @@ class UserNotification extends Model
             return route('trips.index', ['focus_trip' => $joinRequest->trip_id]);
         }
 
-        return route('trips.requests.index', $joinRequest->trip_id);
+        // A brand-new request: land on the trip's own row and cascade
+        // straight into the "Manage requests" popup (trips-index.js reads
+        // open_requests off this same focus_trip deep-link) instead of the
+        // old standalone trips.requests.index page, which the popup fully
+        // replaced and which is otherwise unreachable from live navigation.
+        return route('trips.index', ['focus_trip' => $joinRequest->trip_id, 'open_requests' => 1]);
     }
 }

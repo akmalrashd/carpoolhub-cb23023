@@ -36,6 +36,11 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/trips-show.css') }}?v={{ filemtime(public_path('css/trips-show.css')) }}">
+@if($canStartPrivateChat)
+    {{-- Only for the circle-chooser modal's shell (.trip-payment-review-*) —
+         see circle-chooser-modal.blade.php. --}}
+    <link rel="stylesheet" href="{{ asset('css/trips.css') }}?v={{ filemtime(public_path('css/trips.css')) }}">
+@endif
 @endpush
 
 <div class="ts-page">
@@ -64,7 +69,7 @@
                 @if($tripConversation && $isChatParticipant)
                     <a href="{{ route('chats.show', $tripConversation) }}" class="btn btn-soft btn-sm"><i class="fa-regular fa-comment-dots"></i> Open Chat</a>
                 @elseif($canStartPrivateChat)
-                    <button type="button" class="btn btn-soft btn-sm" id="startGroupChatBtn"><i class="fa-regular fa-comment-dots"></i> Start Group Chat</button>
+                    <button type="button" class="btn btn-soft btn-sm" id="startGroupChatBtn"><i class="fa-regular fa-comment-dots"></i> Start Chat</button>
                 @endif
                 @if(auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id)
                     <a href="{{ route('trips.edit', $trip) }}" class="btn btn-ghost btn-sm">Edit Trip</a>
@@ -187,6 +192,10 @@
 
 </div>
 
+@if($canStartPrivateChat)
+    @include('trips.partials.circle-chooser-modal')
+@endif
+
 <script>
     (() => {
         const endpoint = @json(route('refresh.trips.status', $trip));
@@ -275,47 +284,21 @@
         window.setInterval(poll, 5000);
     })();
 
-    (() => {
-        const btn = document.getElementById('startGroupChatBtn');
-        if (!btn) return;
-
-        const pickerUrl = @json($canStartPrivateChat ? route('trips.chat.picker-options', $trip) : null);
-        const createUrl = @json($canStartPrivateChat ? route('trips.chat.create', $trip) : null);
-        const csrf = @json(csrf_token());
-
-        btn.addEventListener('click', async () => {
-            let options = [];
-            try {
-                const response = await fetch(pickerUrl, { headers: { Accept: 'application/json' } });
-                const payload = await response.json();
-                options = payload.connections || [];
-            } catch {
-                alert('Could not load your connections.');
-                return;
-            }
-
-            if (options.length === 0) {
-                alert('You have no accepted connections to start a group chat with yet.');
-                return;
-            }
-
-            const names = options.map((o) => o.name);
-            const picked = prompt(`Start a group chat with who? Type name(s) separated by commas (or leave blank for just yourself):\n${names.join(', ')}`);
-            if (picked === null) return;
-
-            const pickedNames = picked.split(',').map((n) => n.trim().toLowerCase()).filter(Boolean);
-            const ids = options
-                .filter((o) => pickedNames.includes(o.name.toLowerCase()))
-                .map((o) => o.id);
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = createUrl;
-            form.innerHTML = `<input type="hidden" name="_token" value="${csrf}">`
-                + ids.map((id) => `<input type="hidden" name="connection_user_ids[]" value="${id}">`).join('');
-            document.body.appendChild(form);
-            form.submit();
-        });
-    })();
 </script>
+@if($canStartPrivateChat)
+    <script src="{{ asset('js/circle-chooser-modal.js') }}?v={{ filemtime(public_path('js/circle-chooser-modal.js')) }}"></script>
+    <script>
+        document.getElementById('startGroupChatBtn')?.addEventListener('click', () => {
+            window.CarpoolCircleChooser.startFor({
+                csrf: @json(csrf_token()),
+                circleOptionsUrl: @json(route('trips.chat.circle-options', $trip)),
+                createUrl: @json(route('trips.chat.create', $trip)),
+                // __ID__ is swapped for the real circle id client-side — one
+                // static template instead of a per-circle route() call, same
+                // convention as chats/index.blade.php's rowUrlTemplate.
+                linkCircleUrlTemplate: @json(route('trips.chat.link-circle', [$trip, '__ID__'])),
+            });
+        });
+    </script>
+@endif
 @endsection

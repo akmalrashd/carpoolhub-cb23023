@@ -105,7 +105,7 @@ class ChatService
     public function scheduleClosure(Trip $trip, string $reason): void
     {
         $conversation = Conversation::query()->where('trip_id', $trip->id)->first();
-        if (! $conversation || $conversation->scheduled_purge_at !== null) {
+        if (! $conversation || $conversation->scheduled_purge_at !== null || $conversation->is_circle) {
             return;
         }
 
@@ -121,7 +121,17 @@ class ChatService
         $this->postSystemMessage($conversation, "{$prefix}This chat will close in {$retentionDays} {$dayWord}.");
     }
 
-    public function createPrivateGroup(Trip $trip, User $driver, array $connectionUserIds): Conversation
+    /**
+     * A "circle" is a persistent, driver-owned group chat — not tied to any
+     * one trip's lifecycle (see linkCircleToTrip(), scheduleClosure()'s
+     * is_circle guard, and PruneCircleMessages instead of
+     * PurgeExpiredConversations). One tap: no connections-picker for the
+     * common case — membership starts as whoever's already confirmed on
+     * this trip (same roster query syncParticipants() trusts for public
+     * trips), since TripService::buildParticipantIds() already
+     * Connections-validated every one of them at trip-creation time.
+     */
+    public function createCircle(Trip $trip, User $driver, ?string $name = null): Conversation
     {
         if ((int) $trip->driver_id !== $driver->id) {
             throw ValidationException::withMessages(['chat' => 'Only the trip driver can start a group chat.']);
@@ -135,35 +145,108 @@ class ChatService
             throw ValidationException::withMessages(['chat' => 'A group chat already exists for this trip.']);
         }
 
-        $memberIds = $this->assertAcceptedConnections($driver, $connectionUserIds);
+        return DB::transaction(function () use ($trip, $driver, $name): Conversation {
+            // Locks the driver's own row so two concurrent "create new
+            // circle" submissions from the same driver can't both pass the
+            // cap check before either has committed its insert.
+            User::query()->whereKey($driver->id)->lockForUpdate()->first();
 
-        return DB::transaction(function () use ($trip, $driver, $memberIds): Conversation {
-            $conversation = Conversation::create($this->buildConversationAttributes($trip));
-            $this->postHexaWelcome($conversation);
+            $maxCircles = (int) (SystemSetting::get('chat_max_circles_per_driver') ?? 5);
+            $currentCircles = Conversation::query()
+                ->where('driver_id', $driver->id)
+                ->where('is_circle', true)
+                ->count();
 
-            ConversationParticipant::create([
-                'conversation_id' => $conversation->id,
-                'user_id' => $driver->id,
-                'is_chat_admin' => true,
-                'joined_at' => now(),
-            ]);
-
-            foreach ($memberIds as $userId) {
-                ConversationParticipant::create([
-                    'conversation_id' => $conversation->id,
-                    'user_id' => $userId,
-                    'is_chat_admin' => false,
-                    'joined_at' => now(),
+            if ($currentCircles >= $maxCircles) {
+                throw ValidationException::withMessages([
+                    'chat' => "You've reached your limit of {$maxCircles} circles. Retire one before starting another.",
                 ]);
             }
 
-            $names = User::query()->whereIn('id', $memberIds)->pluck('name')->implode(', ');
-            if ($names !== '') {
-                $this->postSystemMessage($conversation, "Group chat started with {$names}.");
+            $conversation = Conversation::create([
+                ...$this->buildConversationAttributes($trip, forCircle: true),
+                'is_circle' => true,
+                'name' => $name,
+            ]);
+            $this->postHexaWelcome($conversation);
+
+            $memberIds = $this->currentTripRoster($trip);
+            foreach ($memberIds as $userId) {
+                $this->ensureActiveParticipant($conversation, $userId, isChatAdmin: (int) $userId === $driver->id);
             }
+
+            $names = User::query()
+                ->whereIn('id', $memberIds->reject(fn ($id) => (int) $id === $driver->id))
+                ->pluck('name')
+                ->implode(', ');
+            $this->postSystemMessage($conversation, $names !== ''
+                ? "Circle chat started with {$names}."
+                : 'Circle chat started.');
 
             return $conversation;
         });
+    }
+
+    /**
+     * Relinks an existing circle to a different trip — the "reuse an
+     * existing circle" branch of the chooser. Merges in anyone on the new
+     * trip's roster who isn't already an active member; never removes
+     * anyone. An older trip this circle used to be linked to simply stops
+     * resolving via Trip::conversation() once trip_id moves on — accepted
+     * trade-off, see the plan.
+     */
+    public function linkCircleToTrip(Conversation $circle, Trip $trip, User $driver): Conversation
+    {
+        if (! $circle->is_circle || (int) $circle->driver_id !== $driver->id) {
+            throw ValidationException::withMessages(['chat' => 'This is not one of your circles.']);
+        }
+
+        if ((int) $trip->driver_id !== $driver->id) {
+            throw ValidationException::withMessages(['chat' => 'Only the trip driver can start a group chat.']);
+        }
+
+        if ($trip->visibility !== 'private') {
+            throw ValidationException::withMessages(['chat' => 'This action is only for private trips — public trips get a group chat automatically.']);
+        }
+
+        if (Conversation::query()->where('trip_id', $trip->id)->exists()) {
+            throw ValidationException::withMessages(['chat' => 'A group chat already exists for this trip.']);
+        }
+
+        return DB::transaction(function () use ($circle, $trip): Conversation {
+            $circle->update($this->buildConversationAttributes($trip, forCircle: true));
+            $this->postSystemMessage($circle, "This circle is now also being used for {$trip->trip_ref}.");
+
+            $addedNames = [];
+            foreach ($this->currentTripRoster($trip) as $userId) {
+                if ($this->ensureActiveParticipant($circle, $userId)) {
+                    $addedNames[] = User::find($userId)?->name ?? 'Someone';
+                }
+            }
+
+            if ($addedNames !== []) {
+                $verb = count($addedNames) === 1 ? 'was' : 'were';
+                $this->postSystemMessage($circle, implode(', ', $addedNames)." {$verb} added to the circle.");
+            }
+
+            return $circle;
+        });
+    }
+
+    /**
+     * The cap's release valve — no soft-delete, matches this app's existing
+     * convention (see PurgeExpiredConversations' docblock), frees the
+     * driver's circle-count immediately.
+     */
+    public function deleteCircle(Conversation $circle, User $actor): void
+    {
+        $this->ensureChatAdmin($circle, $actor);
+
+        if (! $circle->is_circle) {
+            throw ValidationException::withMessages(['chat' => 'This chat is not a circle.']);
+        }
+
+        $circle->delete();
     }
 
     public function addToPrivateGroup(Conversation $conversation, User $actor, array $connectionUserIds): void
@@ -263,13 +346,35 @@ class ChatService
     }
 
     /**
-     * One-time, per conversation — safety/rules framing for scam prevention
-     * (verify the real driver via the car icon next to their name, agree on
-     * pay-now-vs-pay-later directly with them) posted as soon as a
-     * conversation exists, before any join/group-started system message.
+     * One-time, per conversation — posted as soon as a conversation exists,
+     * before any join/group-started system message. Branches on is_circle:
+     * the public-trip version assumes strangers matched by the app (hence
+     * the stronger "verify you're really talking to them" scam framing and
+     * the accurate "this chat closes after the trip" note); a circle's
+     * members are the driver's own accepted Connections and the chat itself
+     * never closes (see PurgeExpiredConversations' is_circle guard), so
+     * those two points would be actively misleading here — see the
+     * fabricated-deletion-date bug this whole redesign fixed in the banner
+     * above the thread for the same reason. Reused-across-many-trips is the
+     * one risk that's actually specific to circles (assuming last trip's
+     * time/pickup/fare still applies), so that replaces them instead.
      */
     public function postHexaWelcome(Conversation $conversation): Message
     {
+        if ($conversation->is_circle) {
+            $retentionDays = (int) (SystemSetting::get('chat_circle_message_retention_days') ?? 60);
+
+            return $this->postBotMessage($conversation, <<<TEXT
+            Hi, I'm Hexa 👋 A few quick tips for this circle chat:
+            • This circle may be reused for several trips with this group — always confirm the pickup time, location, and fare for the CURRENT trip here, since they can differ from past trips.
+            • Keep pickup details and payment arrangements inside this chat so there's a clear record for everyone.
+            • Agree with your driver whether you're paying before or after each ride, and keep a screenshot or receipt either way.
+            • Double-check that the car and plate number match what's shown in the app before you get in. Your safety is ultimately your own responsibility, since CarpoolHub only provides the platform connecting drivers and passengers and isn't liable for the actions of other users.
+            • This circle stays here for future trips together — only messages older than {$retentionDays} days are cleared automatically, so nothing you need suddenly disappears.
+            Have a safe trip!
+            TEXT, Message::TYPE_BOT);
+        }
+
         return $this->postBotMessage($conversation, <<<'TEXT'
         Hi, I'm Hexa 👋 A few quick safety tips for this chat:
         • Keep pickup details and payment arrangements inside this chat. Never deal with anyone who contacts you outside the app.
@@ -287,17 +392,28 @@ class ChatService
      * here adds no new privacy exposure. See SendChatPaymentReminder for the
      * daily trigger/cooldown.
      *
+     * $daysUntilClose is null for circles — they never close (see
+     * PurgeExpiredConversations' is_circle guard), so there's no "closes
+     * soon" urgency framing to apply; SendChatPaymentReminder always passes
+     * null here for a circle rather than computing one against the
+     * currently-linked trip's own (irrelevant) retention window. The trip
+     * ref is named explicitly in that case since a circle's history can
+     * span several different trips, unlike a one-trip conversation where
+     * "this trip" is unambiguous.
+     *
      * @param  \Illuminate\Support\Collection<int, \App\Models\TripPayment>  $outstanding
      */
-    public function postPaymentReminder(Conversation $conversation, \Illuminate\Support\Collection $outstanding, int $daysUntilClose): Message
+    public function postPaymentReminder(Conversation $conversation, \Illuminate\Support\Collection $outstanding, ?int $daysUntilClose): Message
     {
         $names = $outstanding->pluck('user.name')->filter()->unique()->implode(', ');
         $total = number_format((float) $outstanding->sum('amount_due'), 2);
         $verb = $outstanding->pluck('user_id')->unique()->count() === 1 ? 'has' : 'have';
 
-        $body = $daysUntilClose <= self::PAYMENT_REMINDER_FINAL_NOTICE_WITHIN_DAYS
-            ? "Hi, it's Hexa. This chat closes in {$daysUntilClose} day(s) and {$names} still {$verb} an outstanding payment for this trip (RM{$total} total). Please settle up before the chat closes."
-            : "Hi, it's Hexa again. {$names} still {$verb} an outstanding payment for this trip (RM{$total} total). Please settle up with your driver soon.";
+        $body = match (true) {
+            $daysUntilClose === null => "Hi, it's Hexa. {$names} still {$verb} an outstanding payment for {$conversation->trip_ref_snapshot} (RM{$total} total). Please settle up with your driver soon.",
+            $daysUntilClose <= self::PAYMENT_REMINDER_FINAL_NOTICE_WITHIN_DAYS => "Hi, it's Hexa. This chat closes in {$daysUntilClose} day(s) and {$names} still {$verb} an outstanding payment for this trip (RM{$total} total). Please settle up before the chat closes.",
+            default => "Hi, it's Hexa again. {$names} still {$verb} an outstanding payment for this trip (RM{$total} total). Please settle up with your driver soon.",
+        };
 
         return $this->postBotMessage($conversation, $body, Message::TYPE_PAYMENT_REMINDER);
     }
@@ -352,7 +468,59 @@ class ChatService
         return $memberIds;
     }
 
-    private function buildConversationAttributes(Trip $trip): array
+    /**
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    private function currentTripRoster(Trip $trip): \Illuminate\Support\Collection
+    {
+        return TripParticipant::query()
+            ->where('trip_id', $trip->id)
+            ->where('attendance_status', 'joined')
+            ->pluck('user_id')
+            ->push($trip->driver_id)
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * Adds or reactivates a participant. Returns false when they were
+     * already an active member (a no-op) so callers can build an accurate
+     * "X was added" message instead of announcing people who never left.
+     */
+    private function ensureActiveParticipant(Conversation $conversation, int $userId, bool $isChatAdmin = false): bool
+    {
+        $participant = ConversationParticipant::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($participant && $participant->isActive()) {
+            return false;
+        }
+
+        if ($participant) {
+            $participant->update(['left_at' => null, 'joined_at' => now()]);
+        } else {
+            ConversationParticipant::create([
+                'conversation_id' => $conversation->id,
+                'user_id' => $userId,
+                'is_chat_admin' => $isChatAdmin,
+                'joined_at' => now(),
+            ]);
+        }
+
+        return true;
+    }
+
+    /**
+     * $forCircle forces opens_at to null — a circle's chat must never lock
+     * sending behind a future trip's "opens N days before" window (see
+     * postMessage()'s opens_at check), since relinking an already-active
+     * circle to a trip scheduled more than chat_open_days_before days out
+     * would otherwise silently block a mid-conversation group from sending
+     * until that future date arrives.
+     */
+    private function buildConversationAttributes(Trip $trip, bool $forCircle = false): array
     {
         $daysBefore = (int) (SystemSetting::get('chat_open_days_before') ?? 3);
         // trips.trip_datetime is a KL-local wall-clock string (Trip::TIMEZONE)
@@ -367,7 +535,7 @@ class ChatService
             'trip_datetime_snapshot' => $tripDatetimeUtc,
             'visibility_snapshot' => $trip->visibility,
             'driver_id' => $trip->driver_id,
-            'opens_at' => $tripDatetimeUtc?->clone()->subDays($daysBefore) ?? now(),
+            'opens_at' => $forCircle ? null : ($tripDatetimeUtc?->clone()->subDays($daysBefore) ?? now()),
         ];
     }
 }

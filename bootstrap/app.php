@@ -57,6 +57,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('chats:payment-reminder')
             ->dailyAt('11:00');
 
+        // Runs after the chat payment reminder above so both daily chat
+        // touches land close together. Unlike every other reminder in this
+        // schedule, this one has no cooldown — it deletes and recreates its
+        // own notification each run, so running it more than once a day is
+        // harmless (just refreshes the same single row), not a duplication risk.
+        $schedule->command('notifications:unread-chat-reminder')
+            ->dailyAt('11:30');
+
         // Every 5 minutes, not daily like the reminders above — a temporary
         // suspension can expire at any minute and the account should regain
         // access promptly, not sit needlessly suspended for up to a day.
@@ -73,6 +81,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // in days, so there's no urgency to purge it the same hour it expires.
         $schedule->command('chats:purge-expired')
             ->dailyAt('03:00');
+
+        $schedule->command('chats:prune-circle-messages')
+            ->dailyAt('03:15');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

@@ -893,24 +893,22 @@ window.isPaymentRowHidden = function (row) {
                 tripDetailsWhatsapp.dataset.unavailable = waUrl ? '' : '1';
             }
 
-            const isPublicTrip = (source.dataset.visibility || 'private') === 'public';
             const chatUrl = source.dataset.chatUrl || '';
+            const hasChatUrl = Boolean(chatUrl);
             // Toggling the wrapper (a plain div), not tripDetailsChat itself —
             // .trip-actions-filled .trip-action-btn forces display:inline-flex
             // !important (trips.css), which would beat a plain style.display=
-            // 'none' set directly on the button.
-            if (tripDetailsChatWrap) tripDetailsChatWrap.style.display = isPublicTrip ? '' : 'none';
-            if (tripDetailsExternalContact) tripDetailsExternalContact.style.display = isPublicTrip ? 'none' : '';
-            if (tripDetailsChat && isPublicTrip) {
-                if (chatUrl) {
-                    tripDetailsChat.classList.remove('is-disabled');
-                    tripDetailsChat.setAttribute('href', chatUrl);
-                    if (tripDetailsChatNoteText) tripDetailsChatNoteText.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
-                } else {
-                    tripDetailsChat.classList.add('is-disabled');
-                    tripDetailsChat.setAttribute('href', '#');
-                    if (tripDetailsChatNoteText) tripDetailsChatNoteText.textContent = "This chat has already been deleted since some time has passed since the trip ended.";
-                }
+            // 'none' set directly on the button. Whichever trip currently has
+            // a linked conversation stays in-app — public trips always get
+            // one automatically, private trips only once the driver
+            // starts/links a circle — and falls back to direct contact
+            // until then.
+            if (tripDetailsChatWrap) tripDetailsChatWrap.style.display = hasChatUrl ? '' : 'none';
+            if (tripDetailsExternalContact) tripDetailsExternalContact.style.display = hasChatUrl ? 'none' : '';
+            if (tripDetailsChat && hasChatUrl) {
+                tripDetailsChat.classList.remove('is-disabled');
+                tripDetailsChat.setAttribute('href', chatUrl);
+                if (tripDetailsChatNoteText) tripDetailsChatNoteText.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
             }
 
             const paymentActionRow = source.closest('.open-trip-card') || source;

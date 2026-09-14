@@ -325,44 +325,113 @@
 
     // ── Invite from connections (private trip groups only) ──────────
     const inviteBtn = document.getElementById('chatInviteBtn');
-    if (inviteBtn && CFG.pickerOptionsUrl && CFG.inviteUrl) {
+    const inviteModal = document.getElementById('inviteConnectionsModal');
+    const inviteList = document.getElementById('inviteConnectionsList');
+    const inviteSearch = document.getElementById('inviteConnectionsSearch');
+    const inviteCloseBtn = document.getElementById('inviteConnectionsClose');
+    const inviteCancelBtn = document.getElementById('inviteConnectionsCancelBtn');
+    const inviteSubmitBtn = document.getElementById('inviteConnectionsSubmitBtn');
+    const inviteCountEl = document.getElementById('inviteConnectionsCount');
+
+    if (inviteBtn && inviteModal && CFG.pickerOptionsUrl && CFG.inviteUrl) {
+        const closeInviteModal = () => {
+            inviteModal.classList.remove('is-open');
+            inviteModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        };
+
+        const updateInviteCount = () => {
+            const checked = inviteList.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)').length;
+            if (inviteCountEl) inviteCountEl.textContent = `Invite (${checked})`;
+            if (inviteSubmitBtn) inviteSubmitBtn.disabled = checked === 0;
+        };
+
+        const renderInviteList = (connections) => {
+            if (!inviteList) return;
+
+            if (connections.length === 0) {
+                inviteList.innerHTML = '<div style="padding:16px; color:var(--muted);">You have no accepted connections to invite yet.</div>';
+                return;
+            }
+
+            // Already-in-chat connections sink to the bottom — greyed out
+            // and locked (see the disabled checkbox below), so the ones an
+            // admin can actually act on stay first rather than mixed in.
+            const sorted = [...connections].sort((a, b) => Number(a.is_member) - Number(b.is_member));
+
+            inviteList.style.gap = '0';
+            inviteList.innerHTML = sorted.map((c, i) => `
+                <label
+                    data-search="${escapeHtml(`${c.name} ${c.email}`.toLowerCase())}"
+                    style="display:flex; flex-direction:row; align-items:center; gap:12px; padding:8px 2px; ${i < sorted.length - 1 ? 'border-bottom:1px solid var(--hairline);' : ''} cursor:${c.is_member ? 'default' : 'pointer'}; opacity:${c.is_member ? '0.5' : '1'};"
+                >
+                    <span style="width:40px; height:40px; border-radius:999px; border:2px solid var(--hairline-strong); display:grid; place-items:center; font-size:16px; font-weight:800; font-family:var(--font-display), sans-serif; flex-shrink:0; overflow:hidden; ${window.CarpoolAvatar.bgStyle(c.id)}">${window.CarpoolAvatar.innerHtml({ name: c.name, id: c.id })}</span>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-family:var(--font-display), sans-serif; font-size:14px; font-weight:800; color:var(--ink);">${escapeHtml(c.name)}</div>
+                        <div style="font-size:12px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(c.email)}</div>
+                    </div>
+                    <input type="checkbox" value="${escapeHtml(c.id)}" ${c.is_member ? 'checked disabled' : ''} style="width:20px; height:20px; flex-shrink:0;">
+                </label>
+            `).join('');
+
+            updateInviteCount();
+        };
+
+        if (inviteModal) {
+            window.CarpoolBottomSheet?.enable({
+                modal: inviteModal,
+                card: inviteModal.querySelector('.trip-payment-review-card'),
+                head: inviteModal.querySelector('.trip-payment-review-head'),
+                closeFn: closeInviteModal,
+            });
+            inviteCloseBtn?.addEventListener('click', closeInviteModal);
+            inviteCancelBtn?.addEventListener('click', closeInviteModal);
+            inviteModal.addEventListener('click', (event) => {
+                if (event.target === inviteModal) closeInviteModal();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && inviteModal.classList.contains('is-open')) closeInviteModal();
+            });
+            inviteList?.addEventListener('change', updateInviteCount);
+            inviteSearch?.addEventListener('input', () => {
+                const term = inviteSearch.value.trim().toLowerCase();
+                inviteList?.querySelectorAll('[data-search]').forEach((row) => {
+                    row.hidden = term !== '' && !row.dataset.search.includes(term);
+                });
+            });
+            inviteSubmitBtn?.addEventListener('click', () => {
+                const ids = Array.from(inviteList.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)')).map((el) => el.value);
+                if (ids.length === 0) return;
+
+                const form2 = document.createElement('form');
+                form2.method = 'POST';
+                form2.action = CFG.inviteUrl;
+                form2.innerHTML = `<input type="hidden" name="_token" value="${escapeHtml(CFG.csrf)}">`
+                    + ids.map((id) => `<input type="hidden" name="connection_user_ids[]" value="${id}">`).join('');
+                document.body.appendChild(form2);
+                form2.submit();
+            });
+        }
+
         inviteBtn.addEventListener('click', async () => {
-            let options = [];
+            if (inviteSearch) inviteSearch.value = '';
+            inviteList.style.gap = '0';
+            inviteList.innerHTML = '<div style="padding:16px; color:var(--muted);">Loading...</div>';
+            inviteModal.classList.add('is-open');
+            inviteModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            let connections = [];
             try {
                 const response = await fetch(CFG.pickerOptionsUrl, { headers: { Accept: 'application/json' } });
                 const payload = await response.json();
-                options = payload.connections || [];
+                connections = payload.connections || [];
             } catch {
-                alert('Could not load your connections.');
+                inviteList.innerHTML = '<div style="padding:16px; color:var(--danger-ink,#dc2626);">Could not load your connections. Please try again.</div>';
                 return;
             }
 
-            if (options.length === 0) {
-                alert('You have no accepted connections to invite.');
-                return;
-            }
-
-            const names = options.map((o) => o.name);
-            const picked = prompt(`Invite who? Type name(s) separated by commas:\n${names.join(', ')}`);
-            if (!picked) return;
-
-            const pickedNames = picked.split(',').map((n) => n.trim().toLowerCase()).filter(Boolean);
-            const ids = options
-                .filter((o) => pickedNames.includes(o.name.toLowerCase()))
-                .map((o) => o.id);
-
-            if (ids.length === 0) {
-                alert('No matching connection names.');
-                return;
-            }
-
-            const form2 = document.createElement('form');
-            form2.method = 'POST';
-            form2.action = CFG.inviteUrl;
-            form2.innerHTML = `<input type="hidden" name="_token" value="${escapeHtml(CFG.csrf)}">`
-                + ids.map((id) => `<input type="hidden" name="connection_user_ids[]" value="${id}">`).join('');
-            document.body.appendChild(form2);
-            form2.submit();
+            renderInviteList(connections);
         });
     }
 

@@ -154,11 +154,13 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     // Private-trip group chat only — public trips get a conversation
     // automatically (ChatService::syncParticipants), driven from the approve/
     // cancel/remove flows above, not from a route a passenger or driver hits
-    // directly.
+    // directly. Creates or reuses a driver "circle" (ChatService::
+    // createCircle/linkCircleToTrip) — invite/remove/picker-options are
+    // conversation-scoped (see the chats.* group below), not trip-scoped,
+    // since a circle survives past whichever trip it's currently linked to.
     Route::post('/trips/{trip}/chat', [PrivateChatController::class, 'create'])->name('trips.chat.create');
-    Route::post('/trips/{trip}/chat/invite', [PrivateChatController::class, 'invite'])->name('trips.chat.invite');
-    Route::delete('/trips/{trip}/chat/members/{user}', [PrivateChatController::class, 'remove'])->name('trips.chat.remove-member');
-    Route::get('/trips/{trip}/chat/picker-options', [PrivateChatController::class, 'pickerOptions'])->name('trips.chat.picker-options');
+    Route::get('/trips/{trip}/chat/circle-options', [PrivateChatController::class, 'circleOptions'])->name('trips.chat.circle-options');
+    Route::post('/trips/{trip}/chat/circle/{conversation}', [PrivateChatController::class, 'linkCircle'])->name('trips.chat.link-circle');
     Route::get('/connections', [ConnectionController::class, 'index'])->name('connections.index');
     Route::post('/connections/requests', [ConnectionController::class, 'store'])->name('connections.requests.store');
     Route::patch('/connections/{connection}/respond', [ConnectionController::class, 'respond'])->name('connections.respond');
@@ -191,6 +193,10 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::post('/chats/{conversation}/messages', [ChatController::class, 'store'])->middleware('throttle:30,1')->name('chats.messages.store');
     Route::patch('/chats/{conversation}/read', [ChatController::class, 'markRead'])->name('chats.read');
     Route::get('/chats/{conversation}/export', [ChatController::class, 'export'])->name('chats.export');
+    Route::post('/chats/{conversation}/invite', [ChatController::class, 'invite'])->name('chats.invite');
+    Route::delete('/chats/{conversation}/members/{user}', [ChatController::class, 'removeMember'])->name('chats.remove-member');
+    Route::get('/chats/{conversation}/picker-options', [ChatController::class, 'pickerOptions'])->name('chats.picker-options');
+    Route::delete('/chats/{conversation}/circle', [ChatController::class, 'destroyCircle'])->name('chats.circle.destroy');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');

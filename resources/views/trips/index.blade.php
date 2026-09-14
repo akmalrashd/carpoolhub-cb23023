@@ -618,6 +618,11 @@
                                         data-driver-whatsapp-url="{{ $trip->driver?->whatsapp_url ?: '' }}"
                                         data-visibility="{{ $trip->visibility ?? 'private' }}"
                                         data-chat-url="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '' }}"
+                                        @if(($trip->visibility ?? 'private') === 'private')
+                                            data-circle-options-url="{{ route('trips.chat.circle-options', $trip) }}"
+                                            data-chat-create-url="{{ route('trips.chat.create', $trip) }}"
+                                            data-link-circle-url-template="{{ route('trips.chat.link-circle', [$trip, '__ID__']) }}"
+                                        @endif
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
                                         data-mode="{{ $modeText }}"
                                         data-status="{{ $statusLabel }}"
@@ -723,8 +728,8 @@
                                                 <i class="fa-solid fa-inbox"></i> My Request
                                             </button>
                                         @endif
-                                        @if(($trip->visibility ?? 'private') === 'public')
-                                            <a href="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '#' }}" class="trip-action-btn is-filled chat-btn @if($myRequestRow) icon-only @endif @unless($trip->conversation) is-disabled @endunless" title="Chat" @unless($trip->conversation) onclick="alert('This chat has already been deleted since some time has passed since the trip ended.'); return false;" @endunless>
+                                        @if($trip->conversation)
+                                            <a href="{{ route('chats.show', $trip->conversation) }}" class="trip-action-btn is-filled chat-btn @if($myRequestRow) icon-only @endif" title="Chat">
                                                 <i class="fa-solid fa-comment-dots"></i> @if(!$myRequestRow) Chat @endif
                                             </a>
                                         @else
@@ -1134,6 +1139,11 @@
                                         data-driver-whatsapp-url="{{ $trip->driver?->whatsapp_url ?: '' }}"
                                         data-visibility="{{ $trip->visibility ?? 'private' }}"
                                         data-chat-url="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '' }}"
+                                        @if(($trip->visibility ?? 'private') === 'private')
+                                            data-circle-options-url="{{ route('trips.chat.circle-options', $trip) }}"
+                                            data-chat-create-url="{{ route('trips.chat.create', $trip) }}"
+                                            data-link-circle-url-template="{{ route('trips.chat.link-circle', [$trip, '__ID__']) }}"
+                                        @endif
                                         data-driver-phone="{{ $trip->driver?->whatsapp_digits ?: '' }}"
                                         data-mode="{{ $modeText }}"
                                         data-status="{{ $statusLabel }}"
@@ -1253,8 +1263,8 @@
                                                     <i class="fa-solid fa-inbox"></i>
                                                 </button>
                                             @endif
-                                            @if(($trip->visibility ?? 'private') === 'public')
-                                                <a href="{{ $trip->conversation ? route('chats.show', $trip->conversation) : '#' }}" class="trip-row-icon-btn is-filled chat-btn @unless($trip->conversation) is-disabled @endunless" title="Chat" aria-label="Chat" @unless($trip->conversation) onclick="alert('This chat has already been deleted since some time has passed since the trip ended.'); return false;" @endunless>
+                                            @if($trip->conversation)
+                                                <a href="{{ route('chats.show', $trip->conversation) }}" class="trip-row-icon-btn is-filled chat-btn" title="Chat" aria-label="Chat">
                                                     <i class="fa-solid fa-comment-dots"></i>
                                                 </a>
                                             @else
@@ -1407,6 +1417,7 @@
     </div>
 
     @include('trips.partials.trip-details-modal')
+    @include('trips.partials.circle-chooser-modal')
 
     {{-- Floating Batch Delete Action Bar (1-to-1 matching Payments Floating Bar) --}}
     <form id="tripsBulkDeleteForm" action="{{ route('trips.bulk-destroy') }}" method="POST" onsubmit="return confirmTripCancel(this, 'Are you sure you want to delete all selected trips?');">
@@ -1434,6 +1445,7 @@
     </form>
 
     <script>window.CH_TRIPS = { csrf: @json(csrf_token()) };</script>
+    <script src="{{ asset('js/circle-chooser-modal.js') }}?v={{ filemtime(public_path('js/circle-chooser-modal.js')) }}"></script>
     <script src="{{ asset('js/trip-details-modal.js') }}?v={{ filemtime(public_path('js/trip-details-modal.js')) }}"></script>
     <script src="{{ asset('js/trip-requests-modal.js') }}?v={{ filemtime(public_path('js/trip-requests-modal.js')) }}"></script>
     <script src="{{ asset('js/trips-index.js') }}?v={{ filemtime(public_path('js/trips-index.js')) }}"></script>

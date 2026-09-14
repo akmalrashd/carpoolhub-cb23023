@@ -90,6 +90,13 @@
                 <button type="button" class="trip-action-btn is-filled requests-btn open-trip-requests-review" id="tripModalRequestsBtn" title="Manage requests" style="display:none;">
                     <i class="fa-solid fa-inbox"></i> Requests
                 </button>
+                {{-- A driver viewing their own trip here had no way to reach
+                     its chat at all — this covers both "open the chat that
+                     already exists" (any visibility) and "start/reuse a
+                     circle" (private trips only) via the shared chooser. --}}
+                <a href="#" class="trip-action-btn is-filled chat-btn" id="tripModalManageChatBtn" style="display:none;">
+                    <i class="fa-solid fa-comment-dots"></i> <span id="tripModalManageChatBtnText">Chat</span>
+                </a>
                 <a href="#" class="trip-action-btn is-filled edit-btn" id="tripModalEditBtn">
                     <i class="fa-regular fa-pen-to-square"></i> Edit
                 </a>

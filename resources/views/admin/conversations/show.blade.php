@@ -11,9 +11,14 @@
 
 <div>
     <p class="au-eyebrow">Admin Panel · Conversations</p>
-    <h1 class="au-title">{{ $conversation->route_snapshot ?: 'Trip chat' }}</h1>
+    <h1 class="au-title">{{ $conversation->is_circle ? ($conversation->name ?: 'Circle chat') : ($conversation->route_snapshot ?: 'Trip chat') }}</h1>
     <p class="au-sub">
-        {{ $conversation->trip_ref_snapshot }} · Driver: {{ $conversation->driver?->name ?: 'Unknown' }} ·
+        @if($conversation->is_circle)
+            {{ $conversation->trip_id ? 'Linked: '.$conversation->trip_ref_snapshot : 'Not linked to a trip' }} ·
+        @else
+            {{ $conversation->trip_ref_snapshot }} ·
+        @endif
+        Driver: {{ $conversation->driver?->name ?: 'Unknown' }} ·
         Members: {{ $conversation->participants->map(fn ($p) => $p->user?->name)->filter()->implode(', ') }}
     </p>
 </div>

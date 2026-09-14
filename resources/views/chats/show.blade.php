@@ -7,6 +7,11 @@
 @if($tripModalData)
     {{-- Trip Details popup reuse — same modal/CSS/JS as trips/index.blade.php. --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+@endif
+@if($tripModalData || ($isChatAdmin && $conversation->isPrivate()))
+    {{-- Also needed for the invite-connections picker's shared modal shell
+         (chats.partials.invite-modal) even when there's no linked trip to
+         show details for (e.g. a circle whose trip was since cancelled). --}}
     <link rel="stylesheet" href="{{ asset('css/trips.css') }}?v={{ filemtime(public_path('css/trips.css')) }}">
 @endif
 @endpush
@@ -17,21 +22,27 @@
     $memberCount = $conversation->participants->count();
     $othersExtra = max(0, $others->count() - 3);
     $driverVehicle = array_filter([$conversation->driver?->vehicle_plate, $conversation->driver?->vehicle_model]);
-    $titleParts = array_filter([
-        $conversation->trip_ref_snapshot,
-        $conversation->route_snapshot ?: 'Trip chat',
-    ]);
+    $titleParts = $conversation->is_circle
+        ? array_filter([$conversation->name ?: 'Circle chat'])
+        : array_filter([
+            $conversation->trip_ref_snapshot,
+            $conversation->route_snapshot ?: 'Trip chat',
+        ]);
     $subParts = array_filter([
         $conversation->driver ? 'Driver: '.$conversation->driver->name : null,
         $driverVehicle ? implode(' · ', $driverVehicle) : null,
         $memberCount.' '.\Illuminate\Support\Str::plural('member', $memberCount),
     ]);
-    $pickerOptionsUrl = $conversation->trip_id ? route('trips.chat.picker-options', $conversation->trip_id) : null;
-    $inviteUrl = $conversation->trip_id ? route('trips.chat.invite', $conversation->trip_id) : null;
+    // Conversation-scoped, not trip-scoped — a circle outlives whichever
+    // trip it's currently linked to, so these can't depend on trip_id.
+    $pickerOptionsUrl = route('chats.picker-options', $conversation);
+    $inviteUrl = route('chats.invite', $conversation);
 
     $chatTz = \App\Models\Trip::TIMEZONE;
     $deletionIsEstimate = false;
-    if ($conversation->scheduled_purge_at) {
+    if ($conversation->is_circle) {
+        $deletionAt = null;
+    } elseif ($conversation->scheduled_purge_at) {
         $deletionAt = $conversation->scheduled_purge_at->clone()->setTimezone($chatTz);
     } elseif ($conversation->trip_datetime_snapshot) {
         $retentionDays = (int) (\App\Models\SystemSetting::get('chat_retention_days_after') ?? 30);
@@ -40,6 +51,7 @@
     } else {
         $deletionAt = null;
     }
+    $circleMessageRetentionDays = (int) (\App\Models\SystemSetting::get('chat_circle_message_retention_days') ?? 60);
 @endphp
 
 <div class="chat-split">
@@ -123,13 +135,24 @@
                 <i class="fa-solid fa-user-plus"></i>
             </button>
         @endif
+        @if($isChatAdmin && $conversation->is_circle)
+            <form method="POST" action="{{ route('chats.circle.destroy', $conversation) }}" onsubmit="return confirm('Retire this circle? Its messages and membership will be permanently deleted, and you\'ll need to start a new one for future trips with this group.');" style="margin:0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="chat-thread-invite-btn" aria-label="Retire circle" title="Retire circle">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </form>
+        @endif
     </div>
 
     <div class="chat-thread-banner">
         <div class="chat-thread-banner-head">
             <i class="fa-solid fa-shield-halved chat-thread-banner-icon"></i>
             <p class="chat-thread-banner-headline">
-                @if($deletionAt)
+                @if($conversation->is_circle)
+                    This is a persistent circle chat and won't be deleted — messages older than {{ $circleMessageRetentionDays }} days are cleared automatically.
+                @elseif($deletionAt)
                     This chat {{ $deletionIsEstimate ? 'will be deleted around' : 'will be deleted on' }}
                     <strong>{{ $deletionAt->format('d M Y, g:i A') }}</strong>.
                 @else
@@ -141,7 +164,11 @@
             <details class="chat-thread-banner-details">
                 <summary>Why is this chat monitored?</summary>
                 <p>CarpoolHub admin can view this chat to help prevent scams. Please do all trip related communication here, not on other apps such as WhatsApp. Messages sent outside this chat cannot be used as evidence.</p>
-                <p>Export this chat and report any issue to admin before the date above. Once the chat is deleted, admin has nothing left to check, so reports made after that date cannot be investigated.</p>
+                @if($conversation->is_circle)
+                    <p>Export this chat and report any issue to admin any time — messages older than {{ $circleMessageRetentionDays }} days are cleared automatically, so export regularly if you need a full record.</p>
+                @else
+                    <p>Export this chat and report any issue to admin before the date above. Once the chat is deleted, admin has nothing left to check, so reports made after that date cannot be investigated.</p>
+                @endif
             </details>
             <a href="{{ route('chats.export', $conversation) }}" class="chat-thread-export-btn">
                 <i class="fa-solid fa-file-export"></i> Export Chat
@@ -296,6 +323,10 @@
         <img class="chat-lightbox-img" id="chatLightboxImg" src="" alt="Photo">
     </div>
 </div>
+
+@if($isChatAdmin && $conversation->isPrivate())
+    @include('chats.partials.invite-modal')
+@endif
 
 @if($tripModalData)
     @include('trips.partials.trip-details-modal')

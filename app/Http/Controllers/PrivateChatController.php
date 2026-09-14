@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Connection;
 use App\Models\Conversation;
+use App\Models\SystemSetting;
 use App\Models\Trip;
-use App\Models\User;
 use App\Services\ChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,9 +13,14 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Private-trip group chat is driver-initiated, not automatic — see
- * ChatService::createPrivateGroup(). Public trips never touch this
- * controller; they get a conversation automatically via ChatService::
+ * ChatService::createCircle()/linkCircleToTrip(). Public trips never touch
+ * this controller; they get a conversation automatically via ChatService::
  * syncParticipants() as passengers are approved.
+ *
+ * Once a conversation exists, invite/remove-member/picker-options/circle
+ * management live on ChatController (conversation-scoped) instead of here —
+ * a circle survives past whichever trip it's currently linked to, so those
+ * actions can't depend on a trip route param staying valid.
  */
 class PrivateChatController extends Controller
 {
@@ -29,15 +33,14 @@ class PrivateChatController extends Controller
         $this->ensureDriver($request, $trip);
 
         $validated = $request->validate([
-            'connection_user_ids' => ['nullable', 'array'],
-            'connection_user_ids.*' => ['integer'],
+            'name' => ['nullable', 'string', 'max:255'],
         ]);
 
         try {
-            $conversation = $this->chatService->createPrivateGroup(
+            $conversation = $this->chatService->createCircle(
                 $trip,
                 $request->user(),
-                $validated['connection_user_ids'] ?? []
+                $validated['name'] ?? null
             );
         } catch (ValidationException $exception) {
             return back()->withErrors($exception->errors());
@@ -46,56 +49,48 @@ class PrivateChatController extends Controller
         return redirect()->route('chats.show', $conversation);
     }
 
-    public function invite(Request $request, Trip $trip): RedirectResponse
+    /**
+     * Feeds the "start group chat" chooser: 0 circles → skip straight to a
+     * one-tap create; ≥1 → let the driver reuse one instead of starting from
+     * scratch with the same people all over again.
+     */
+    public function circleOptions(Request $request, Trip $trip): JsonResponse
     {
         $this->ensureDriver($request, $trip);
-        $conversation = $this->conversationForTripOrFail($trip);
 
-        $validated = $request->validate([
-            'connection_user_ids' => ['required', 'array', 'min:1'],
-            'connection_user_ids.*' => ['integer'],
+        $driver = $request->user();
+        $maxCircles = (int) (SystemSetting::get('chat_max_circles_per_driver') ?? 5);
+
+        $circles = Conversation::query()
+            ->where('driver_id', $driver->id)
+            ->where('is_circle', true)
+            ->withCount(['participants' => fn ($query) => $query->whereNull('left_at')])
+            ->orderByDesc('updated_at')
+            ->get();
+
+        return response()->json([
+            'circles' => $circles->map(fn (Conversation $circle) => [
+                'id' => $circle->public_id,
+                'name' => $circle->name ?: ($circle->route_snapshot ?: 'Circle chat'),
+                'member_count' => $circle->participants_count,
+                'linked_trip_label' => $circle->trip_id ? $circle->trip_ref_snapshot : 'Not linked to a trip',
+            ])->values(),
+            'at_cap' => $circles->count() >= $maxCircles,
+            'cap_limit' => $maxCircles,
         ]);
+    }
+
+    public function linkCircle(Request $request, Trip $trip, Conversation $conversation): RedirectResponse
+    {
+        $this->ensureDriver($request, $trip);
 
         try {
-            $this->chatService->addToPrivateGroup($conversation, $request->user(), $validated['connection_user_ids']);
+            $this->chatService->linkCircleToTrip($conversation, $trip, $request->user());
         } catch (ValidationException $exception) {
             return back()->withErrors($exception->errors());
         }
 
         return redirect()->route('chats.show', $conversation);
-    }
-
-    public function remove(Request $request, Trip $trip, int $user): RedirectResponse
-    {
-        $this->ensureDriver($request, $trip);
-        $conversation = $this->conversationForTripOrFail($trip);
-
-        $this->chatService->removeFromPrivateGroup($conversation, $request->user(), $user);
-
-        return redirect()->route('chats.show', $conversation);
-    }
-
-    /**
-     * Given how selectable connections for a private trip are already
-     * scoped to the driver's accepted connections elsewhere (TripService::
-     * getSelectableParticipants), this reuses that same list for the "who
-     * can I invite" picker instead of re-deriving it.
-     */
-    public function pickerOptions(Request $request, Trip $trip): JsonResponse
-    {
-        $this->ensureDriver($request, $trip);
-
-        $connections = Connection::acceptedUserIdsFor($request->user());
-
-        return response()->json([
-            'connections' => User::query()
-                ->whereIn('id', $connections)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name'])
-                ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])
-                ->values(),
-        ]);
     }
 
     private function ensureDriver(Request $request, Trip $trip): void
@@ -107,16 +102,5 @@ class PrivateChatController extends Controller
         if ($trip->visibility !== 'private') {
             abort(403, 'Group chat creation here is only for private trips.');
         }
-    }
-
-    private function conversationForTripOrFail(Trip $trip): Conversation
-    {
-        $conversation = Conversation::query()->where('trip_id', $trip->id)->first();
-
-        if (! $conversation) {
-            abort(404);
-        }
-
-        return $conversation;
     }
 }

@@ -55,6 +55,19 @@ class SendChatPaymentReminder extends Command
                 continue;
             }
 
+            // A circle never closes (PurgeExpiredConversations excludes it),
+            // so scheduled_purge_at/trip_datetime_snapshot-based "days until
+            // close" math is meaningless here — a circle reused every few
+            // months normally sits with a stale snapshot, which would
+            // otherwise make the guard below skip it forever. Circles just
+            // remind on the plain cooldown until the payment is settled.
+            if ($conversation->is_circle) {
+                $chatService->postPaymentReminder($conversation, $outstanding, null);
+                $reminded++;
+
+                continue;
+            }
+
             $purgeAt = $conversation->scheduled_purge_at
                 ?? $conversation->trip_datetime_snapshot->clone()->addDays($retentionDays);
 
