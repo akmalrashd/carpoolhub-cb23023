@@ -164,7 +164,7 @@ class ChatService
             }
 
             $conversation = Conversation::create([
-                ...$this->buildConversationAttributes($trip, forCircle: true),
+                ...$this->buildConversationAttributes($trip),
                 'is_circle' => true,
                 'name' => $name,
             ]);
@@ -214,7 +214,7 @@ class ChatService
         }
 
         return DB::transaction(function () use ($circle, $trip): Conversation {
-            $circle->update($this->buildConversationAttributes($trip, forCircle: true));
+            $circle->update($this->buildConversationAttributes($trip));
             $this->postSystemMessage($circle, "This circle is now also being used for {$trip->trip_ref}.");
 
             $addedNames = [];
@@ -529,16 +529,18 @@ class ChatService
     }
 
     /**
-     * $forCircle forces opens_at to null — a circle's chat must never lock
-     * sending behind a future trip's "opens N days before" window (see
-     * postMessage()'s opens_at check), since relinking an already-active
-     * circle to a trip scheduled more than chat_open_days_before days out
-     * would otherwise silently block a mid-conversation group from sending
-     * until that future date arrives.
+     * opens_at is always null now — every chat (circle or one-off trip)
+     * is sendable the moment it exists, not held behind a future trip's
+     * "opens N days before departure" window. That delay used to fight the
+     * chat's own purpose: agreeing on pickup point, pay-before-or-after,
+     * matching the car, are exactly the things people want to settle well
+     * ahead of the ride, not 3 days before it. postMessage() still checks
+     * opens_at (nothing here needed to change there) — it just never finds
+     * a future one to block on anymore. scheduled_purge_at (set elsewhere)
+     * still closes the chat a few days after the trip, unaffected by this.
      */
-    private function buildConversationAttributes(Trip $trip, bool $forCircle = false): array
+    private function buildConversationAttributes(Trip $trip): array
     {
-        $daysBefore = (int) (SystemSetting::get('chat_open_days_before') ?? 3);
         // trips.trip_datetime is a KL-local wall-clock string (Trip::TIMEZONE)
         // — ->utc() converts the underlying Carbon to the real UTC instant so
         // every column on this table can be compared with a plain now().
@@ -551,7 +553,7 @@ class ChatService
             'trip_datetime_snapshot' => $tripDatetimeUtc,
             'visibility_snapshot' => $trip->visibility,
             'driver_id' => $trip->driver_id,
-            'opens_at' => $forCircle ? null : ($tripDatetimeUtc?->clone()->subDays($daysBefore) ?? now()),
+            'opens_at' => null,
         ];
     }
 }
