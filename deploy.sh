@@ -1,65 +1,34 @@
 #!/usr/bin/env bash
 #
-# Production deploy for Hostinger shared hosting.
+# Post-deploy script for the Hostinger shared hosting account.
 #
-# The server cannot run Composer: proc_open is in disable_functions. GitHub
-# Actions therefore installs vendor/ on its own runner, uploads it as
-# build.tar.gz, and calls this script. See .github/workflows/deploy.yml.
+# Hostinger's auto deploy only pulls the latest commit from the main branch.
+# It does not run migrations and it does not refresh Laravel's caches, so a
+# commit that adds a route or a migration will look deployed while the live
+# site still runs on the old cached route table. That is what causes the
+# "Route [x] not defined" error even though the file is clearly in the repo.
 #
-# There is no asset build step. Every stylesheet the app serves is a committed
-# file under public/css/, so `git reset --hard` alone puts the frontend in place.
+# Run this once over SSH after every deploy:
 #
-# Normally you never run this by hand — pushing to master is the deploy.
-# Running it manually only pulls source and rebuilds caches; it will NOT
-# refresh vendor/ unless a build.tar.gz is present.
+#   cd ~/domains/carpoolhub.prsdntworldwide.com/public_html && bash deploy.sh
+#
+# Composer is not usable on this host because proc_open sits in the PHP
+# disable_functions list, so vendor/ has to stay committed and this script
+# never tries to install dependencies.
 
 set -euo pipefail
 
-APP_DIR="$HOME/carpoolhub"
-BRANCH="master"
-
-cd "$APP_DIR"
-
-# NOTE: this script deliberately does NOT update the source tree. The workflow
-# does the git fetch/reset BEFORE invoking it. If the pull happened in here it
-# would overwrite this file while bash was still reading it, and bash — which
-# reads scripts incrementally by byte offset — would carry on executing the
-# stale layout. That silently skipped the unpack step once and 500'd the site.
-
-if [ -f build.tar.gz ]; then
-  echo "==> Unpacking build artifacts"
-  tar xzf build.tar.gz
-  rm -f build.tar.gz
-else
-  echo "==> No build.tar.gz — keeping existing vendor/"
-fi
-
-# Fail fast rather than serving a half-broken site: vendor/ is not tracked, so
-# if the upload stage failed it will be missing entirely.
-[ -f vendor/autoload.php ] || { echo "FATAL: vendor/ missing"; exit 1; }
-
-# The layouts cache-bust this one with filemtime(), and Laravel promotes that
-# warning to an ErrorException — so if it ever goes missing the site answers 500
-# on every page, not merely unstyled. It is committed, so this only trips if
-# someone forgot to `git add` it.
-[ -f public/css/app.css ] || { echo "FATAL: public/css/app.css missing"; exit 1; }
-
-# Left over from the old bundler. Nothing references them any more and they are
-# no longer gitignored, so git reset --hard will not clear them on its own.
-rm -rf public/build public/hot
-
-# artisan storage:link is unusable here: it calls PHP's symlink(), which is in
-# disable_functions. The shell's ln is not affected, so link it directly.
-echo "==> Linking storage"
-ln -sfn "$APP_DIR/storage/app/public" "$APP_DIR/public/storage"
-
-echo "==> Migrating"
+echo "==> Running database migrations"
 php artisan migrate --force
 
-echo "==> Rebuilding caches"
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# optimize:clear wipes the stale config, route, view and compiled class caches
+# that the auto deploy leaves behind. optimize then rebuilds them, which is
+# what production wants anyway because reading a cached route table is much
+# faster than parsing routes/web.php on every request.
+echo "==> Clearing stale caches"
+php artisan optimize:clear
 
-echo "==> Done: $(git rev-parse --short HEAD)"
+echo "==> Rebuilding caches for production"
+php artisan optimize
 
+echo "==> Done, now serving commit $(git rev-parse --short HEAD)"
