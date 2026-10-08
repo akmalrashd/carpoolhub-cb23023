@@ -32,9 +32,9 @@ class ChatController extends Controller
     }
 
     /**
-     * The chats.partials.list pane — same data shape whether it's rendering
-     * full-width (chats/index) or as the desktop split-view's left column
-     * (chats/show, see the "list on the left, thread on the right" layout).
+     * Builds the data for the chats.partials.list pane. The shape is the same
+     * whether the list is rendered on its own at full width on the chats page,
+     * or as the left column of the split view next to an open thread.
      */
     private function buildConversationsListData(User $user): array
     {
@@ -68,9 +68,9 @@ class ChatController extends Controller
     {
         $participant = $this->activeParticipantOrFail($request, $conversation);
 
-        // Captured before markRead() below moves the watermark — this is
-        // what the view uses to work out which messages were still unread
-        // the moment this page load started, so it can scroll to the first
+        // Taken before markRead() below moves the read marker. The view uses
+        // this to work out which messages were still unread at the moment the
+        // page loaded, so it can scroll to the first
         // one (WhatsApp-style) instead of always jumping to the very
         // bottom. Null only for a participant who has literally never read
         // anything here before (their very first visit), in which case
@@ -95,16 +95,18 @@ class ChatController extends Controller
             'isOpen' => ! $conversation->opens_at || now()->gte($conversation->opens_at),
             'priorLastReadMessageId' => $priorLastReadMessageId,
             // Feeds the shared "Trip Details" popup (trips/partials/trip-details-modal
-            // + public/js/trip-details-modal.js) — null once the trip itself has been
-            // hard-deleted (cancelled), since there's nothing left to show.
+            // + public/js/trip-details-modal.js). It is null once the trip
+            // itself has been deleted by a cancellation, since there is
+            // nothing left to show.
             'tripModalData' => $conversation->trip ? $this->buildTripModalData($conversation->trip, $request->user()) : null,
         ];
 
         // chat-thread-controller.js's mount() fetches this same route with
         // Accept: application/json to swap the thread pane in place instead
-        // of a full page navigation (see that file's header comment) — it
-        // only ever needs the swappable half of the page, not the list pane
-        // or shell chrome around it, which chats.partials.thread doesn't
+        // of a full page navigation, which that file's header comment
+        // explains. It only needs the part of the page that gets swapped, not
+        // the list pane or the chrome around it, and chats.partials.thread
+        // does not
         // include.
         if ($request->wantsJson()) {
             return response()->json([
@@ -120,9 +122,9 @@ class ChatController extends Controller
 
     /**
      * Keeps the header's "Trip Details" trigger button quietly up to date
-     * while the thread stays open — its data-* attributes are only ever
-     * read at the moment someone clicks it, so refreshing them in the
-     * background (chats-show.js polls this) is enough to make both that
+     * while the thread stays open. Its data attributes are only read at the
+     * moment someone clicks the button, so refreshing them quietly in the
+     * background, which chats-show.js polls for, is enough to keep both that
      * popup and "Manage requests" reflect whatever changed elsewhere
      * (a new join request, an approval, an edited trip) without the
      * viewer having to reload the page first.
@@ -139,9 +141,10 @@ class ChatController extends Controller
 
     /**
      * Mirrors the per-row @php block in trips/index.blade.php that feeds the
-     * same modal there — kept separate rather than extracted into a shared
-     * service, since that page's own two copies of this logic (mobile card +
-     * desktop table) are pre-existing and out of scope to touch here.
+     * same modal there. It is kept separate rather than pulled out into a
+     * shared service, because that page already has its own two copies of this
+     * logic, one for the mobile card and one for the desktop table, and
+     * reworking those is a separate job.
      */
     private function buildTripModalData(Trip $trip, User $viewer): array
     {
@@ -205,9 +208,9 @@ class ChatController extends Controller
         $canManage = $isAdmin || $viewer->id === $trip->driver_id;
         $canDelete = $isAdmin || ! in_array($trip->status, ['cancelled'], true);
 
-        // Feeds the "Manage requests" trigger inside this same modal — same
-        // gating and payload shape as the per-row @php block in
-        // trips/index.blade.php that drives its own "Requests" button.
+        // Feeds the Manage requests button inside this same modal, using the
+        // same conditions and the same payload shape as the per row block in
+        // trips/index.blade.php that drives its own Requests button.
         $canManageTripPayment = in_array($viewer->role, ['admin', 'driver'], true)
             && ($isAdmin || $viewer->id === $trip->driver_id);
         $canManageRequests = $canManageTripPayment
@@ -333,9 +336,9 @@ class ChatController extends Controller
     }
 
     /**
-     * Returns the created message as JSON (not a redirect) — the composer
-     * sends this via fetch and uses the response to reconcile its own
-     * optimistic bubble, since the Ably echo of the same message (or the
+     * Returns the new message as JSON rather than redirecting, because the
+     * composer sends this with fetch and uses the response to settle the
+     * bubble it already drew. The Ably copy of the same message, or the
      * polling fallback) would otherwise render it a second time. Both paths
      * key off the same message id, so whichever arrives first wins and the
      * other is a no-op.
@@ -348,7 +351,7 @@ class ChatController extends Controller
             'type' => ['nullable', 'in:text,image'],
             // The 400KB image ceiling really lives in ChatService::postMessage
             // (it needs the exact same check as the type-agnostic fallback
-            // path) — this max:2000 only bites for plain text.
+            // path), so this max:2000 only applies to plain text.
             'body' => ['required', 'string', Rule::when(($request->input('type') ?? 'text') !== 'image', ['max:2000'])],
         ]);
 
@@ -373,9 +376,9 @@ class ChatController extends Controller
     }
 
     /**
-     * Scopes an Ably token to exactly this conversation's channel —
-     * see routes/channels.php for why this replaces Laravel's stock
-     * /broadcasting/auth for this app.
+     * Issues an Ably token limited to this conversation's channel and nothing
+     * else. routes/channels.php explains why this replaces Laravel's standard
+     * /broadcasting/auth endpoint in this app.
      */
     /**
      * Scoped either to one conversation (the thread page passes
@@ -410,9 +413,9 @@ class ChatController extends Controller
         $key = config('broadcasting.connections.ably.key');
         if (! $key) {
             // Not configured yet (ABLY_KEY unset / BROADCAST_CONNECTION != ably)
-            // — the composer/poll fallback still works without this, so fail
-            // quietly rather than filling the log with a stack trace on every
-            // chat page load.
+            // The composer and the polling fallback still work without it, so
+            // fail quietly instead of filling the log with a stack trace on
+            // every chat page load.
             return response()->json(['error' => 'Realtime chat is not configured.'], 503);
         }
 
@@ -447,9 +450,9 @@ class ChatController extends Controller
 
     /**
      * Conversation-scoped (not trip-scoped) since a circle outlives
-     * whichever trip it's currently linked to — ChatService::
-     * addToPrivateGroup() already gates this on the actor being a chat
-     * admin, so there's nothing else to check here.
+     * whichever trip it is linked to at the time.
+     * ChatService::addToPrivateGroup() already checks that the person doing
+     * this is a chat admin, so there is nothing further to check here.
      */
     public function invite(Request $request, Conversation $conversation): RedirectResponse
     {
@@ -480,9 +483,9 @@ class ChatController extends Controller
      * getSelectableParticipants), this reuses that same list for the "who
      * can I invite" picker instead of re-deriving it. Includes email (the
      * picker's own search filters on it) and is_member (a connection
-     * already active in this conversation — the picker shows them greyed
-     * out rather than omitting them, so the admin can see at a glance who's
-     * already in without the list silently shrinking).
+     * already in this conversation). The picker greys those out instead of
+     * hiding them, so the admin can see who is already a member without the
+     * list quietly getting shorter.
      */
     public function pickerOptions(Request $request, Conversation $conversation): JsonResponse
     {

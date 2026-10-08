@@ -97,9 +97,9 @@ class PaymentController extends Controller
 
         $initialLoad = false;
 
-        // Computed once here rather than per row in the blade loop — reading
-        // SystemSetting inside the loop would be an N-query pattern this
-        // page otherwise explicitly avoids (see PaymentService::statusBreakdown()).
+        // Worked out once here instead of inside the blade loop. Reading
+        // SystemSetting for every row would mean one query per row, which this
+        // page deliberately avoids elsewhere too.
         $toyyibPayConfigured = $this->toyyibPayService->isConfigured();
         $gatewayFeeFlatAmount = (float) (SystemSetting::get('gateway_fee_flat_amount') ?? '1.00');
 
@@ -127,8 +127,9 @@ class PaymentController extends Controller
 
     /**
      * Full month-by-counterparty breakdown behind the monthly summary
-     * notification's "Tap to see the full breakdown" — see
-     * SendMonthlyPaymentSummary and PaymentService::summarizeOutstandingBreakdown().
+     * notification's "Tap to see the full breakdown" link. See
+     * SendMonthlyPaymentSummary and
+     * PaymentService::summarizeOutstandingBreakdown().
      */
     public function outstanding(Request $request): View
     {
@@ -315,15 +316,17 @@ class PaymentController extends Controller
     {
         $user = $request->user();
         
-        // trip_payments has no `status` column and no `pending_review` value —
-        // the column is `payment_status` enum('unpaid','pending_confirmation',
-        // 'paid'). The old filter threw "Unknown column 'status'" on every
-        // click, so this endpoint had never once approved a payment.
-        // Admin gets platform-wide oversight everywhere else on this page
-        // (confirmPaid/rejectPaidRequest/sendReminder in PaymentService all
-        // drop this same driver_id restriction for role==='admin') — without
-        // it, this bulk action was a no-op for any admin who doesn't
-        // personally drive trips.
+        // trip_payments has no `status` column and no `pending_review` value.
+        // The real column is `payment_status`, an enum of 'unpaid',
+        // 'pending_confirmation' and 'paid'. The old filter threw
+        // "Unknown column 'status'" on every click, which meant this endpoint
+        // had never actually approved a single payment.
+        //
+        // Admins get platform wide oversight everywhere else on this page,
+        // since confirmPaid, rejectPaidRequest and sendReminder in
+        // PaymentService all drop the driver_id restriction for an admin.
+        // Without the same here, this bulk action did nothing at all for an
+        // admin who does not drive trips themselves.
         $pendingPayments = TripPayment::query()
             ->when(
                 $user->role !== 'admin',

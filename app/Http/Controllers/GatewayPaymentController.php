@@ -30,8 +30,8 @@ class GatewayPaymentController extends Controller
 
     /**
      * Combines every selected payment (must all be owed to the same driver)
-     * into one ToyyibPay bill — one gateway fee for the whole batch instead
-     * of one per trip.
+     * into one ToyyibPay bill, so the passenger pays a single gateway fee for
+     * the whole batch instead of one fee per trip.
      */
     public function payBulk(Request $request): RedirectResponse
     {
@@ -52,9 +52,9 @@ class GatewayPaymentController extends Controller
     /**
      * Browser redirect back from ToyyibPay's hosted checkout. Works on
      * localhost (unlike the Callback below) since it's just the user's own
-     * browser navigating — but its query-string status is unsigned, so
-     * GatewayPaymentService::handleReturn() ignores it and pulls the
-     * authoritative status from ToyyibPay's API instead.
+     * browser navigating. The status in its query string is not signed
+     * though, so GatewayPaymentService::handleReturn() ignores it and asks
+     * ToyyibPay's API for the real status instead.
      */
     public function return(Request $request): RedirectResponse
     {
@@ -67,17 +67,19 @@ class GatewayPaymentController extends Controller
         ]));
 
         return $result['success']
-            ? $redirect->with('status', 'Payment successful — your wallet has been credited.')
+            ? $redirect->with('status', 'Payment successful. Your wallet has been credited.')
             : $redirect->withErrors(['payment' => 'Payment was not completed. You can try again or pay by direct bank transfer.']);
     }
 
     /**
-     * Called by ToyyibPay's servers, not the browser — no session, no CSRF
-     * token, excluded from CSRF verification in bootstrap/app.php. The MD5
-     * hash (verified inside handleCallback) is what stands in for that.
-     * Cannot reach a localhost URL per ToyyibPay's own docs — the Return URL
-     * above and the scheduled reconciliation job are what make this app
-     * work correctly without it during local development.
+     * Called by ToyyibPay's own servers rather than the browser, so there is
+     * no session and no CSRF token. It is excluded from CSRF checking in
+     * bootstrap/app.php, and the MD5 hash verified inside handleCallback takes
+     * the place of that protection.
+     *
+     * ToyyibPay's documentation says it cannot reach a localhost URL, which is
+     * why the Return URL above and the scheduled reconciliation job are what
+     * keep the app working correctly during local development.
      */
     public function callback(Request $request): Response
     {

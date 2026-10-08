@@ -37,9 +37,9 @@ class RefreshController extends Controller
         return response()->json([
             'unread_count' => $unreadCount,
             // Piggybacks on this same 5s poll rather than running a second
-            // one — the "Chat" nav badge previously only updated on a fresh
-            // page load, so a passenger sitting on an already-open page
-            // never saw it appear after their request got approved.
+            // one. The Chat badge in the navigation used to update only on a
+            // fresh page load, so a passenger who already had the page open
+            // never saw it appear after their request was approved.
             'chat_unread_count' => ConversationParticipant::unreadCountFor($user),
             'notifications' => $notifications->map(fn ($item) => [
                 'id'         => (int) $item->id,
@@ -158,9 +158,10 @@ class RefreshController extends Controller
     }
 
     /**
-     * Fallback safety net behind the Ably live push — picks up any message
-     * missed by a dropped socket connection. Same "is this user an active
-     * participant" gate as ChatController, duplicated rather than shared
+     * The safety net behind the live Ably push. It picks up any message that
+     * was missed while the socket connection was down. It repeats the same
+     * check as ChatController for whether this user is still an active
+     * participant, written out again rather than shared
      * since this one only ever needs the boolean, not the row.
      */
     public function chatMessages(Request $request, Conversation $conversation): JsonResponse
@@ -199,9 +200,9 @@ class RefreshController extends Controller
 
     /**
      * Full chat-list re-render, polled by chats-index.js as the safety net
-     * behind its per-conversation Ably subscriptions — the only path that
-     * also picks up a conversation the page never subscribed to in the
-     * first place (a brand new one created while this page was already
+     * behind its per conversation Ably subscriptions. It is also the only
+     * path that notices a conversation the page never subscribed to, such as a
+     * brand new one created while the page was already
      * open). Mirrors ChatController::index()'s own query exactly, since the
      * list must look identical whichever one produced it.
      */
@@ -240,8 +241,8 @@ class RefreshController extends Controller
 
     /**
      * Single-row re-render, fetched by chats-index.js the instant an Ably
-     * message.sent event arrives for a conversation already on screen —
-     * far cheaper than re-rendering the whole list for one change.
+     * message.sent event arrives for a conversation already on screen. This is
+     * far cheaper than rebuilding the whole list for a single change.
      */
     public function chatRow(Request $request, Conversation $conversation): JsonResponse
     {

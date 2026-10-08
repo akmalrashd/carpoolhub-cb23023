@@ -21,12 +21,14 @@ class AdminReportController extends Controller
 
     /**
      * The ReportService calls every admin report view needs. Was copied
-     * into index(), exportExcel() and exportPdfView() separately — a metric
-     * added to the report page had to be remembered in three places to also
-     * reach the exports. $forExport switches monthlyReports to the export's
-     * longer 24-month window; everything else is identical either way.
-     * $dateFrom/$dateTo scope only overview() — see ReportService::overview()
-     * for why the rest of these stay all-time.
+     * into index(), exportExcel() and exportPdfView() separately, which meant
+     * a new metric on the report page had to be remembered in three places
+     * before it reached the exports too.
+     *
+     * $forExport switches monthlyReports to the longer 24 month window the
+     * exports use, and everything else is the same either way. $dateFrom and
+     * $dateTo only narrow overview(), and ReportService::overview() explains
+     * why the rest stay all time.
      */
     private function sharedReportData(bool $forExport = false, ?string $dateFrom = null, ?string $dateTo = null): array
     {
@@ -63,12 +65,14 @@ class AdminReportController extends Controller
     }
 
     /**
-     * One real worksheet per dataset — Power BI (and Excel) treat each sheet
-     * as its own table, so every sheet here is a plain rectangular grid:
-     * headers as column titles in row 1, one record per row after that.
-     * KPI "snapshot" groups (Overview, Passenger Requests, etc.) that used to
-     * be dumped as vertical key/value pairs are written as a single wide row
-     * instead — still one column per metric, just laid out horizontally.
+     * Writes one worksheet per dataset. Power BI and Excel both treat a sheet
+     * as a table on its own, so every sheet here is a plain grid with the
+     * column titles in row 1 and one record per row after that.
+     *
+     * The KPI groups such as Overview and Passenger Requests used to be dumped
+     * as vertical key and value pairs. They are written as a single wide row
+     * now, which still gives one column per metric but keeps the shape a tool
+     * can read.
      */
     public function exportExcel(): StreamedResponse
     {
@@ -111,7 +115,8 @@ class AdminReportController extends Controller
             ->map(fn (int $count, string $day) => ['date' => $day, 'calls' => $count])
             ->values()->all();
 
-        // [sheet title, columns, rows] — columns: header label, source key, cell type.
+        // Each entry is [sheet title, columns, rows], and each column is a
+        // header label, the key to read from, and the cell type.
         $sheets = [
             ['Report Info', [
                 ['header' => 'Field', 'key' => 'field', 'type' => 'string'],
@@ -259,9 +264,10 @@ class AdminReportController extends Controller
     /**
      * Writes one column-headers-then-records grid onto a worksheet. Text
      * columns use setCellValueExplicit(..., TYPE_STRING) rather than the
-     * auto-detecting setCellValue() — a route/driver name starting with
-     * = + - @ would otherwise be stored as a live formula when the workbook
-     * is opened (the XLSX equivalent of CSV formula injection).
+     * auto detecting setCellValue(). A route or driver name beginning with
+     * =, +, - or @ would otherwise be saved as a live formula when the
+     * workbook is opened, which is the spreadsheet version of CSV formula
+     * injection.
      */
     private function writeReportSheet(Worksheet $sheet, array $columns, array $rows): void
     {

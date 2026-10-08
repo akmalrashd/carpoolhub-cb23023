@@ -20,14 +20,15 @@ class PushController extends Controller
             $request->userAgent()
         );
 
-        // ::create() (not a bulk insert) so the UserNotificationObserver
-        // actually fires and delivers this — see TripService's notifyParticipants()
-        // docblock for why that distinction matters.
+        // Created through the model rather than a bulk insert so that
+        // UserNotificationObserver fires and actually delivers this. The
+        // notifyParticipants() docblock in TripService explains why that
+        // matters.
         UserNotification::query()->create([
             'user_id'      => $request->user()->id,
             'type'         => 'system',
             'title'        => 'Browser Push Enabled',
-            'message'      => 'Browser push notifications are now on for this device — alerts will appear even while CarpoolHub is closed.',
+            'message'      => 'Browser push notifications are now on for this device. Alerts will appear even while CarpoolHub is closed.',
             'related_type' => 'settings',
             'related_id'   => null,
             'is_read'      => false,

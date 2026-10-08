@@ -16,8 +16,9 @@ class GoogleAuthController extends Controller
 {
     /**
      * Also reused from the settings page to connect Google to an already
-     * logged-in account — ?purpose=link is how that call tells this method
-     * apart from a plain login/register attempt. Stashed in the session
+     * logged in account. The ?purpose=link parameter is how that call tells
+     * this method apart from a normal login or registration attempt. It is
+     * kept in the session
      * (not carried as a query param on the callback) because Google itself
      * controls what comes back on redirect.
      */
@@ -79,8 +80,8 @@ class GoogleAuthController extends Controller
             $user->update($updates);
         }
 
-        // Same gate LoginController::store() enforces for a password login —
-        // Google sign-in must not be a side door around driver approval.
+        // The same check LoginController::store() makes for a password login.
+        // Signing in with Google must not become a way around driver approval.
         if (! $user->is_active) {
             if ($user->isDriverAwaitingSelfService()) {
                 Auth::login($user, remember: true);
@@ -107,8 +108,8 @@ class GoogleAuthController extends Controller
             return redirect($target);
         }
 
-        // A Google-only account (password is null) has no other way back in
-        // — disconnecting would lock them out on the spot.
+        // An account that only has Google, meaning its password is null, has
+        // no other way back in, so disconnecting would lock them out instantly.
         if (! $user->password) {
             return redirect($target)->withErrors([
                 'google' => 'You signed up with Google and have no password set yet. Set a password first, then you can disconnect Google.',
@@ -179,9 +180,9 @@ class GoogleAuthController extends Controller
 
     private function inactiveMessage(User $user): string
     {
-        // A timed suspension should tell the blocked user when they'll get
-        // back in, not just that they're stuck — otherwise "contact support"
-        // is the only path even though this one resolves itself.
+        // A suspension with an end date should tell the user when they get
+        // back in, not only that they are blocked. Otherwise contacting support
+        // looks like the only option even though the block lifts by itself.
         $until = $user->suspended_until
             ? ' It will be automatically lifted on '.$user->suspended_until->clone()->setTimezone(\App\Models\Trip::TIMEZONE)->format('d M Y, h:ia').'.'
             : '';

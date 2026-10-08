@@ -8,8 +8,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Read-only dispute/safety oversight — an admin can open any conversation to
- * investigate a complaint, but cannot post, edit, or delete anything here.
+ * Gives an admin read only access to any conversation so they can look into a
+ * complaint. Nothing here can post, edit or delete a message.
  * Reached from the Audit Log page, not its own bottom-nav/admin_nav entry
  * (deliberately, per the app owner).
  */

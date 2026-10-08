@@ -43,7 +43,9 @@ class AiChatController extends Controller
 
         $result = $this->chatbotService->chat($user, $message, $history, $language, $pendingContext);
 
-        // Save pending trip context when route is missing — so AI remembers after user registers route
+        // Remember the trip details when the route does not exist yet, so the
+        // assistant can pick the conversation back up once the driver has
+        // registered that route
         if (($result['intent'] ?? '') === 'no_route') {
             // Only save if it looks like a trip request (preserve the original user message)
             session(['ai_chat_pending_trip' => $message]);
@@ -82,8 +84,9 @@ class AiChatController extends Controller
 
     /**
      * Picks which already-computed route option should be pre-selected for
-     * the driver, and explains why — a genuine multi-factor trade-off
-     * (cost vs travel time), not a fixed "always cheapest" rule.
+     * the driver, and explains the reason. This is a real trade off between
+     * cost and travel time rather than a fixed rule of always picking the
+     * cheapest.
      */
     public function recommendRoute(Request $request): JsonResponse
     {
@@ -108,8 +111,9 @@ class AiChatController extends Controller
         foreach ($options as $i => $opt) {
             // Shown to the AI (and echoed back in its reason text) as 1-based,
             // matching the "Option 1 / Option 2" labels the driver actually
-            // sees on screen — recommended_index below stays 0-based since
-            // that's an array position the frontend indexes with directly.
+            // sees on screen. recommended_index below stays zero based,
+            // because that one is an array position the frontend uses
+            // directly.
             $lines[] = sprintf(
                 'Option %d: %.1f km, %d min, toll RM%.2f, total estimated cost RM%.2f',
                 $i + 1,
@@ -122,9 +126,9 @@ class AiChatController extends Controller
 
         $prompt = "You are picking the best default route option for a Malaysian carpool driver from these real, already-calculated route choices (numbered from 1, as the driver sees them on screen):\n\n" .
             implode("\n", $lines) . "\n\n" .
-            "Pick whichever option is the most sensible default for a typical carpool trip — weigh total cost against travel time together, don't blindly pick only the cheapest or only the fastest. " .
-            "In your reason text, refer to options as \"Option 1\", \"Option 2\" etc. exactly as numbered above — never \"Option 0\" or any other numbering. " .
-            "Return JSON only: {\"recommended_index\": <int, the ZERO-BASED array position matching your pick — Option 1 above = 0, Option 2 = 1, up to " . (count($options) - 1) . ">, \"reason\": \"<{$langInstr}, 15-25 words, name the specific trade-off, referring to the option number as shown above>\"}";
+            "Pick whichever option is the most sensible default for a typical carpool trip. Weigh total cost against travel time together, and do not blindly pick only the cheapest or only the fastest. " .
+            "In your reason text, refer to options as \"Option 1\", \"Option 2\" etc. exactly as numbered above, never \"Option 0\" or any other numbering. " .
+            "Return JSON only: {\"recommended_index\": <int, the ZERO-BASED array position matching your pick, so Option 1 above = 0, Option 2 = 1, up to " . (count($options) - 1) . ">, \"reason\": \"<{$langInstr}, 15-25 words, name the specific trade-off, referring to the option number as shown above>\"}";
 
         try {
             $response = $this->anthropic()->post('/v1/messages', [
@@ -216,19 +220,21 @@ class AiChatController extends Controller
         $vehicle     = trim((string) ($request->input('vehicle') ?? ''));
 
         // When the driver has already picked a fuel type in the form, that choice
-        // is ground truth — the AI only fills in km/L and toll for it, it never
-        // gets to override what the driver selected.
+        // is the one to trust. The AI only fills in the km per litre and the
+        // toll for it, and never gets to change what the driver selected.
         $confirmedFuelType = $request->input('fuel_type');
         $confirmedFuelType = in_array($confirmedFuelType, ['RON95', 'RON97', 'Diesel'], true) ? $confirmedFuelType : null;
 
         $language = session('ai_chat_language', 'en');
 
-        // Toll detection runs unconditionally — a sourced highway match always
-        // wins over whatever the AI/heuristic path below would have guessed.
+        // Toll detection always runs, because a highway matched against real
+        // sourced data beats anything the AI or the fallback below would have
+        // guessed.
         $tollMatch = $this->fareData->detectTolls($roads, $distanceKm);
 
-        // A recognised vehicle model has real sourced km/L figures — build the
-        // whole response from that and skip the AI call entirely.
+        // A vehicle model we recognise has real km per litre figures behind
+        // it, so the whole answer is built from those and the AI call is
+        // skipped.
         $vehicleMatch = $this->fareData->lookupVehicleConsumption($vehicle);
         if ($vehicleMatch !== null) {
             return response()->json($this->tableFareAdvice($vehicleMatch, $tollMatch, $distanceKm, $durationMin, $confirmedFuelType, $language));
@@ -243,7 +249,7 @@ class AiChatController extends Controller
         $langInstr = $language === 'ms' ? 'Bahasa Malaysia ringkas' : 'brief English';
 
         $fuelInstruction = $confirmedFuelType
-            ? "The driver has already confirmed the fuel type is exactly \"{$confirmedFuelType}\" — return this same value in fuel_type, do not change it. Only estimate km/L and toll for this confirmed fuel type."
+            ? "The driver has already confirmed the fuel type is exactly \"{$confirmedFuelType}\". Return this same value in fuel_type and do not change it. Only estimate km/L and toll for this confirmed fuel type."
             : 'Infer fuel_type from the vehicle model.';
 
         $prompt = "You are a Malaysian carpool fare advisor. Estimate practical cost inputs, not the final fare.\n\n" .
@@ -312,8 +318,9 @@ class AiChatController extends Controller
     }
 
     /**
-     * Vehicle model matched config/vehicle_fuel_consumption.php — build the
-     * whole response from sourced real-world data, no AI call needed.
+     * The vehicle model matched an entry in
+     * config/vehicle_fuel_consumption.php, so the whole answer comes from real
+     * sourced figures and no AI call is needed.
      */
     private function tableFareAdvice(array $vehicleMatch, array $tollMatch, float $distanceKm, int $durationMin, ?string $confirmedFuelType, string $language): array
     {

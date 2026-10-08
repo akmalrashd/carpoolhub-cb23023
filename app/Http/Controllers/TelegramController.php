@@ -20,9 +20,9 @@ class TelegramController extends Controller
 
     /**
      * Mints a one-time token inside the already-authenticated session and
-     * hands it to Telegram as a deep link — never the other way around.
-     * Anyone can message a bot claiming to be anyone, so the bot is never
-     * trusted to identify the user; only this token, born from a real
+     * hands it to Telegram as a deep link, never the other way around.
+     * Anyone can message a bot and claim to be anyone, so the bot is never
+     * trusted to say who the user is. Only this token, created inside a real
      * logged-in request, can.
      */
     public function link(Request $request): RedirectResponse
@@ -44,9 +44,9 @@ class TelegramController extends Controller
         $user = $request->user();
         $oldChatId = $user->telegram_chat_id;
 
-        // Sent with the still-live chat id, before it's cleared below — this
-        // is the last message this account will ever get here, so it has to
-        // go out first or there'd be no chat id left to send it to.
+        // Sent while the chat id is still set, before it is cleared below.
+        // This is the last message this account will ever receive here, so it
+        // has to go out first or there would be no chat id left to send it to.
         if ($oldChatId) {
             $this->telegram->sendRaw(
                 $oldChatId,
@@ -61,8 +61,8 @@ class TelegramController extends Controller
         ])->save();
 
         // chat_id is already cleared above, so the observer's own Telegram
-        // send for this notification finds nothing to send to and skips it
-        // — the farewell message above already covered that channel.
+        // send for this notification finds nothing to send to and skips it.
+        // The goodbye message above already covered that channel.
         UserNotification::query()->create([
             'user_id'      => $user->id,
             'type'         => 'system',
@@ -77,8 +77,9 @@ class TelegramController extends Controller
     }
 
     /**
-     * Called by Telegram itself, not the browser — no session, no CSRF
-     * token, so it's excluded from CSRF verification in bootstrap/app.php.
+     * Called by Telegram itself rather than the browser, so there is no
+     * session and no CSRF token, and it is excluded from CSRF checking in
+     * bootstrap/app.php.
      * The secret-token header is what stands in for that: the webhook URL
      * is public by definition, so without it anyone who finds the URL
      * could post fake updates.
@@ -101,7 +102,7 @@ class TelegramController extends Controller
         } elseif ($chatId && trim($text) === '/start') {
             $this->telegram->sendRaw(
                 (string) $chatId,
-                "Welcome to CarpoolHub! To connect your account, log in (or sign up) on the website first, then tap <b>Connect Telegram</b> in <b>Settings &gt; Notifications</b> — that's what actually links this chat to your account.",
+                "Welcome to CarpoolHub! To connect your account, log in (or sign up) on the website first, then tap <b>Connect Telegram</b> in <b>Settings &gt; Notifications</b>. That is what actually links this chat to your account.",
                 [
                     'inline_keyboard' => [[
                         ['text' => 'Log in / Sign up', 'url' => route('login')],
@@ -118,13 +119,14 @@ class TelegramController extends Controller
     /**
      * Auto-login for a Telegram Mini App launch (e.g. the "Open in App"
      * button on a notification, opened as a web_app instead of an external
-     * browser). Telegram's own webview has no CarpoolHub session cookie —
-     * without this, every Mini App open would dead-end on the login form.
+     * browser). Telegram's own webview carries no CarpoolHub session cookie,
+     * so without this every Mini App launch would stop at the login form.
      *
      * initData is signed by Telegram using a key derived from the bot
      * token, so a verified initData.user.id is exactly as trustworthy as
-     * the /start deep-link flow that originally linked it — the difference
-     * is this path only ever recognises an ALREADY-linked account. Someone
+     * the /start deep link flow that linked the account in the first place.
+     * The difference is that this path only ever recognises an account that is
+     * already linked. Someone
      * who has never connected Telegram still links the normal way, from an
      * authenticated browser session (Settings > Notifications), because
      * that's the one place a fresh chat id can be tied to a user at all.
@@ -172,9 +174,9 @@ class TelegramController extends Controller
      * HMAC-SHA256(bot_token, key="WebAppData"), then the check-string (every
      * field but hash, sorted, joined "key=value" with \n) is HMAC-SHA256'd
      * with that secret and compared to the received hash. Returns the
-     * parsed fields on success, null on any failure — including stale data
-     * (auth_date older than 24h), which blocks replaying a captured
-     * initData indefinitely.
+     * parsed fields when it succeeds and null on any failure, including data
+     * that is too old. Rejecting an auth_date older than 24 hours is what
+     * stops a captured initData from being replayed forever.
      */
     private function validateInitData(string $initData): ?array
     {
@@ -226,20 +228,20 @@ class TelegramController extends Controller
             return;
         }
 
-        // A chat id already linked to a different account gets reassigned
-        // rather than left dangling on the old one — one Telegram chat can
-        // only ever notify one CarpoolHub user at a time.
+        // A chat id that is already linked to another account is moved over
+        // rather than left attached to both, since one Telegram chat can only
+        // notify one CarpoolHub user at a time.
         User::query()->where('telegram_chat_id', $chatId)->update(['telegram_chat_id' => null, 'telegram_username' => null]);
 
         // Created while chat_id is still null on this user, so the observer's
-        // own Telegram send for it finds nothing to send to and skips it —
-        // the richer custom "connected" message below covers that channel
-        // instead of doubling up on it.
+        // own Telegram send for it finds nothing to send to and skips it. The
+        // fuller "connected" message below covers that channel instead, so the
+        // user does not get told twice.
         UserNotification::query()->create([
             'user_id'      => $user->id,
             'type'         => 'system',
             'title'        => 'Telegram Connected',
-            'message'      => 'Your Telegram is now connected to CarpoolHub — trip, payment, and connection alerts will be sent there too.',
+            'message'      => 'Your Telegram is now connected to CarpoolHub. Trip, payment and connection alerts will be sent there too.',
             'related_type' => 'settings',
             'related_id'   => null,
             'is_read'      => false,
@@ -256,7 +258,7 @@ class TelegramController extends Controller
             $chatId,
             "✅ Your CarpoolHub account (<b>" . e($user->name) . "</b>) is now connected!\n\n"
                 . "Trip, payment, and connection updates will now be sent here on Telegram, on top of your in-app notifications.\n\n"
-                . "Tip: tap <b>Open</b> below anytime to jump straight into the CarpoolHub Mini App — you're already logged in automatically since it's linked to this Telegram account."
+                . "Tip: tap <b>Open</b> below anytime to jump straight into the CarpoolHub Mini App. You are logged in automatically since it is linked to this Telegram account."
         );
     }
 }

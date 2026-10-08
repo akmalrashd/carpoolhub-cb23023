@@ -22,9 +22,11 @@ class AdminAuditLogController extends Controller
     ) {}
 
     /**
-     * Three tabs sharing one page/URL (?view=admin|payments|cancellations) —
-     * admin_action_logs (accountability among admins), trip_payment_status_logs
-     * and trip_cancellation_logs (the dispute-evidence trail added alongside
+     * Three tabs that share one page and one URL
+     * (?view=admin|payments|cancellations). They read admin_action_logs, which
+     * keeps admins accountable to each other, plus trip_payment_status_logs and
+     * trip_cancellation_logs, which are the evidence trail kept for disputes
+     * alongside
      * PaymentService/TripService). Kept as tabs on the existing Audit Log page
      * rather than three separate admin pages, same reasoning as the rest of
      * admin: one more full page per dataset is the clutter this app already

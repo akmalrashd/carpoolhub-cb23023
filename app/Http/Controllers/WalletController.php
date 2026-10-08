@@ -40,6 +40,6 @@ class WalletController extends Controller
             return back()->withErrors($exception->errors());
         }
 
-        return redirect()->route('wallet.index')->with('status', 'Withdrawal request submitted — an admin will review it shortly.');
+        return redirect()->route('wallet.index')->with('status', 'Withdrawal request submitted. An admin will review it shortly.');
     }
 }

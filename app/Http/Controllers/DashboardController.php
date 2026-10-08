@@ -77,8 +77,9 @@ class DashboardController extends Controller
             ->whereHas('trip', fn ($query) => $query->where('driver_id', $user->id))
             ->count();
 
-        // Requests *this user sent* as a passenger, awaiting a driver's decision —
-        // distinct from 'pending_requests' above, which is requests on trips *they drive*.
+        // Requests this user sent as a passenger and is waiting on a driver to
+        // answer. This is not the same as 'pending_requests' above, which
+        // counts requests made on trips they drive themselves.
         $stats['sent_pending_requests'] = (int) TripJoinRequest::query()
             ->where('user_id', $user->id)
             ->where('status', 'pending')
@@ -128,9 +129,9 @@ class DashboardController extends Controller
 
         $pendingJoinRequests = $stats['pending_requests'];
 
-        // Escalation-tier nudge (see the Driver Rating plan) — only surfaces
-        // once a rating has sat unclaimed for a few days, so this banner
-        // doesn't compete with the chat/notification touchpoints that
+        // The last reminder in the chain. It only appears once a rating has
+        // been sitting unanswered for a few days, so this banner does not
+        // compete with the chat message and the notification that
         // already fire from day one.
         $unratedTripsCount = app(DriverRatingService::class)->eligibleTripsToRate($user)
             ->filter(fn ($trip) => $trip->trip_datetime <= Trip::now()->subDays(3))

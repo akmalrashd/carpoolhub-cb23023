@@ -46,9 +46,10 @@ class DriverRatingController extends Controller
     }
 
     /**
-     * Aggregate only — average + count, never the individual rows. This is
-     * structural, not just a UI choice: the query below never selects from
-     * driver_ratings, so there's no code path by which a driver (or anyone
+     * Returns only the average and the number of ratings, never the
+     * individual rows. This is enforced by the code rather than just hidden in
+     * the interface, because the query below never reads driver_ratings at
+     * all. There is simply no path by which a driver, or anyone
      * else) can learn which passenger gave which score.
      */
     public function show(User $user): JsonResponse

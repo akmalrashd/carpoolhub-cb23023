@@ -63,9 +63,10 @@ class SettingsController extends Controller
         }
 
         // SettingsService just cycled remember_token, which invalidates every
-        // outstanding "remember me" cookie — including this device's. Re-issue
-        // one here (and only here) so the person who just changed their own
-        // password keeps the "stay signed in" they had opted into, while every
+        // outstanding "remember me" cookie, including the one on this device.
+        // A fresh cookie is issued here, and only here, so the person who just
+        // changed their own password keeps the "stay signed in" option they
+        // chose, while every
         // other device's cookie stays dead.
         if ($request->cookies->has(Auth::guard()->getRecallerName())) {
             Auth::login($request->user(), true);

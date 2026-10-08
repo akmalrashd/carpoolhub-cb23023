@@ -12,15 +12,17 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Private-trip group chat is driver-initiated, not automatic — see
- * ChatService::createCircle()/linkCircleToTrip(). Public trips never touch
- * this controller; they get a conversation automatically via ChatService::
- * syncParticipants() as passengers are approved.
+ * The group chat on a private trip is started by the driver rather than
+ * created automatically, which is handled by ChatService::createCircle() and
+ * linkCircleToTrip(). Public trips never reach this controller, because they
+ * get their conversation from ChatService::syncParticipants() as passengers
+ * are approved.
  *
- * Once a conversation exists, invite/remove-member/picker-options/circle
- * management live on ChatController (conversation-scoped) instead of here —
- * a circle survives past whichever trip it's currently linked to, so those
- * actions can't depend on a trip route param staying valid.
+ * Once a conversation exists, inviting, removing members, loading the picker
+ * options and managing the circle all live on ChatController instead, where
+ * the route is keyed by conversation. A circle outlives whichever trip it is
+ * linked to at the moment, so those actions cannot rely on a trip id in the
+ * URL still being the right one.
  */
 class PrivateChatController extends Controller
 {

@@ -40,7 +40,7 @@ class GoogleRegisterController extends Controller
             $request->session()->forget('pending_google_signup');
 
             return redirect()->route('login')->withErrors([
-                'email' => 'That account already exists — please log in instead.',
+                'email' => 'That account already exists, so please log in instead.',
             ]);
         }
 

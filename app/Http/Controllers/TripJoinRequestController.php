@@ -136,9 +136,11 @@ class TripJoinRequestController extends Controller
     }
 
     /**
-     * A passenger cancelling their own request/seat — pending or approved.
-     * Distinct from ExploreController::cancelRequest (same underlying service
-     * method, older pending-only route never wired up to any button); this
+     * Lets a passenger cancel their own request or seat, whether it is still
+     * pending or already approved. It is not the same as
+     * ExploreController::cancelRequest, which calls the same service method
+     * through an older route that only handled pending requests and was never
+     * attached to a button. This one
      * one backs the "My Request" popup on the Trips page and is JSON-first.
      */
     public function cancel(Request $request, TripJoinRequest $joinRequest): RedirectResponse|JsonResponse
@@ -168,8 +170,9 @@ class TripJoinRequestController extends Controller
     }
 
     /**
-     * Self-leave for a pre-selected participant (no TripJoinRequest exists for
-     * them at all) — the "My Request" popup's counterpart to cancel() above.
+     * Lets someone leave a trip they were added to directly by the driver, so
+     * there is no join request for them at all. This is what the My Request
+     * popup calls, and it is the counterpart to cancel() above.
      */
     public function leave(Request $request, Trip $trip): RedirectResponse|JsonResponse
     {

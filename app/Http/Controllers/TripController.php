@@ -27,9 +27,9 @@ class TripController extends Controller
             'visibility' => ['nullable', 'in:public,private'],
             'status_filter' => ['nullable', 'in:all,upcoming,completed,draft,cancelled'],
             'trip_search' => ['nullable', 'string', 'max:100'],
-            // Link-only override (Home banner / rating notification "Rate"
-            // button) — deliberately not a UI filter control, see
-            // TripService::paginateForUser().
+            // Only ever set by the Rate link on the home banner and in the
+            // rating notification. It is not a filter control on the page
+            // itself. TripService::paginateForUser() has the details.
             'needs_rating' => ['nullable', 'boolean'],
         ]);
 
@@ -119,9 +119,10 @@ class TripController extends Controller
         $this->tripService->ensureTripOwner($request->user(), $trip);
         $trip->load('returnTrip');
 
-        // Scoped to the trip's driver, not $request->user() — ensureTripOwner()
-        // above lets admin edit any driver's trip, but saved routes (and the
-        // driver's own accepted-connections list for participant selection
+        // Scoped to the driver of the trip rather than the logged in user.
+        // ensureTripOwner() above lets an admin edit any driver's trip, but the
+        // saved routes, and the driver's own accepted connections used for
+        // picking participants,
         // below) belong to whoever actually drives the trip. Using the actor
         // here left an admin editing someone else's trip with an empty route
         // dropdown (no routes match their own account) and no way to save.
@@ -181,9 +182,9 @@ class TripController extends Controller
         $reason = trim((string) $request->input('reason', '')) ?: null;
         $deletedCount = 0;
 
-        // One query for the whole batch instead of a Trip::find() per id — the
-        // ownership check stays per-trip so a mix of owned/not-owned ids still
-        // deletes the owned ones and silently skips the rest, same as before.
+        // One query for the whole batch rather than a Trip::find() for every
+        // id. The ownership check is still done per trip, so a mix of owned and
+        // unowned ids deletes the owned ones and quietly skips the rest.
         $trips = Trip::query()->whereIn('id', $request->input('ids', []))->get();
 
         foreach ($trips as $trip) {
@@ -207,9 +208,10 @@ class TripController extends Controller
     }
 
     /**
-     * Editing/deleting an existing trip is oversight, not authorship — an
-     * admin can manage any trip via ensureTripOwner()/TripService below, same
-     * as the trip's own driver. Creating a brand-new trip stays driver-only
+     * Editing or deleting an existing trip counts as oversight rather than
+     * authorship, so an admin can manage any trip through ensureTripOwner()
+     * and TripService below, exactly as the trip's own driver can. Creating a
+     * brand new trip stays driver only
      * (ensureCanManage above): admin has no vehicle/license to drive it with.
      */
     private function ensureCanEditOrDelete(Request $request): void
