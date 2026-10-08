@@ -518,9 +518,10 @@ class ChatController extends Controller
     }
 
     /**
-     * The circle cap's release valve — see ChatService::deleteCircle(). No
-     * soft-delete, matching this app's existing convention, so the driver's
-     * circle-count frees up immediately.
+     * How a driver frees up one of their circle slots, handled by
+     * ChatService::deleteCircle(). The row is deleted outright rather than
+     * soft deleted, which matches the rest of the app and means the slot is
+     * available again straight away.
      */
     public function destroyCircle(Request $request, Conversation $conversation): RedirectResponse
     {
@@ -530,9 +531,9 @@ class ChatController extends Controller
     }
 
     /**
-     * A plain-text export — one line per message in WhatsApp's own
-     * "date, time - Sender: body" convention, ahead of a short metadata
-     * header identifying exactly which conversation/trip it came from.
+     * Exports the chat as plain text, one line per message, using the same
+     * "date, time - Sender: body" layout WhatsApp uses. A short header above
+     * it records exactly which conversation and trip the export came from.
      * This is what the in-thread notice points users to before a
      * conversation is purged: something they can hand to admin that
      * still means something once the live chat itself is gone.
@@ -575,7 +576,7 @@ class ChatController extends Controller
             'Members ('.$conversation->participants->count().'): '.$members,
             'Chat opened: '.$fmt($conversation->opens_at),
             'Scheduled deletion: '.($conversation->is_circle
-                ? 'Never (persistent circle chat — only old messages are pruned)'
+                ? 'Never (persistent circle chat, only old messages are pruned)'
                 : ($conversation->scheduled_purge_at ? $fmt($conversation->scheduled_purge_at) : 'Not yet scheduled')),
             'Exported by: '.$request->user()->name.' ('.$request->user()->email.') on '.$fmt(now()),
             str_repeat('=', 40),
