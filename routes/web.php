@@ -42,10 +42,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/home');
 
-// Local-only: open in a browser to see an email's actual rendered HTML
-// without triggering the real flow that sends it. Returning a Mailable
-// straight from a route is a stock Laravel dev trick — the framework
-// renders it as if it were a view.
+// Local only. Opening these in a browser shows the real rendered HTML of an
+// email without having to trigger the flow that actually sends it, which
+// saves a lot of time while styling the templates. Returning a Mailable
+// straight from a route is a standard Laravel trick, because the framework
+// renders it the same way it renders a view.
 if (app()->environment('local')) {
     Route::get('/dev/preview/reset-password-email', function () {
         $user = User::first() ?? new User(['name' => 'Preview User', 'email' => 'preview@example.com']);
@@ -58,13 +59,6 @@ if (app()->environment('local')) {
 
         return new VerifyEmailMail($user);
     })->name('dev.preview.verify-email');
-
-    // Live sandbox for tuning the ambient honeycomb background (bg-pattern.css)
-    // without touching CSS by hand — adjusts size/opacity/speed/animation style
-    // via CSS custom properties on the same partial every real page includes,
-    // so what looks right here is exactly what ships once the values are
-    // copied into layouts/partials/bg-pattern.blade.php and bg-pattern.css.
-    Route::view('/dev/bg-playground', 'dev.bg-playground')->name('dev.bg-playground');
 }
 
 // Public — no auth required, since a prospective user needs to read this
