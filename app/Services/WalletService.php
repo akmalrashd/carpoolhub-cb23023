@@ -11,14 +11,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The concurrency-safe balance ledger every credit/debit in the wallet
- * feature goes through — gateway payments, withdrawal reservations,
- * withdrawal refunds. Every write locks the wallet row first and recomputes
- * the new balance from the row it just locked (never from a value read
- * earlier outside the lock), so two simultaneous writers can never corrupt
- * the balance — MySQL InnoDB serialises the second lockForUpdate() behind
- * the first transaction's commit. Mirrors the row-lock-then-recheck pattern
- * already used for seat-limit checks in TripJoinRequestService::respond().
+ * Every credit and debit in the wallet goes through this class, including
+ * gateway payments, withdrawal reservations and withdrawal refunds.
+ *
+ * The important part is how it stays correct when two things happen at once.
+ * Each write locks the wallet row first, then works out the new balance from
+ * that locked row rather than from a value read earlier. MySQL holds the
+ * second request at its lock until the first one commits, so two writers can
+ * never both calculate against the same stale balance. This is the same lock
+ * then recheck approach used for seat limits in
+ * TripJoinRequestService::respond().
  */
 class WalletService
 {
@@ -87,9 +89,9 @@ class WalletService
             $wallet = Wallet::query()->where('user_id', $user->id)->lockForUpdate()->first()
                 ?? Wallet::create(['user_id' => $user->id, 'balance' => 0]);
 
-            // Checked inside the same lock the balance was read under — this is
-            // what makes two overlapping withdrawal requests unable to both
-            // succeed against the same balance.
+            // Checked while still holding the lock the balance was read
+            // under. That is what stops two overlapping withdrawal requests
+            // from both passing against the same balance.
             if ($amount > (float) $wallet->balance) {
                 throw ValidationException::withMessages(['amount' => 'Insufficient wallet balance.']);
             }
@@ -122,10 +124,12 @@ class WalletService
     }
 
     /**
-     * Lifetime credited/debited computed on read via one grouped query, and
-     * the currently-reserved (pending withdrawal) total — deliberately not
-     * denormalised counters on the wallet row, so nothing can drift from the
-     * ledger it's summarising.
+     * Works out the lifetime credited and debited totals, plus whatever is
+     * currently reserved by a pending withdrawal, using one grouped query.
+     *
+     * These are calculated when read instead of being stored as counters on
+     * the wallet row, so the figures can never drift away from the ledger they
+     * are meant to summarise.
      */
     public function summaryFor(User $user): array
     {

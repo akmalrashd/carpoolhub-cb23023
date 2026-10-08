@@ -5,9 +5,10 @@ namespace App\Services\Concerns;
 use App\Models\Trip;
 
 /**
- * Shared by PaymentService, TripService and TripJoinRequestService, which each
- * carried an identical copy of this pair — a wording change in one would
- * silently drift from the other two.
+ * Shared by PaymentService, TripService and TripJoinRequestService.
+ *
+ * All three used to keep their own identical copy of these two helpers, so
+ * changing the wording in one of them quietly left the other two behind.
  */
 trait FormatsTripLabel
 {

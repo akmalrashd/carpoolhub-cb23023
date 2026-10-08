@@ -9,9 +9,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class AdminAuditService
 {
     /**
-     * $admin is nullable for the one system-initiated action this supports —
-     * ReactivateExpiredSuspensions has no admin to attribute a timed
-     * suspension's expiry to. admin_action_logs.admin_id was already
+     * $admin can be null for the one action the system performs by itself.
+     * ReactivateExpiredSuspensions runs on a schedule, so there is no admin to
+     * credit when a timed suspension expires. admin_action_logs.admin_id was
+     * already
      * nullable(); every other call site still passes a real admin.
      */
     public function log(?User $admin, string $action, ?string $targetType = null, ?int $targetId = null, ?string $description = null): void
@@ -62,9 +63,10 @@ class AdminAuditService
     }
 
     /**
-     * Distinct action values actually present in the log, for the filter
-     * dropdown — self-maintaining as new action types get added elsewhere,
-     * rather than a hardcoded list that silently drifts out of date.
+     * Returns the action types that actually appear in the log, which fills
+     * the filter dropdown. Reading them from the data means new action types
+     * show up on their own, instead of relying on a hardcoded list that
+     * someone has to remember to update.
      *
      * @return \Illuminate\Support\Collection<int, string>
      */

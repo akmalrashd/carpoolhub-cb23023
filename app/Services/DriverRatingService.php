@@ -14,17 +14,26 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Passengers rate the driver of a public trip they actually rode on, once
- * it's completed — one direction only (drivers don't rate passengers; that
- * trust dimension is already covered, differently, by
- * PassengerRiskProfile/PassengerReliabilityService). Scoped to public trips
- * only: private/circle passengers are the driver's own Connections already,
- * so rating them adds little value and is easy to game between friends.
+ * Handles the star rating a passenger gives to a driver after a public trip.
+ *
+ * The rating only goes one way. Passengers rate drivers, but drivers do not
+ * rate passengers, because passenger trustworthiness is already measured
+ * separately by PassengerReliabilityService using payment and attendance
+ * records.
+ *
+ * Only public trips can be rated. On a private trip the passengers are
+ * already the driver's own saved Connections, so a rating there would mostly
+ * be friends rating friends and would not help anyone choose a stranger.
  */
 class DriverRatingService
 {
     private const REMINDER_RELATED_TYPE = 'driver_rating_invite';
 
+    /**
+     * Throws if this passenger is not allowed to rate this trip. Every rule
+     * that decides whether the Rate button should appear lives here, so the
+     * interface and the server always agree.
+     */
     public function isEligibleToRate(User $passenger, Trip $trip): void
     {
         if ((int) $trip->driver_id === (int) $passenger->id) {
@@ -39,11 +48,10 @@ class DriverRatingService
             throw ValidationException::withMessages(['stars' => 'This trip has not completed yet.']);
         }
 
-        // Without this, the window is only a UI convention (the button just
-        // stops rendering) — a direct POST past the window, or a stale
-        // cached notification link, would otherwise still succeed server-
-        // side. eligibleTripsToRate() applies the same bound for display;
-        // this is the actual enforcement.
+        // The rating window has to be checked here, not only in the view. If
+        // it were only a view rule, hiding the button would be the only thing
+        // stopping an old notification link or a hand made POST request from
+        // still submitting a rating months later.
         $windowDays = (int) (SystemSetting::get('driver_rating_window_days') ?? 14);
         if ($trip->trip_datetime->lt(Trip::now()->clone()->subDays($windowDays))) {
             throw ValidationException::withMessages(['stars' => 'The rating window for this trip has closed.']);
@@ -65,11 +73,15 @@ class DriverRatingService
         }
     }
 
+    /**
+     * Saves one rating and updates the driver's running average.
+     */
     public function submitRating(User $passenger, Trip $trip, int $stars): DriverRating
     {
-        // Re-validated here too — the "eligible trips" list a caller fetched
-        // to show the button may already be stale by the time they submit
-        // (someone else's concurrent removal, the trip aging out, etc.).
+        // Checked again on submit because the page that showed the Rate
+        // button may have been open for a while. The driver could have
+        // removed this passenger, or the trip could have passed the rating
+        // window, since the button was drawn.
         $this->isEligibleToRate($passenger, $trip);
 
         return DB::transaction(function () use ($passenger, $trip, $stars): DriverRating {
@@ -79,19 +91,20 @@ class DriverRatingService
             );
 
             if (! $rating->wasRecentlyCreated) {
-                // Lost a race against a concurrent duplicate submit — the
-                // unique index would reject a raw insert anyway; surface the
-                // same message isEligibleToRate() already gives this case.
+                // Someone double clicked and the other request won the race.
+                // The unique index on (trip_id, rater_user_id) would block a
+                // second row anyway, so answer with the same message the
+                // eligibility check gives for an already rated trip.
                 throw ValidationException::withMessages(['stars' => 'You have already rated this trip.']);
             }
 
             DriverRatingProfile::query()->firstOrCreate(['user_id' => $trip->driver_id]);
 
-            // One atomic statement — MySQL's row lock on the UPDATE
-            // serializes concurrent raters of the same driver correctly
-            // without a separate lockForUpdate() SELECT. rating_average is
-            // recomputed from the exact integer counters every time, not
-            // incremented as a running float, so it can never drift.
+            // Doing the whole update in one SQL statement lets MySQL lock the
+            // row for us, so two passengers rating the same driver at the same
+            // moment cannot overwrite each other. The average is recalculated
+            // from the stored count and sum instead of being nudged up and
+            // down, which keeps it exact no matter how many ratings come in.
             DB::update(
                 'UPDATE driver_rating_profiles
                  SET rating_count = rating_count + 1,
@@ -102,8 +115,9 @@ class DriverRatingService
                 [$stars, $stars, now(), $trip->driver_id]
             );
 
-            // Same-session cleanliness — don't make them wait for tomorrow's
-            // cron sweep to see their own reminder disappear.
+            // Clear this passenger's own reminder right away so it disappears
+            // the moment they rate, instead of lingering until the next day
+            // when the scheduled command rebuilds the reminder list.
             UserNotification::query()
                 ->where('user_id', $passenger->id)
                 ->where('related_type', self::REMINDER_RELATED_TYPE)
@@ -117,10 +131,11 @@ class DriverRatingService
     }
 
     /**
-     * Cold path — a real SUM()/COUNT() rescan. Only called when
-     * driver_ratings rows are removed out-of-band (a cancelled trip's
-     * cascade delete — see TripService::delete()), never on the per-rating
-     * hot path above.
+     * Rebuilds a driver's average by counting every rating row again.
+     *
+     * This is the slow path and it is only needed when ratings disappear
+     * without going through submitRating(), which happens when a trip is
+     * cancelled and the database deletes its ratings along with it.
      */
     public function recomputeForDriver(int $driverId): void
     {
@@ -140,10 +155,12 @@ class DriverRatingService
     }
 
     /**
-     * Trips this passenger can currently rate — drives the trips-list/Trip
-     * Details button and the Home banner count. Always re-derived live,
-     * never cached, so a removal/cancellation/rating-elsewhere is reflected
-     * immediately.
+     * Returns the trips this passenger is still able to rate.
+     *
+     * Used by the trips list, the Trip Details popup and the reminder banner
+     * on the home page. The list is always queried fresh rather than cached,
+     * so a cancelled trip or a rating made on another device shows up
+     * straight away.
      *
      * @return \Illuminate\Support\Collection<int, Trip>
      */
@@ -166,8 +183,10 @@ class DriverRatingService
     }
 
     /**
-     * Joined non-driver participants who haven't rated this trip yet —
-     * drives the scheduled command's one-time "post the chat invite" check.
+     * Lists the passengers on a trip who have not rated it yet.
+     *
+     * The scheduled reminder uses this to decide whether a trip still needs
+     * its one time rating invite posted into the chat.
      *
      * @return \Illuminate\Support\Collection<int, int>
      */

@@ -254,11 +254,13 @@ class PaymentService
     }
 
     /**
-     * Outstanding (unpaid + pending_confirmation) balance, grouped by the
-     * month the trip happened in and by counterparty — the building block for
-     * the monthly payment summary notification (and its "Outstanding Summary"
-     * page). Two directions, since payment only ever flows passenger→driver
-     * (confirmed — a driver never owes a passenger in this app):
+     * Totals up everything still owed, meaning unpaid plus awaiting
+     * confirmation, grouped by the month of the trip and by the other person
+     * involved. The monthly summary notification and the Outstanding Summary
+     * page are both built on top of this.
+     *
+     * There are two directions because money only ever moves from passenger to
+     * driver in this app. A driver never owes a passenger.
      *   - 'owed_by_me': $user is the passenger, owed to each driver.
      *   - 'owed_to_me': $user is the driver, owed by each passenger.
      */
@@ -312,10 +314,11 @@ class PaymentService
 
     /**
      * The full set the ledger renders. It honours the filter form (dates,
-     * visibility, search) but deliberately not payment_filter/direction — those
-     * are the tab strip, which switches client-side without a reload, so the
-     * rows behind every tab have to stay in the response. Same split
-     * indexCountsForUser() makes, which is why the tab counts line up.
+     * visibility, search) but leaves out payment_filter and direction on
+     * purpose. Those two drive the tab strip, which switches in the browser
+     * without reloading the page, so the rows behind every tab need to already
+     * be in the response. It splits the data the same way indexCountsForUser()
+     * does, which is why the numbers on the tabs always match.
      */
     public function getAllPaymentsForSummary(User $user, array $filters = []): \Illuminate\Database\Eloquent\Collection
     {
@@ -480,10 +483,12 @@ class PaymentService
     }
 
     /**
-     * Auto-confirms a payment settled through a payment gateway (ToyyibPay) —
-     * no driver/admin actor, no approval step, because the gateway's own
-     * success status IS the confirmation the passenger actually paid. Kept
-     * separate from confirmPaid() rather than folded into it since that
+     * Confirms a payment that was settled through the ToyyibPay gateway.
+     *
+     * There is no driver or admin involved and no approval step, because a
+     * successful status from the gateway is already proof that the passenger
+     * paid. It is kept separate from confirmPaid() rather than merged into it
+     * because that method
      * method's whole shape (actor, permission check) assumes a logged-in
      * human confirming someone else's claim; here there's no claim to
      * verify, just a fact to record.
@@ -850,8 +855,9 @@ class PaymentService
     }
 
     /**
-     * For the admin Audit Log's "Payment History" tab — browses
-     * trip_payment_status_logs, the trail logPaymentStatusChange() writes.
+     * Powers the Payment History tab in the admin Audit Log by reading
+     * trip_payment_status_logs, which is the trail logPaymentStatusChange()
+     * writes.
      */
     public function paginatePaymentStatusLogs(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
@@ -885,10 +891,11 @@ class PaymentService
 
     /**
      * Snapshots $payment's current (pre-change) row before a status
-     * transition overwrites it — reject/reverse null out marked_paid_at,
-     * confirmed_by, confirmed_at, payment_method and remarks with nothing
-     * else kept, so without this a disputed "I paid but it was rejected"
-     * has no evidence left to check. Call this before, not after,
+     * transition overwrites it. Rejecting or reversing a payment clears
+     * marked_paid_at, confirmed_by, confirmed_at, payment_method and remarks
+     * without keeping a copy, so a later dispute along the lines of "I did pay
+     * but it was rejected" would have no evidence left to check. Call this
+     * before, not after,
      * $payment->update(...).
      */
     private function logPaymentStatusChange(TripPayment $payment, ?User $actor, string $toStatus, ?string $reason = null): void

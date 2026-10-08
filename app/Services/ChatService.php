@@ -15,19 +15,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Trip-scoped chat: an automatic group for public trips (kept in sync with
- * the driver + currently-approved passengers), or a driver-created group for
- * private trips (hand-picked from their Connections). See the "Trip-Scoped
- * Inbox / Chat" plan for the full design.
+ * Builds and maintains the group chat that belongs to a trip.
  *
- * trip_datetime_snapshot/opens_at/scheduled_purge_at are stored as real UTC
- * instants (unlike trips.trip_datetime, which is a KL-local wall-clock
- * string — see Trip::TIMEZONE) so every comparison here can use a plain
- * now() instead of Trip::now().
+ * There are two kinds. A public trip gets its chat created automatically and
+ * kept in step with the driver plus whichever passengers are approved right
+ * now. A private trip gets a chat only when the driver starts one, and the
+ * members there come from the driver's own saved Connections.
+ *
+ * One thing to watch in this class is the time columns. The date fields on a
+ * conversation are stored as true UTC instants, while trips.trip_datetime is
+ * stored as Malaysian wall clock text (see Trip::TIMEZONE). That is why the
+ * comparisons in here use a plain now() while the trip code uses Trip::now().
  */
 class ChatService
 {
-    /** Below this many days left before a conversation closes, the payment reminder switches to "closes soon" copy. */
+    /** When a chat is closing in fewer days than this, the payment reminder uses its "closing soon" wording. */
     private const PAYMENT_REMINDER_FINAL_NOTICE_WITHIN_DAYS = 3;
 
     public function syncParticipants(Trip $trip): ?Conversation
@@ -80,8 +82,9 @@ class ChatService
                     ]);
                 }
 
-                // The driver silently owns the chat from creation — no need to
-                // announce them "joining" their own trip's conversation.
+                // The driver already owns the chat from the moment it is
+                // created, so announcing that they joined their own trip
+                // would just look odd.
                 if ($userId !== $trip->driver_id) {
                     $name = User::find($userId)?->name ?? 'A passenger';
                     $this->postSystemMessage($conversation, "{$name} joined the trip.");
@@ -122,14 +125,16 @@ class ChatService
     }
 
     /**
-     * A "circle" is a persistent, driver-owned group chat — not tied to any
-     * one trip's lifecycle (see linkCircleToTrip(), scheduleClosure()'s
-     * is_circle guard, and PruneCircleMessages instead of
-     * PurgeExpiredConversations). One tap: no connections-picker for the
-     * common case — membership starts as whoever's already confirmed on
-     * this trip (same roster query syncParticipants() trusts for public
-     * trips), since TripService::buildParticipantIds() already
-     * Connections-validated every one of them at trip-creation time.
+     * Starts a circle, which is a group chat the driver keeps between trips.
+     *
+     * A normal trip chat dies with its trip. A circle does not, so it is not
+     * scheduled for closure and its old messages are trimmed by
+     * PruneCircleMessages instead of being purged wholesale.
+     *
+     * Creating one takes a single tap because the starting members are simply
+     * the passengers already confirmed on this trip. There is no need to show
+     * a Connections picker, since TripService already checked that every one
+     * of those passengers is a Connection when the trip was created.
      */
     public function createCircle(Trip $trip, User $driver, ?string $name = null): Conversation
     {
@@ -138,7 +143,7 @@ class ChatService
         }
 
         if ($trip->visibility !== 'private') {
-            throw ValidationException::withMessages(['chat' => 'This action is only for private trips — public trips get a group chat automatically.']);
+            throw ValidationException::withMessages(['chat' => 'This action is only for private trips. Public trips get a group chat automatically.']);
         }
 
         if (Conversation::query()->where('trip_id', $trip->id)->exists()) {
@@ -188,12 +193,13 @@ class ChatService
     }
 
     /**
-     * Relinks an existing circle to a different trip — the "reuse an
-     * existing circle" branch of the chooser. Merges in anyone on the new
-     * trip's roster who isn't already an active member; never removes
-     * anyone. An older trip this circle used to be linked to simply stops
-     * resolving via Trip::conversation() once trip_id moves on — accepted
-     * trade-off, see the plan.
+     * Points an existing circle at a new trip, which is what happens when the
+     * driver picks "reuse an existing circle" instead of starting a fresh one.
+     *
+     * Anyone on the new trip who is not already in the circle gets added, and
+     * nobody is ever removed. The circle can only point at one trip at a time,
+     * so the trip it was linked to before stops showing this chat. That is
+     * fine in practice because the older trip is finished by then.
      */
     public function linkCircleToTrip(Conversation $circle, Trip $trip, User $driver): Conversation
     {
@@ -206,7 +212,7 @@ class ChatService
         }
 
         if ($trip->visibility !== 'private') {
-            throw ValidationException::withMessages(['chat' => 'This action is only for private trips — public trips get a group chat automatically.']);
+            throw ValidationException::withMessages(['chat' => 'This action is only for private trips. Public trips get a group chat automatically.']);
         }
 
         if (Conversation::query()->where('trip_id', $trip->id)->exists()) {
@@ -234,9 +240,12 @@ class ChatService
     }
 
     /**
-     * The cap's release valve — no soft-delete, matches this app's existing
-     * convention (see PurgeExpiredConversations' docblock), frees the
-     * driver's circle-count immediately.
+     * Retires a circle for good.
+     *
+     * Drivers are limited to a set number of circles, so this is how they free
+     * a slot. The row is deleted outright rather than soft deleted, which
+     * matches how expired conversations are handled elsewhere in the app and
+     * means the slot is available again straight away.
      */
     public function deleteCircle(Conversation $circle, User $actor): void
     {
@@ -309,10 +318,10 @@ class ChatService
         }
 
         if ($type === Message::TYPE_IMAGE) {
-            // The client already resizes/compresses before sending (see
-            // chats-show.js) — this is a hard backstop, not the primary
-            // control, mainly so a broadcast never blows past Ably's
-            // per-message size limit.
+            // The browser already shrinks and compresses the photo before it
+            // is sent, so these two checks are only a safety net in case
+            // someone posts straight to the endpoint. The size limit mainly
+            // protects the realtime broadcast, which rejects large payloads.
             if (! preg_match('/^data:image\/(jpeg|png|webp);base64,/', $body)) {
                 throw ValidationException::withMessages(['body' => 'Invalid image.']);
             }
@@ -335,9 +344,9 @@ class ChatService
             'created_at' => now(),
         ]);
 
-        // Sending a message counts as having read up to it — otherwise the
-        // sender's own conversation would immediately show as "unread" to
-        // themselves in the list/nav badge.
+        // Sending a message also marks it as read for the sender. Without
+        // this their own message would make the chat look unread to them in
+        // the list and in the navigation badge.
         $participant->update(['last_read_message_id' => $message->id]);
 
         broadcast(new MessageSent($message));
@@ -346,18 +355,17 @@ class ChatService
     }
 
     /**
-     * One-time, per conversation — posted as soon as a conversation exists,
-     * before any join/group-started system message. Branches on is_circle:
-     * the public-trip version assumes strangers matched by the app (hence
-     * the stronger "verify you're really talking to them" scam framing and
-     * the accurate "this chat closes after the trip" note); a circle's
-     * members are the driver's own accepted Connections and the chat itself
-     * never closes (see PurgeExpiredConversations' is_circle guard), so
-     * those two points would be actively misleading here — see the
-     * fabricated-deletion-date bug this whole redesign fixed in the banner
-     * above the thread for the same reason. Reused-across-many-trips is the
-     * one risk that's actually specific to circles (assuming last trip's
-     * time/pickup/fare still applies), so that replaces them instead.
+     * Posts Hexa's opening message, once, as soon as a chat is created.
+     *
+     * The wording changes depending on the kind of chat. On a public trip the
+     * members are strangers the app matched, so the tips lean on verifying the
+     * driver and warn that the chat closes after the trip.
+     *
+     * A circle is different. Its members are the driver's own Connections and
+     * the chat never closes, so repeating those two points there would simply
+     * be wrong. The real risk in a circle is that it carries over from trip to
+     * trip and people assume last week's time, pickup point or fare still
+     * applies, so the circle version warns about that instead.
      */
     public function postHexaWelcome(Conversation $conversation): Message
     {
@@ -366,11 +374,11 @@ class ChatService
 
             return $this->postBotMessage($conversation, <<<TEXT
             Hi, I'm Hexa 👋 A few quick tips for this circle chat:
-            • This circle may be reused for several trips with this group — always confirm the pickup time, location, and fare for the CURRENT trip here, since they can differ from past trips.
+            • This circle may be reused for several trips with this group, so always confirm the pickup time, location, and fare for the CURRENT trip here. They can differ from past trips.
             • Keep pickup details and payment arrangements inside this chat so there's a clear record for everyone.
             • Agree with your driver whether you're paying before or after each ride, and keep a screenshot or receipt either way.
             • Double-check that the car and plate number match what's shown in the app before you get in. Your safety is ultimately your own responsibility, since CarpoolHub only provides the platform connecting drivers and passengers and isn't liable for the actions of other users.
-            • This circle stays here for future trips together — only messages older than {$retentionDays} days are cleared automatically, so nothing you need suddenly disappears.
+            • This circle stays here for your future trips together. Only messages older than {$retentionDays} days are cleared automatically, so nothing you need suddenly disappears.
             Have a safe trip!
             TEXT, Message::TYPE_BOT);
         }
@@ -387,19 +395,17 @@ class ChatService
     }
 
     /**
-     * Recurring nudge, named passengers and all — their payment status is
-     * already visible to the driver on the Payments page, so naming them
-     * here adds no new privacy exposure. See SendChatPaymentReminder for the
-     * daily trigger/cooldown.
+     * Posts the reminder about passengers who still owe money for the trip.
      *
-     * $daysUntilClose is null for circles — they never close (see
-     * PurgeExpiredConversations' is_circle guard), so there's no "closes
-     * soon" urgency framing to apply; SendChatPaymentReminder always passes
-     * null here for a circle rather than computing one against the
-     * currently-linked trip's own (irrelevant) retention window. The trip
-     * ref is named explicitly in that case since a circle's history can
-     * span several different trips, unlike a one-trip conversation where
-     * "this trip" is unambiguous.
+     * Passengers are named in the message. That does not leak anything new,
+     * because the driver can already see exactly who has paid on the Payments
+     * page. SendChatPaymentReminder decides how often this runs.
+     *
+     * $daysUntilClose is null when the chat is a circle, since a circle never
+     * closes and the "settle up before the chat closes" wording would make no
+     * sense there. In that case the message names the trip reference instead,
+     * because a circle can hold the history of several trips and "this trip"
+     * would be ambiguous.
      *
      * @param  \Illuminate\Support\Collection<int, \App\Models\TripPayment>  $outstanding
      */
@@ -419,11 +425,13 @@ class ChatService
     }
 
     /**
-     * One-time, per trip — posted by SendDriverRatingInviteReminder once a
-     * public trip completes, not repeated daily itself (the notification/
-     * Telegram reminder is what repeats; this chat message is just the
-     * first, most in-context nudge). Public-trip only by construction —
-     * only public trips ever reach this call site.
+     * Posts the "how was your ride" message once a public trip is over.
+     *
+     * SendDriverRatingInviteReminder calls this a single time per trip. The
+     * repeating part of the reminder is the notification and the Telegram
+     * message. This one only exists because the chat is where the passenger
+     * is already talking to that driver, so it is the most natural place to
+     * ask.
      */
     public function postRatingInvite(Trip $trip, Conversation $conversation): Message
     {
@@ -529,21 +537,21 @@ class ChatService
     }
 
     /**
-     * opens_at is always null now — every chat (circle or one-off trip)
-     * is sendable the moment it exists, not held behind a future trip's
-     * "opens N days before departure" window. That delay used to fight the
-     * chat's own purpose: agreeing on pickup point, pay-before-or-after,
-     * matching the car, are exactly the things people want to settle well
-     * ahead of the ride, not 3 days before it. postMessage() still checks
-     * opens_at (nothing here needed to change there) — it just never finds
-     * a future one to block on anymore. scheduled_purge_at (set elsewhere)
-     * still closes the chat a few days after the trip, unaffected by this.
+     * Fills in the snapshot columns a conversation keeps about its trip.
+     *
+     * opens_at is deliberately left null, which means every chat can be used
+     * the moment it exists. An earlier version only opened a chat a few days
+     * before departure, but that worked against the point of having a chat at
+     * all. Settling the pickup point, agreeing whether payment is before or
+     * after the ride, and checking the car are things people want to sort out
+     * early, not at the last minute. Closing is unaffected, because
+     * scheduled_purge_at still shuts the chat a few days after the trip.
      */
     private function buildConversationAttributes(Trip $trip): array
     {
-        // trips.trip_datetime is a KL-local wall-clock string (Trip::TIMEZONE)
-        // — ->utc() converts the underlying Carbon to the real UTC instant so
-        // every column on this table can be compared with a plain now().
+        // trips.trip_datetime holds Malaysian wall clock text, so converting
+        // it to UTC here keeps every date column on the conversations table
+        // comparable with a plain now().
         $tripDatetimeUtc = $trip->trip_datetime?->clone()->utc();
 
         return [

@@ -29,8 +29,9 @@ class TelegramService
     }
 
     /**
-     * Mirrors PushService::sendToUser() — same silent-skip-if-not-linked
-     * shape, same "never break the caller" contract (the observer that
+     * Built to match PushService::sendToUser(). It quietly does nothing when
+     * the account is not linked, and it never throws back at whoever called
+     * it (the observer that
      * calls this already wraps it in try/catch, but a dead Telegram link
      * shouldn't keep failing forever either, so a blocked/kicked bot
      * self-heals by clearing the stored chat id below).
@@ -41,11 +42,12 @@ class TelegramService
             return;
         }
 
-        // telegram_message, when set, IS the complete text (own header,
-        // formatting, line breaks) — for notifications where the in-app copy
-        // has to stay short (views collapse newlines / hard-truncate to 2
-        // lines) but Telegram can render something richer. Falls back to the
-        // generic emoji+title+message shape used by every other notification.
+        // When telegram_message is set it is the full text already, with its
+        // own heading, formatting and line breaks. It exists for notifications
+        // where the in app wording has to stay short, since the list view
+        // collapses line breaks and cuts off after two lines, while Telegram
+        // can show something longer. Anything without it falls back to the
+        // usual emoji, title and message layout.
         if (! empty($notification->telegram_message)) {
             $text = $notification->telegram_message;
         } else {
@@ -67,8 +69,9 @@ class TelegramService
                     'reply_markup' => [
                         'inline_keyboard' => [[
                             // web_app (not a plain url button) opens this inside
-                            // Telegram's own webview on every platform — the
-                            // login page there auto-signs the user in via
+                            // Telegram's own webview on every platform. The
+                            // login page there signs the user in automatically
+                            // through
                             // TelegramController::miniAppAuth() using initData,
                             // instead of leaving them on a login form in a
                             // webview that never had a CarpoolHub session.
@@ -93,7 +96,8 @@ class TelegramService
     }
 
     /**
-     * Sends a plain message to a raw chat id — used by the webhook handler
+     * Sends a plain message straight to a chat id. The webhook handler uses
+     * this
      * for the "linked!" confirmation, before any User row is necessarily
      * resolved. sendToUser() above is for real notifications tied to a
      * UserNotification; this is the bare primitive it's built on.

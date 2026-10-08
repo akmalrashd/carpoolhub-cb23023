@@ -131,8 +131,9 @@ class FeatureEngineeringService
      * scoring a trip's join requests runs a handful of grouped queries instead
      * of ~9 per passenger.
      *
-     * IMPORTANT — this reproduces a quirk of passengerRiskFeatures() exactly, on
-     * purpose. There, $paymentBase is mutated in place (not cloned) by the
+     * Important: this copies a quirk of passengerRiskFeatures() on purpose.
+     * In that method $paymentBase is modified in place rather than cloned by
+     * the
      * $paymentDelays chain, so the later outstanding_amount / overdue_case_count
      * queries silently inherit `marked_paid_at IS NOT NULL` and a trip_datetime
      * predicate. To return identical numbers, both aggregates below carry those
@@ -184,7 +185,8 @@ class FeatureEngineeringService
             ->groupBy('user_id')->selectRaw('user_id, COUNT(*) as cnt')
             ->get()->keyBy('user_id');
 
-        // Delay rows for the PHP avg — same filter as passengerRiskFeatures' $paymentDelays.
+        // Rows used for the average delay, filtered the same way
+        // passengerRiskFeatures does it.
         $delayRows = TripPayment::query()
             ->whereIn('user_id', $ids)
             ->whereNotNull('marked_paid_at')
@@ -307,8 +309,8 @@ class FeatureEngineeringService
             return 0.0;
         }
 
-        // Strict null check: preferred_hour === 0 (midnight) is a real value, not
-        // "no history" — matches the old isEmpty() branch order exactly.
+        // Checked against null specifically, because a preferred hour of 0
+        // means midnight, which is a real answer rather than "no history".
         if ($preferredHour === null) {
             return 10.0;
         }
@@ -319,9 +321,10 @@ class FeatureEngineeringService
     }
 
     /**
-     * $connectedDriverIds, when given (rankTripsForUser's batch path), is the
-     * precomputed accepted-connection set — avoids one exists() query per trip.
-     * Null (scoreTripForUser called alone) falls back to the original query.
+     * When rankTripsForUser scores a whole list it passes $connectedDriverIds,
+     * the set of accepted connections worked out once up front, which saves
+     * running one exists() query for every single trip. Scoring a single trip
+     * passes null and the query runs normally.
      */
     private function connectionScore(User $user, Trip $trip, ?Collection $connectedDriverIds = null): float
     {

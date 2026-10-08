@@ -140,11 +140,11 @@ class SettingsService
             'password' => $data['new_password'],
         ]);
 
-        // Changing the password must also invalidate any outstanding "remember
-        // me" cookie. Laravel authenticates those against remember_token, not
-        // the password, so without this a stolen cookie keeps working forever —
-        // defeating the whole point of changing the password after a
-        // compromise. The current session is re-authenticated by the caller.
+        // Changing the password has to kill any outstanding "remember me"
+        // cookie too. Laravel checks those against remember_token rather than
+        // the password, so a stolen cookie would keep working even after the
+        // password change, which defeats the reason for changing it. The
+        // caller logs the current session back in afterwards.
         $user->setRememberToken(Str::random(60));
         $user->save();
     }

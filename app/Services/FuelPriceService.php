@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Live Malaysian retail fuel prices from data.gov.my's official open-data
- * API (free, no key, weekly-updated, matches the government's Automatic
- * Pricing Mechanism announcements) — replaces the fare advisor's old
- * hardcoded RON95/RON97/Diesel prices, which had drifted badly out of date.
+ * Fetches current Malaysian fuel prices from the official data.gov.my open
+ * data API. The API is free, needs no key, and is refreshed weekly in line
+ * with the government's Automatic Pricing Mechanism announcements.
+ *
+ * The fare advisor used to rely on RON95, RON97 and diesel prices typed
+ * directly into the code, and those had fallen badly out of date.
  */
 class FuelPriceService
 {
@@ -19,8 +21,9 @@ class FuelPriceService
     private const CACHE_TTL_HOURS = 20;
     private const API_URL = 'https://api.data.gov.my/data-catalogue?id=fuelprice';
 
-    // Used only if the API is unreachable — the last known-good figures at
-    // the time this was written, not a substitute for live data.
+    // Only used when the API cannot be reached. These were the correct
+    // prices when this file was written, so treat them as a last resort
+    // rather than as real data.
     private const FALLBACK = [
         'RON95'  => ['budi' => 1.99, 'market' => 3.77],
         'RON97'  => ['market' => 4.25],
@@ -47,9 +50,9 @@ class FuelPriceService
     }
 
     /**
-     * Admin-editable override, checked when the live API is unreachable —
-     * sits between fetchFromApi() and the hardcoded FALLBACK constant, which
-     * stays as the absolute last resort if this isn't configured either.
+     * An override the admin can set, used when the live API cannot be
+     * reached. It sits between the API call and the FALLBACK constant above,
+     * so the constant is only reached when the admin has not set anything.
      */
     private function dbFallback(): ?array
     {

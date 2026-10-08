@@ -21,10 +21,11 @@ class PassengerReliabilityService
 
         $graceDays = (int) config('passenger_reliability.driver_review_grace_days', 3);
 
-        // The clock doesn't start at trip_datetime — it starts at the point
-        // a passenger could reasonably be expected to have settled it: the
-        // day the monthly summary reporting that trip is sent, plus a
-        // settle-up window (see config/passenger_reliability.php). LAST_DAY
+        // The countdown does not begin on the trip date. It begins at the
+        // point where a passenger could fairly be expected to have paid,
+        // which is the day the monthly summary covering that trip goes out,
+        // plus a settling window set in config/passenger_reliability.php.
+        // LAST_DAY
         // + offset lands on "summary_day_of_month of the following month"
         // regardless of which day in its own month the trip fell on, since
         // every trip in a given month is reported by the same summary run.
@@ -32,14 +33,16 @@ class PassengerReliabilityService
             + (int) config('passenger_reliability.overdue_grace.days_after_summary', 14);
 
         // A plain "unpaid" row counts overdue days from that grace point
-        // against real NOW — the passenger is the one blocking. A
+        // against the real current time, because the passenger is the one
+        // holding things up. A
         // "pending_confirmation" row instead counts against
         // LEAST(NOW(), marked_paid_at + driver review grace): while the
         // driver is still inside their own review window that's the same as
         // NOW, but once the driver blows past it, the clock freezes there
-        // instead of continuing to grow — from that point on, further delay
-        // is on the driver, not the passenger. See config/passenger_reliability.php
-        // for why neither of these can be gamed by marking paid dishonestly.
+        // instead of growing any further. Past that point the delay belongs
+        // to the driver, not the passenger. config/passenger_reliability.php
+        // explains why neither case can be abused by marking a payment as
+        // paid dishonestly.
         $rows = DB::table('trip_payments as tp')
             ->join('trips as t', 't.id', '=', 'tp.trip_id')
             ->whereIn('tp.user_id', $ids)

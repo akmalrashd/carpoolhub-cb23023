@@ -8,9 +8,12 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Records every billed Anthropic call (chat, fare-advice, recommend-route)
- * so cost and reliability — token spend, JSON-parse retry rate — can be
- * queried later instead of only appearing as scattered storage/logs lines.
+ * Keeps a record of every paid Anthropic call the app makes, covering the
+ * chatbot, the fare advice and the route recommendation.
+ *
+ * Having them in a table means the token spend and the number of retries
+ * caused by bad JSON can be queried later. Before this they only existed as
+ * scattered lines in the log files, which was not practical to total up.
  */
 class AiUsageLogger
 {

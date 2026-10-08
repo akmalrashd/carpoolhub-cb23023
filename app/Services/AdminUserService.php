@@ -16,16 +16,17 @@ class AdminUserService
         return User::query()
             ->where('role', 'driver')
             ->where('driver_verification_status', 'pending')
-            ->oldest() // oldest application first — fair review order
+            ->oldest() // oldest application first, so reviews stay in a fair order
             ->paginate($perPage, ['*'], 'pending_page')
             ->withQueryString();
     }
 
     /**
-     * The "Driver Verification" tab's own searchable/filterable list — every
-     * driver (not just pending ones), so an admin can pull up an already
-     * approved or rejected application to re-review its documents. Separate
-     * from paginateUsers()'s general roster: that one manages role/suspend
+     * The searchable list behind the Driver Verification tab. It covers every
+     * driver rather than only the pending ones, so an admin can reopen an
+     * application that was already approved or rejected and look at the
+     * documents again. It is kept separate from paginateUsers(), which handles
+     * the general roster for role and suspension changes
      * for every account, this one is scoped to the verification workflow
      * specifically (driver_verification_status + documents).
      */
@@ -68,7 +69,7 @@ class AdminUserService
             'user_id' => $target->id,
             'type' => 'system',
             'title' => 'Driver Application Approved',
-            'message' => 'Great news — your driver application has been approved. You can now post and manage trips.',
+            'message' => 'Good news, your driver application has been approved. You can now post and manage trips.',
             'related_type' => 'settings',
             'related_id' => null,
             'is_read' => false,
@@ -148,10 +149,11 @@ class AdminUserService
         $isDeactivating = $wasActive && ! $newActive;
         $reason = trim((string) ($data['reason'] ?? ''));
 
-        // Unlike driver rejection (which already required a reason from day
-        // one), a plain suspend/reactivate never captured a reason at all —
-        // required here, but only on the actual deactivating transition, so
-        // editing an already-inactive user's role doesn't suddenly demand one.
+        // Rejecting a driver always required a reason, but suspending or
+        // reactivating an account never recorded one. A reason is now required,
+        // though only at the moment an account is actually being deactivated,
+        // so editing the role of an already inactive user does not suddenly
+        // ask for one.
         if ($isDeactivating && $reason === '') {
             throw ValidationException::withMessages([
                 'reason' => 'A reason is required when suspending an active account.',
@@ -165,9 +167,10 @@ class AdminUserService
 
         if ($isDeactivating) {
             $updates['deactivation_reason'] = $reason;
-            // Blank means permanent — ReactivateExpiredSuspensions only ever
-            // acts on a non-null suspended_until, so leaving this null is what
-            // makes a suspension indefinite instead of timed.
+            // Leaving this blank means the suspension never expires.
+            // ReactivateExpiredSuspensions only looks at rows where
+            // suspended_until has a value, so a null here keeps the suspension
+            // in place until an admin lifts it by hand.
             $updates['suspended_until'] = trim((string) ($data['suspended_until'] ?? '')) !== ''
                 ? $data['suspended_until']
                 : null;
@@ -177,10 +180,11 @@ class AdminUserService
             $updates['suspended_until'] = null;
         }
 
-        // Reactivating a driver through the generic edit-drawer still counts as
-        // approval — otherwise is_active=true with driver_verification_status
-        // still 'pending'/'rejected' would desync the badge and
-        // TripController's local check from what the account can actually do.
+        // Reactivating a driver from the general edit drawer also counts as
+        // approving them. Without this the account could end up active while
+        // its verification status still said pending or rejected, which would
+        // leave the badge and the check in TripController disagreeing with what
+        // the account is actually allowed to do.
         // Suspending (is_active -> false) deliberately does NOT touch
         // driver_verification_status: that's what lets an already-approved
         // driver's login message correctly read "suspended" instead of

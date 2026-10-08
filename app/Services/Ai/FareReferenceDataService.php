@@ -5,9 +5,9 @@ namespace App\Services\Ai;
 /**
  * Looks up real, sourced Malaysian toll rates and vehicle fuel consumption
  * (config/toll_highways.php and config/vehicle_fuel_consumption.php)
- * instead of letting the AI guess them. A miss on either lookup is not an
- * error — callers fall through to the AI estimate / heuristic fallback for
- * whatever this service doesn't recognise.
+ * instead of letting the AI guess them. Not finding a match is not treated as
+ * an error. Whatever this service does not recognise simply falls through to
+ * the AI estimate or the heuristic fallback.
  */
 class FareReferenceDataService
 {
@@ -23,8 +23,8 @@ class FareReferenceDataService
 
         $entries = config('vehicle_fuel_consumption', []);
 
-        // Exact match first — fast, precise, unchanged behaviour for anyone
-        // who typed their model name correctly.
+        // Try an exact match first. It is quick and precise, and it keeps the
+        // behaviour unchanged for anyone who typed their model name properly.
         foreach ($entries as $entry) {
             if (preg_match($entry['match'], $vehicle) === 1) {
                 return $entry;
@@ -33,8 +33,8 @@ class FareReferenceDataService
 
         // Typo safety net: only reached when nothing matched exactly. A
         // driver typing "mivi" or "hilx" shouldn't silently lose the real
-        // sourced data just because of a slip — every required token must
-        // still find a near-match (within ~1 edit) among the words typed.
+        // sourced data over a small slip. Every required word must still find
+        // a close match, within about one edit, among the words typed.
         $inputWords = preg_split('/[^a-z0-9]+/i', strtolower($vehicle), -1, PREG_SPLIT_NO_EMPTY);
         if ($inputWords === []) {
             return null;
@@ -85,10 +85,11 @@ class FareReferenceDataService
     }
 
     /**
-     * Optimal-string-alignment distance — Levenshtein plus a transposition
-     * step. PHP's built-in levenshtein() charges 2 substitutions for a
-     * swapped pair of adjacent letters (e.g. "axai" vs "axia"), which is by
-     * far the most common real typo and would otherwise need a looser, more
+     * Optimal string alignment distance, which is Levenshtein with an extra
+     * step for swapped letters. PHP's built in levenshtein() counts two
+     * substitutions when two neighbouring letters are swapped, as in "axai"
+     * against "axia". That is by far the most common real typo and would
+     * otherwise force a looser, more
      * false-positive-prone threshold just to catch it.
      */
     private function editDistance(string $a, string $b): int
@@ -124,8 +125,8 @@ class FareReferenceDataService
 
     /**
      * Picks city vs highway km/L for a matched vehicle using average trip
-     * speed as the road-type signal — the same distance/duration data the
-     * fare form already has, so no extra request is needed to decide.
+     * speed to tell which kind of road it was. That uses the distance and
+     * duration the fare form already holds, so no extra request is needed.
      */
     public function pickKmPerLiter(array $vehicleMatch, float $distanceKm, int $durationMin): float
     {
@@ -141,8 +142,8 @@ class FareReferenceDataService
     /**
      * Scans road-name text for known Malaysian toll highways. Matching is
      * deliberately narrow (highway abbreviations/full names, not a generic
-     * "lebuhraya" catch-all) — a broad match would wrongly flag free trunk
-     * roads like the Federal Highway just for containing that word.
+     * "lebuhraya" catch all). A broad match would wrongly flag toll free roads
+     * such as the Federal Highway just because the name contains that word.
      *
      * @return array{matched:bool,toll_roads:string[],estimated_toll_cost:float,has_toll:bool}
      */

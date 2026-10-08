@@ -29,9 +29,9 @@ class ConnectionService
 
         $acceptedUserIds = Connection::acceptedUserIdsFor($user);
 
-        // The connections page renders name/email/avatar only — never the
-        // licence or selfie blobs — so keep the multi-megabyte columns out of
-        // both result sets.
+        // The connections page only shows the name, email and avatar. It never
+        // shows the licence or selfie images, and those columns hold several
+        // megabytes each, so they are excluded from both queries.
         $acceptedConnections = User::query()
             ->withoutHeavyMedia()
             ->whereIn('id', $acceptedUserIds)

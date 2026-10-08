@@ -53,9 +53,9 @@ class SavedRouteService
     /**
      * Add someone else's saved route to $user's own list via its share code.
      * Copies the route's points/fare into a brand new row owned by $user (with
-     * its own fresh share code) rather than granting access to the original —
-     * a saved route's passenger stops are tied to the owner's own accepted
-     * connections, so those are deliberately not copied; $user adds their own
+     * its own fresh share code) instead of sharing access to the original one.
+     * The passenger stops on a route are tied to that owner's own accepted
+     * connections, so those are left out on purpose and $user adds their own
      * from the edit screen if they want any.
      */
     public function redeemShareCode(User $user, string $code): SavedRoute

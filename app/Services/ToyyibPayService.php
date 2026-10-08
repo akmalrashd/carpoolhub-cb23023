@@ -7,10 +7,12 @@ use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Thin wrapper over ToyyibPay's REST API — no business logic here (that's
- * GatewayPaymentService). Mirrors TelegramService's shape: a fresh Guzzle
- * client per call, every call try/caught, soft-fails to null + Log::error,
- * never throws to the caller.
+ * A thin wrapper around ToyyibPay's REST API. There is no business logic in
+ * here, since that belongs to GatewayPaymentService.
+ *
+ * It follows the same shape as TelegramService. Each call builds its own
+ * Guzzle client, is wrapped in a try/catch, and on failure logs the error and
+ * returns null instead of throwing at whoever called it.
  *
  * Two casing/units gotchas confirmed against ToyyibPay's own docs/examples,
  * easy to get wrong:
@@ -20,7 +22,7 @@ use Illuminate\Support\Facades\Log;
  *   lowercase, in the Return/Callback query string).
  * - `billAmount` sent to createBill is in CENTS ("100" = RM1.00), but
  *   `billpaymentAmount` returned by getBillTransactions is a plain RM
- *   decimal string ("10.00") — the two are not the same unit.
+ *   decimal string ("10.00"), so the two are not in the same unit.
  */
 class ToyyibPayService
 {
@@ -85,17 +87,17 @@ class ToyyibPayService
                     'billEmail' => $params['payer_email'],
                     'billPhone' => $params['payer_phone'],
                     'billSplitPayment' => 0,
-                    // FPX only — card is deliberately excluded (its fees are
-                    // %-based and meaningfully higher, not covered by the flat
-                    // fee formula GatewayPaymentService computes).
+                    // FPX only. Card payments are left out because their fees
+                    // are percentage based and noticeably higher, which the
+                    // flat fee formula in GatewayPaymentService does not cover.
                     'billPaymentChannel' => 0,
                     'billExpiryDays' => 1,
                     'enableDuitNowQR' => 1,
                     // Required whenever enableDuitNowQR=1, or ToyyibPay rejects
                     // the whole bill. 0 = fee deducted from our own settlement,
-                    // matching FPX's default — we bake the passenger-pays-fee
-                    // policy into billAmount ourselves rather than relying on
-                    // this flag, so both channels are charged the same way.
+                    // matching what FPX does by default. The rule that the
+                    // passenger covers the fee is already built into billAmount
+                    // ourselves, so both channels end up charged the same way.
                     'chargeDuitNowQR' => 0,
                 ],
             ]);
@@ -137,9 +139,9 @@ class ToyyibPayService
 
     /**
      * ToyyibPay's callback hash formula: MD5(secretKey + status + order_id +
-     * refno + "ok"), using the raw string values exactly as received — no
-     * int-casting first, since ToyyibPay computed it from the literal POST
-     * strings.
+     * refno + "ok"). The values must be used exactly as they arrived, with no
+     * casting to int first, because ToyyibPay built the hash from the literal
+     * strings it posted.
      */
     public function verifyCallbackHash(array $payload): bool
     {

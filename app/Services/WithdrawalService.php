@@ -20,9 +20,10 @@ class WithdrawalService
     ) {}
 
     /**
-     * Debits the wallet immediately at request time rather than waiting for
-     * admin approval — a driver could otherwise submit two overlapping
-     * requests that each look individually valid against the same balance
+     * Takes the money out of the wallet as soon as the request is made rather
+     * than waiting for admin approval. If it waited, a driver could submit two
+     * overlapping requests that each look valid on their own against the same
+     * balance
      * (e.g. two RM40 requests against RM50), and an admin reviewing them one
      * at a time has no way to see the other already "spoke for" part of it.
      * Debiting up front means the live balance always reflects what's

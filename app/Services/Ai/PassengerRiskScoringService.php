@@ -19,15 +19,15 @@ class PassengerRiskScoringService
     /**
      * Score every passenger for a trip using ONE batched features query and the
      * caller's already-built reliability map, instead of ~9 queries per
-     * passenger. Scores are identical to scoring each passenger individually —
-     * passengerRiskFeaturesForUsers returns the same per-user row — so only the
-     * query count drops.
+     * passenger. The scores come out exactly the same as scoring each
+     * passenger on their own, because passengerRiskFeaturesForUsers returns the
+     * same row per user. Only the number of queries changes.
      *
      * @param  Collection<int, User>  $passengers
      * @param  array<int, array<string, mixed>>  $reliabilityMap  keyed by user id.
      *   When a caller already built this in a single batched query (e.g.
      *   RefreshController::tripRequests), passing it here avoids re-running
-     *   buildForUsers() once per passenger — the value is identical either way.
+     *   buildForUsers() once per passenger, and the value is the same either way.
      * @return array<int, array<string, mixed>>  scores keyed by user id
      */
     public function scoreUsersForTrip(Collection $passengers, Trip $trip, ?User $driver = null, array $reliabilityMap = []): array
@@ -58,8 +58,8 @@ class PassengerRiskScoringService
      * which caused hard cliffs (e.g. 1 overdue case landing the same -20 as
      * 10 overdue cases) instead of a graded response. Rule constants are
      * calibrated so a fully-clean record and a fully-bad record land on the
-     * same scores the old crisp version produced — only the transition
-     * between them is now smooth instead of a step function.
+     * same scores the old strict version produced. The only difference is that
+     * the middle ground now moves smoothly instead of jumping in steps.
      */
     public function scoreUserForTrip(User $passenger, Trip $trip, ?User $driver = null, ?array $reliability = null, ?array $features = null): array
     {
@@ -123,9 +123,10 @@ class PassengerRiskScoringService
             $reasons[] = 'Can be evaluated with driver-specific context later.';
         }
 
-        // Defuzzification: sum of weighted rule outputs is already a crisp
-        // number here (Sugeno models skip the centroid step Mamdani needs) —
-        // just clamp to the configured band.
+        // Defuzzification. The weighted rule outputs already add up to a
+        // single number here, because a Sugeno model skips the centroid step
+        // that Mamdani needs, so all that is left is clamping it to the
+        // configured range.
         $score = (int) round(max(
             (int) config('ai_decision_support.passenger_risk.score.min', 0),
             min((int) config('ai_decision_support.passenger_risk.score.max', 100), $score)
@@ -149,10 +150,11 @@ class PassengerRiskScoringService
 
     /**
      * Membership-weighted average of a rule base's constant outputs for one
-     * feature's fuzzy set — the Sugeno-style defuzzification for that group.
-     * Normalising by total membership keeps this correct even when a
-     * feature's terms don't sum to exactly 1 (rounding, or a 3-term set with
-     * a gap between its two anchor trapezoids).
+     * feature's fuzzy set, which is the Sugeno style defuzzification for that
+     * group. Dividing by the total membership keeps the result correct even
+     * when the terms of a feature do not add up to exactly 1, which happens
+     * with rounding or with a three term set that has a gap between its two
+     * anchor trapezoids.
      */
     private function weightedRule(array $memberships, array $ruleOutputs): float
     {

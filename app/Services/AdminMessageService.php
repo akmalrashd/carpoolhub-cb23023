@@ -25,9 +25,10 @@ class AdminMessageService
             ]);
         }
 
-        // related_type deliberately null — UserNotification::getTargetUrlAttribute()'s
-        // default case already lands on notifications.index, the right spot for a
-        // message with no specific linked record.
+        // related_type is left null on purpose. A broadcast message has no
+        // specific record to open, and the notification model already sends
+        // anything without a related type to the notifications page, which is
+        // exactly where this should land.
         foreach ($recipients as $recipient) {
             UserNotification::query()->create([
                 'user_id' => $recipient->id,
