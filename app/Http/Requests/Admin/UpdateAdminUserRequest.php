@@ -19,7 +19,8 @@ class UpdateAdminUserRequest extends FormRequest
             // Required-when-deactivating is enforced in AdminUserService,
             // which alone knows whether this call is the deactivating
             // transition (needs the target's current state, not just this
-            // request's payload) — kept nullable here, not required_if.
+            // request's payload), so it stays nullable here rather than using
+            // required_if.
             'reason' => ['nullable', 'string', 'max:1000'],
             // Same nullable-not-required_if reasoning as `reason` above: a
             // blank value here means permanent, enforced in AdminUserService.

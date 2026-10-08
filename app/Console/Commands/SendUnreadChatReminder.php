@@ -17,7 +17,8 @@ use Illuminate\Support\Collection;
  * from this command is deleted up front, then a fresh one is created only
  * for whoever still has unread chats right now. That means a user never
  * has more than one of these at a time, and a chat that's since been read
- * simply stops getting a new row — no stale reminder lingers, and nothing
+ * simply stops getting a new row, so no out of date reminder is left behind
+ * and nothing
  * piles up in the notifications table.
  */
 class SendUnreadChatReminder extends Command
@@ -26,7 +27,7 @@ class SendUnreadChatReminder extends Command
 
     protected $signature = 'notifications:unread-chat-reminder';
 
-    protected $description = "Daily-refreshed reminder for anyone with unread chat messages — replaces yesterday's instead of accumulating";
+    protected $description = "Daily-refreshed reminder for anyone with unread chat messages, replaces yesterday's instead of accumulating";
 
     public function handle(): int
     {
@@ -38,7 +39,7 @@ class SendUnreadChatReminder extends Command
             ->get(['user_id', 'conversation_id']);
 
         if ($unreadRows->isEmpty()) {
-            $this->info('No unread chats — nothing to remind.');
+            $this->info('No unread chats, so there is nothing to remind.');
 
             return self::SUCCESS;
         }

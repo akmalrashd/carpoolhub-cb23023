@@ -16,9 +16,9 @@ class Trip extends Model
     use HasFactory, HasPublicId;
 
     /**
-     * This app has no multi-timezone support — every trip_datetime is
-     * entered and displayed as Malaysia local time, but APP_TIMEZONE stays
-     * UTC for everything else (created_at, payments, notifications, etc.
+     * The app does not support multiple time zones. Every trip_datetime is
+     * entered and shown in Malaysian local time, while APP_TIMEZONE stays on
+     * UTC for everything else such as created_at, payments and notifications
      * are already correct in UTC). Casting just this one column explicitly
      * avoids an 8-hour skew without touching any other timestamp's meaning.
      * Raw query-builder comparisons against this column (which bypass the
@@ -77,10 +77,10 @@ class Trip extends Model
         );
     }
 
-    /** Current time in the same timezone trip_datetime values are stored in
-     *  — use this instead of the bare now() helper when comparing against
-     *  trip_datetime in a raw query-builder clause (those bypass the
-     *  accessor above and compare directly against the raw DB string). */
+    /** The current time in the same zone trip_datetime is stored in. Use this
+     *  rather than the plain now() helper when comparing against trip_datetime
+     *  in a raw query builder clause, since those skip the accessor above and
+     *  compare straight against the stored string. */
     public static function now(): Carbon
     {
         return Carbon::now(self::TIMEZONE);
@@ -92,9 +92,10 @@ class Trip extends Model
     }
 
     /**
-     * Nullable, unique per trip — created lazily by ChatService and hard-
-     * deleted by PurgeExpiredConversations once the retention window passes,
-     * so an old completed trip's own conversation() can legitimately be
+     * Nullable and unique per trip. ChatService creates it only when needed,
+     * and PurgeExpiredConversations deletes it once the retention window has
+     * passed, so the conversation on an older finished trip can quite normally
+     * be
      * null even though the trip itself is still around.
      */
     public function conversation(): HasOne

@@ -74,8 +74,8 @@ class UserNotification extends Model
     }
 
     /**
-     * 'trip_payment' is used for both directions — a driver being told a
-     * passenger just submitted payment, and a passenger being told their
+     * 'trip_payment' covers both directions. It is used when a driver is told
+     * a passenger has submitted a payment, and when a passenger is told their
      * payment was recorded/confirmed/rejected, or reminded to pay. Only the
      * passenger has a "My Payments" section; everyone else (the driver, or
      * admin) belongs on the driver's review queue instead.
@@ -116,13 +116,14 @@ class UserNotification extends Model
     /**
      * related_id is the single unrated trip's id when there's exactly one
      * (SendDriverRatingInviteReminder deep-links straight into it, cascading
-     * open the rating modal via ?open_rate=1 — see trips-index.js), or null
-     * when there are several — in which case this points at the same
-     * needs_rating=1 pre-filtered trips-list link the Home banner uses
-     * (TripService::paginateForUser()) rather than the unfiltered list.
-     * Checks the trip still exists rather than assuming it does — a
-     * cancelled trip hard-deletes the row (see TripService::delete()),
-     * which would otherwise 404 route generation.
+     * open the rating modal with ?open_rate=1, which trips-index.js handles).
+     * It is null when several trips are waiting, and in that case this points
+     * at the same needs_rating=1 filtered trips list the home banner uses
+     * rather than the full list.
+     *
+     * The trip is checked for existence rather than assumed, because
+     * cancelling a trip deletes the row outright and building a route for a
+     * missing trip would throw.
      */
     private function resolveDriverRatingUrl(int $tripId): string
     {

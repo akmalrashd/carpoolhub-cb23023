@@ -12,13 +12,15 @@ use Illuminate\Console\Command;
 /**
  * Scheduled daily (see bootstrap/app.php). Unlike SendPendingPaymentApprovalReminder
  * and SendPaymentGraceDeadlineWarning (both notification-bell/Telegram, tied to the
- * monthly reliability-score deadline — often 40+ days after the trip), this one
- * posts straight into the trip chat itself, because the chat is only alive for
+ * monthly reliability deadline, which is often more than 40 days after the
+ * trip), this one posts straight into the trip chat, because the chat only
+ * lives for
  * chat_retention_days_after days after the trip (well short of that deadline) and
  * the owner wanted a lighter nudge that lives there instead.
  *
  * De-dupes against `messages` (type=payment_reminder) rather than a notification
- * table — there's no notification involved, the reminder *is* the chat message.
+ * table, because there is no notification here. The reminder is the chat
+ * message itself.
  */
 class SendChatPaymentReminder extends Command
 {
@@ -57,9 +59,9 @@ class SendChatPaymentReminder extends Command
 
             // A circle never closes (PurgeExpiredConversations excludes it),
             // so scheduled_purge_at/trip_datetime_snapshot-based "days until
-            // close" math is meaningless here — a circle reused every few
-            // months normally sits with a stale snapshot, which would
-            // otherwise make the guard below skip it forever. Circles just
+            // close" maths means nothing here. A circle that is reused every
+            // few months normally carries an out of date snapshot, which would
+            // make the check below skip it forever. Circles just
             // remind on the plain cooldown until the payment is settled.
             if ($conversation->is_circle) {
                 $chatService->postPaymentReminder($conversation, $outstanding, null);

@@ -14,8 +14,8 @@ class RedeemSavedRouteRequest extends FormRequest
     /**
      * Codes are generated and stored uppercase (SavedRouteService::
      * generateShareCode()). The form uppercases as the user types, but that
-     * is a client-side nicety, not a guarantee — normalize here too so a
-     * lowercase paste or a raw POST still matches.
+     * only happens in the browser and is not a guarantee, so the value is
+     * normalised here too and a lowercase paste or a raw POST still matches.
      */
     protected function prepareForValidation(): void
     {

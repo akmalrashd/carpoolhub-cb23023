@@ -11,16 +11,18 @@ use Illuminate\Support\Collection;
 /**
  * Scheduled daily (see bootstrap/app.php). A passenger marking a payment
  * paid moves it to pending_confirmation, but nothing pushed the driver to
- * actually confirm or reject it — it could sit there indefinitely. That
- * delay isn't harmless: PassengerReliabilityService counts an unconfirmed
+ * actually confirm or reject it, so it could sit there indefinitely. That
+ * delay is not harmless, because PassengerReliabilityService counts an
+ * unconfirmed
  * payment against the passenger's score too, so a driver who never checks
  * quietly drags down someone who already paid.
  *
  * The trigger delay (driver_review_grace_days) is the same config value
  * PassengerReliabilityService freezes its overdue clock at, so "the driver
  * had a fair chance to act" means the same number of days in both places.
- * One digest per driver, not one notification per payment — a driver with
- * several passengers shouldn't get spammed. Repeats every REPEAT_INTERVAL_DAYS
+ * One summary per driver rather than one notification per payment, so a
+ * driver with several passengers is not spammed. It repeats every
+ * REPEAT_INTERVAL_DAYS
  * if still ignored, so it can't be silently missed once and forgotten.
  */
 class SendPendingPaymentApprovalReminder extends Command
@@ -112,7 +114,7 @@ class SendPendingPaymentApprovalReminder extends Command
             $daysWaiting = $payment->marked_paid_at ? (int) $payment->marked_paid_at->diffInDays(now()) : 0;
 
             $lines[] = sprintf(
-                '💰 RM%s from %s — %s (%d day%s waiting)',
+                '💰 RM%s from %s for %s (%d day%s waiting)',
                 number_format((float) $payment->amount_due, 2),
                 e($payment->user->name ?? 'Passenger'),
                 e($this->formatTripLabel($payment->trip)),

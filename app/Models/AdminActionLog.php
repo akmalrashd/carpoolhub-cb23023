@@ -31,9 +31,9 @@ class AdminActionLog extends Model
     }
 
     /**
-     * The part before the dot in e.g. "payment.reversed" — used to group and
-     * color-code actions in the audit log UI without hardcoding every exact
-     * action string there.
+     * The part before the dot, so "payment" in "payment.reversed". The audit
+     * log page uses it to group and colour the entries without having to list
+     * every exact action string.
      */
     public function getCategoryAttribute(): string
     {
@@ -41,8 +41,9 @@ class AdminActionLog extends Model
     }
 
     /**
-     * (badge CSS class, icon class, human label) per category — new action
-     * categories fall back to a neutral badge rather than breaking.
+     * The badge class, icon class and label for each category. A category that
+     * is not listed falls back to a neutral badge instead of breaking the
+     * page.
      *
      * @return array{0: string, 1: string, 2: string}
      */

@@ -9,12 +9,12 @@ use Illuminate\Support\Str;
  * id to an unguessable random string, without touching the id itself or any
  * foreign key that points at it. Every route(...) call that already passes
  * a model instance (the pattern used throughout this app) keeps working
- * unchanged — Laravel resolves both URL generation and route-model binding
- * through getRouteKeyName(), so this is the only override needed.
+ * unchanged, because Laravel builds URLs and resolves route model binding
+ * through getRouteKeyName(), so this one override covers both.
  *
- * Authorization (not obscurity) is what actually protects these resources —
- * every sensitive action already checks trip/conversation/etc. ownership
- * before doing anything, model-bound or not. This just removes the minor
+ * What actually protects these resources is the permission check, not the
+ * hidden id. Every sensitive action already confirms who owns the trip or
+ * conversation before doing anything. This only removes the smaller
  * information leak of a sequential id (row-count guessing) and adds a
  * defense-in-depth layer in case an authorization check ever regresses.
  */

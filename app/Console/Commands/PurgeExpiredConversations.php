@@ -10,13 +10,14 @@ use Illuminate\Console\Command;
  * Two purge paths, both hard-delete (no soft-delete anywhere in this app,
  * matching Trip/TripCancellationLog):
  *
- *  1. Conversations explicitly closed by ChatService::scheduleClosure() —
- *     the trip was cancelled or emptied out — once their grace period
- *     (scheduled_purge_at) has passed.
+ *  1. Conversations that ChatService::scheduleClosure() closed on purpose,
+ *     because the trip was cancelled or lost all its passengers, once their
+ *     grace period in scheduled_purge_at has passed.
  *  2. Conversations that were never explicitly closed because the trip
- *     simply ran its course — there's no "trip completed" event in this app
- *     (status is computed on demand, see TripService::syncLifecycleStatuses),
- *     so this covers the normal case directly off trip_datetime_snapshot.
+ *     simply happened and finished. There is no "trip completed" event in
+ *     this app, since the status is worked out when it is asked for in
+ *     TripService::syncLifecycleStatuses, so this branch handles the normal
+ *     case by reading trip_datetime_snapshot directly.
  */
 class PurgeExpiredConversations extends Command
 {
@@ -35,9 +36,9 @@ class PurgeExpiredConversations extends Command
         $retentionDays = (int) (SystemSetting::get('chat_retention_days_after') ?? 3);
 
         // A circle routinely sits with a stale trip_datetime_snapshot between
-        // uses (that's its normal steady state, not an edge case) — it must
-        // never be swept up here. See PruneCircleMessages for its own
-        // age-based cleanup, which prunes old messages instead of the
+        // uses, and that is its normal state rather than an edge case, so it
+        // must never be caught by this sweep. PruneCircleMessages handles a
+        // circle instead, trimming old messages rather than the
         // conversation itself.
         $naturallyExpired = Conversation::query()
             ->where('is_circle', false)

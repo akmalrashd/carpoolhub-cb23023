@@ -8,9 +8,9 @@ use Illuminate\Console\Command;
 /**
  * Third safety net behind the ToyyibPay Return URL and Callback (see
  * bootstrap/app.php for the schedule). Catches a passenger who paid
- * successfully but closed the tab before the Return URL redirect fired —
- * without this, that payment would stay 'pending' forever with the driver
- * never credited, despite the money having actually arrived.
+ * successfully but closed the tab before being redirected back. Without this
+ * the payment would sit as pending forever and the driver would never be
+ * credited, even though the money really did arrive.
  */
 class ReconcileGatewayTransactions extends Command
 {

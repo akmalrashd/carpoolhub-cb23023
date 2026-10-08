@@ -9,9 +9,9 @@ use Illuminate\Console\Command;
  * Scheduled weekly (see bootstrap/app.php). Read and unread notifications
  * get different retention: a read notification has already been seen and
  * acted on (or dismissed), so it's safe to clear after a few months. An
- * unread one isn't necessarily still relevant either — plenty of users just
- * never bother tapping things read — so it only gets one extra month of
- * grace, not an open-ended pass. Before that grace period runs out, each
+ * unread one is not automatically still relevant, since plenty of people
+ * simply never tap things read, so it only gets one extra month rather than
+ * being kept forever. Before that extra month runs out, each
  * affected user gets one warning notification so nothing valuable (e.g. an
  * outstanding-payment reminder) disappears silently.
  *
@@ -39,7 +39,7 @@ class PruneOldNotifications extends Command
 
     protected $signature = 'notifications:prune';
 
-    protected $description = 'Warn users about aging unread notifications, then delete old in-app notifications — read ones after 3 months, unread ones after 4';
+    protected $description = 'Warn users about aging unread notifications, then delete old in-app notifications. Read ones go after 3 months, unread ones after 4';
 
     public function handle(): int
     {
@@ -94,7 +94,7 @@ class PruneOldNotifications extends Command
                 'user_id' => $userId,
                 'type' => 'system',
                 'title' => 'Unread Notifications Will Be Deleted Soon',
-                'message' => "You have notifications you still haven't read. They'll be deleted automatically if they stay unread for another {$monthsLeft} month(s) — open them to keep them.",
+                'message' => "You have notifications you still haven't read. They will be deleted automatically if they stay unread for another {$monthsLeft} month(s), so open them to keep them.",
                 'related_type' => self::WARNING_RELATED_TYPE,
                 'related_id' => null,
                 'is_read' => false,

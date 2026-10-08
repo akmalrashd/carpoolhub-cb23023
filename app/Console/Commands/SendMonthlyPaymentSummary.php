@@ -9,14 +9,15 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
 /**
- * Scheduled monthly (see bootstrap/app.php) for the 3rd of each month — a
- * few days' buffer past the 1st so payments confirmed right at the month
- * boundary have settled, rather than catching a driver/passenger mid-confirm
- * and reporting a balance that was already cleared.
+ * Scheduled monthly for the 3rd of each month, which leaves a few days after
+ * the 1st so that payments confirmed right at the month boundary have
+ * settled. Running it on the 1st would risk catching someone mid confirmation
+ * and reporting a balance that had in fact just been cleared.
  *
  * One notification per direction per user: what they still owe (as a rider)
- * and, separately, what's still owed to them (as a driver) — a user can be
- * both and gets both. Each breaks down by month and by counterparty so
+ * and, separately, what is still owed to them as a driver. Someone who is
+ * both gets both notifications. Each one breaks the figures down by month and
+ * by person so
  * someone who deliberately settles in a lump sum (rather than per trip) has
  * a running reference of exactly who they still owe, not just a total.
  */
@@ -97,7 +98,7 @@ class SendMonthlyPaymentSummary extends Command
     {
         $isOwedToMe = $direction === 'owed_to_me';
 
-        $lines = [$isOwedToMe ? '📅 <b>Monthly Summary — Owed to You</b>' : '📅 <b>Monthly Payment Summary</b>', ''];
+        $lines = [$isOwedToMe ? '📅 <b>Monthly Summary: Owed to You</b>' : '📅 <b>Monthly Payment Summary</b>', ''];
 
         foreach ($breakdown['months'] as $index => $month) {
             $lines[] = ($index === 0 ? '<b>' . e($month['month_label']) . '</b>' : e($month['month_label'])) . ':';

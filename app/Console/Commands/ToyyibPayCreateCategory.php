@@ -8,7 +8,8 @@ use Illuminate\Console\Command;
 /**
  * One-off setup: creates a ToyyibPay Category for this app and prints the
  * code to paste into .env as TOYYIBPAY_CATEGORY_CODE. Run once per
- * environment/secret key — a sandbox account and a live account each need
+ * environment and secret key, so a sandbox account and a live account each
+ * need
  * their own category, since they're entirely separate ToyyibPay accounts.
  */
 class ToyyibPayCreateCategory extends Command
@@ -33,7 +34,7 @@ class ToyyibPayCreateCategory extends Command
         );
 
         if (! $categoryCode) {
-            $this->error('ToyyibPay did not return a category code — check storage/logs/laravel.log for details.');
+            $this->error('ToyyibPay did not return a category code. Check storage/logs/laravel.log for details.');
 
             return self::FAILURE;
         }

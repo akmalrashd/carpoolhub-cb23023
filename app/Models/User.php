@@ -92,9 +92,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Select every user column EXCEPT the heavy image blobs. Selecting
-     * all-but-heavy (rather than an allowlist) guarantees no display column —
-     * name, avatar, payment fields, accessors' source columns — is ever missed,
-     * so this stays behaviour-preserving while dropping the megabytes.
+     * everything except the heavy ones, rather than listing what to keep,
+     * means no display column can be forgotten. The name, avatar, payment
+     * fields and the columns accessors read from all come through, so nothing
+     * changes on screen while the megabytes stay out of the query.
      */
     public function scopeWithoutHeavyMedia(Builder $query): Builder
     {
@@ -115,8 +116,8 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * The settings page has always let users choose who can see their email and
      * phone (public / connections only / hidden) and SettingsService has always
-     * stored the choice — but nothing ever read it back, so "hidden" displayed
-     * the address to anyone regardless. This is the missing half.
+     * stored the choice, but nothing ever read it back, so "hidden" still
+     * showed the address to everyone. This is the half that was missing.
      *
      * Takes an already-known connection flag rather than querying, so callers
      * rendering a list resolve visibility without a query per row.
@@ -228,9 +229,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * A pending or rejected driver has is_active=false like any other
-     * deactivated account, but — unlike a plain suspension — there IS
-     * something they can do about it themselves: update their documents in
-     * Settings and resubmit. EnsureUserIsActive and the login controllers
+     * deactivated account. The difference from a plain suspension is that they
+     * can fix this one themselves by updating their documents in Settings and
+     * submitting again. EnsureUserIsActive and the login controllers
      * both consult this single definition so a driver in this state can
      * reach exactly Settings/Notifications/Logout while staying blocked from
      * everything else, without the three call sites risking drifting apart
@@ -246,17 +247,17 @@ class User extends Authenticatable implements MustVerifyEmail
      * Single source of truth for the human-readable account status shown in
      * the admin Users table, the driver license-review modal, and the edit
      * drawer. Before this, each of those re-derived the same is_active +
-     * driver_verification_status combination independently — a non-driver
-     * with is_active=false was labelled "Inactive" while a driver in the
-     * identical state was labelled "Suspended", and the filter dropdown and
+     * driver_verification_status combination on its own. A non driver with
+     * is_active=false was labelled "Inactive" while a driver in exactly the
+     * same state was labelled "Suspended", and the filter dropdown and
      * edit-drawer select each used a third/fourth wording again. All of them
      * now read from here instead, so "the same underlying state" reliably
      * means "the same word" everywhere it's shown.
      *
-     * 'reason' surfaces whichever free-text explanation applies —
-     * driver_verification_reason for a rejected application,
-     * deactivation_reason for a suspension — so a caller doesn't need to know
-     * which column to read for which state.
+     * 'reason' returns whichever written explanation applies, which is
+     * driver_verification_reason for a rejected application and
+     * deactivation_reason for a suspension. That way a caller does not need to
+     * know which column belongs to which state.
      *
      * @return array{label: string, pill_class: string, dot_color: string, reason: ?string}
      */
@@ -283,9 +284,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * deactivation_reason plus, when this is a timed suspension rather than
-     * an indefinite one, when it auto-reactivates — composed once here so
-     * every caller of accountStatusLabel() (table, license modal, tooltip)
-     * picks up the expiry without each needing its own formatting logic.
+     * an open ended one, when it lifts by itself. Building it once here means
+     * every caller of accountStatusLabel(), whether the table, the licence
+     * modal or a tooltip, gets the expiry without writing its own formatting.
      */
     private function suspensionNote(): ?string
     {
@@ -304,9 +305,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * A Google sign-in already proves the address is real and owned by
-     * whoever is signing in — Google verified it before ever handing us the
-     * email — so linking a google_id counts as verified even if
-     * email_verified_at itself is still empty.
+     * whoever is signing in, since Google verified it before handing us the
+     * address. Linking a google_id therefore counts as verified even when
+     * email_verified_at is still empty.
      */
     public function hasVerifiedEmail(): bool
     {
@@ -326,8 +327,8 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * ITU country calling codes, used only to recognise a phone number that
      * already carries one. A literal in the accessor body was rebuilt on every
-     * single call — this list never changes at runtime, so it belongs on the
-     * class instead of being re-allocated per row rendered.
+     * single call. The list never changes while the app runs, so it belongs on
+     * the class rather than being rebuilt for every row rendered.
      *
      * @var list<string>
      */
@@ -394,8 +395,8 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Resolve an image column to a usable <img src>. Images are stored as base64
      * data URIs (returned as-is), but older rows may still hold a storage path
-     * (resolved to a public URL) — so both keep working during and after the
-     * switch to base64. A Google sign-in stores its avatar as a plain
+     * which is turned into a public URL, so both keep working during and after
+     * the move to base64. A Google sign in stores its avatar as a plain
      * https:// URL (googleusercontent.com), which also needs to pass through
      * unchanged rather than being treated as a relative storage path.
      */

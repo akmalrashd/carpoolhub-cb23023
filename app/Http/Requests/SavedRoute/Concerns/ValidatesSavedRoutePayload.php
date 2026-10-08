@@ -4,7 +4,7 @@ namespace App\Http\Requests\SavedRoute\Concerns;
 
 /**
  * Shared by StoreSavedRouteRequest and UpdateSavedRouteRequest, which carried
- * byte-identical rule sets — a new field had to be added to both by hand.
+ * identical rule sets, which meant adding a new field twice by hand.
  */
 trait ValidatesSavedRoutePayload
 {

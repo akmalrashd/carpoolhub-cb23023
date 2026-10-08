@@ -23,13 +23,13 @@ class AppServiceProvider extends ServiceProvider
         // AI-billed requests/min by hitting all three at once. One named
         // limiter here closes that gap and adds a daily spend ceiling.
         //
-        // The last Limit uses a fixed key (not per-user) — a platform-wide
-        // circuit breaker so total spend can't scale unbounded with the
+        // The last Limit uses a fixed key instead of one per user, which makes
+        // it a cap for the whole platform so total spend cannot grow with the
         // number of accounts (real or fake) even though each one individually
         // stays under its own per-user cap. Once it trips, every user gets
         // the same graceful "AI unavailable" fallback the frontend already
-        // shows for any failed /ai/* call — see resources/views/components/
-        // ai-chat.blade.php's sendMessage() catch-all.
+        // shows for any failed /ai/* call, which lives in the sendMessage()
+        // catch block of resources/views/components/ai-chat.blade.php.
         RateLimiter::for('ai-spend', function (Request $request) {
             $key = $request->user()?->id ?? $request->ip();
 

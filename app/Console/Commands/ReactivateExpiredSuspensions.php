@@ -9,9 +9,9 @@ use Illuminate\Console\Command;
 
 /**
  * Scheduled every 5 minutes (see bootstrap/app.php). A temporary suspension
- * (users.suspended_until) is only a timestamp — nothing else in the app
- * checks it on every request, so without this command an expired timed
- * suspension would stay suspended forever, identical to a permanent one.
+ * (users.suspended_until) is only a timestamp. Nothing else in the app looks
+ * at it on each request, so without this command a suspension that has
+ * expired would stay in place forever, exactly like a permanent one.
  * Runs frequently, not daily, because a suspension can expire at any minute
  * and a suspended user shouldn't have to wait up to a day past it.
  */
@@ -46,8 +46,8 @@ class ReactivateExpiredSuspensions extends Command
                 'is_read' => false,
             ]);
 
-            // No admin to attribute this to — $admin is nullable on log()
-            // specifically for this call.
+            // There is no admin to credit here, which is why $admin is
+            // allowed to be null on log().
             $adminAuditService->log(null, 'user.auto_reactivated', 'user', $user->id, 'Temporary suspension expired');
         }
 

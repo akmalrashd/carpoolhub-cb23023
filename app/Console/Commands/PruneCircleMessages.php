@@ -9,8 +9,8 @@ use Illuminate\Console\Command;
 
 /**
  * Circles never expire by age (see PurgeExpiredConversations' is_circle
- * guard) — only their old messages do, to bound storage for a group that
- * might be reused every few months indefinitely. Deletes per-conversation
+ * guard). Only their old messages go, which keeps storage in check for a
+ * group that might keep being reused for years. It deletes per conversation
  * rather than one global query so the existing (conversation_id, created_at)
  * composite index on messages is actually used.
  */

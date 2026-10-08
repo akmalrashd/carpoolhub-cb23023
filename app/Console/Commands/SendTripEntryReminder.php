@@ -7,8 +7,8 @@ use App\Models\UserNotification;
 use Illuminate\Console\Command;
 
 /**
- * Scheduled monthly (see bootstrap/app.php) for the 25th — about 9 days
- * before the monthly outstanding-payment summary (3rd of next month) fires,
+ * Scheduled monthly for the 25th, which is about nine days before the
+ * outstanding payment summary goes out on the 3rd of the next month,
  * so there's real time to add anything missed before that summary reads
  * whatever's in the system as final.
  *
@@ -16,8 +16,9 @@ use Illuminate\Console\Command;
  * with zero trips logged this month: someone who logged trips early in the
  * month and then forgot partway through would have a non-zero count and
  * never get flagged by that kind of check, so it would miss exactly the
- * case it's meant to catch. Only drivers get this — TripController's
- * ensureCanManage() restricts trip creation to role === 'driver' strictly
+ * case it is meant to catch. Only drivers get this, because
+ * TripController::ensureCanManage() allows trip creation for role 'driver'
+ * only
  * (not admin), so an admin has nothing to act on here.
  */
 class SendTripEntryReminder extends Command

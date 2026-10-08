@@ -14,9 +14,9 @@ class TripPayment extends Model
     /**
      * The payment_status enum, mirroring the column definition in
      * create_trip_payments_table. These exist because the status was previously
-     * a bare string repeated across services, controllers and views — and a
-     * single wrong literal ('pending_review', which is not a value this column
-     * has) silently broke the bulk-approve endpoint for its entire lifetime.
+     * a plain string repeated across services, controllers and views. One
+     * wrong literal, 'pending_review', which this column never accepted, quietly
+     * broke the bulk approve endpoint for as long as it existed.
      * Prefer these constants and the scopes below over new literals.
      */
     public const STATUS_UNPAID = 'unpaid';

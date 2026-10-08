@@ -20,10 +20,11 @@ class EnsureUserIsActive
             return $next($request);
         }
 
-        // A pending/rejected driver has something to actually do about their
-        // own inactivity — resubmit documents in Settings — unlike a plain
-        // suspension, which stays a hard "contact support" wall. Scoped to
-        // exactly the routes that flow needs; every other page still 403s.
+        // A driver who is pending or rejected can fix their own situation by
+        // resubmitting documents in Settings. A plain suspension is different,
+        // because there is nothing they can do except contact support. This is
+        // limited to the routes that flow needs, and every other page still
+        // returns 403.
         if ($user->isDriverAwaitingSelfService() && $this->isSelfServiceRoute($request)) {
             return $next($request);
         }

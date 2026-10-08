@@ -57,7 +57,7 @@ class Connection extends Model
      * The other side of every accepted connection $user has, regardless of
      * which of the two rows they were on (requester or receiver). Was
      * duplicated identically in ConnectionService, SavedRouteService and
-     * TripService — kept here as the one place that owns the query.
+     * TripService, so it lives here now as the single owner of that query.
      */
     public static function acceptedUserIdsFor(User $user): \Illuminate\Support\Collection
     {

@@ -5,7 +5,8 @@ namespace App\Http\Requests\Trip\Concerns;
 /**
  * Shared by StoreTripRequest and UpdateTripRequest, which carried the same
  * field rules and cross-field checks with only trip_type/include_driver_in_split
- * strictness differing — a rule change had to be made in both to actually apply.
+ * strictness differing, which meant every rule change had to be made twice
+ * before it actually took effect.
  */
 trait ValidatesTripPayload
 {
@@ -40,9 +41,9 @@ trait ValidatesTripPayload
                 $tripAt = \Illuminate\Support\Carbon::parse((string) $this->input('trip_datetime'), \App\Models\Trip::TIMEZONE);
 
                 // On update, only re-check this once visibility or the date
-                // actually changed — otherwise saving an untouched field
-                // (e.g. a note) on an already-completed public trip would
-                // fail against a past date nobody just chose.
+                // actually changed. Otherwise saving an untouched field such
+                // as a note on an already finished public trip would fail
+                // against a past date that nobody had just chosen.
                 $existingTrip = $this->route('trip');
                 $visibilityChanged = ! $existingTrip || $existingTrip->visibility !== 'public';
                 $datetimeChanged = ! $existingTrip

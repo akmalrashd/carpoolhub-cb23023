@@ -19,20 +19,20 @@ use Illuminate\Support\Facades\DB;
  * window_days, default 14):
  *
  *  1. A one-time Hexa chat message posted into a newly-completed public
- *     trip's conversation — de-duped by checking for an existing
- *     Message::TYPE_RATING_INVITE row, so it's never posted twice.
+ *     trip's conversation. It checks for an existing
+ *     Message::TYPE_RATING_INVITE row first, so it is never posted twice.
  *  2. A daily-refreshing in-app + Telegram reminder, using the same
  *     delete-all-mine-then-recreate pattern as SendUnreadChatReminder
- *     (not PruneOldNotifications' cooldown-window pattern) — a single
- *     star-tap has no reason to be nagged about on a cooldown the way a
- *     payment deadline is, and the product spec explicitly wants the
+ *     rather than the cooldown approach PruneOldNotifications uses. Tapping a
+ *     star is a small thing and does not need the same spaced out nagging a
+ *     payment deadline does, and the requirement was for the
  *     reminder to "disappear once rated," which this pattern gives for
  *     free rather than needing an extra "already rated, don't re-warn"
  *     check.
  *
- * Both stop entirely once a trip ages past the window — there's no
- * separate cleanup job, see the "who still needs to rate" query in
- * DriverRatingService, which a trip simply falls out of.
+ * Both stop by themselves once a trip passes the window. No separate cleanup
+ * job is needed, because the trip simply stops appearing in the "who still
+ * needs to rate" query in DriverRatingService.
  */
 class SendDriverRatingInviteReminder extends Command
 {

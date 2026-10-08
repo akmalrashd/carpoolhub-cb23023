@@ -13,16 +13,18 @@ use Illuminate\Support\Collection;
  * Scheduled daily (see bootstrap/app.php). PassengerReliabilityService no
  * longer counts a trip as overdue until summary_day_of_month + days_after_
  * summary days after the trip's month ends (config/passenger_reliability.php)
- * — matching how real users actually pay, in one lump sum after seeing their
- * monthly summary, not per trip. This command is the one warning shot before
+ * which matches how people actually pay, in one lump sum after seeing their
+ * monthly summary rather than trip by trip. This command is the single warning
+ * before
  * that grace period actually runs out: a single lump-sum "settle up before
  * this starts affecting your rating" nudge, not a recurring dun. Once the
- * deadline passes without payment, this stays quiet — the existing monthly
- * summary is what keeps reporting the balance after that point.
+ * deadline passes without payment, this command stays quiet and the monthly
+ * summary carries on reporting the balance from then on.
  *
  * Runs daily rather than once a month because the deadline itself falls on a
  * slightly different calendar date each month (it's derived from LAST_DAY,
- * so it tracks month length) — a fixed day-of-month schedule would drift.
+ * so it follows the length of each month), and a fixed day of the month would
+ * slowly drift away from it.
  * The per-user cooldown below is what keeps a daily check from re-sending
  * the same warning on each of the days it's in range for.
  */
@@ -133,14 +135,14 @@ class SendPaymentGraceDeadlineWarning extends Command
 
         foreach ($payments as $payment) {
             $lines[] = sprintf(
-                '💰 RM%s — %s',
+                '💰 RM%s for %s',
                 number_format((float) $payment->amount_due, 2),
                 e($this->formatTripLabel($payment->trip))
             );
         }
 
         $lines[] = '';
-        $lines[] = sprintf('<b>Total: RM%s</b> — settle by %s.', number_format($total, 2), e($deadlineLabel));
+        $lines[] = sprintf('<b>Total: RM%s</b>, please settle by %s.', number_format($total, 2), e($deadlineLabel));
 
         return implode("\n", $lines);
     }

@@ -9,10 +9,10 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 /**
- * Broadcast immediately (ShouldBroadcastNow, not ShouldBroadcast) — this app
- * has no queue worker process running anywhere (QUEUE_CONNECTION=database
- * but nothing ever consumes it), so a queued broadcast would just sit in the
- * jobs table forever on Hostinger's shared hosting.
+ * Broadcast straight away using ShouldBroadcastNow rather than
+ * ShouldBroadcast. There is no queue worker running anywhere in this app.
+ * QUEUE_CONNECTION is set to database but nothing ever reads that table, so a
+ * queued broadcast would simply sit there forever on shared hosting.
  */
 class MessageSent implements ShouldBroadcastNow
 {

@@ -41,9 +41,9 @@ class ConversationParticipant extends Model
     }
 
     /**
-     * Drives the unread dot on the bottom-nav/sidebar "Chat" icon — a
-     * participant row is "unread" once the conversation's latest message id
-     * has moved past what they last read. Shared by the layout's per-page
+     * Drives the unread dot on the Chat icon in the navigation. A row counts
+     * as unread once the newest message id in the conversation is higher than
+     * the last one this person read. Shared by the layout's per page
      * computation and RefreshController's 5s poll, so both stay in sync.
      */
     public static function unreadCountFor(User $user): int
