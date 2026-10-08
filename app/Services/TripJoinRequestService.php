@@ -103,18 +103,21 @@ class TripJoinRequestService
     }
 
     /**
-     * Self-cancel a join request the passenger made themselves — pending
-     * (never responded to) or approved (already riding). Only allowed before
-     * the trip departs; an approved cancellation also drops the passenger's
-     * own seat/payment records so the seat frees up immediately for others.
-     * Gating is purely "is this your own request", not account role — a
-     * driver riding as a passenger on someone else's trip uses this too.
+     * Lets a passenger cancel a join request they made themselves, whether it
+     * is still pending or already approved. It only works before the trip
+     * departs. Cancelling an approved request also removes that passenger's
+     * seat and payment records so the seat opens up again straight away.
      *
-     * A PENDING cancellation was never a commitment (the driver hadn't acted
-     * on it yet), so it's hard-deleted rather than kept as a 'cancelled' row
-     * — nothing worth feeding to passenger-risk analytics. An APPROVED
-     * cancellation is a real backed-out commitment, so it stays recorded
-     * (feeds cancelled_request_count) exactly as before.
+     * The only thing checked is whether the request belongs to this user, not
+     * what role their account has, because a driver riding as a passenger on
+     * someone else's trip cancels the same way.
+     *
+     * A pending request was never really a commitment, since the driver had
+     * not acted on it yet, so it is deleted outright instead of being kept as
+     * a cancelled row. There is nothing there worth feeding into the passenger
+     * risk figures. An approved request is a commitment the passenger backed
+     * out of, so that one stays on record and counts towards
+     * cancelled_request_count.
      */
     public function cancelRequest(User $passenger, TripJoinRequest $joinRequest): void
     {
@@ -176,11 +179,11 @@ class TripJoinRequestService
     }
 
     /**
-     * Self-leave for a passenger who has a TripParticipant row (pre-selected by
-     * the driver at trip creation) but no TripJoinRequest at all — cancelRequest()
-     * above can't handle these since there's no join request to transition to
-     * 'cancelled'. Same seat-freeing/payment-safety behaviour as cancelRequest's
-     * approved-cancellation branch, reusing the same detach helper.
+     * Lets a passenger leave a trip they were added to directly by the driver
+     * when the trip was created. These passengers have a TripParticipant row
+     * but no join request at all, so cancelRequest() above cannot handle them,
+     * since there is no request to mark as cancelled. The seat freeing and
+     * payment safety behaviour is the same, reusing the same detach helper.
      */
     public function leaveTrip(User $passenger, Trip $trip): void
     {
@@ -299,10 +302,10 @@ class TripJoinRequestService
 
     /**
      * Remove an already-approved passenger from the trip for any driver-stated
-     * reason. Deliberately scoped to just the attendance record — it does not
-     * free the seat or resync the fare split (that cascade already exists for
-     * new approvals via attachPassengerToTripGroup/resyncTripSplit, but taking
-     * it on here as well is a separate decision, not part of this feature).
+     * reason. This only touches the attendance record. It does not free the
+     * seat or recalculate the fare split. That cascade already exists for new
+     * approvals through attachPassengerToTripGroup and resyncTripSplit, but
+     * applying it here as well would be a separate decision.
      */
     public function removeParticipant(User $actor, TripJoinRequest $joinRequest, string $reason): TripParticipant
     {
@@ -341,9 +344,9 @@ class TripJoinRequestService
             'is_read' => false,
         ]);
 
-        // ensureCanManageTripRequests() also allows admin here — when admin is
-        // the one removing a passenger, the driver is a bystander to their own
-        // trip's roster changing and should know, same as an admin-initiated
+        // ensureCanManageTripRequests() lets an admin do this too. When an
+        // admin removes a passenger, the driver is a bystander to their own
+        // trip changing, so they get told, the same way they would for an admin
         // edit or cancellation elsewhere in TripService.
         if ($isAdminActing) {
             UserNotification::query()->create([
@@ -366,8 +369,9 @@ class TripJoinRequestService
 
     /**
      * Mark an already-approved passenger absent. Only becomes available from
-     * ABSENCE_WINDOW_MINUTES before departure onward — enforced here too, not
-     * just in the view, since the view's gate is just what renders the button.
+     * ABSENCE_WINDOW_MINUTES before departure onwards. The rule is enforced
+     * here as well as in the view, because the view only decides whether to
+     * draw the button.
      */
     public function markAbsent(User $actor, TripJoinRequest $joinRequest): TripParticipant
     {
@@ -561,13 +565,14 @@ class TripJoinRequestService
 
     /**
      * The inverse of attachPassengerToTripGroup, but deliberately NOT built on
-     * resyncTripSplit — that method deletes and recreates every participant's
-     * TripPayment row for the trip, which would wipe other passengers'
-     * already-paid/pending-confirmation records just because one passenger
-     * left. This only ever touches the departing passenger's own rows, so
-     * nobody else's fare or payment status can be affected by someone else
-     * cancelling. Fare is deliberately NOT re-split among the remaining
-     * passengers either, for the same reason — that's a separate decision.
+     * resyncTripSplit. That method deletes and rebuilds the TripPayment row of
+     * every participant on the trip, which would wipe out other passengers'
+     * paid or awaiting confirmation records just because one person left.
+     *
+     * This only touches the leaving passenger's own rows, so nobody else's
+     * fare or payment status changes because of someone else cancelling. For
+     * the same reason the fare is not re-split among those who remain, which
+     * would be a separate decision.
      */
     private function detachPassengerFromTripGroup(Trip $baseTrip, int $passengerId): void
     {
@@ -585,7 +590,7 @@ class TripJoinRequestService
 
             if ($hasProcessedPayment) {
                 throw ValidationException::withMessages([
-                    'request' => 'Cannot cancel — a payment for this trip has already been processed. Contact the driver directly.',
+                    'request' => 'Cannot cancel because a payment for this trip has already been processed. Please contact the driver directly.',
                 ]);
             }
         }
@@ -596,9 +601,9 @@ class TripJoinRequestService
 
             $trip->update(['participant_count' => (int) TripParticipant::query()->where('trip_id', $trip->id)->count()]);
 
-            // A cancellation frees a seat — reopen the trip for new requests if
-            // it had auto-closed for being full (mirrors the auto-close in
-            // attachPassengerToTripGroup when the last seat gets taken).
+            // Cancelling frees a seat, so reopen the trip for new requests if
+            // it had closed itself for being full. This mirrors the automatic
+            // close in attachPassengerToTripGroup when the last seat is taken.
             if (! $trip->is_open_for_request && $trip->visibility === 'public' && $trip->seat_limit) {
                 $taken = (int) TripParticipant::query()->where('trip_id', $trip->id)->where('is_driver', false)->count();
                 if ($taken < (int) $trip->seat_limit) {

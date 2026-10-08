@@ -10,13 +10,14 @@ use Illuminate\Support\Facades\DB;
 class ReportService
 {
     /**
-     * $dateFrom/$dateTo scope the metrics that have a natural date to scope
-     * by — trips/fare on trip_datetime, payments via their trip's
-     * trip_datetime (same join pattern monthlyTripSummary() uses), users on
-     * created_at. Both null (the default) reproduces the exact all-time
-     * behaviour this method always had. Every other ReportService method
-     * stays all-time — this is deliberately the only one date-scoped, since
-     * it's what the report's top-line KPI cards read from.
+     * $dateFrom and $dateTo narrow the metrics that have a sensible date to
+     * filter on. Trips and fare use trip_datetime, payments reach their trip's
+     * trip_datetime through the same join monthlyTripSummary() uses, and users
+     * use created_at. Leaving both null, which is the default, gives the
+     * all time figures this method has always returned.
+     *
+     * This is the only method here that accepts a date range, because it feeds
+     * the KPI cards at the top of the report. Everything else stays all time.
      */
     public function overview(?string $dateFrom = null, ?string $dateTo = null): array
     {
@@ -43,11 +44,11 @@ class ReportService
             $userQuery->where('created_at', '<=', $to);
         }
 
-        // Neither of these has its own date concept elsewhere in this class
-        // (all-time in every other report method too) — when a range is
-        // active here, approximate via the row's own created_at so these two
-        // KPIs still narrow along with the rest of the overview instead of
-        // staying stuck at an all-time count that no longer matches the
+        // Neither of these has a date of its own anywhere else in this class,
+        // since every other report method is all time. When a range is active
+        // here, the row's created_at is used as an approximation so these two
+        // cards narrow along with the rest of the overview rather than sitting
+        // at an all time count that no longer matches the
         // other cards on the same page.
         $customRouteQuery = $this->customRoutePoints();
         $joinRequestQuery = DB::table('trip_join_requests');
@@ -117,8 +118,8 @@ class ReportService
             ->get()
             ->keyBy('month_key');
 
-        // New-signups-per-month — platform growth has no visibility anywhere
-        // else in these reports, so it rides along on the same month_key.
+        // New sign ups per month. Platform growth is not shown anywhere else
+        // in these reports, so it is attached to the same month_key.
         $userRows = DB::table('users')
             ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as new_users")
             ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
@@ -205,8 +206,9 @@ class ReportService
     }
 
     /**
-     * Driver-level leaderboard — topRoutes() ranks routes, but nothing
-     * ranked the people actually driving them. Same shape/conventions as
+     * A leaderboard of drivers. topRoutes() ranks the routes themselves, but
+     * nothing ranked the people actually driving them. It follows the same
+     * shape and conventions as
      * topRoutes() (is_return_trip excluded so a round trip isn't double
      * counted; 'recorded'+'completed' matches the completed-trip definition
      * used everywhere else, e.g. TripService/overview()).
@@ -305,9 +307,10 @@ class ReportService
             $fareAiTrips + $joinRequestsDecided
         );
 
-        // Average match score is only meaningful once real recommendation
-        // logs exist — no fabricated fallback number here (there used to be
-        // a hardcoded 88.5% shown as if measured, which was misleading).
+        // The average match score only means something once real
+        // recommendation logs exist, so there is no invented fallback figure
+        // here. An earlier version displayed a hardcoded 88.5% as though it had
+        // been measured, which was misleading.
         // avg_match_score_measured tells the view whether to show the
         // percentage or a "not yet measured" state.
         $avgMatchScore = $recommendationLogs > 0
@@ -365,8 +368,9 @@ class ReportService
                 'outstanding_amount' => $outstandingAmount,
                 // by_level isn't rendered anywhere yet (unlike the real
                 // passenger_risk_profiles branch below, whose avg_score is a
-                // genuine AVG()). Its avg_score here is illustrative only —
-                // compute a real one from payment data before ever displaying it.
+                // genuine AVG()). The avg_score here is only an illustration,
+                // so work out a real one from payment data before showing it
+                // anywhere.
                 'by_level' => [
                     ['risk_level' => 'Low Risk',  'total' => max(0, $totalProfiles - $highRisk), 'avg_score' => 10.0],
                     ['risk_level' => 'High Risk', 'total' => $highRisk,                          'avg_score' => 75.0],
@@ -401,10 +405,10 @@ class ReportService
     /**
      * ai_usage_logs is written on every chat/fare-advice/route-recommendation
      * call (app/Services/AiUsageLogger.php) but was never read anywhere
-     * outside that write path — no cost/spend visibility existed before this.
-     * Deliberately no dollar estimate: Anthropic pricing changes over time
-     * and hardcoding a rate risks silently going stale, whereas call/token
-     * counts already show the trend (usage up/down) without that risk.
+     * outside that write path, so there was no view of spending at all before
+     * this. There is no dollar estimate on purpose. Anthropic pricing changes
+     * over time and a hardcoded rate would quietly go out of date, while call
+     * and token counts already show whether usage is rising or falling.
      */
     public function aiUsageSummary(): array
     {
@@ -428,8 +432,8 @@ class ReportService
     /**
      * Heaviest AI users in the last 30 days. The all-time totals above can't
      * tell an admin whether usage is spread evenly or one account is
-     * hammering the chatbot (a runaway client bug, or genuine abuse) — this
-     * is what actually surfaces that.
+     * hammering the chatbot, whether from a runaway bug in the client or real
+     * abuse. This is the view that shows it.
      */
     private function aiUsageTopUsers(int $limit = 8): array
     {
@@ -453,8 +457,8 @@ class ReportService
 
     /**
      * Calls per day for the last 14 days. A single all-time total flattens a
-     * spend spike into invisibility — this is what actually lets an admin
-     * spot one, day by day, without needing a charting library.
+     * sudden spike into the average and hides it. Splitting it by day lets an
+     * admin spot one without needing a charting library.
      */
     private function aiUsageDailyTrend(int $days = 14): array
     {
@@ -478,8 +482,9 @@ class ReportService
     /**
      * Route points where the passenger asked for a custom pickup or drop-off
      * instead of the route's default. Was the same where() repeated in
-     * overview(), customRouteSummary() and thesisAlignmentSummary() — one
-     * definition means the "custom" definition can't drift between them.
+     * overview(), customRouteSummary() and thesisAlignmentSummary(). Keeping a
+     * single definition means what counts as "custom" cannot drift apart
+     * between them.
      */
     private function customRoutePoints(): \Illuminate\Database\Query\Builder
     {

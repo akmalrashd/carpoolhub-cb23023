@@ -15,14 +15,18 @@ use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
- * Orchestrates the ToyyibPay checkout flow and its idempotency. Three
- * callers can each finalize the same gateway_transactions row — the Return
- * URL redirect (works on localhost), the server-to-server Callback (cannot
- * reach localhost per ToyyibPay's own docs, but is the authoritative path
- * once this app is deployed publicly), and a scheduled reconciliation job
- * (catches a passenger who closes the tab before the Return URL fires) —
- * and all three converge on finalize()'s row lock, so whichever gets there
- * first does the real work and the other two are no-ops.
+ * Runs the ToyyibPay checkout flow and makes sure a payment is only ever
+ * finalised once.
+ *
+ * Three different paths can try to finalise the same gateway_transactions
+ * row. The Return URL redirect runs when the passenger is sent back to the
+ * site and works even on localhost. The server to server callback cannot
+ * reach localhost, which ToyyibPay documents, but it is the path to trust
+ * once the app is deployed publicly. A scheduled reconciliation job covers
+ * the passenger who closes the tab before being redirected.
+ *
+ * All three end up at the row lock inside finalize(), so whichever arrives
+ * first does the actual work and the other two find nothing left to do.
  */
 class GatewayPaymentService
 {
@@ -98,10 +102,11 @@ class GatewayPaymentService
     }
 
     /**
-     * Combines every selected TripPayment into ONE ToyyibPay bill — one
-     * gateway fee for the whole batch instead of one per trip, which is the
-     * entire point of offering this from the bulk "Mark Selected as Paid"
-     * action. Only sensible (and only offered) when every selected payment
+     * Puts every selected TripPayment onto a single ToyyibPay bill, so the
+     * passenger pays one gateway fee for the whole batch instead of one fee
+     * per trip. That saving is the whole reason the bulk "Mark Selected as
+     * Paid" action offers this. It only makes sense, and is only offered, when
+     * every selected payment
      * is owed to the SAME driver: a single bill can only settle to one
      * wallet, and splitting one payment across several drivers' wallets
      * would need per-line allocation the UI doesn't attempt to show.
@@ -198,7 +203,7 @@ class GatewayPaymentService
             ]);
 
             throw ValidationException::withMessages([
-                'payment' => 'Could not start online payment right now — please try direct bank transfer instead.',
+                'payment' => 'Could not start online payment right now. Please try a direct bank transfer instead.',
             ]);
         }
 
@@ -225,9 +230,9 @@ class GatewayPaymentService
             return $this->returnResult($txn);
         }
 
-        // The Return URL's own query-string status is unsigned and forgeable
-        // (anyone could hit this URL with an arbitrary status_id) — pull the
-        // authoritative status from ToyyibPay's API instead of trusting it.
+        // The status in the Return URL query string is not signed, so anyone
+        // could open this URL with any status they like. The real status is
+        // read back from ToyyibPay's API instead of trusting what arrived.
         $remote = $this->toyyibPayService->getBillTransactions($billCode);
         $status = $this->normalizeStatus($remote['billpaymentStatus'] ?? null);
         $refno = $remote['billpaymentInvoiceNo'] ?? null;
@@ -250,10 +255,10 @@ class GatewayPaymentService
     }
 
     /**
-     * Never throws — an unverifiable or malformed callback is logged and
-     * ignored, not fatal, matching TelegramController::webhook()'s "ack
-     * fast, retry-storm otherwise" reasoning for the controller that calls
-     * this.
+     * Never throws. A callback that cannot be verified, or that arrives
+     * malformed, is logged and ignored rather than treated as fatal. This
+     * follows the same reasoning as TelegramController::webhook(), where
+     * answering quickly avoids the sender retrying over and over.
      */
     public function handleCallback(array $payload): void
     {
@@ -280,8 +285,9 @@ class GatewayPaymentService
                 return;
             }
 
-            // The hash IS the proof here, unlike the Return URL — use the
-            // callback's own fields directly, no secondary API call needed.
+            // Unlike the Return URL, the hash on a callback is the proof that
+            // it is genuine, so the fields it carries can be used directly
+            // without a second API call.
             $status = $this->normalizeStatus($payload['status'] ?? null);
             $this->finalize($txn, $status, $payload['refno'] ?? null, 'callback', $payload);
         } catch (Throwable $e) {
@@ -314,8 +320,8 @@ class GatewayPaymentService
 
             if ($status === 'unknown') {
                 // Bill's own 1-day expiry window has long passed with still no
-                // transaction record at all — treat as abandoned rather than
-                // checking forever.
+                // transaction record at all, so treat it as abandoned instead
+                // of checking it forever.
                 if ($txn->created_at->lt(now()->subDay())) {
                     $txn->update([
                         'status' => GatewayTransaction::STATUS_EXPIRED,
@@ -339,8 +345,9 @@ class GatewayPaymentService
      * The single lock-guarded core all three callers above converge on.
      * Whichever acquires the lock first while status is still 'pending' does
      * the real work; every other caller sees a non-pending status inside the
-     * lock and returns immediately as a no-op — this IS the idempotency
-     * guard covering webhook retries and Return-URL/Callback races.
+     * lock and returns without doing anything. This is what keeps a payment
+     * from being applied twice when a webhook is retried or when the Return
+     * URL and the callback arrive at the same moment.
      */
     private function finalize(GatewayTransaction $txn, string $status, ?string $refno, string $via, ?array $rawPayload = null): GatewayTransaction
     {
@@ -381,11 +388,11 @@ class GatewayPaymentService
                     Log::warning('ToyyibPay payment finalized but trip_payment link is gone', ['gateway_transaction_id' => $locked->id]);
                 }
             } elseif (! empty($locked->trip_payment_ids)) {
-                // Bulk bill — confirm every line individually. A line whose
-                // trip_payment row was hard-deleted since (a trip edit) is
-                // skipped for confirmation, but the wallet is still credited
-                // below for the full snapshotted total regardless — the
-                // money is real either way.
+                // A bulk bill, so each line is confirmed on its own. If a
+                // trip edit deleted one of those trip_payment rows in the
+                // meantime, that line is skipped, but the wallet is still
+                // credited below for the full amount recorded on the bill,
+                // because the passenger really did pay it.
                 foreach ($locked->trip_payment_ids as $line) {
                     $linePayment = TripPayment::find($line['trip_payment_id'] ?? null);
                     if ($linePayment) {
@@ -399,9 +406,9 @@ class GatewayPaymentService
                 }
             }
 
-            // Credit the wallet even if the trip_payment link above was lost
-            // to a trip edit — the money is real regardless of whether our
-            // own bookkeeping row for it survived.
+            // Credit the wallet even when the trip_payment link above was lost
+            // to a trip edit. The money came in either way, whether or not our
+            // own record of it survived.
             $driver = $locked->driver ?? User::find($locked->driver_id);
             if ($driver) {
                 $this->walletService->credit(
@@ -422,9 +429,9 @@ class GatewayPaymentService
 
     /**
      * FPX Standard/personal-banking (RM1 flat) and DuitNow QR (1% or RM1,
-     * whichever higher) cost the same in practice for any fare under RM100 —
-     * this one formula covers both without needing to know in advance which
-     * channel the passenger will pick.
+     * whichever is higher) work out to the same amount for any fare under
+     * RM100, so one formula covers both and there is no need to know which
+     * channel the passenger will choose.
      */
     private function computeFee(float $amountDue): float
     {

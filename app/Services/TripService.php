@@ -37,10 +37,10 @@ class TripService
 
         // Eight of these relations load users, and users carries the two
         // multi-megabyte base64 image columns. Without withoutHeavyMedia() one
-        // page of trips materialises the same driver/passenger rows — blobs and
-        // all — once per relation. The trips views never render either column,
-        // so scoping them out is invisible. Matches PaymentService and
-        // DashboardController, which already do this.
+        // page of trips would load the same driver and passenger rows, images
+        // included, once for every relation. The trips views never show either
+        // column, so leaving them out changes nothing on screen. PaymentService
+        // and DashboardController already do the same.
         $withoutHeavyMedia = fn ($relationQuery) => $relationQuery->withoutHeavyMedia();
 
         $query = $this->baseUserTripsQuery($user)
@@ -60,10 +60,10 @@ class TripService
                 'returnTrip.conversation',
             ]);
 
-        // A hard override, not a filter combinable with the others — reached
-        // only via the Home banner / notification "Rate" link
-        // (?needs_rating=1), never a UI control on this page, so nothing
-        // else needs to layer on top of it.
+        // This one overrides the other filters rather than combining with
+        // them. It is only reached through the Rate link on the home banner and
+        // in notifications (?needs_rating=1), never from a control on this
+        // page, so nothing else has to stack on top of it.
         if (! empty($filters['needs_rating'])) {
             $eligibleTripIds = $this->driverRatingService->eligibleTripsToRate($user)->pluck('id');
             $query->whereIn('id', $eligibleTripIds);
@@ -92,9 +92,9 @@ class TripService
 
         // One grouped query replaces five separate COUNTs over the same filtered
         // set (each of which re-ran the whereHas participants subquery). Summing
-        // every returned status — not just the ones named below — keeps 'all'
-        // identical to the old unconditional count() even if a status appears
-        // that no tab covers.
+        // every status that comes back, rather than only the ones named below,
+        // keeps the 'all' figure the same as a plain count() even if a status
+        // turns up that no tab covers.
         $byStatus = (clone $query)
             ->select('status', DB::raw('COUNT(*) as aggregate'))
             ->groupBy('status')
@@ -421,10 +421,11 @@ class TripService
     }
 
     /**
-     * Fields worth telling recipients about when they change — deliberately
-     * excludes derived/internal columns like status (recomputed from
-     * trip_datetime, not something the actor directly chose) and the fare/
-     * participant-count fields (already covered by the separate "Removed
+     * The fields worth telling people about when they change. Derived or
+     * internal columns are left out on purpose. Status is one of those, since
+     * it is worked out from trip_datetime rather than chosen by anyone. The
+     * fare and participant count fields are left out too, because they are
+     * already covered by the separate "Removed
      * from Trip" notification when someone actually drops off the trip).
      *
      * @var array<string, string>
@@ -445,15 +446,16 @@ class TripService
 
         $beforeChange = $trip->only(array_keys(self::TRIP_CHANGE_FIELD_LABELS));
 
-        // The trip's OWNER, not whoever is submitting the edit — ensureTripOwner()
-        // above allows admin to edit any driver's trip, but every one of these
-        // driver-scoped lookups (saved route ownership, accepted-connections
-        // check for participant_ids, driver's own seat in the split) must stay
-        // scoped to the actual driver. Using $actor here meant an admin editing
-        // someone else's trip would see an empty saved-route dropdown (routes
-        // are scoped by owner), and — worse — "include driver in split" would
-        // silently add the ADMIN as a fare-splitting participant instead of the
-        // real driver.
+        // This has to be the trip owner, not whoever submitted the edit.
+        // ensureTripOwner() above lets an admin edit any driver's trip, but the
+        // lookups below all belong to the driver: which saved routes they own,
+        // which connections they have accepted for participant_ids, and whether
+        // their own seat counts in the fare split.
+        //
+        // Using the actor here caused two bugs. An admin editing someone
+        // else's trip saw an empty saved route dropdown, because routes belong
+        // to their owner, and worse, "include driver in split" quietly added
+        // the admin as a fare paying participant instead of the real driver.
         $driver = $trip->driver;
 
         $savedRoute = $this->resolveOwnedSavedRoute($driver, (int) $data['saved_route_id']);
@@ -523,7 +525,8 @@ class TripService
             $removedIds = $previousPassengerIds->diff($participantIds)->values();
             if ($removedIds->isNotEmpty()) {
                 $label = $this->tripLabel($trip);
-                // ::create() per row, not insert() — see notifyParticipants() docblock.
+                // Created one row at a time rather than a bulk insert. The
+                // notifyParticipants() docblock explains why.
                 foreach ($removedIds as $userId) {
                     UserNotification::query()->create([
                         'user_id' => $userId,
@@ -539,10 +542,10 @@ class TripService
 
             $this->notifyParticipants($trip, $actor->name, 'Trip Updated', 'trip', $changeSummary);
 
-            // notifyParticipants() deliberately excludes the driver — correct
-            // when the driver is the one editing, but when admin makes the
-            // edit the driver is a bystander to their own trip changing and
-            // needs telling same as any passenger would.
+            // notifyParticipants() leaves the driver out, which is right when
+            // the driver is the one editing. When an admin makes the change the
+            // driver is a bystander to their own trip changing, so they need
+            // telling just like the passengers do.
             if ($actor->id !== $trip->driver_id) {
                 $this->notifyDriver(
                     $trip,
@@ -572,9 +575,9 @@ class TripService
         $label = $this->tripLabel($baseTrip);
 
         $driverId = $baseTrip->driver_id;
-        // "by the driver" was hardcoded here regardless of who actually
-        // cancelled — wrong and misleading once admin (who shares this same
-        // delete() path via ensureTripOwner()) is the one acting.
+        // This used to always say "by the driver" no matter who cancelled,
+        // which was misleading once an admin could reach the same delete()
+        // path through ensureTripOwner().
         $isAdminActing = $actor->id !== $driverId;
         $cancelledByText = $isAdminActing ? "an admin ({$actor->name})" : 'the driver';
 
@@ -586,10 +589,10 @@ class TripService
 
             $this->logTripCancellation($tripIds, $actor, $reason);
 
-            // Must run before the hard-delete below — scheduleClosure() looks
-            // the conversation up by trip_id, and once the Trip row is gone
-            // that's still fine (nullOnDelete), but doing it first keeps this
-            // simple and avoids relying on that FK timing.
+            // Has to run before the delete below. scheduleClosure() finds the
+            // conversation by trip_id, and while that still works after the
+            // trip row is gone, doing it first avoids depending on how the
+            // foreign key behaves at that moment.
             $this->chatService->scheduleClosure($baseTrip, Conversation::PURGE_REASON_TRIP_CANCELLED);
 
             UserNotification::query()
@@ -600,13 +603,14 @@ class TripService
             Trip::query()->whereIn('id', $tripIds)->delete();
 
             // driver_ratings.trip_id cascades on the delete above, so any
-            // ratings already given for these trips just vanished — bring
-            // the driver's cached aggregate back in sync with a real rescan
-            // rather than leaving it overstating their count/average.
+            // ratings already given for these trips have just disappeared, so
+            // recount them properly instead of leaving the driver's stored
+            // average and count higher than they should be.
             $this->driverRatingService->recomputeForDriver($driverId);
 
             if ($passengerIds->isNotEmpty()) {
-                // ::create() per row, not insert() — see notifyParticipants() docblock.
+                // Created one row at a time rather than a bulk insert. The
+                // notifyParticipants() docblock explains why.
                 foreach ($passengerIds as $userId) {
                     UserNotification::query()->create([
                         'user_id' => $userId,
@@ -621,9 +625,9 @@ class TripService
             }
 
             // The trip row is gone by this point, so the driver can't be
-            // notified via notifyDriver()'s usual related_type:'trip' link —
-            // 'system' (same as the passenger notice above) is the only
-            // sensible target once there's nothing left to link back to.
+            // notified through the usual related_type of 'trip', since there is
+            // no trip left to open. Using 'system', the same as the passenger
+            // notice above, is the only sensible option here.
             if ($isAdminActing) {
                 UserNotification::query()->create([
                     'user_id' => $driverId,
@@ -640,8 +644,9 @@ class TripService
     }
 
     /**
-     * For the admin Audit Log's "Trip Cancellations" tab — browses
-     * trip_cancellation_logs, the trail logTripCancellation() writes.
+     * Powers the Trip Cancellations tab in the admin Audit Log by reading
+     * trip_cancellation_logs, which is the trail logTripCancellation()
+     * writes.
      */
     public function paginateCancellationLogs(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
@@ -671,9 +676,10 @@ class TripService
 
     /**
      * Snapshots every trip in $tripIds (plus its participants/payments)
-     * before delete() hard-deletes them — once that runs, cascadeOnDelete()
-     * on trip_participants/trip_payments takes the rest with it and the trip
-     * is unrecoverable (there's no soft-delete anywhere in this app). A
+     * before delete() removes them for good. Once that runs, the cascade on
+     * trip_participants and trip_payments takes everything else with it and
+     * the trip cannot be recovered, since nothing in this app is soft deleted.
+     * A
      * dispute like "the driver cancelled 10 minutes before departure" needs
      * something to check against; this is that something.
      */
@@ -818,10 +824,10 @@ class TripService
 
         // Payments are rebuilt wholesale just below. Snapshot what each
         // passenger has already settled BEFORE the delete: without this, editing
-        // a trip — even only its note or departure time — reset every payment
-        // row to 'unpaid' and discarded marked_paid_at / confirmed_by /
-        // confirmed_at / payment_method / remarks, silently destroying the
-        // record that a passenger had paid and a driver had confirmed it.
+        // a trip, even just its note or departure time, set every payment row
+        // back to unpaid and threw away marked_paid_at, confirmed_by,
+        // confirmed_at, payment_method and remarks. That quietly destroyed the
+        // proof that a passenger had paid and a driver had confirmed it.
         // On trip creation this is empty, so that path is byte-for-byte the same.
         $settledPayments = TripPayment::query()
             ->where('trip_id', $trip->id)
@@ -985,10 +991,11 @@ class TripService
     }
 
     /**
-     * Uses ::create() per row (not a bulk insert) on purpose — UserNotificationObserver
-     * only fires on the Eloquent "created" event, which is what actually sends the
-     * push/Telegram notification. A bulk insert() skips that silently, leaving only
-     * the in-app row behind with no delivery at all.
+     * Creates the notifications one row at a time instead of using a bulk
+     * insert, on purpose. UserNotificationObserver listens for Eloquent's
+     * created event, and that observer is what actually sends the push and
+     * Telegram message. A bulk insert skips the event entirely, which would
+     * leave the row sitting in the app with nothing ever delivered.
      */
     private function notifyParticipants(Trip $trip, string $actorName, string $title, string $type, ?string $changeSummary = null): void
     {
@@ -1017,10 +1024,11 @@ class TripService
     }
 
     /**
-     * Builds a human-readable "X changed from A to B" list for a trip edit —
-     * reused for both the participants' notification and the driver's (when
-     * admin is the one editing). Compares TRIP_CHANGE_FIELD_LABELS fields
-     * only; see that constant's docblock for why the rest are excluded.
+     * Builds the readable "X changed from A to B" list shown after a trip is
+     * edited. The same text is used for the passengers' notification and for
+     * the driver's, when an admin made the change. Only the fields listed in
+     * TRIP_CHANGE_FIELD_LABELS are compared, and that constant explains why
+     * the others are left out.
      */
     private function summarizeTripChanges(array $before, array $after): string
     {
