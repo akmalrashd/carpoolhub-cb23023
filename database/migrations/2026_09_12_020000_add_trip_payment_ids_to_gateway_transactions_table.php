@@ -8,11 +8,12 @@ return new class extends Migration
 {
     /**
      * Supports a single ToyyibPay bill covering MULTIPLE trip_payments (a
-     * passenger paying everything owed to one driver in one transaction —
-     * cheaper than one gateway fee per trip). trip_payment_id stays the path
+     * passenger paying everything owed to one driver in a single transaction,
+     * which is cheaper than paying one gateway fee per trip). trip_payment_id
+     * stays the path
      * for the existing single-payment flow; this column is only populated
      * for bulk bills, as a self-contained snapshot ([{trip_payment_id,
-     * amount}, ...]) rather than bare ids — trip_payments rows can be
+     * amount}, ...]) rather than bare ids, because trip_payments rows can be
      * hard-deleted on a trip edit (see gateway_transactions' own migration),
      * so the amount has to survive that independently of the row itself.
      */

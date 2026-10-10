@@ -7,13 +7,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Append-only — no edit/delete in v1, matching the ledger-style tables
+     * Append only, with no editing or deleting in this version, matching the
+     * ledger style tables
      * this app already has (wallet_transactions, trip_payment_status_logs):
      * updated_at is never used, see Message::UPDATED_AT = null.
      *
      * sender_id is nullOnDelete (not cascade) so a later account deletion
-     * doesn't blow away the rest of the group's chat history — the message
-     * just renders against a missing sender.
+     * does not take the rest of the group's chat history with it. The message
+     * simply renders with a missing sender.
      */
     public function up(): void
     {

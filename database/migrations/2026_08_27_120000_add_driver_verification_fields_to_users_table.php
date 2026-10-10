@@ -21,7 +21,8 @@ return new class extends Migration
         });
 
         // Backfill existing drivers so nobody gets mislabeled: is_active=true is
-        // treated as already approved, is_active=false as still pending — this
+        // treated as already approved and is_active=false as still pending.
+        // This
         // matches exactly what the admin queue query already assumed before
         // this migration (User::where('role','driver')->where('is_active', false)).
         DB::table('users')->where('role', 'driver')->where('is_active', true)->update([

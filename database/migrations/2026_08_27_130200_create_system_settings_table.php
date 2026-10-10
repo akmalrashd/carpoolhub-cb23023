@@ -18,8 +18,8 @@ return new class extends Migration
         });
 
         // Seeded with FuelPriceService::FALLBACK's current values exactly, so
-        // nothing changes on day one — this is a new editable admin override,
-        // not a replacement default.
+        // nothing changes on the day this runs. It adds an admin editable
+        // override rather than replacing the defaults.
         $now = now();
         DB::table('system_settings')->insert([
             ['key' => 'fuel_price_ron95_budi', 'value' => '1.99', 'updated_by' => null, 'created_at' => $now, 'updated_at' => $now],

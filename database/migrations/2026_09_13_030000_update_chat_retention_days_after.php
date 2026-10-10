@@ -8,8 +8,8 @@ return new class extends Migration
     /**
      * Raised from 3 to 30 days: a passenger reporting a scam needs time to
      * notice something is wrong, export the chat, and file the report
-     * before admin has anything left to cross-check it against — 3 days
-     * after the trip ends was nowhere near enough runway for that.
+     * before the admin has anything left to check it against. Three days after
+     * the trip ends was nowhere near enough time for that.
      */
     public function up(): void
     {

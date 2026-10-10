@@ -12,8 +12,9 @@ return new class extends Migration
      * DriverRatingService::eligibleTripsToRate). 14 days, not shorter: a
      * single star-tap has no urgency the way a payment deadline does, and
      * it needs enough runway for the daily reminder + Telegram touchpoints
-     * to reach someone who doesn't open the app every day — the in-chat
-     * CTA alone is only live for the first ~3 days (chat_retention_days_after).
+     * to reach someone who does not open the app every day. The button inside
+     * the chat only lives for the first few days, however long
+     * chat_retention_days_after allows.
      */
     public function up(): void
     {

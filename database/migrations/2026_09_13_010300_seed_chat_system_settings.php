@@ -7,9 +7,9 @@ return new class extends Migration
 {
     /**
      * Admin-editable via the existing SystemSetting::get/set store (same
-     * pattern as gateway_fee_flat_amount etc.) — how many days before a trip
-     * its chat opens, and how many days after the trip ends/is cancelled it
-     * gets purged.
+     * pattern as gateway_fee_flat_amount and the rest). They set how many days
+     * before a trip its chat opens, and how many days after the trip ends or is
+     * cancelled the chat is purged.
      */
     public function up(): void
     {

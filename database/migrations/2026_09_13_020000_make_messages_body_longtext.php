@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Widened to hold a compressed base64 image data URI (photo-in-chat) the
  * same way users.profile_photo/selfie_photo/driving_license_photo already
- * do — TEXT's ~64KB cap is too tight for that, LONGTEXT is this app's
+ * do. The 64KB limit on TEXT is too small for that, and LONGTEXT is this
+ * app's
  * established column type for inline base64 images.
  */
 return new class extends Migration

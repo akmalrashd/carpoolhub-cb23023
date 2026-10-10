@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * A driver's cached aggregate rating — one row per driver, mirroring
+     * A driver's stored average rating, one row per driver, following the
+     * same shape as
      * PassengerRiskProfile's shape (a separate table, not columns bolted
      * onto users). rating_sum is the real source of truth (an exact
      * integer); rating_average is a derived cache recomputed from

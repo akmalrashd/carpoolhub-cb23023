@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 return new class extends Migration
 {
     /**
-     * Route-facing identifier for /chats/{conversation} — see
+     * The identifier used in the /chats/{conversation} URL. See
      * App\Models\Concerns\HasPublicId for why this exists and why it's
      * additive (the sequential id keeps working exactly as before for
      * every internal relationship).

@@ -13,7 +13,7 @@ return new class extends Migration
      * so a disputed balance can be checked entry-by-entry instead of trusting
      * a single mutable column. related_type/related_id is a loose pointer
      * (no FK), matching notifications.related_type/related_id already in
-     * this codebase — it can point at a gateway_transactions or
+     * this codebase. It can point at a gateway_transactions or
      * withdrawal_requests row without a hard constraint either way.
      */
     public function up(): void

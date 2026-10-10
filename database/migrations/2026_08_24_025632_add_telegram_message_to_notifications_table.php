@@ -9,7 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            // Nullable — TelegramService falls back to `message` when absent.
+            // Nullable, because TelegramService falls back to `message` when
+            // this is empty.
             // Exists because Telegram can render a nicely formatted, multi-line
             // breakdown (HTML, line breaks) while the in-app views collapse
             // newlines and hard-truncate to 2 lines, so a notification that

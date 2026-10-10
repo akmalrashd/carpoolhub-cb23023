@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('trip_participants', function (Blueprint $table) {
-            // Reason text for the two attendance_status writes that need one —
-            // 'removed' (driver-stated, mandatory) and 'absent' (no reason
-            // required, so this stays nullable for that case).
+            // Holds the reason for the two attendance_status changes that can
+            // carry one. 'removed' always needs a reason from the driver, while
+            // 'absent' does not, which is why the column stays nullable.
             $table->text('attendance_note')->nullable()->after('attendance_source');
         });
     }

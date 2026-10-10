@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Schema;
  * Images (profile photo, DuitNow / TnG QR) are now stored as compressed base64
  * data URIs in the DB, like selfie_photo and driving_license_photo already are.
  * These columns were varchar(255) (they held a storage path), which cannot hold
- * a data URI, so widen them to longText. Existing rows keep their old path value
- * — the User image accessors resolve either form.
+ * a data URI, so they are widened to longText. Existing rows keep their old
+ * path value, and the image accessors on the User model handle either form.
  */
 return new class extends Migration
 {

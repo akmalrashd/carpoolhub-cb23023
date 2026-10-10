@@ -9,8 +9,9 @@ use Illuminate\Support\Str;
 return new class extends Migration
 {
     /**
-     * Route-facing identifier for /trips/{trip}, /explore/{trip}, etc. —
-     * see App\Models\Concerns\HasPublicId. Additive only: trip_id foreign
+     * The identifier used in URLs such as /trips/{trip} and /explore/{trip}.
+     * See App\Models\Concerns\HasPublicId. This only adds a column, so trip_id
+     * foreign
      * keys everywhere else keep referencing the untouched sequential id.
      */
     public function up(): void

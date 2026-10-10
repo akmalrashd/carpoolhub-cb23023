@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Schema;
  *
  *     select * from notifications where user_id = ? order by created_at desc limit 6
  *
- * (NotificationService::recentForUser — latest() sorts on created_at.)
+ * (NotificationService::recentForUser, where latest() sorts on created_at.)
  *
  * notifications already carries (user_id), (is_read), (user_id, is_read),
- * (related_type, related_id) and (user_id, type) — but nothing that covers the
+ * (related_type, related_id) and (user_id, type), but nothing that covers the
  * ORDER BY. MySQL therefore reads every row for that user and filesorts them on
  * each poll. This composite lets it walk the index backwards and stop after 6.
  */

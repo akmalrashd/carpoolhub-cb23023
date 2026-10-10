@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * left_at is set, not row-deleted, when a passenger cancels/is removed —
-     * that keeps a "X left the trip" system message and the rest of the
+     * When a passenger cancels or is removed the row gets a left_at value
+     * instead of being deleted. That keeps the "X left the trip" message and
+     * the rest of the
      * group's read history coherent instead of silently erasing who used to
      * be here. Message-send access is denied once left_at is set; read
      * access continues until the conversation itself is purged.

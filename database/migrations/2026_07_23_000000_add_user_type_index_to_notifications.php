@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
  * queries on every notifications page load and header refresh. user_id alone is
  * indexed (the foreign key), but the composite (user_id, type) is not, so each
  * count scans the user's whole notification set. This adds the composite index.
- * Behaviour is unchanged — only the query plan improves.
+ * Nothing about the behaviour changes here, only the query plan.
  */
 return new class extends Migration
 {

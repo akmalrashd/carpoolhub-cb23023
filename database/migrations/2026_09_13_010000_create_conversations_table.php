@@ -10,8 +10,9 @@ return new class extends Migration
      * One row per trip that has a chat. trip_id is nullOnDelete (not
      * cascade) because TripService::delete() hard-deletes the trip row the
      * moment a driver cancels, but the conversation must survive that for
-     * the post-cancellation grace period — so trip_ref_snapshot/route_snapshot/
-     * trip_datetime_snapshot are copied at creation time, the same
+     * the grace period after a cancellation. That is why trip_ref_snapshot,
+     * route_snapshot and trip_datetime_snapshot are copied when the
+     * conversation is created, following the same
      * "denormalise because the source row can vanish or get rebuilt"
      * pattern already used for gateway_transactions.trip_id.
      *

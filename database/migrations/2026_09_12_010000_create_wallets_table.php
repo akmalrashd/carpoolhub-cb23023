@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * One row per driver — the single lockable balance that ToyyibPay
+     * One row per driver, holding the single lockable balance that ToyyibPay
      * payments credit and withdrawals debit (see WalletService). No
      * lifetime_earned/withdrawn counters: those are computed on read from
      * wallet_transactions so a cached total can never drift from the ledger.

@@ -7,9 +7,9 @@ return new class extends Migration
 {
     /**
      * Chats no longer hold sending behind a "days before departure" window
-     * (see ChatService::buildConversationAttributes()) — the setting this
-     * seeded is dead now, so drop the row rather than leave a stale,
-     * misleading one sitting in system_settings.
+     * (see ChatService::buildConversationAttributes()), so the setting this
+     * seeded no longer does anything. The row is dropped rather than left
+     * sitting in system_settings where it would only mislead.
      */
     public function up(): void
     {

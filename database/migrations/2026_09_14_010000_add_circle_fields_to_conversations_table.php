@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * A "circle" is a persistent, driver-owned Conversation that isn't tied
-     * to a single trip's lifecycle — it can be relinked across many private
+     * to the lifetime of one trip. It can be relinked across many private
      * trips over time (see ChatService::createCircle/linkCircleToTrip) and
      * is excluded from PurgeExpiredConversations entirely (only its old
      * messages get pruned, by PruneCircleMessages, not the conversation

@@ -8,9 +8,9 @@ return new class extends Migration
 {
     /**
      * TripService::delete() hard-deletes the trip row (and cascades its
-     * participants/payments) with no history kept anywhere — a dispute like
-     * "the driver cancelled 10 minutes before departure" currently has
-     * nothing to check against. This table is written right before that
+     * participants and payments) without keeping any history, so a dispute
+     * such as "the driver cancelled ten minutes before departure" has nothing
+     * to check against. This table is written right before that
      * delete, so trip_id is deliberately a plain column, not a real FK: the
      * row it describes will be gone by the time anyone reads this, same
      * reasoning as trip_payment_status_logs' nullOnDelete() choice. The

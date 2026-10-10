@@ -13,13 +13,14 @@ return new class extends Migration
             $table->string('google_id')->nullable()->unique()->after('email');
         });
 
-        // A Google-only account has no password to hash — native ->nullable()
+        // An account that only signs in with Google has no password to store.
+        // The native ->nullable()
         // ->change() needs doctrine/dbal, which this project doesn't install,
         // so this goes straight through the query builder instead.
         DB::statement('ALTER TABLE users MODIFY password VARCHAR(255) NULL');
 
         // This migration is what makes email verification enforced (the
-        // 'verified' middleware now gates the whole app) — without this,
+        // 'verified' middleware now guards the whole app). Without this,
         // every account that registered before today, none of which was ever
         // asked to verify anything, gets locked out the moment this deploys.
         // Grandfather them in as of when they joined.

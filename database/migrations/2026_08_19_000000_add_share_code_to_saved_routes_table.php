@@ -13,7 +13,8 @@ return new class extends Migration
             $table->char('share_code', 6)->nullable()->unique()->after('id');
         });
 
-        // Backfill existing rows — they predate this column, so each needs its
+        // Fill in the existing rows. They were created before this column
+        // existed, so each one needs its
         // own generated code before the column can be made required by future
         // code. Same alphabet as SavedRouteService::generateShareCode() so a
         // fresh install and this backfill produce indistinguishable codes.

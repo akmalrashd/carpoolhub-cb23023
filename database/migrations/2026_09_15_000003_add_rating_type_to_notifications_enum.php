@@ -7,10 +7,12 @@ return new class extends Migration
 {
     /**
      * notifications.type gets a dedicated 'rating' value (⭐ in
-     * TelegramService::TYPE_EMOJI) for driver-rating invites/reminders —
-     * a first-class recurring category on par with trip/payment/chat,
+     * TelegramService::TYPE_EMOJI) for the driver rating invites and
+     * reminders. It is a recurring category in its own right, alongside trip,
+     * payment and chat,
      * rather than burying it under 'system' (generic 🔔) or 'chat'
-     * (semantically wrong — this isn't about unread messages).
+     * (which would be wrong, since this has nothing to do with unread
+     * messages).
      */
     public function up(): void
     {

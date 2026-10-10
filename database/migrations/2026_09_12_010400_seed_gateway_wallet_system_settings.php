@@ -7,8 +7,9 @@ return new class extends Migration
 {
     /**
      * Admin-editable via the existing SystemSetting::get/set store (same
-     * pattern as the 4 fuel-price keys) — these are tunable business/pricing
-     * decisions, not secrets, so they don't belong in config/.env.
+     * pattern as the four fuel price keys). These are business and pricing
+     * decisions that need tuning, not secrets, so they do not belong in a
+     * config file or the .env.
      */
     public function up(): void
     {

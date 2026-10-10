@@ -26,7 +26,8 @@ use Illuminate\Support\Facades\Schema;
  *     - TripService::baseUserTripsQuery() -> latest('trip_datetime')  (My Trips list)
  *     - DashboardController upcomingCreatedTrips (driver_id + trip_datetime ORDER BY)
  *
- * Indexes never change query RESULTS, only the plan — this migration is behaviour-preserving.
+ * An index never changes the results of a query, only how MySQL reaches them,
+ * so nothing in the app behaves differently after this.
  */
 return new class extends Migration
 {

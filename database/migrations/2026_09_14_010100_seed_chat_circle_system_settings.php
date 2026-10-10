@@ -7,11 +7,12 @@ return new class extends Migration
 {
     /**
      * How many persistent circles a driver may own at once (UX clarity /
-     * light abuse-prevention, not a storage concern — retiring one is a
+     * light abuse prevention rather than a storage concern, since retiring one
+     * is a
      * single tap, see ChatService::deleteCircle), and how many days of
      * message history a circle keeps before old messages are pruned (the
      * circle/membership itself is never deleted by age, only by the owner
-     * explicitly retiring it — see PruneCircleMessages).
+     * explicitly retiring it, which PruneCircleMessages handles).
      */
     public function up(): void
     {

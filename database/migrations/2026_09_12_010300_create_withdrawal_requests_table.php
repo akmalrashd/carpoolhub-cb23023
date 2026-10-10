@@ -9,7 +9,8 @@ return new class extends Migration
     /**
      * A driver's request to cash out their wallet balance. destination_* is a
      * snapshot of users.payment_bank_name/payment_account_name/
-     * payment_account_number taken at request time — a later edit to the
+     * payment_account_number taken at the moment of the request, so a later
+     * edit to the
      * driver's Settings must never silently rewrite a historical request the
      * admin already reviewed or paid.
      *

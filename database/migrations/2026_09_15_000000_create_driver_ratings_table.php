@@ -7,13 +7,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * One row per (trip, rater) — a passenger rating the driver of a public
+     * One row per trip and rater, which is a passenger rating the driver of a
+     * public
      * trip they actually rode on. driver_id is a snapshot (not derived via
      * a join back to trips) so "all ratings for driver X" never needs to
      * join trips at all. Scoped to public trips only at the application
-     * layer (DriverRatingService::isEligibleToRate) — private/circle trip
-     * passengers are the driver's own Connections already, so rating them
-     * adds little value and is easy to game.
+     * layer in DriverRatingService::isEligibleToRate. Passengers on a private
+     * trip are already the driver's own Connections, so a rating there would
+     * add little and would be easy to game.
      */
     public function up(): void
     {

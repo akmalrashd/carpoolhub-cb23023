@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Append-only trail for trip_payments.payment_status changes. Every
      * status transition in PaymentService (mark paid, confirm, reject,
-     * reverse) currently overwrites the same row in place — a rejection or
+     * reverse) overwrites the same row in place. A rejection or
      * reversal nulls marked_paid_at/confirmed_by/confirmed_at/payment_method/
      * remarks with nothing kept anywhere, so a disputed "I paid but the
      * driver rejected it" has no evidence to check. previous_state snapshots
@@ -18,9 +18,10 @@ return new class extends Migration
      *
      * FKs use nullOnDelete() rather than cascadeOnDelete(): trip_payments
      * rows do get hard-deleted during trip edits/participant resyncs
-     * (TripJoinRequestService, TripService), and this log must outlive that —
-     * it's meant to still answer "what happened" after the row it describes
-     * is gone, not disappear with it. payer_id/amount_due are also
+     * (TripJoinRequestService, TripService), and this log has to outlive that.
+     * The whole point is to still answer "what happened" after the row it
+     * describes is gone, instead of disappearing with it. payer_id and
+     * amount_due are also
      * denormalised onto the row for the same reason.
      */
     public function up(): void
