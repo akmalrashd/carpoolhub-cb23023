@@ -2,13 +2,13 @@
  * CarpoolHub AI mascot controller.
  * Drives any [data-mascot] element (see resources/views/components/mascot.blade.php)
  * through the animated states defined in public/css/mascot.css via a
- * `data-state` attribute — persistent states (idle, sleep) with setState(),
+ * `data-state` attribute. Persistent states (idle, sleep) with setState(),
  * timed flourishes (wink, alert, notify, burst, ...) with play().
  */
 const Mascot = (() => {
     const tracked = new WeakSet();
 
-    // Same path data as resources/views/components/mascot.blade.php — kept
+    // Same path data as resources/views/components/mascot.blade.php. Kept
     // in sync manually since this copy exists so JS-rendered UI (dynamic
     // innerHTML, e.g. saved-routes' AI fare advisor) can produce the same
     // markup the Blade component does, via html() below.

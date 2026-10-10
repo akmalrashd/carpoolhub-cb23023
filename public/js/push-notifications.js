@@ -1,5 +1,5 @@
 // Settings > Notifications: enable/disable browser push. Deliberately
-// button-triggered rather than auto-prompted on page load — an unprompted
+// button-triggered rather than auto-prompted on page load, an unprompted
 // permission dialog is the single biggest cause of users blocking
 // notifications forever and never being asked again.
 (function () {
@@ -18,7 +18,7 @@
         pill.classList.toggle('off', !on);
     }
 
-    // Surfaced in the UI, not just the console — a silent console.error is
+    // Surfaced in the UI, not just the console, a silent console.error is
     // invisible to anyone who isn't a developer, which made a real failure
     // here look identical to "nothing happened" from the user's side.
     function showError(message) {
@@ -45,7 +45,7 @@
     }
 
     // Throws with the server's own message on failure instead of just
-    // returning a boolean the caller has to remember to check — a rejected
+    // returning a boolean the caller has to remember to check, a rejected
     // subscribe (e.g. endpoint host not on the allowlist) used to fail
     // completely silently server-side.
     async function postJson(url, body) {
@@ -60,7 +60,7 @@
             try {
                 const data = await res.json();
                 if (data && data.message) message = data.message;
-            } catch (e) { /* non-JSON error body — keep the generic message */ }
+            } catch (e) { /* non-JSON error body. Keep the generic message */ }
             throw new Error(message);
         }
 
@@ -85,7 +85,7 @@
         }
 
         // navigator.serviceWorker.ready only resolves once a worker is
-        // actually controlling this scope — if registration ever fails (wrong
+        // actually controlling this scope. If registration ever fails (wrong
         // scope, sw.js 404s, browser policy) it never resolves at all, and
         // this used to leave the pill on its blade-default "Checking…" text
         // forever with no way out. Race it against a timeout so every path
@@ -156,7 +156,7 @@
             const sub = await reg.pushManager.getSubscription();
             if (sub) {
                 // Telling the server first, then always unsubscribing
-                // client-side regardless of whether that call succeeded —
+                // client-side regardless of whether that call succeeded,
                 // otherwise a server-side hiccup would leave a subscription
                 // the UI can never turn back off.
                 try {

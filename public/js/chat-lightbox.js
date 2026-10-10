@@ -1,9 +1,9 @@
-/* Photo lightbox — lives at the shell level (see chat-invite-connections.js's
+/* Photo lightbox. Lives at the shell level (see chat-invite-connections.js's
    header comment for why: this modal's own markup is rendered once outside
-   the swappable thread partial, so its triggers — [data-lightbox-src]
-   bubbles, which live INSIDE messages that get replaced on every chat
-   switch — are matched by document-level delegation instead of binding to
-   a specific #chatMessages element that won't exist past the next swap.
+   the swappable thread partial. Its triggers are the [data-lightbox-src]
+   bubbles that live inside messages, and those get replaced on every chat
+   switch, so they are matched by delegating on the document instead of
+   binding to a #chatMessages element that will not survive the next swap.
    Opens in-page rather than navigating to the data: URI directly: several
    mobile browsers show a blank page for a top-level navigation to a data:
    URI, and this app's global viewport meta disables native pinch-zoom, so
@@ -56,7 +56,7 @@
     });
 
     // Tapping the dark backdrop (viewport minus the image itself) closes it
-    // — a tap that lands on the image is a zoom gesture, not a close.
+    // A tap that lands on the image is a zoom gesture, not a close.
     viewport.addEventListener('click', (event) => {
         if (event.target === img) return;
         close();

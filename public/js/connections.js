@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // can also arrive pre-filled from ?q= on the page (Blade escapes it
         // there, but reading it back out via .value hands JS the raw text), so
         // without escaping here a crafted link executes script the moment the
-        // field re-renders — this is the same helper explore-index.js and
+        // field re-renders. This is the same helper explore-index.js and
         // trips-requests.js already use for the same reason.
         const escapeHtml = (value) => String(value ?? '')
             .replace(/&/g, '&amp;')

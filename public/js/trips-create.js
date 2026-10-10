@@ -1,4 +1,4 @@
-/* Extracted from resources/views/trips/create.blade.php — cacheable. */
+/* Extracted from resources/views/trips/create.blade.php. Cacheable. */
 // ── AI Chat: pre-fill form from sessionStorage draft ──────────────────
 (function () {
     const raw = sessionStorage.getItem('ch_ai_trip_draft');
@@ -60,7 +60,7 @@
             if (note) { note.value = draft.note; }
         }
 
-        // Participants — check matching checkboxes
+        // Participants. Check matching checkboxes
         if (Array.isArray(draft.participant_ids) && draft.participant_ids.length) {
             draft.participant_ids.forEach(id => {
                 const cb = document.querySelector(`input[name="participant_ids[]"][value="${id}"]`);
@@ -68,7 +68,7 @@
             });
         }
 
-        // Every field Hexa gave us is filled in now — let the wizard script
+        // Every field Hexa gave us is filled in now. Let the wizard script
         // (resources/views/trips/_form.blade.php) jump to the Review step.
         window.dispatchEvent(new CustomEvent('carpoolhub:ai-trip-draft-filled'));
     }
@@ -77,16 +77,16 @@
         const trigger = document.getElementById('savedRouteTrigger');
         if (!trigger) { fillNonRouteFields(); return; }
 
-        // Open the custom route picker — this renders the options list
+        // Open the custom route picker. This renders the options list
         trigger.click();
 
         setTimeout(() => {
             // Find the rendered option button matching our route ID
             const btn = document.querySelector(`.route-picker-option[data-value="${routeId}"]`);
             if (btn) {
-                btn.click(); // simulates real user selection — updates all UI
+                btn.click(); // simulates real user selection. Updates all UI
             } else {
-                // Option not found — fall back to native select
+                // Option not found. Fall back to native select
                 const sel = document.getElementById('saved_route_id');
                 if (sel) {
                     sel.value = String(routeId);
@@ -101,7 +101,7 @@
         }, 60);
     }
 
-    // Resolve route ID — use AI suggestion or fall back to first available route
+    // Resolve route ID. Use AI suggestion or fall back to first available route
     const routeId = draft.saved_route_id
         ?? (() => {
             const sel = document.getElementById('saved_route_id');

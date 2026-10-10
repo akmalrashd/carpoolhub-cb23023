@@ -1,4 +1,4 @@
-/* Extracted from resources/views/saved-routes/create.blade.php — cacheable. */
+/* Extracted from resources/views/saved-routes/create.blade.php. Cacheable. */
 // ── AI Chat: pre-fill saved route form from sessionStorage draft ──────
 (function () {
     const raw = sessionStorage.getItem('ch_ai_route_draft');
@@ -12,7 +12,7 @@
     // Banner
     const banner = document.createElement('div');
     banner.style.cssText = 'margin:0 28px 12px;padding:10px 14px;border-radius:10px;background:#dbeafe;border:1px solid rgba(37,99,235,.22);color:#1e3a8a;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;';
-    banner.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Route pre-filled by AI — coordinates are approximate, please verify on the map.';
+    banner.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Route pre-filled by AI. Coordinates are approximate, please verify on the map.';
     const form = document.getElementById('route-form');
     if (form) form.insertAdjacentElement('afterbegin', banner);
 

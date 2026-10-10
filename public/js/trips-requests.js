@@ -1,4 +1,4 @@
-/* Extracted from resources/views/trips/requests.blade.php — logic; page values come from window.CH_TRIPREQ. */
+/* Extracted from resources/views/trips/requests.blade.php. Logic; page values come from window.CH_TRIPREQ. */
         (() => {
             const mapEl = document.getElementById('requestRouteSummaryMap');
             if (!mapEl || typeof window.L === 'undefined') return;
@@ -18,7 +18,7 @@
                 return window.L.latLng(lat, lng);
             };
             // Stop labels carry passenger-supplied text (display name + custom
-            // pickup name), and they reach both innerHTML and Leaflet tooltips —
+            // pickup name), and they reach both innerHTML and Leaflet tooltips,
             // Leaflet assigns string tooltip content via innerHTML too. Escape at
             // every sink; ordinary names render byte-identically.
             const escapeHtml = (value) => String(value ?? '')

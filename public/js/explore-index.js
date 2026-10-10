@@ -1,4 +1,4 @@
-/* Extracted from resources/views/explore/index.blade.php — logic; page values come from window.CH_EXPLORE. */
+/* Extracted from resources/views/explore/index.blade.php. Logic; page values come from window.CH_EXPLORE. */
         (() => {
             // Scroll to focused card on page load
             const target = document.querySelector('[data-explore-focus-card="1"]');

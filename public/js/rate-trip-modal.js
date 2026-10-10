@@ -1,8 +1,8 @@
-/* "Rate Your Driver" — shared across every page that can trigger it
+/* "Rate Your Driver". Shared across every page that can trigger it
    (trips/index.blade.php's row/Trip Details modal, chats/show.blade.php's
    in-chat Hexa CTA). Delegated on document, not bound per-button, since
    trips-index.js already established that a direct binding goes dead the
-   moment a filter/search swap replaces the trigger's container — see its
+   moment a filter/search swap replaces the trigger's container. See its
    own "Manage requests" comment for why. Reads CSRF from the global
    <meta name="csrf-token"> (layouts/app.blade.php) rather than a
    page-specific window.CH_*.csrf config, since this component needs to work
@@ -54,12 +54,12 @@
 
     const open = (trigger) => {
         // Re-parent to the very end of <body> on every open, not just once
-        // at load time — Trip Details (trip-details-modal.js) does the same
+        // at load time. Trip Details (trip-details-modal.js) does the same
         // "move to end of body" trick on ITS OWN modal, and does it every
         // time this script's own one-time reparent would otherwise be
         // undone by whichever modal was opened more recently. Both modals
         // share the same mobile z-index (100000, trips.css), so DOM order
-        // is what actually decides which one paints on top — without this,
+        // is what actually decides which one paints on top, without this,
         // Trip Details staying open underneath silently covered this
         // modal's full-width mobile sheet, which read as "not full width"
         // even though the card itself really was.
@@ -117,11 +117,11 @@
         open(trigger);
     });
 
-    // Programmatic entry point — for pages that want the modal to open on
+    // Programmatic entry point, for pages that want the modal to open on
     // load (e.g. chats/show.blade.php's ?open_rate=1 deep link) without
     // needing a real .open-rate-trip-modal-btn element already on the page
     // (the in-chat Hexa CTA bubble only exists once the reminder command has
-    // posted it — a passenger arriving via the trips-list Rate icon may get
+    // posted it, a passenger arriving via the trips-list Rate icon may get
     // there before that has happened). Builds a throwaway trigger element
     // carrying the same data-* attributes open() already reads, so it can
     // reuse all of open()'s logic and still work as ratedTrigger afterwards
@@ -163,7 +163,7 @@
                 throw new Error(payload.message || 'Could not submit your rating.');
             }
 
-            // Captured before close() — close() nulls out activeTrigger, so
+            // Captured before close(). Close() nulls out activeTrigger, so
             // reading it after would silently make this whole block a no-op.
             const ratedTrigger = activeTrigger;
 
@@ -177,7 +177,7 @@
                 // ratedTrigger (e.g. #tripModalRateBtn) is a different
                 // element from the row's own .open-trip-modal-btn, which is
                 // what trip-details-modal.js actually re-reads data-can-rate
-                // from on every render — without updating that too, closing
+                // from on every render, without updating that too, closing
                 // and reopening Trip Details for the same trip within this
                 // same page load would reset the button back to "Rate Trip"
                 // from the row's now-stale dataset (a real re-submit would

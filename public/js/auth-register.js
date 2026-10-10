@@ -1,4 +1,4 @@
-/* Extracted from resources/views/auth/register.blade.php — cacheable. */
+/* Extracted from resources/views/auth/register.blade.php. Cacheable. */
     function togglePassword(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon  = document.getElementById(iconId);
@@ -11,7 +11,7 @@
         }
     }
 
-    // The accept="" attribute is only a hint to the OS file picker — it does
+    // The accept="" attribute is only a hint to the OS file picker. It does
     // not stop someone choosing "All Files" and picking a PDF or a .heic a
     // browser doesn't recognise as image/*, so the real accept/reject check
     // for "images only" happens here against the file's own MIME type.
@@ -70,7 +70,7 @@
 
     // ── Phone number auto-format: +60 XX-XXX XXXX ───────────────────────
     // Runs on whichever page has a plain #phone field (register.blade.php,
-    // complete-registration.blade.php) — self-guards on the element existing,
+    // complete-registration.blade.php). Self-guards on the element existing,
     // same pattern as the wizard IIFE below. Reformats on every keystroke so
     // typing/pasting any mix of digits (with or without +60/leading 0) always
     // converges on the one uniform shape shown in the placeholder.
@@ -86,7 +86,7 @@
             if (digits.startsWith('0')) digits = digits.slice(1);
 
             // The "011" prefix carries one extra local digit versus every
-            // other Malaysian mobile prefix — 10 digits total (XX-XXXX XXXX)
+            // other Malaysian mobile prefix, 10 digits total (XX-XXXX XXXX)
             // instead of 9 (XX-XXX XXXX).
             const isElevenPrefix = digits.slice(0, 2) === '11';
             digits = digits.slice(0, isElevenPrefix ? 10 : 9);
@@ -117,7 +117,7 @@
         };
 
         // Anchor the +60 immediately rather than waiting for the first
-        // keystroke, so it reads as already there — matching how the
+        // keystroke, so it reads as already there, matching how the
         // placeholder looks before any of this ran. An existing old('phone')
         // value (e.g. after a failed submit on another field) is normalized
         // into the same shape rather than left as whatever was typed before.
@@ -136,7 +136,7 @@
     // ── Step wizard ──────────────────────────────────────────────────────
     // Step 3 (vehicle & verification) only applies to drivers, so the active
     // step list is recomputed from the current role selection rather than
-    // being a fixed [1,2,3,4] — a passenger's flow is just [1,2,4].
+    // being a fixed [1,2,3,4], a passenger's flow is just [1,2,4].
     (() => {
         const form = document.getElementById('register-form');
         if (!form) return;
@@ -152,7 +152,7 @@
         const selfieInput = document.getElementById('selfie_photo');
 
         // Vehicle/verification fields are only mandatory when step 3 is
-        // actually part of the flow (driver role) — kept in sync by
+        // actually part of the flow (driver role). Kept in sync by
         // activeSteps() below rather than left statically required, since a
         // hidden required file input for a passenger would never block
         // submission anyway (form has novalidate) but we still want
@@ -219,7 +219,7 @@
             showStep(list[nextIndex]);
         };
 
-        // Only the fields inside the currently-visible step are checked —
+        // Only the fields inside the currently-visible step are checked,
         // reportValidity() on an individual input shows the browser's own
         // inline validation bubble without needing custom error UI.
         const validateCurrentStep = () => {

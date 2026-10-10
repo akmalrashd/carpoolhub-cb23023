@@ -1,4 +1,4 @@
-/* SOURCE ONLY, EDITING THIS FILE CHANGES NOTHING BY ITSELF.
+/* SOURCE ONLY. EDITING THIS FILE CHANGES NOTHING BY ITSELF.
  *
  * The app has no Node/npm/Vite toolchain. What the browser actually loads is
  * the pre-compiled public/css/app.css, which the Blade layouts link directly.
@@ -14,8 +14,8 @@
  *
  * Those first two steps are not optional. Both are @source globs, so on a fresh
  * clone they match nothing SILENTLY and the rebuilt file quietly loses every
- * paginator utility, the pagination controls on 8 pages would lose their styling
- * with no error anywhere.
+ * paginator utility. The pagination controls on 8 pages would lose their
+ * styling with no error shown anywhere.
  *
  * The filemtime() cache-buster in the layouts picks the new file up on its own.
  * Everything else the app styles lives in the hand-written public/css/*.css

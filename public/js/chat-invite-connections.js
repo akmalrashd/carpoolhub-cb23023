@@ -1,10 +1,10 @@
-/* "Invite Connections" picker — lives at the shell level (loaded once on
+/* "Invite Connections" picker. Lives at the shell level (loaded once on
    chats/index.blade.php and chats/show.blade.php, NOT inside the swappable
    thread partial), because chat-thread-controller.js replaces the thread
    pane's markup on every chat switch without reloading the page. Delegating
    every binding on document (matching the trigger by id, reading its own
    data-* for URLs) means this file never needs to re-run when a new
-   #chatInviteBtn appears in freshly-swapped thread content — same pattern
+   #chatInviteBtn appears in freshly-swapped thread content, same pattern
    already proven by rate-trip-modal.js / trip-details-modal.js. */
 (() => {
     const modal = document.getElementById('inviteConnectionsModal');
@@ -43,7 +43,7 @@
             return;
         }
 
-        // Already-in-chat connections sink to the bottom — greyed out and
+        // Already-in-chat connections sink to the bottom. Greyed out and
         // locked (see the disabled checkbox below), so the ones an admin
         // can actually act on stay first rather than mixed in.
         const sorted = [...connections].sort((a, b) => Number(a.is_member) - Number(b.is_member));

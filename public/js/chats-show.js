@@ -1,5 +1,5 @@
 /* Per-thread logic only (message list, composer, polling, Ably, Trip
-   Details header freshness) — everything that depends on which specific
+   Details header freshness), everything that depends on which specific
    conversation is open. Re-executed on every chat switch by
    chat-thread-controller.js's mount() (a fresh <script> element re-runs
    even though the file was already loaded once), NOT just once at initial
@@ -9,7 +9,7 @@
    Because this file runs more than once per page view, every setInterval
    and the Ably connection below register their own teardown against
    window.__chatThreadSignal (a fresh AbortController the controller creates
-   right before injecting each new thread's HTML+scripts) — without that,
+   right before injecting each new thread's HTML+scripts), without that,
    switching chats N times would leave N-1 stale pollers/connections still
    running in the background, each still fetching for a conversation that's
    no longer on screen. Element-specific listeners (composer form/input,
@@ -53,9 +53,10 @@
         messagesEl.scrollTop = messagesEl.scrollHeight;
     };
 
-    // Initial mount only — chatUnreadSeparator (chats/partials/thread.blade.php)
-    // marks where the messages that were still unread when this thread was
-    // opened begin, computed server-side from the watermark captured before
+    // Runs on the first mount only. The chatUnreadSeparator element in
+    // chats/partials/thread.blade.php marks where the messages that were
+    // still unread when this thread opened begin. The server works that out
+    // from the read marker captured before
     // ChatController::show()'s own markRead() call moves it. A chat with
     // several unread messages should land there (WhatsApp-style), not jump
     // straight to the very bottom and skip past the earlier ones.
@@ -69,7 +70,7 @@
         scrollToBottom();
     };
 
-    // This app has no multi-timezone support — every viewer is assumed to
+    // This app has no multi-timezone support, every viewer is assumed to
     // be in Malaysia (see Trip::TIMEZONE on the PHP side), so times/dates
     // are always rendered in this timezone regardless of the device's own
     // clock/locale settings.
@@ -236,7 +237,7 @@
     }
 
     // ── Photo attachment ─────────────────────────────────────────────
-    // Resized + re-encoded client-side before it ever leaves the browser —
+    // Resized + re-encoded client-side before it ever leaves the browser,
     // this is a chat for "which car / where are you" identification, not a
     // photo gallery, and the compressed data URI has to clear both this
     // app's own messages.body storage and Ably's per-message size limit.
@@ -299,7 +300,7 @@
             const payload = await response.json();
             (payload.messages || []).forEach(appendMessage);
         } catch {
-            // silent — next tick tries again
+            // silent. Next tick tries again
         } finally {
             pollInFlight = false;
         }
@@ -308,7 +309,7 @@
     signal?.addEventListener('abort', () => window.clearInterval(pollIntervalId));
 
     // ── Trip Details / Manage Requests freshness ─────────────────────
-    // Neither popup has its own live channel — they're just read off the
+    // Neither popup has its own live channel. They're just read off the
     // header trigger button's data-* attributes at the moment it's
     // clicked. Quietly refreshing that dataset in the background (instead
     // of touching trip-details-modal.js / trip-requests-modal.js, which
@@ -330,7 +331,7 @@
             const data = payload.trip_modal_data;
 
             if (!data) {
-                // The trip was cancelled/removed while this page was open —
+                // The trip was cancelled/removed while this page was open,
                 // same "nothing left to show" state the initial page load
                 // handles by disabling the trigger entirely.
                 tripModalBtn.disabled = true;
@@ -341,7 +342,7 @@
                 tripModalBtn.dataset[key] = value ?? '';
             });
         } catch {
-            // silent — next tick tries again
+            // silent. Next tick tries again
         } finally {
             tripModalRefreshInFlight = false;
         }

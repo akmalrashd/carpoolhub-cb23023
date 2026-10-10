@@ -6,7 +6,7 @@
     if (!list) return;
 
     // On the chat THREAD page (desktop split-view's left pane), mobile CSS
-    // hides this whole pane in favour of the full-screen thread — skip
+    // hides this whole pane in favour of the full-screen thread. Skip
     // subscribing/polling there entirely rather than holding an Ably
     // connection and a background poll for a pane nobody can see.
     if (list.offsetParent === null) return;
@@ -19,12 +19,12 @@
         const newRow = wrapper.firstElementChild;
         if (!newRow) return;
 
-        // Empty-state markup (no rows yet) has no .chat-row to replace —
+        // Empty-state markup (no rows yet) has no .chat-row to replace,
         // clear it out the first time a real row shows up.
         list.querySelector('.ch-empty-state-card')?.remove();
 
         list.querySelector(rowSelector(id))?.remove();
-        // Conversations are ordered by latest activity — the row that just
+        // Conversations are ordered by latest activity, the row that just
         // changed always belongs at the top, same as a full refetch would
         // have placed it.
         list.prepend(newRow);
@@ -43,13 +43,13 @@
             const payload = await response.json();
             replaceOrInsertRow(id, payload.html);
         } catch {
-            // silent — the periodic full-list poll below still covers it
+            // silent, the periodic full-list poll below still covers it
         } finally {
             rowRefreshInFlight.delete(id);
         }
     }
 
-    // ── Polling fallback — also the only path that notices a conversation
+    // ── Polling fallback. Also the only path that notices a conversation
     // this page never subscribed to yet (a brand new one created while the
     // list was already open), since Ably subscriptions below are seeded
     // once from whatever rows rendered at page load. ──
@@ -67,20 +67,20 @@
             list.innerHTML = payload.html;
             subscribeToVisibleRows();
         } catch {
-            // silent — next tick tries again
+            // silent. Next tick tries again
         } finally {
             listRefreshInFlight = false;
         }
     }
     window.setInterval(refreshList, 25000);
 
-    // ── Ably realtime — instant per-row updates ──────────────────────
+    // ── Ably realtime. Instant per-row updates ──────────────────────
     let ably = null;
     const subscribedIds = new Set();
 
     function subscribeToVisibleRows() {
         // The list started empty (no connection made yet) and a row has
-        // since appeared via the poll fallback — connect now instead of
+        // since appeared via the poll fallback. Connect now instead of
         // leaving that conversation without live coverage until reload.
         if (!ably) { initAbly(); return; }
         list.querySelectorAll('.chat-row[data-conversation-id]').forEach((row) => {
@@ -88,7 +88,7 @@
             if (subscribedIds.has(id)) return;
             subscribedIds.add(id);
             // The channel name is still keyed by the internal sequential id
-            // (that's what the server actually broadcasts on) — only the
+            // (that's what the server actually broadcasts on), only the
             // refresh URL above needs the route-facing public id.
             const channel = ably.channels.get(`private:conversation.${row.dataset.conversationChannelId}`);
             channel.subscribe('message.sent', () => refreshRow(id));
@@ -96,7 +96,7 @@
     }
 
     function initAbly() {
-        // Nothing to subscribe to yet (empty chat list) — skip connecting
+        // Nothing to subscribe to yet (empty chat list). Skip connecting
         // at all rather than requesting a token the server would 404 on.
         if (typeof Ably === 'undefined' || !list.querySelector('.chat-row[data-conversation-id]')) return;
 
@@ -111,12 +111,12 @@
     }
     initAbly();
 
-    // ── Search filter — plain client-side text match, same "hide rows
-    // that don't match" pattern used by the Manage Requests search box.
-    // Matches the row's full textContent, which includes every
-    // participant's name via a hidden span (chats/partials/row.blade.php)
-    // — not just whichever name happens to show in the last-message
-    // preview. ──
+    // ── Search filter: a plain text match in the browser, using the same
+    // "hide the rows that don't match" approach as the Manage Requests
+    // search box. It reads the row's full text, which includes every
+    // participant's name through a hidden span in
+    // chats/partials/row.blade.php, so it finds people who have not sent
+    // the latest message either. ──
     const searchInput = document.getElementById('chatSearchInput');
     searchInput?.addEventListener('input', () => {
         const term = searchInput.value.trim().toLowerCase();
@@ -125,10 +125,10 @@
         });
     });
 
-    // ── Seamless chat switching (WhatsApp Web style) — swap the thread
+    // ── Seamless chat switching (WhatsApp Web style). Swap the thread
     // pane in place via chat-thread-controller.js instead of a full page
     // navigation. Only when CarpoolChatThread is actually available (it
-    // isn't loaded on every page that might reuse this list markup) — a
+    // isn't loaded on every page that might reuse this list markup), a
     // plain <a href> is a perfectly fine fallback otherwise. ──
     list.addEventListener('click', (event) => {
         if (!window.CarpoolChatThread) return;

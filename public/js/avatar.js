@@ -1,12 +1,12 @@
-/* Single source of truth for the "no profile photo" avatar fallback in JS —
-   the twin of app/Support/Avatar.php. Keep PALETTE in the exact same order
+/* The single place that decides the fallback avatar shown when a user has no
+   profile photo. This is the JavaScript twin of app/Support/Avatar.php. Keep PALETTE in the exact same order
    as the PHP one: color(id) is a plain `id % length` lookup, so the same
    user id has to land on the same array index in both places.
 
-   Loaded globally (see layouts/app.blade.php <head>) so every page's own
-   JS — trips-index.js, trips-requests.js, payments-index.js,
-   explore-index.js, admin pages, etc. — can call this instead of each
-   re-implementing its own initial/colour logic. */
+   It is loaded globally from the layout head, so every page script, such as
+   trips-index.js, trips-requests.js, payments-index.js, explore-index.js and
+   the admin pages, can call it instead of writing its own initial and colour
+   logic again. */
 (function () {
     'use strict';
 
@@ -34,7 +34,7 @@
     /**
      * Builds the inner HTML for an avatar element: a real photo when one is
      * given, otherwise a single initial on its deterministic colour. Caller
-     * owns the outer element's sizing/shape class — this only fills it in.
+     * owns the outer element's sizing/shape class. This only fills it in.
      */
     function innerHtml(options) {
         options = options || {};

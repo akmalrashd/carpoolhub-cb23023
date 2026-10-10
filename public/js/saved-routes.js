@@ -1,12 +1,12 @@
-/* Extracted from resources/views/saved-routes/index.blade.php — cacheable. */
+/* Extracted from resources/views/saved-routes/index.blade.php. Cacheable. */
 
 // Delegated on document (not bound per-button) because the grid this button
 // lives in gets replaced wholesale after the AJAX initial-load fetch and on
-// every search filter — a direct listener would go stale the moment that swap
+// every search filter, a direct listener would go stale the moment that swap
 // happens. That same initial-load swap also re-inserts this very <script>
 // tag to re-run it (see the inline script in the Blade view), so without the
 // window guard below this listener was registering a second time on every
-// first page load — one click, two toasts.
+// first page load, one click, two toasts.
 if (!window.__srCopyShareCodeBound) {
     window.__srCopyShareCodeBound = true;
 
@@ -21,7 +21,7 @@ if (!window.__srCopyShareCodeBound) {
 
         var showCopied = function () {
             btn.classList.add('is-copied');
-            // Swapped via JS instead of a CSS content-swap on the <i> — Font
+            // Swapped via JS instead of a CSS content-swap on the <i>. Font
             // Awesome's glyphs are also drawn through ::before, so overriding
             // that content alone left the checkmark using the "copy" icon's
             // font-weight and rendering as a blank/wrong glyph.
@@ -58,14 +58,14 @@ if (!window.__srCopyShareCodeBound) {
 }
 
 // Same double-run hazard as the copy-code listener above (the initial-load
-// AJAX swap re-inserts this <script> tag) — guarded the same way, otherwise
+// AJAX swap re-inserts this <script> tag). Guarded the same way, otherwise
 // a second bound Escape-key handler etc. would pile up after first load.
 if (!window.__srRedeemModalBound) {
     window.__srRedeemModalBound = true;
 
     // No DOMContentLoaded wrapper needed: this <script src> tag is placed
     // after the modal markup in the page, so the elements already exist by
-    // the time this runs — matches how the rest of this file is written.
+    // the time this runs. Matches how the rest of this file is written.
     (function () {
         var openBtn = document.getElementById('srOpenRedeemModalBtn');
         var modal = document.getElementById('srRedeemModal');
@@ -96,7 +96,7 @@ if (!window.__srRedeemModalBound) {
             if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
         });
 
-        // Codes are stored/matched uppercase — normalize as the user types
+        // Codes are stored/matched uppercase. Normalize as the user types
         // instead of letting a lowercase paste silently fail to match.
         if (input) {
             input.addEventListener('input', function () {
@@ -106,7 +106,7 @@ if (!window.__srRedeemModalBound) {
         }
 
         // A failed redeem posts back to this same page with a flashed error
-        // on `code` — reopen the modal so the message is not silently missed.
+        // on `code`. Reopen the modal so the message is not silently missed.
         if (document.querySelector('.sr-redeem-error')) openModal();
     })();
 }

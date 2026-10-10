@@ -1,7 +1,7 @@
-/* Extracted from resources/views/notifications/index.blade.php — cacheable. */
+/* Extracted from resources/views/notifications/index.blade.php. Cacheable. */
 (function () {
-    // This page never had a <meta name="csrf-token"> tag — that element does
-    // not exist anywhere in the layout, only an inline `csrfToken` JS var — so
+    // This page never had a <meta name="csrf-token"> tag. That element does
+    // not exist anywhere in the layout, only an inline `csrfToken` JS var, so
     // every fetch below was sending an empty X-CSRF-TOKEN, failing Laravel's
     // CSRF check with a silent 419 that the `if (!r.ok) return;` guards below
     // swallowed without any visible error. All four actions on this page were
@@ -93,7 +93,7 @@
                 if (window.showToast) {
                     window.showToast("All notifications deleted.", "success");
                 }
-                // The tab counts and pagination are server-rendered — deleting
+                // The tab counts and pagination are server-rendered, deleting
                 // everything makes those stale, so reload instead of trying to
                 // patch every derived number by hand.
                 window.setTimeout(function () { window.location.reload(); }, 700);

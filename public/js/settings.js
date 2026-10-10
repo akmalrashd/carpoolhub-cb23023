@@ -1,4 +1,4 @@
-/* Extracted from resources/views/settings/index.blade.php — cacheable. */
+/* Extracted from resources/views/settings/index.blade.php. Cacheable. */
         // ── Tab Switcher Logic ───────────────────────────────────────────
         function switchSettingsTab(tabName) {
             const tabs = ['profile', 'payment', 'security', 'notifications'];
@@ -181,7 +181,7 @@
                     if (tab) {
                         try {
                             sessionStorage.setItem('ch_settings_last_tab', tab);
-                        } catch (e) { /* storage unavailable — non-fatal */ }
+                        } catch (e) { /* storage unavailable. Non-fatal */ }
                     }
 
                     const btn = form.querySelector('.btn-submit-yellow');
@@ -215,7 +215,7 @@
             try {
                 storedTab = sessionStorage.getItem('ch_settings_last_tab');
                 sessionStorage.removeItem('ch_settings_last_tab');
-            } catch (e) { /* storage unavailable — non-fatal */ }
+            } catch (e) { /* storage unavailable. Non-fatal */ }
             if (storedTab && tabs.includes(storedTab)) {
                 return storedTab;
             }
@@ -225,7 +225,7 @@
 
         // ── Phone number auto-format: +60 XX-XXX XXXX ──────────────────────
         // Same single-field behaviour as the registration page's #phone
-        // field (public/js/auth-register.js) — no country-code selector,
+        // field (public/js/auth-register.js), no country-code selector,
         // +60 is pre-filled and stays anchored, digits get grouped as typed,
         // and the "011" prefix gets its one extra local digit.
         function formatMyPhone(raw) {
@@ -281,7 +281,7 @@
 
         // Arriving via a deep link (e.g. the Wallet page's "change bank
         // details" shortcut) lands on the right tab, but the panel itself
-        // can still start below the fold under the hero/completion banner —
+        // can still start below the fold under the hero/completion banner,
         // this brings it into view without hiding its heading under the
         // sticky mobile header / fixed desktop topbar.
         function scrollToSettingsPanel(tabName) {
@@ -290,7 +290,7 @@
 
             // Desktop and mobile each have their own header element, only one
             // of which is actually rendered at a time (the other is
-            // display:none) — offsetHeight is 0 for whichever is hidden, so
+            // display:none). OffsetHeight is 0 for whichever is hidden, so
             // picking whichever reports a real height always finds the one
             // actually on screen, regardless of source order.
             const desktopHeader = document.querySelector('.desktop-topbar');
@@ -301,7 +301,7 @@
 
             const targetTop = panel.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
 
-            // Instant, not smooth — this runs the moment the page has just
+            // Instant, not smooth. This runs the moment the page has just
             // finished its own load/paint, so an animated scroll on top of
             // that reads as a long, janky settle rather than a snappy landing.
             window.scrollTo({ top: Math.max(targetTop, 0), behavior: 'auto' });
@@ -312,7 +312,7 @@
             if (target) {
                 switchSettingsTab(target);
                 if (location.hash.replace('#', '') === target) {
-                    // Only for a real deep link — not the error-tab/sessionStorage
+                    // Only for a real deep link, not the error-tab/sessionStorage
                     // restores above, which land the user back where they were.
                     // One frame so the panel's just-toggled is-active class has
                     // actually painted before its position is measured.

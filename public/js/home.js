@@ -1,4 +1,4 @@
-/* Extracted from resources/views/home.blade.php — cacheable. */
+/* Extracted from resources/views/home.blade.php. Cacheable. */
         function hpInitQuickCarousel(trackId, dotsId) {
             var track = document.getElementById(trackId);
             var dotsWrap = document.getElementById(dotsId);

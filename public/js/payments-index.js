@@ -1,4 +1,4 @@
-/* Extracted from resources/views/payments/index.blade.php — logic; page values come from window.CH_PAYMENTS. */
+/* Extracted from resources/views/payments/index.blade.php. Logic; page values come from window.CH_PAYMENTS. */
 
 // Shared by every innerHTML template literal in this file that interpolates
 // user-controlled text (names, notes) rather than a value the server already
@@ -19,7 +19,7 @@ const qrPreviewHtml = (url, label) => {
 
 /**
  * Wires the dot-click + touch-swipe interactivity for a DuitNow/TnG QR
- * carousel — shared by the individual Pay Now modal and the bulk "Mark
+ * carousel. Shared by the individual Pay Now modal and the bulk "Mark
  * Selected as Paid" modal's Pay Online tab, both of which render the same
  * [data-qr-carousel] markup via qrPreviewHtml() above.
  */
@@ -34,7 +34,7 @@ const wireQrCarousel = (container) => {
     const slideTitles = ['DuitNow QR', 'TnG eWallet QR'];
     let activeIndex = 0;
 
-    // Default to whichever QR the driver actually uploaded — no point
+    // Default to whichever QR the driver actually uploaded, no point
     // opening on an empty slide when the other one has an image.
     const hasQr = (slide) => !!slide.querySelector('img');
     if (!hasQr(slides[0]) && hasQr(slides[1])) {
@@ -42,8 +42,8 @@ const wireQrCarousel = (container) => {
     }
 
     // The track is width: slides.length * 100% (of the wrap), so a
-    // transform percentage — resolved against the track's OWN width, not
-    // the wrap's — must be scaled down by slides.length per step, otherwise
+    // transform percentage. Resolved against the track's OWN width, not
+    // the wrap's. Must be scaled down by slides.length per step, otherwise
     // each step overshoots by a full extra slide.
     const stepPercent = 100 / slides.length;
     const render = () => {
@@ -58,7 +58,7 @@ const wireQrCarousel = (container) => {
         render();
     }));
 
-    // Swipe support — a dot tap alone isn't how anyone actually expects to
+    // Swipe support, a dot tap alone isn't how anyone actually expects to
     // browse a carousel on a phone.
     const trackWrap = qrCarousel.querySelector('.driver-payment-qr-track-wrap');
     if (!trackWrap) return;
@@ -81,7 +81,7 @@ const wireQrCarousel = (container) => {
         const touch = e.touches[0];
         deltaX = touch.clientX - startX;
         const deltaY = touch.clientY - startY;
-        // A mostly-vertical gesture is a page scroll, not a swipe — leave
+        // A mostly-vertical gesture is a page scroll, not a swipe. Leave
         // the track alone so scrolling still works.
         if (Math.abs(deltaY) > Math.abs(deltaX)) return;
 
@@ -137,7 +137,7 @@ const showModalSkeleton = (listEl) => {
 // A row can be hidden by two independent passes: the tab strip / filter panel
 // (which decide whether the record belongs in the result set at all) and the
 // pager (which decides whether it falls on the current page). Keep the two
-// apart — counting a page-hidden row as filtered out would shrink the result
+// apart, counting a page-hidden row as filtered out would shrink the result
 // set on every page turn until the list emptied itself.
 window.isPaymentRowFilteredOut = function (row) {
     if (!row) return true;
@@ -220,7 +220,7 @@ window.isPaymentRowHidden = function (row) {
         }
     }
 
-    // Arrived from a Hexa chat reminder ("?trip_id=X&pay=1") — jump straight
+    // Arrived from a Hexa chat reminder ("?trip_id=X&pay=1"). Jump straight
     // to this trip's own Pay Now popup, since that's the actual action the
     // reminder is nudging towards. Independent of the highlight above:
     // .open-trip-modal-btn (used there) and .open-payment-paynow-btn (an
@@ -325,7 +325,7 @@ window.isPaymentRowHidden = function (row) {
                                     <div class="gateway-pay-row"><span>ToyyibPay fee</span><strong>RM ${gatewayFee}</strong></div>
                                     <div class="gateway-pay-row gateway-pay-total"><span>Total to pay</span><strong>RM ${gatewayTotal}</strong></div>
                                 </div>
-                                <p class="gateway-pay-note"><i class="fa-solid fa-circle-info"></i> You'll be taken to ToyyibPay's secure checkout (Online Banking / DuitNow QR). Once payment succeeds, it's confirmed automatically — no driver approval needed.</p>
+                                <p class="gateway-pay-note"><i class="fa-solid fa-circle-info"></i> You'll be taken to ToyyibPay's secure checkout (Online Banking / DuitNow QR). Once payment succeeds, it's confirmed automatically, no driver approval needed.</p>
                                 <form method="POST" action="${gatewayPayAction}" class="trip-paynow-gateway-form">
                                     <input type="hidden" name="_token" value="${escapeHtml(csrf)}">
                                     <button type="submit" class="trip-paynow-submit">Pay RM ${gatewayTotal} via ToyyibPay</button>
@@ -895,13 +895,13 @@ window.isPaymentRowHidden = function (row) {
 
             const chatUrl = source.dataset.chatUrl || '';
             const hasChatUrl = Boolean(chatUrl);
-            // Toggling the wrapper (a plain div), not tripDetailsChat itself —
+            // Toggling the wrapper (a plain div), not tripDetailsChat itself,
             // .trip-actions-filled .trip-action-btn forces display:inline-flex
             // !important (trips.css), which would beat a plain style.display=
             // 'none' set directly on the button. Whichever trip currently has
-            // a linked conversation stays in-app — public trips always get
+            // a linked conversation stays in-app. Public trips always get
             // one automatically, private trips only once the driver
-            // starts/links a circle — and falls back to direct contact
+            // starts/links a circle, and falls back to direct contact
             // until then.
             if (tripDetailsChatWrap) tripDetailsChatWrap.style.display = hasChatUrl ? '' : 'none';
             if (tripDetailsExternalContact) tripDetailsExternalContact.style.display = hasChatUrl ? 'none' : '';
@@ -1039,7 +1039,7 @@ window.isPaymentRowHidden = function (row) {
         });
 
         // Deep-link: ?review_payment=<id> opens that payment's review modal
-        // directly — used by the Home dashboard's Driver Review Queue card to
+        // directly. Used by the Home dashboard's Driver Review Queue card to
         // jump straight into one item instead of landing on the general ledger.
         (() => {
             const targetId = new URLSearchParams(window.location.search).get('review_payment');
@@ -1185,7 +1185,7 @@ window.isPaymentRowHidden = function (row) {
                         const chip = document.createElement('span');
                         chip.className = 'bulk-passenger-chip';
                         // name is the passenger's own display name, read back out of a
-                        // data-* attribute (so already HTML-decoded) — since a display
+                        // data-* attribute (so already HTML-decoded), since a display
                         // name is user-set at registration with no character
                         // restriction, an unescaped one here is stored XSS against
                         // every driver who opens this modal.
@@ -1207,7 +1207,7 @@ window.isPaymentRowHidden = function (row) {
                 if (remarksEl) remarksEl.value = '';
 
                 // ── Driver payout info + "Pay Online" combine, only when
-                // every selected payment is owed to the SAME driver — one
+                // every selected payment is owed to the SAME driver, one
                 // bank transfer / one ToyyibPay bill can only settle to one
                 // wallet, so a mixed selection falls back to the plain form
                 // above exactly as before.
@@ -1219,7 +1219,7 @@ window.isPaymentRowHidden = function (row) {
 
                 // Read the direction per row (data-payment-perspective, set
                 // server-side) rather than trusting the page's active status
-                // tab (All/Unpaid/Pending/Confirmed) — that text never says
+                // tab (All/Unpaid/Pending/Confirmed). That text never says
                 // "pay" vs "collect" at all, and a passenger-only account's
                 // "All" tab is every bit as pay-only as its "Unpaid" tab.
                 const allSelectedArePay = checkedItems.length > 0
@@ -1228,7 +1228,7 @@ window.isPaymentRowHidden = function (row) {
                 const singleDriver = allSelectedArePay && driverNames.length === 1;
 
                 // Every row for the same driver carries identical driver-*
-                // dataset values on its own Pay button — any one will do.
+                // dataset values on its own Pay button. Any one will do.
                 let representativeButton = null;
                 if (singleDriver) {
                     for (const { row } of checkedItems) {
@@ -1678,7 +1678,7 @@ window.isPaymentRowHidden = function (row) {
                         // Stored XSS guard: a driver's name/photo is
                         // attacker-controlled and was interpolated raw
                         // into innerHTML, running in the paying
-                        // passenger's session. Build the node instead —
+                        // passenger's session. Build the node instead,
                         // identical <img> for legitimate values.
                         const avatarImg = document.createElement('img');
                         avatarImg.src = driverPhoto;
@@ -1791,7 +1791,7 @@ window.isPaymentRowHidden = function (row) {
 
     const reminderButtons = Array.from(document.querySelectorAll('.reminder-btn[data-seconds-left]'));
 
-    // 24h cooldown, so second-level precision isn't meaningful to the user —
+    // 24h cooldown, so second-level precision isn't meaningful to the user,
     // show a rounded magnitude instead and only touch the DOM when it changes.
     const toCompact = (seconds) => {
         if (seconds <= 0) return '';
@@ -1822,7 +1822,7 @@ window.isPaymentRowHidden = function (row) {
             const secondsLeft = paymentId && states[paymentId] ? states[paymentId] : 0;
             const compact = toCompact(secondsLeft);
 
-            // Each button tracks its own last-rendered value — several
+            // Each button tracks its own last-rendered value. Several
             // buttons (mobile card + desktop table row) can share the same
             // payment id but render in different styles.
             if (button.dataset.lastCompact === compact) return;
@@ -2564,7 +2564,7 @@ window.paymentsPager = (function () {
 
     // Phones get a tighter window than the desktop strip, which runs up to ten
     // slots and spills off the screen. This one is always exactly MOBILE_SLOTS
-    // wide, so the row keeps the same size — and the same centring — on every
+    // wide, so the row keeps the same size, and the same centring, on every
     // page instead of shrinking to a stub at the ends.
     const MOBILE_SLOTS = 7;
 
@@ -2768,7 +2768,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // After ToyyibPay redirects back (GatewayPaymentController::return), land back
-// on this same page and re-open the SAME popup showing a success state —
+// on this same page and re-open the SAME popup showing a success state,
 // reuses the existing receipt modal wholesale rather than building a new one.
 (() => {
     const params = new URLSearchParams(window.location.search);

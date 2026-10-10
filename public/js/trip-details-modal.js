@@ -1,4 +1,4 @@
-/* Shared "Trip Details" popup — opens for any element with class
+/* Shared "Trip Details" popup. Opens for any element with class
    "open-trip-modal-btn" carrying the full data-* set (see the click handler
    below for every key read). Originally lived only in trips-index.js; moved
    here so other pages (e.g. the chat thread header) can trigger the exact
@@ -7,7 +7,7 @@
    pulling in the rest of trips-index.js's list-page-only logic. */
 
 /* Shared by every cancel/delete trip form (list row, table row, detail modal,
-   bulk bar) — confirms, then optionally collects a reason into the form's
+   bulk bar). Confirms, then optionally collects a reason into the form's
    hidden "reason" input so TripService::delete() can keep it on the
    trip_cancellation_logs snapshot instead of the reason being lost. */
 function confirmTripCancel(form, confirmMessage) {
@@ -330,7 +330,7 @@ function confirmTripCancel(form, confirmMessage) {
                 whatsappEl.dataset.unavailable = waUrl ? '' : '1';
             }
 
-            // Shown first, ahead of Chat — see the blade comment above
+            // Shown first, ahead of Chat. See the blade comment above
             // #tripModalMyRequestWrap for why this only ever has something to
             // open on the trips-list page. Same !important-defeating wrapper
             // toggle as chatWrapEl/rateWrapEl below, for the same reason.
@@ -340,7 +340,7 @@ function confirmTripCancel(form, confirmMessage) {
 
             // Whichever trip currently has a linked conversation stays in-app
             // (matches the Hexa welcome message's "keep it inside this chat"
-            // tip) — public trips always get one automatically, private trips
+            // tip). Public trips always get one automatically, private trips
             // only once the driver starts/links a circle (see the Driver
             // Circles design), and fall back to direct contact until then.
             // Toggling the *wrapper* (a plain div, not itself a .trip-action-btn)
@@ -357,7 +357,7 @@ function confirmTripCancel(form, confirmMessage) {
                 if (chatNoteTextEl) chatNoteTextEl.textContent = 'Keep everything about this trip inside the chat so it stays safe and easy to track.';
             }
 
-            // Independent of the chat/external-contact toggle above — a
+            // Independent of the chat/external-contact toggle above, a
             // completed public trip can have both a live chat and a still-
             // unrated driver at once. #tripModalRateBtn is a plain
             // .trip-contact-row (not itself forced !important like
@@ -366,7 +366,7 @@ function confirmTripCancel(form, confirmMessage) {
             const canRate = String(btn.dataset.canRate || '0') === '1';
             if (rateWrapEl) rateWrapEl.style.display = canRate ? '' : 'none';
             if (rateBtnEl && canRate) {
-                // Reset every render — this single DOM node is reused across
+                // Reset every render. This single DOM node is reused across
                 // whichever trip's modal was last opened, so a "Rated"
                 // state left over from a previous trip must not leak in.
                 rateBtnEl.classList.remove('is-disabled');
@@ -393,13 +393,14 @@ function confirmTripCancel(form, confirmMessage) {
                 }
 
                 // A driver managing their own trip had no way to reach its
-                // chat from here at all — this button either opens the chat
-                // that already exists, (private trips only) starts/reuses a
-                // circle via the same chooser trips/show.blade.php uses, or
-                // — a public trip with no conversation yet (it's created by
-                // ChatService::syncParticipants() once the first passenger
-                // is approved, or may have since been purged) — shows
-                // disabled, matching the row-level chat-btn's own
+                // chat from here at all. This button either opens the chat
+                // that already exists, or on a private trip starts or reuses
+                // a circle through the same chooser trips/show.blade.php
+                // uses. On a public trip with no conversation yet, which
+                // ChatService::syncParticipants() creates once the first
+                // passenger is approved, or which may have been purged since,
+                // the button shows as disabled. That matches the row level
+                // chat button's own
                 // is-disabled convention, so the owner sees at a glance
                 // there's nothing to open instead of the button just
                 // vanishing.
@@ -411,7 +412,7 @@ function confirmTripCancel(form, confirmMessage) {
                     manageChatBtnEl.classList.remove('is-disabled');
 
                     // .trip-actions-filled .trip-action-btn forces display:
-                    // inline-flex !important (trips.css) — see the identical
+                    // inline-flex !important (trips.css). See the identical
                     // fix on requestsBtnEl below; a plain style.display
                     // assignment on this button would be silently defeated
                     // by it once a previous trip had shown it.
@@ -446,19 +447,19 @@ function confirmTripCancel(form, confirmMessage) {
 
             // "Manage requests" trigger, reusing the exact same popup as
             // trips/index.blade.php's own row button (public/js/
-            // trip-requests-modal.js) — this button just needs class
+            // trip-requests-modal.js). This button just needs class
             // "open-trip-requests-review" plus that popup's own expected
             // dataset; most of it (trip id/ref/route/pickup/destination) is
             // already on this same trigger button under other names.
             if (requestsBtnEl) {
                 const canManageRequests = canManage && String(btn.dataset.canManageRequests || '0') === '1';
                 // .trip-actions-filled .trip-action-btn forces display:
-                // inline-flex !important (trips.css) — a plain style.display
+                // inline-flex !important (trips.css), a plain style.display
                 // assignment on the button itself (this element has that
                 // class directly, unlike chatWrapEl's wrapper-div trick
                 // above) was silently defeated by it, so a private trip's
-                // Requests button — and any stale pending-count badge left
-                // over from the last public trip that did have one — never
+                // Requests button, and any stale pending-count badge left
+                // over from the last public trip that did have one, never
                 // actually hid.
                 requestsBtnEl.style.setProperty('display', canManageRequests ? 'inline-flex' : 'none', 'important');
 
@@ -505,14 +506,14 @@ function confirmTripCancel(form, confirmMessage) {
             setTimeout(() => {
                 drawMap(pickupLat, pickupLng, destinationLat, destinationLng, routePointsPayload).then(() => {
                     if (!miniMap) return;
-                    // invalidateSize() alone only fixes the tile grid — it
+                    // invalidateSize() alone only fixes the tile grid. It
                     // does not re-run fitBounds(), so if the container was
                     // still mid-layout (0 width, or the wrong width) at the
                     // first fitBounds() call inside drawMap(), the map stays
                     // zoomed/centred on that wrong measurement forever. This
                     // page nests the modal inside more surrounding layout
                     // than trips/index (the fullscreen chat shell) so that
-                    // race is more likely to lose here — refitting once more
+                    // race is more likely to lose here, refitting once more
                     // after invalidateSize() (now that layout has settled)
                     // is what actually corrects it, matching the exact
                     // bounds drawMap() itself would have used.
@@ -543,13 +544,13 @@ function confirmTripCancel(form, confirmMessage) {
         if (event.target === modal) closeModal();
     });
 
-    // Close this popup first so the two don't stack — the click still
+    // Close this popup first so the two don't stack, the click still
     // bubbles up to trip-requests-modal.js's own document-level listener
     // (matched by the "open-trip-requests-review" class), which opens the
     // Manage Requests popup right after.
     requestsBtnEl?.addEventListener('click', closeModal);
 
-    // Drag-to-dismiss on mobile — see public/js/bottom-sheet-drag.js.
+    // Drag-to-dismiss on mobile. See public/js/bottom-sheet-drag.js.
     // The grabber pill above trip-modal-head was purely decorative
     // before this; the sheet never actually tracked a finger.
     window.CarpoolBottomSheet?.enable({

@@ -1,7 +1,7 @@
-/* Extracted from resources/views/trips/index.blade.php — logic; page values come from window.CH_TRIPS.
+/* Extracted from resources/views/trips/index.blade.php. Logic; page values come from window.CH_TRIPS.
    confirmTripCancel() and the "Trip Details" modal's own open/populate logic
    now live in public/js/trip-details-modal.js (loaded alongside this file on
-   this page) — moved so the chat thread page can reuse that exact same
+   this page). Moved so the chat thread page can reuse that exact same
    popup without pulling in everything else in this file. */
 
         const showModalSkeleton = (listEl) => {
@@ -115,7 +115,7 @@
                         }
                     }
                     // A new page starts at the top of the list, same as the
-                    // payments ledger — otherwise you land mid-list on rows you
+                    // payments ledger. Otherwise you land mid-list on rows you
                     // have not seen.
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } catch (_e) {
@@ -223,7 +223,7 @@
             // opens that trip's details popup directly instead of just scrolling to it.
             // ?open_requests=1 or ?open_rate=1 alongside it (a new-join-request or
             // driver-rating notification) cascades one step further into the
-            // "Manage requests" popup or the rating modal on top of that — both
+            // "Manage requests" popup or the rating modal on top of that, both
             // target buttons' own datasets are populated synchronously inside the
             // Trip Details click handler, so a short delay after it opens is all
             // that's needed before the second click finds them ready.
@@ -1002,15 +1002,15 @@
 
         // The "Manage requests" popup (+ its Reject/Remove reason sub-popups
         // and route-optimization map) now lives in
-        // public/js/trip-requests-modal.js — moved so the chat thread page
+        // public/js/trip-requests-modal.js. Moved so the chat thread page
         // can reuse that exact same popup without pulling in everything else
         // in this file.
 
-        // ── "My Request" — the passenger-side counterpart of "Manage requests"
+        // ── "My Request", the passenger-side counterpart of "Manage requests"
         // above: one card for the viewer's own request, Cancel instead of
         // Reject/Approve/Remove/Absent. Also shows trip date/fare/seats and a
         // lightweight route-preview map (driver pickup/drop-off plus other
-        // approved passengers' custom stops) — visually modelled on Manage
+        // approved passengers' custom stops). Visually modelled on Manage
         // Requests' hero + map, minus the driver-only optimisation tooling
         // (stop toggles, route-fit search) since a passenger isn't managing
         // anyone else's stop here.
@@ -1025,7 +1025,7 @@
                 document.body.appendChild(modal);
             }
 
-            // Pending-request card — same trigger button as above, but a request
+            // Pending-request card, same trigger button as above, but a request
             // still awaiting driver approval has nothing to manage, so it opens
             // this simpler, Explore-styled read-only view instead (see the
             // status branch in the click handler near the bottom of this IIFE).
@@ -1180,7 +1180,7 @@
                 const points = [pickup, ...stops.map((stop) => stop.point), dropoff];
 
                 // Straight reference line first (instant), swapped for the real
-                // road route once OSRM responds — best-effort, no permutation
+                // road route once OSRM responds. Best-effort, no permutation
                 // search needed since the passenger isn't optimising stop order.
                 let referenceLine = L.polyline(points, { color: '#64748b', weight: 5, opacity: .55, lineCap: 'round', interactive: false }).addTo(myRequestMap);
                 addPoint(pickup, 'driver-pickup', 'Driver Pickup', 'A');
@@ -1204,7 +1204,7 @@
                         L.polyline(routeCoords, { color: '#1d4ed8', weight: 5, opacity: .92, lineCap: 'round', interactive: false }).addTo(myRequestMap);
                     }
                 } catch (_error) {
-                    // Reference line already drawn — nothing else to do.
+                    // Reference line already drawn, nothing else to do.
                 }
             };
 
@@ -1310,7 +1310,7 @@
                                 </button>
                             </div>
                         ` : `
-                            <div class="trip-request-note">This trip has already passed — it can no longer be cancelled.</div>
+                            <div class="trip-request-note">This trip has already passed. It can no longer be cancelled.</div>
                         `}
                     </article>
                 `;
@@ -1368,7 +1368,7 @@
                     if (window.showToast) window.showToast(payload.message || 'Request cancelled.', 'success');
                     close();
                     // Seat counts, tab counters, and this trip's own card all need
-                    // a fresh server render — simplest correct option here.
+                    // a fresh server render. Simplest correct option here.
                     window.setTimeout(() => window.location.reload(), 600);
                 } catch (error) {
                     cancelBtn.disabled = false;

@@ -5,14 +5,14 @@
    with a real thread) render into.
 
    Must load BEFORE the initial thread's own inline <script>/<script src>
-   tags (chats-show.js etc.) — see window.__chatThreadSignal below — so put
+   tags (chats-show.js etc.). See window.__chatThreadSignal below, so put
    its <script src> ahead of @include('chats.partials.thread', ...) in both
    shell views. */
 window.CarpoolChatThread = (() => {
     // Every setInterval / Ably connection / document-level listener that a
     // per-thread script (chats-show.js) registers is tied to this signal,
     // so replacing it here is the entire teardown for whatever the
-    // previous thread's scripts started — see chats-show.js's own header
+    // previous thread's scripts started. See chats-show.js's own header
     // comment. Created immediately (not just inside mount()) so the very
     // first thread rendered by the server on initial page load is covered
     // too, not just ones swapped in afterwards.
@@ -21,7 +21,7 @@ window.CarpoolChatThread = (() => {
 
     const mountEl = () => document.getElementById('chatThreadMount');
 
-    // Setting .innerHTML does not execute embedded <script> tags — creating
+    // Setting .innerHTML does not execute embedded <script> tags, creating
     // fresh <script> elements and appending them does, every time,
     // regardless of whether the browser already ran that same src before.
     // That's what actually re-initializes chats-show.js (and, on first
@@ -74,14 +74,14 @@ window.CarpoolChatThread = (() => {
         });
     }
 
-    // One retry before giving up — a transient failure on the first attempt
+    // One retry before giving up, a transient failure on the first attempt
     // (a dropped connection, a momentary server hiccup) is otherwise enough
     // to fall all the way back to a full page navigation for what's usually
     // a one-off blip; a near-immediate second attempt clears it in practice
     // far more often than it doesn't, keeping the swap seamless instead of
     // visibly degrading on the first sign of trouble. `signal` aborts BOTH
     // attempts at once the moment a newer mount() supersedes this one (see
-    // mount() below) — without it, clicking through several chats quickly
+    // mount() below), without it, clicking through several chats quickly
     // leaves every earlier click's fetch running in the background, each
     // free to finish later and stomp the newer one's result.
     async function fetchThreadHtml(url, signal) {
@@ -112,7 +112,7 @@ window.CarpoolChatThread = (() => {
 
         // Superseding a mount already in flight (clicking a second chat
         // before the first one's fetch has resolved) aborts that one's
-        // fetch outright — see fetchThreadHtml's comment — and this mount's
+        // fetch outright. See fetchThreadHtml's comment, and this mount's
         // own signal is what a later, even-newer mount() will abort in
         // turn. window.__chatThreadSignal is the same signal so the
         // thread's own scripts (chats-show.js) tear down on exactly this

@@ -1,13 +1,13 @@
-/* Reusable "Start Group Chat" chooser — exposes window.CarpoolCircleChooser.
+/* Reusable "Start Group Chat" chooser. Exposes window.CarpoolCircleChooser.
    startFor(config), where config = { csrf, circleOptionsUrl, createUrl,
    linkCircleUrlTemplate } for one specific trip. Any page that wants to let
    a driver start/reuse a circle for a trip calls this (trips/show.blade.php,
-   the shared Trip Details modal, the Payments page's own copy) — the modal
+   the shared Trip Details modal, the Payments page's own copy), the modal
    markup/wiring below is a single shared instance, not per-caller.
 
    Always opens the modal now (even with zero circles, straight into the
    name-entry view) rather than falling back to the browser's native
-   prompt()/alert() — those looked jarringly out of place next to the rest
+   prompt()/alert(). Those looked jarringly out of place next to the rest
    of the app's themed UI. Reuses the same modal shell/classes as
    trip-requests-modal.blade.php (trips.css) rather than introducing a
    parallel set of styles. */
@@ -18,7 +18,7 @@
     const subEl = document.getElementById('circleChooserSub');
     const closeBtn = document.getElementById('circleChooserClose');
 
-    // Set on every startFor() call — the list-click delegate below reads
+    // Set on every startFor() call, the list-click delegate below reads
     // from this rather than a fixed config, since the same modal instance
     // now serves whichever trip's button was last clicked.
     let activeConfig = null;
@@ -98,7 +98,7 @@
 
         list.style.gap = '0';
 
-        // "Start a new circle" leads — a driver picking between several
+        // "Start a new circle" leads, a driver picking between several
         // circles still has "start fresh" as a real option, not just a
         // fallback buried under the list.
         const newCircleRow = payload.at_cap

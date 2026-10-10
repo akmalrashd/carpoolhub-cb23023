@@ -1,11 +1,11 @@
-/* Extracted from resources/views/trips/index.blade.php — the "Manage
+/* Extracted from resources/views/trips/index.blade.php, the "Manage
    requests" driver-side popup (+ its Reject/Remove reason sub-popups),
    including the multi-passenger route-optimization map. Moved so the chat
    thread page can reuse this exact same popup without pulling in everything
    else in trips-index.js. Page values (CSRF token) come from window.CH_TRIPS,
-   same convention as trips-index.js itself — any page loading this file must
+   same convention as trips-index.js itself. Any page loading this file must
    also define that global. showModalSkeleton below is a local copy of the
-   one trips-index.js keeps at its own top level (for its other popups) —
+   one trips-index.js keeps at its own top level (for its other popups),
    duplicated here, not shared, since this file must also stand alone on
    pages that don't load trips-index.js at all. */
 
@@ -123,7 +123,7 @@
                 if (form) submitJoinRequestResponse(form, approveBtn);
             });
 
-            // ── Remove-participant reason modal — same shape as the reject
+            // ── Remove-participant reason modal, same shape as the reject
             // modal above, targeting an already-approved passenger instead.
             const removeModal = document.getElementById('tripRemoveParticipantModal');
             const removeCloseTopBtn = document.getElementById('tripRemoveParticipantCloseTop');
@@ -197,7 +197,7 @@
                 });
             }
 
-            // ── Mark-absent — no reason needed, just a confirm() before submit.
+            // ── Mark-absent, no reason needed, just a confirm() before submit.
             list.addEventListener('click', (event) => {
                 const absentBtn = event.target.closest('.open-trip-mark-absent');
                 if (!absentBtn) return;
@@ -236,7 +236,7 @@
             // The header badge used to just echo request.status verbatim, so
             // a passenger who was approved and later removed/marked absent
             // kept showing "approved" up top even though the note below
-            // already said otherwise — attendance_status (set after
+            // already said otherwise. Attendance_status (set after
             // approval) always wins over the original join-request status
             // once it's no longer just "joined".
             const statusBadge = (request) => {
@@ -321,7 +321,7 @@
                 try {
                     // form.action would return the <input name="action"> element
                     // instead of the URL (form controls shadow same-named
-                    // HTMLFormElement properties) — read the attribute directly.
+                    // HTMLFormElement properties). Read the attribute directly.
                     const response = await fetch(form.getAttribute('action'), {
                         method: 'POST',
                         body: new FormData(form),
@@ -363,7 +363,7 @@
                     if (window.showToast) window.showToast(error.message || 'Request could not be updated.', 'error');
                 }
             };
-            // Shared by Remove and Mark-absent — both just flip attendance_status
+            // Shared by Remove and Mark-absent, both just flip attendance_status
             // (plus an optional note) on the existing row, unlike respond() which
             // can also remove the row entirely (reject) or touch seat counts
             // (approve). Neither of those apply here, so this stays simpler.
@@ -409,7 +409,7 @@
                 const isOpen = String(button.dataset.isOpenForRequest || '') === '1';
                 const hint = isOpen
                     ? 'Passengers can currently send join requests for this trip.'
-                    : 'Join requests are closed — passengers cannot request to join right now.';
+                    : 'Join requests are closed. Passengers cannot request to join right now.';
 
                 return `
                     <form method="POST" action="${escapeHtml(button.dataset.toggleUrl || '')}" class="trip-request-toggle-form" data-request-toggle-form>
@@ -784,7 +784,7 @@
                                 ${responseForm(request, 'approve', 'Approve', 'confirm', 'fa-solid fa-check')}
                             </div>
                         ` : request.attendance_status === 'removed' ? `
-                            <div class="trip-request-note trip-request-note-removed"><i class="fa-solid fa-user-xmark"></i> Removed${request.attendance_note ? ' — ' + escapeHtml(request.attendance_note) : ''}</div>
+                            <div class="trip-request-note trip-request-note-removed"><i class="fa-solid fa-user-xmark"></i> Removed${request.attendance_note ? '. ' + escapeHtml(request.attendance_note) : ''}</div>
                         ` : request.attendance_status === 'absent' ? `
                             <div class="trip-request-note trip-request-note-absent"><i class="fa-solid fa-user-clock"></i> Marked absent</div>
                         ` : `
@@ -826,7 +826,7 @@
             // Delegated on document, not bound per-button: switching the trips
             // tab/status filter replaces #trips-real-container's innerHTML
             // wholesale (see fetchPage()), which silently drops any listener
-            // that had been attached directly to the old button elements —
+            // that had been attached directly to the old button elements,
             // this is what made "Manage requests" go dead after the first tab
             // switch. A delegated listener re-resolves the target from the
             // live DOM on every click, so it keeps working after any swap.

@@ -1,4 +1,4 @@
-/* Extracted from resources/views/explore/search.blade.php — cacheable. */
+/* Extracted from resources/views/explore/search.blade.php. Cacheable. */
 (() => {
     const destinationInput = document.getElementById('search_destination');
     const pickupInput      = document.getElementById('search_pickup');
@@ -18,7 +18,7 @@
     };
 
     // Overpass's public server can be considerably slower than Nominatim
-    // (occasionally 10s+ under load) — races it against a plain timer so a
+    // (occasionally 10s+ under load). Races it against a plain timer so a
     // slow response degrades to "no nearby places" instead of leaving the
     // pin's own address stuck on "Loading..." indefinitely.
     const withTimeout = (promise, ms, fallback) => Promise.race([
@@ -26,7 +26,7 @@
         new Promise((resolve) => setTimeout(() => resolve(fallback), ms)),
     ]);
 
-    // Malaysia-only — countrycodes restricts Nominatim's own search, not just
+    // Malaysia-only. Countrycodes restricts Nominatim's own search, not just
     // a client-side filter, so a generic word like "bandar" surfaces actual
     // Malaysian places instead of matches in Indonesia/India/Bangladesh too.
     const fetchSuggestions = async (query) => {
@@ -49,7 +49,7 @@
 
     const toRad = (deg) => (deg * Math.PI) / 180;
 
-    // Metres between two lat/lng points (haversine) — used to sort nearby
+    // Metres between two lat/lng points (haversine). Used to sort nearby
     // places by actual distance from the pin, not whatever order Overpass
     // happened to return them in.
     const distanceMeters = (lat1, lng1, lat2, lng2) => {
@@ -62,7 +62,7 @@
     };
 
     // Named, generally-recognisable places near the pin (malls, restaurants,
-    // schools, landmarks, parks...) — what someone actually means by "picking
+    // schools, landmarks, parks...). What someone actually means by "picking
     // a place near here", as opposed to reverseGeocode's plain street address
     // for the exact tapped point. Nominatim can't answer "what's nearby" without
     // a search term, so this queries OSM data directly via Overpass instead.
@@ -115,7 +115,7 @@
         if (centerLngInput) centerLngInput.value = String(lng);
     };
 
-    // ── Current location row — geolocation is requested lazily, only on tap,
+    // ── Current location row. Geolocation is requested lazily, only on tap,
     // not on page load, so the browser's permission prompt is never a surprise.
     const currentLocationBtn   = document.getElementById('currentLocationBtn');
     const currentLocationLabel = document.getElementById('currentLocationLabel');
@@ -137,13 +137,13 @@
                         setCoords('pickup', lat, lng);
                         destinationInput?.focus();
                     } catch (_e) {
-                        currentLocationLabel.textContent = 'Could not look up your address — try again.';
+                        currentLocationLabel.textContent = 'Could not look up your address. Try again.';
                     } finally {
                         resolving = false;
                     }
                 },
                 () => {
-                    currentLocationLabel.textContent = 'Location unavailable — check permissions and try again.';
+                    currentLocationLabel.textContent = 'Location unavailable. Check permissions and try again.';
                     resolving = false;
                 },
                 { timeout: 8000, maximumAge: 60000 }
@@ -153,10 +153,10 @@
         currentLocationBtn.style.display = 'none';
     }
 
-    // Whichever field the user last focused is the "active" field — starts on
+    // Whichever field the user last focused is the "active" field. Starts on
     // Destination (it carries autofocus), and always holds exactly one of the
     // two, since that's what Recent/Suggested/live-search results fill into.
-    // The visual highlight is driven by this JS state, not CSS :focus-within —
+    // The visual highlight is driven by this JS state, not CSS :focus-within,
     // native focus disappears the moment the user taps a chip/button/FAB
     // elsewhere on the page, but the active field must stay marked regardless.
     let lastFocusedTarget = 'destination';
@@ -195,7 +195,7 @@
     const escapeHtml = (value) => String(value).replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     // Nominatim can take 1-3s to respond, so show this the instant a search
-    // actually starts (not on every keystroke) — otherwise a quiet screen
+    // actually starts (not on every keystroke). Otherwise a quiet screen
     // for a few seconds reads as broken, not "still working."
     const renderLoading = () => {
         if (!liveSearchResults) return;
@@ -303,7 +303,7 @@
             if (!targetInput) return;
 
             targetInput.value = value;
-            // A picked list item is plain text, not a geocoded pin — clear any
+            // A picked list item is plain text, not a geocoded pin. Clear any
             // stale coordinates so the form doesn't submit an old lat/lng next
             // to a now-different typed value.
             if (lastFocusedTarget === 'pickup') {
@@ -352,7 +352,7 @@
     if (!overlay || !mapEl || !openBtn || typeof window.L === 'undefined') return;
 
     let map = null;
-    let pinMarker = null; // real Leaflet marker — tappable/draggable, not a screen-fixed overlay
+    let pinMarker = null; // real Leaflet marker. Tappable/draggable, not a screen-fixed overlay
     let activeTarget = 'destination';
     let currentCenter = null; // { lat, lng, label }
     let moveTimer = null;
@@ -363,7 +363,7 @@
 
     // Leaflet positions the marker's own element via an inline transform (for
     // panning), so the drag "lift" animation is applied to an inner <span>
-    // instead — animating the marker element's own transform would fight
+    // instead, animating the marker element's own transform would fight
     // Leaflet's positioning and the marker would never actually move.
     const buildPinIcon = () => window.L.divIcon({
         className: 'xs2-map-pin-icon',
@@ -373,7 +373,7 @@
     });
 
     // Which field this pin sets was already decided by whichever field was
-    // active before the map opened (see openOverlay below) — this just
+    // active before the map opened (see openOverlay below). This just
     // reflects that choice, it's not an interactive toggle.
     const updateTargetUI = () => {
         const isDestination = activeTarget === 'destination';
@@ -388,7 +388,7 @@
     };
 
     // First row is always the exact tapped point's own address (tapping it
-    // just confirms that label — the pin is already there); every row after
+    // just confirms that label, the pin is already there); every row after
     // that is a real named place found nearby, and tapping one actually
     // moves the pin to that place's own coordinates.
     const renderSheetOptions = (options) => {
@@ -425,7 +425,7 @@
                     return;
                 }
 
-                // A genuinely different nearby place — pan there (it may sit
+                // A genuinely different nearby place. Pan there (it may sit
                 // outside the current view) and move the pin to its real spot.
                 map.panTo([opt.lat, opt.lng]);
                 placePinAt(opt.lat, opt.lng);
@@ -438,14 +438,14 @@
         if (!el) return;
         el.classList.remove('is-dragging');
         // Restart the animation even if it's already mid-bounce from a rapid
-        // second tap — forcing reflow between remove/add is what makes that work.
+        // second tap, forcing reflow between remove/add is what makes that work.
         void el.offsetWidth;
         el.classList.add('is-bouncing');
         setTimeout(() => el.classList.remove('is-bouncing'), 220);
     };
 
     // Moves the pin to lat/lng (creating the marker on first use) and looks up
-    // its address — shared by tapping the map, dragging the marker, and the
+    // its address. Shared by tapping the map, dragging the marker, and the
     // initial placement on open. This is the one path that ever sets currentCenter.
     const placePinAt = (lat, lng) => {
         if (!pinMarker) {
@@ -483,7 +483,7 @@
                 currentCenter = { lat, lng, label: exactLabel || fallback };
                 setStatus(nearbyPlaces.length
                     ? 'Choose a nearby place, or tap elsewhere on the map.'
-                    : 'No notable places nearby — tap elsewhere on the map.');
+                    : 'No notable places nearby. Tap elsewhere on the map.');
 
                 const options = [
                     { label: exactLabel || fallback, sub: null, lat, lng, isExact: true },
@@ -511,16 +511,16 @@
             .setView([3.139, 101.6869], 12);
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-        // Tap/click anywhere on the map to drop the pin there — like any other
-        // map app — rather than the old "drag the map under a fixed pin" trick.
+        // Tap/click anywhere on the map to drop the pin there, like any other
+        // map app. Rather than the old "drag the map under a fixed pin" trick.
         map.on('click', (e) => placePinAt(e.latlng.lat, e.latlng.lng));
     };
 
     // Picking a starting view for the map, in priority order:
-    // 1. The active field already has a pinned lat/lng — show that.
-    // 2. The active field has typed text but no pin yet — search it and zoom
+    // 1. The active field already has a pinned lat/lng. Show that.
+    // 2. The active field has typed text but no pin yet. Search it and zoom
     //    there (same concept for either field, per the user's request).
-    // 3. Field is empty — fall back to the device's current location.
+    // 3. Field is empty. Fall back to the device's current location.
     const focusMapOnOpen = async () => {
         map.invalidateSize();
 
@@ -537,7 +537,7 @@
         }
 
         // Nothing pinned yet for this field (or the last open was for the
-        // other field) — no stale pin should carry over onto this one.
+        // other field), no stale pin should carry over onto this one.
         if (pinMarker) {
             pinMarker.remove();
             pinMarker = null;
@@ -558,9 +558,9 @@
                     placePinAt(foundLat, foundLng);
                     return;
                 }
-                setStatus(`Couldn't find "${typedQuery}" — tap the map to set your pin.`);
+                setStatus(`Couldn't find "${typedQuery}". Tap the map to set your pin.`);
             } catch (_e) {
-                setStatus('Search failed — tap the map to set your pin.');
+                setStatus('Search failed. Tap the map to set your pin.');
             }
             return;
         }
@@ -609,7 +609,7 @@
                 locateMeBtn.classList.remove('is-locating');
             },
             () => {
-                setStatus('Location unavailable — check permissions and try again.');
+                setStatus('Location unavailable. Check permissions and try again.');
                 locateMeBtn.classList.remove('is-locating');
             },
             { timeout: 8000, maximumAge: 60000 }

@@ -1,4 +1,4 @@
-/* Drag-to-dismiss for the app's mobile bottom-sheet modals — every popup
+/* Drag-to-dismiss for the app's mobile bottom-sheet modals, every popup
    that switches to a translateY(100%)<->translateY(0) sheet with a pill
    "grabber" under some max-width breakpoint (trips, explore, payments,
    admin, etc.) shares this one implementation instead of each modal's own
@@ -7,7 +7,7 @@
    Usage: window.CarpoolBottomSheet.enable({ modal, card, head, closeFn })
    - modal: the fixed overlay element (fades via style.opacity while dragging)
    - card: the sheet itself (moves via style.transform while dragging)
-   - head: the drag surface — normally the header row the grabber sits over;
+   - head: the drag surface, normally the header row the grabber sits over;
      dragging never starts on a button/link/input inside it, so a close
      button or any other control in the header still works normally
    - closeFn: called when the drag crosses the distance or velocity
@@ -15,7 +15,7 @@
      body scroll lock, ...) stays with the caller, same as clicking the X
 
    On release, control is handed straight back to the CSS transition that
-   already drives the modal's own open/close animation — there is no
+   already drives the modal's own open/close animation. There is no
    separate hand-rolled closing animation to keep in sync with it. */
 (function () {
     'use strict';
