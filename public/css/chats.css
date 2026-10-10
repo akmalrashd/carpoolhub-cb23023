@@ -61,7 +61,7 @@
     display: none;
 }
 
-/* Desktop split-view only — the thread currently open in the right pane. */
+/* Desktop split-view only, the thread currently open in the right pane. */
 .chat-row.is-active {
     border-color: var(--ch-yellow);
     border-width: 2px;
@@ -95,7 +95,7 @@
 }
 
 /* 2x2-ish cluster: a bigger top-left avatar plus up to two more, with a
-   count badge as the 4th "slot" once there are more people than fit — clean
+   count badge as the 4th "slot" once there are more people than fit, clean
    and minimal, just a white border between overlapping circles, no colour
    rings or decoration. */
 .chat-avatar-cluster {
@@ -115,7 +115,7 @@
 }
 
 .chat-avatar-cluster.count-1 .cluster-slot-0 {
-    /* size="md" avatar is 36px in a 56px box — (56-36)/2 centers it exactly. */
+    /* size="md" avatar is 36px in a 56px box, (56-36)/2 centers it exactly. */
     top: 10px;
     left: 10px;
 }
@@ -247,7 +247,7 @@
 }
 
 /* ── Split view (list + thread side by side) ──
-   Mobile: only one pane at a time — chats/index.blade.php shows just the
+   Mobile: only one pane at a time, chats/index.blade.php shows just the
    list (.chat-split-empty and .chat-split-thread never render there
    anyway), chats/show.blade.php shows just the thread full-screen (the
    list pane exists in the DOM for the desktop layout below, so it's
@@ -312,7 +312,7 @@ body:has(.chat-thread-page) .chat-split-list {
     /* #chatThreadMount (chat-thread-controller.js's swap target) wraps
        .chat-split-empty/.chat-split-thread rather than being replaced BY
        them, so it needs the same sizing they'd otherwise get directly as
-       .chat-split's own grid item — see chats/show.blade.php's comment on
+       .chat-split's own grid item. See chats/show.blade.php's comment on
        that element. The opacity dip is the only visual feedback while a
        chat switch's fetch is in flight; it's brief enough (see
        chat-thread-controller.js) that a spinner would just flash. */
@@ -337,7 +337,7 @@ body:has(.chat-thread-page) .chat-split-list {
         height: 100%;
         min-height: 0;
         /* The base .chat-thread-page rule (top of this file) falls back to
-           var(--surface) (white) — correct for the mobile full-screen
+           var(--surface) (white), correct for the mobile full-screen
            overlay above (which explicitly sets --canvas instead), but never
            had a desktop equivalent, so the split-view's right pane rendered
            plain white instead of matching the same cream background the
@@ -368,7 +368,7 @@ body:has(.chat-thread-page) .chat-split-list {
     display: flex;
     flex-direction: column;
     /* Opaque so the site's ambient bg-pattern layer (fixed behind every
-       page) never shows through the message list — this was always missing
+       page) never shows through the message list. This was always missing
        on desktop specifically (the mobile fixed-overlay rule below already
        sets it) but stayed invisible while .chat-thread-messages' overflow
        bug kept the pane from ever rendering as a clean bounded box. */
@@ -470,7 +470,7 @@ body:has(.chat-thread-page) .chat-split-list {
 }
 
 .chat-thread-sub {
-    /* Wraps instead of truncating — this line can carry the driver's
+    /* Wraps instead of truncating. This line can carry the driver's
        vehicle plate/model, which is safety-critical (see the Hexa welcome
        message's "check the plate matches" tip) and must never be hidden
        behind an ellipsis. */
@@ -601,7 +601,7 @@ body:has(.chat-thread-page) .chat-split-list {
 }
 
 /* margin-top:auto pins a short conversation to the bottom (collapses to 0,
-   rather than going negative, once content overflows) — see the comment in
+   rather than going negative, once content overflows). See the comment in
    chats/show.blade.php for why this replaced justify-content:flex-end. */
 .chat-thread-messages-inner {
     display: flex;
@@ -626,7 +626,7 @@ body:has(.chat-thread-page) .chat-split-list {
     padding: 4px 12px;
 }
 
-/* WhatsApp-style "you left off here" marker — chats-show.js scrolls to this
+/* WhatsApp-style "you left off here" marker. Chats-show.js scrolls to this
    on page load instead of the very bottom, so a chat with several unread
    messages doesn't skip straight past the ones read from the top down. */
 .chat-unread-separator {
@@ -723,7 +723,7 @@ body:has(.chat-thread-page) .chat-split-list {
 }
 
 .chat-bubble-hexa-list {
-    /* app.css resets all ul/ol to list-style:none app-wide — restored here
+    /* app.css resets all ul/ol to list-style:none app-wide. Restored here
        since, unlike the rest of the app, this list genuinely wants a native
        marker with correct hanging indent for wrapped lines. */
     list-style-type: disc;
@@ -764,7 +764,7 @@ body:has(.chat-thread-page) .chat-split-list {
     font-size: 10px;
 }
 
-/* Rate Trip reuses the shared CTA shape/sizing but not the green — green is
+/* Rate Trip reuses the shared CTA shape/sizing but not the green, green is
    "Pay Now"'s money/success colour, mismatched for a star rating. Yellow
    matches the star picker itself and the app's primary-action colour
    (.btn-primary, shell.css) used on the modal's own Submit button. */
@@ -825,7 +825,7 @@ body:has(.chat-thread-page) .chat-split-list {
     position: fixed;
     inset: 0;
     /* Above every existing fixed layer (desktop topbar is 2100, the Trip
-       Details modal 2600) — this is meant to sit over all of them. */
+       Details modal 2600). This is meant to sit over all of them. */
     z-index: 9999;
     background: rgba(0, 0, 0, 0.9);
 }
@@ -937,7 +937,7 @@ body:has(.chat-thread-page) .chat-split-list {
     text-align: center;
 }
 
-/* Immersive full-screen chat on mobile — a native chat app doesn't share
+/* Immersive full-screen chat on mobile, a native chat app doesn't share
    the screen with a site header/bottom nav while you're in a thread, so
    this page takes the whole viewport and becomes its own mini app-shell
    (its own top bar + composer) instead of stacking under/over the site
@@ -984,7 +984,7 @@ body:has(.chat-thread-page) .chat-split-list {
         position: static;
         flex-shrink: 0;
         /* env(safe-area-inset-bottom) reads 0 across this whole app on
-           purpose (see the NOTE in pwa-head.blade.php — viewport-fit=cover
+           purpose (see the NOTE in pwa-head.blade.php, viewport-fit=cover
            was tried and reverted). --bottom-nav-h's own visual bottom
            breathing room is a plain fixed value, not a safe-area inset, so
            this bar (replacing the bottom-nav as this page's bottom-most
@@ -995,7 +995,7 @@ body:has(.chat-thread-page) .chat-split-list {
 
     /* That 28px is only for the home-indicator/gesture-bar area showing
        below the composer when it's the bottom-most thing on screen. Once
-       the on-screen keyboard is up (body.keyboard-open — the same class
+       the on-screen keyboard is up (body.keyboard-open, the same class
        layouts/app.blade.php already uses to slide .mobile-bottom-nav away
        on focus), the keyboard covers that area instead, so keeping the pad
        would just float the input awkwardly above the keys with dead space

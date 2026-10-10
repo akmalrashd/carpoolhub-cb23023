@@ -1,4 +1,4 @@
-/* Extracted from resources/views/admin/reports/index.blade.php — cacheable. */
+/* Extracted from resources/views/admin/reports/index.blade.php. Kept in its own file so the browser can cache it. */
 /* Page container, header (eyebrow/title/sub), sub-nav, filter bar, and the
    4 overview stat cards now reuse admin-users.css's .au-page/.au-stats/etc
    so Reports looks like the same app as the other 4 admin pages. Only the

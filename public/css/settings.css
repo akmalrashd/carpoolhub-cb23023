@@ -1,4 +1,4 @@
-/* Extracted from resources/views/settings/index.blade.php — cacheable. */
+/* Extracted from resources/views/settings/index.blade.php. Kept in its own file so the browser can cache it. */
         /* ── Centered Container ── */
         .profile-page-container {
             max-width: 960px;
@@ -325,7 +325,7 @@
         }
         .settings-nav::-webkit-scrollbar { display: none; }
 
-        /* ── Mobile quickbar header — the active section's title/icon and
+        /* ── Mobile quickbar header: the active section's title/icon and
            its step position ("1 of 4"), sitting inside .settings-nav-wrap
            above the tab strip. The desktop rail already carries its own
            persistent label + description per item, so it's hidden there. ── */
@@ -378,7 +378,7 @@
             border-radius: 999px;
             white-space: nowrap;
         }
-        /* Same visible track as .admin-subnav (public/css/admin-users.css) —
+        /* Same visible track as .admin-subnav (public/css/admin-users.css),
            a light rounded-rect background the pills sit inside, not just a
            hairline separator. */
         @media (max-width: 899px) {
@@ -419,7 +419,7 @@
             color: var(--ink);
         }
         /* Without this, tapping/clicking a tab shows the browser's default
-           dark focus ring on top of the yellow .is-active styling below —
+           dark focus ring on top of the yellow .is-active styling below,
            looks like a rendering bug even though the colors underneath are
            correct. Swap it for an on-brand ring instead. */
         .settings-nav-btn:focus-visible {
@@ -427,7 +427,7 @@
             box-shadow: 0 0 0 3px var(--ch-yellow-tint);
         }
         /* Same white + raised-shadow active look as .admin-subnav a.active
-           (public/css/admin-users.css) — was yellow-filled on mobile only,
+           (public/css/admin-users.css), was yellow-filled on mobile only,
            inconsistent with every other tab strip in the app. */
         .settings-nav-btn.is-active {
             background: var(--surface);
@@ -670,7 +670,7 @@
             border-color: var(--ch-yellow-line);
         }
 
-        /* ── Document status rows (Driver's License / Selfie Verification) —
+        /* ── Document status rows (Driver's License / Selfie Verification):
            a compact list of icon + status + action, replacing a QR-style
            preview card grid for content that isn't a scannable QR code. ── */
         .doc-status-list {
@@ -850,7 +850,7 @@
             gap: 8px;
         }
 
-        /* "Quick switch" segmented control — replaces a <select> for a small,
+        /* "Quick switch" segmented control. Replaces a <select> for a small,
            fixed set of mutually-exclusive choices (visibility: Public /
            Connections / Private). Real radio inputs so it's a real form
            control (keyboard operable, submits like any other field); the
@@ -887,7 +887,7 @@
             outline-offset: 1px;
         }
 
-        /* Two fields side by side (e.g. Car Model / Plate Number) — each its
+        /* Two fields side by side (e.g. Car Model / Plate Number), each its
            own full input-wrap, rather than squeezed into one shared box. */
         .form-grid-2col {
             display: grid;
@@ -1028,7 +1028,7 @@
             display: none;
         }
 
-        /* Read-only variant (driver verification docs) — a dashed border and a
+        /* Read-only variant (driver verification docs), a dashed border and a
            yellow hover both signal "you can act on this", which isn't true here. */
         .qr-card-readonly {
             border-style: solid;
@@ -1053,7 +1053,7 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        /* Note on the left, submit button on the right — was a standalone
+        /* Note on the left, submit button on the right, was a standalone
            blue banner above the whole form; that much emphasis didn't match
            how minor this is. */
         .form-note-inline {
@@ -1133,7 +1133,7 @@
         }
         .channel-row-icon.push { background: rgba(234,179,8,.15); color: #ca8a04; }
         .channel-row-icon.telegram { background: rgba(41,151,224,.12); color: #2997e0; }
-        /* Full-colour Google "G" mark (inline SVG) — a neutral chip behind it
+        /* Full-colour Google "G" mark (inline SVG), a neutral chip behind it
            instead of a blue tint, since the icon now carries its own colours. */
         .channel-row-icon.google { background: #f1f3f4; }
         .channel-row-icon svg, .btn-submit-yellow svg { display: block; }
@@ -1141,7 +1141,7 @@
 
         /* ── Compact row variant: a small Bind/Unbind pill sits in the title
            row itself instead of a full-width button below the description
-           (used by Google — a single yes/no link, not an enable/disable
+           (used by Google, a single yes/no link, not an enable/disable
            channel with its own states like Push/Telegram). ── */
         .channel-row.is-bind-row {
             align-items: flex-start;
@@ -1203,7 +1203,7 @@
         .channel-row-action { flex-shrink: 0; }
         .channel-row-action button { padding: 9px 16px; font-size: 13px; }
 
-        /* Short icon + line perks under a channel's lead sentence — swaps a
+        /* Short icon + line perks under a channel's lead sentence, swaps a
            long run-on sentence for a scannable list. */
         .channel-perk-list {
             list-style: none;
@@ -1229,7 +1229,7 @@
         }
 
         /* Below ~640px the icon+text block claims the full row width, so the
-           action button always wraps onto its own line — give it a visible
+           action button always wraps onto its own line, give it a visible
            break (border + stretch) instead of sitting glued under the
            description text. */
         @media (max-width: 640px) {
@@ -1238,7 +1238,7 @@
                 align-items: stretch;
             }
             /* Browser Push can render with both Enable/Disable buttons
-               [hidden] while its permission state is still being checked —
+               [hidden] while its permission state is still being checked,
                skip the divider then so it doesn't float above nothing. */
             .channel-row-action:has(button:not([hidden])) {
                 padding-top: 14px;

@@ -1,4 +1,4 @@
-/* Extracted from resources/views/notifications/index.blade.php — cacheable. */
+/* Extracted from resources/views/notifications/index.blade.php. Kept in its own file so the browser can cache it. */
         /* ── Page header ── */
         .pg-eyebrow {
             font-size: 11px;
@@ -79,7 +79,7 @@
 
         /* ── Small phones: the actions column used to wrap onto its own line
            with each button sized to its own text, right-aligned against
-           nothing in particular — inconsistent widths, floating oddly under
+           nothing in particular, inconsistent widths, floating oddly under
            the title. Make it a deliberate full-width row instead. ── */
         @media (max-width: 600px) {
             .pg-header {

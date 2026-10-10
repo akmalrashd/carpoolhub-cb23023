@@ -45,7 +45,7 @@
     gap: 18px;
 }
 
-/* Soft corner sheen — the one bit of "premium card" texture, kept subtle
+/* Soft corner sheen, the one bit of "premium card" texture, kept subtle
    enough not to fight the amount/text for attention. */
 .wallet-balance-card-glow {
     position: absolute;

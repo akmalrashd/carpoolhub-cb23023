@@ -1,4 +1,4 @@
-/* Extracted from resources/views/trips/requests.blade.php — cacheable. */
+/* Extracted from resources/views/trips/requests.blade.php. Kept in its own file so the browser can cache it. */
         .trip-requests-page { display: grid; gap: 12px; }
         .trip-requests-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: 14px; }
         .trip-requests-title { margin: 0; font-family: var(--font-display); font-size: 28px; color: var(--ink); line-height: 1.1; }
@@ -433,7 +433,7 @@
             word-break: break-word;
         }
         /* Same clean dot-timeline the "My Trips" and Payments trip-details
-           modals use (trips.css / payments.css) — this page had its own
+           modals use (trips.css / payments.css). This page had its own
            older boxed-card-with-icon version that never got unified with
            the rest, and used a noticeably darker blue for the destination
            label than the dot-timeline's var(--info). */

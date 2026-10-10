@@ -1,7 +1,7 @@
-/* Audit log page — filter bar layout. Individual controls (.au-input,
+/* Audit log page, filter bar layout. Individual controls (.au-input,
    .au-select, badges) reuse admin-users.css; this file only lays them out. */
 
-/* In-page view tabs moved to admin-users.css as .subview-tabs — this page
+/* In-page view tabs moved to admin-users.css as .subview-tabs. This page
    loads that file too, and Users needed the exact same pattern for its own
    Manage Users / Driver Verification split. See that file for the rule. */
 

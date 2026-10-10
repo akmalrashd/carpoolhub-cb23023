@@ -1,6 +1,6 @@
 /* Admin > Message Users page */
 
-/* Section header — same convention as settings.css .panel-head/.panel-title/
+/* Section header, same convention as settings.css .panel-head/.panel-title/
    .panel-desc (Personal Profile, Security, etc.), duplicated here rather than
    pulled cross-file since this page doesn't load settings.css otherwise. */
 .panel-head { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--hairline); }

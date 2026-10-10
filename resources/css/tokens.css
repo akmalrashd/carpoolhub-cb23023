@@ -1,6 +1,6 @@
-/* CarpoolHub redesign — design tokens
+/* CarpoolHub redesign, design tokens
  *
- * SOURCE ONLY — EDITING THIS FILE CHANGES NOTHING BY ITSELF. It is @imported by
+ * SOURCE ONLY, EDITING THIS FILE CHANGES NOTHING BY ITSELF. It is @imported by
  * resources/css/app.css, which is no longer built automatically; see the header
  * of that file for how to regenerate public/css/app.css without Node or npm.
  *
@@ -19,7 +19,7 @@
   --ch-yellow-tint: #FFFBEA;
   --ch-yellow-line: #F2D24A;
 
-  /* Neutrals — warm */
+  /* Neutrals, warm */
   --ink: #0B1220;
   --ink-2: #1F2937;
   --ink-3: #475569;

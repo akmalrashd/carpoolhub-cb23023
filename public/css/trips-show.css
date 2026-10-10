@@ -1,4 +1,4 @@
-/* Extracted from resources/views/trips/show.blade.php — cacheable. */
+/* Extracted from resources/views/trips/show.blade.php. Kept in its own file so the browser can cache it. */
 /* ── Page layout ────────────────────────────────────────────── */
 .ts-page { display: grid; gap: 20px; }
 

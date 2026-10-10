@@ -1,4 +1,4 @@
-/* Extracted from resources/views/layouts/partials/telegram-nudge.blade.php — cacheable.
+/* Extracted from resources/views/layouts/partials/telegram-nudge.blade.php, cacheable.
    Self-contained (flat color values, no shared custom properties) since this
    loads globally alongside app.css's compiled Tailwind output, which has no
    design-token layer of its own to hook into. */

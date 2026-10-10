@@ -1,4 +1,4 @@
-/* Extracted from resources/views/explore/index.blade.php — page styles, cacheable. */
+/* Extracted from resources/views/explore/index.blade.php. These are the page styles, kept separate so the browser can cache them. */
         /* ── Explore Index Page ─────────────────────────────────────── */
 
         .xp-wrap {
@@ -48,7 +48,7 @@
             flex-wrap: wrap;
         }
 
-        /* ── Search bar — single tappable pill (Grab home-screen pattern) ── */
+        /* ── Search bar: single tappable pill (Grab home-screen pattern) ── */
         .xp-search-pill {
             display: flex;
             align-items: center;
@@ -1455,7 +1455,7 @@
                 border-radius: 14px;
                 box-shadow: var(--shadow-2);
             }
-            /* Title matches Trips' header proportions — same eyebrow/h1/sub
+            /* Title matches Trips' header proportions, same eyebrow/h1/sub
                structure, just shown here too instead of desktop-only. */
             .xp-page-header {
                 padding: 10px 0 16px;

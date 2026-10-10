@@ -1,4 +1,4 @@
-/* Extracted from resources/views/home.blade.php — cacheable. */
+/* Extracted from resources/views/home.blade.php. Kept in its own file so the browser can cache it. */
         /* ── Desktop layout wrapper ───────────────────────────── */
         .hp-wrap {
             padding: 0 var(--page-gutter, 28px) 28px;

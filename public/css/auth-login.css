@@ -1,4 +1,4 @@
-/* Extracted from resources/views/auth/login.blade.php — cacheable. */
+/* Extracted from resources/views/auth/login.blade.php. Kept in its own file so the browser can cache it. */
         :root {
             --ch-yellow: #FACC15;
             --ch-yellow-deep: #E6B800;
@@ -69,7 +69,7 @@
             pointer-events: none;
         }
 
-        /* Decorative hex ring — a real SVG (not a pseudo-element background/
+        /* Decorative hex ring, a real SVG (not a pseudo-element background/
            border trick) since a hollow hexagon outline, unlike a circle,
            needs an actual stroked path rather than border-radius. */
         .brand-panel-hex-decor {
@@ -170,7 +170,7 @@
             align-items: center;
             justify-content: center;
             padding: 32px 20px;
-            /* transparent so the ambient bg-pattern layer shows through — the
+            /* transparent so the ambient bg-pattern layer shows through, the
                dark .brand-panel next to it keeps its own opaque background */
             background: transparent;
         }

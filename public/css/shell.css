@@ -1,16 +1,16 @@
-/* Extracted from layouts/app.blade.php — shared shell styles, cacheable. */
+/* Extracted from layouts/app.blade.php, shared shell styles, cacheable. */
         :root {
-            /* Mobile header height. Several rules must track this exactly —
+            /* Mobile header height. Several rules must track this exactly,
                the load line sits directly under it and the shell subtracts it
-               from the viewport — so it lives here rather than being repeated. */
+               from the viewport. So it lives here rather than being repeated. */
             --mobile-header-h: 64px;
             /* Size of the round-square controls in the mobile header (bento,
                bell, profile) and the avatar inside the profile pill. Mobile
-               only — the desktop topbar keeps its own smaller sizes. */
+               only, the desktop topbar keeps its own smaller sizes. */
             --header-btn-h: 42px;
             --header-avatar-h: 34px;
 
-            /* ─── LAYOUT CONTROL PANEL — laras saiz rangka di sini ───────────
+            /* ─── LAYOUT CONTROL PANEL: laras saiz rangka di sini ───────────
                Angka-angka ini dulu diulang di banyak tempat dalam fail ini.
                Ubah satu baris di sini, seluruh rangka ikut. (Jarak tepi
                halaman ada dalam --page-gutter di pwa-head.) */
@@ -19,7 +19,7 @@
             --sidebar-w: 70px;          /* lebar sidebar (tutup) */
             --sidebar-w-expanded: 242px;/* lebar sidebar (buka) */
 
-            /* Design tokens — CarpoolHub warm yellow system */
+            /* Design tokens, CarpoolHub warm yellow system */
             --ch-yellow: #FACC15;
             --ch-yellow-deep: #E6B800;
             --ch-yellow-ink: #2A1E04;
@@ -75,7 +75,7 @@
             color: var(--ink);
         }
         /* html-only (not body) so its background propagates up to serve as
-           the page canvas per the CSS root-background rule — leaving body's
+           the page canvas per the CSS root-background rule, leaving body's
            own box transparent, the same way auth-login.css already does.
            When both html and body carry this background explicitly, body's
            copy paints as ordinary in-flow content, above the ambient
@@ -339,7 +339,7 @@
 
         @media (max-width: 430px) {
             /* Slightly tighter on small phones. Override the tokens, not the
-               rules — the rules that consume these live in the max-width:1023px
+               rules, the rules that consume these live in the max-width:1023px
                block below and would win on source order. */
             :root {
                 --mobile-header-h: 58px;
@@ -760,7 +760,7 @@
             gap: 9px;
             cursor: pointer;
         }
-        /* Fixed-width icon column — fa-user-gear and fa-right-from-bracket
+        /* Fixed-width icon column, fa-user-gear and fa-right-from-bracket
            render at different natural glyph widths, which without this left
            "Logout" starting to the left of "Settings" above it. */
         .profile-menu-link i,
@@ -1088,7 +1088,7 @@
             transition: transform 0.2s ease;
         }
         /* Slid fully off-screen (not display:none) so the transform above
-           still animates it — see the focusin/focusout script in
+           still animates it. See the focusin/focusout script in
            layouts/app.blade.php for what toggles this. */
         body.keyboard-open .mobile-bottom-nav {
             transform: translateY(100%);
@@ -1245,7 +1245,7 @@
             }
 
             /* .desktop-brand-logo already set unconditionally above (same
-               declarations) — this min-width:1024px copy changed nothing. */
+               declarations). This min-width:1024px copy changed nothing. */
             .desktop-brand-wrap::after {
                 content: none !important;
                 display: none !important;
@@ -1755,7 +1755,7 @@
 }
 
 /* ── Canonical avatar (resources/views/components/avatar.blade.php) ──
-   Base shape only — width/height/font-size come inline from the component
+   Base shape only, width/height/font-size come inline from the component
    per its `size` prop, and background colour comes inline too (it's
    per-account, computed by App\Support\Avatar). Global here so every page
    gets it without an extra stylesheet include. */

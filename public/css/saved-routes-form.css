@@ -1,4 +1,4 @@
-/* Extracted from resources/views/saved-routes/_form.blade.php — cacheable. */
+/* Extracted from resources/views/saved-routes/_form.blade.php. Kept in its own file so the browser can cache it. */
     /* ── Two-column layout ── */
     .rf-shell {
         display: grid;
@@ -325,7 +325,7 @@
         box-shadow: 0 0 0 5px rgba(245,158,11,.2), 0 8px 18px rgba(15,23,42,.28);
     }
 
-    /* ── Right column — controls panel ── */
+    /* ── Right column: controls panel ── */
     .rf-controls { display: flex; flex-direction: column; gap: 14px; }
     .rf-ctrl-card { padding: 16px; }
     .rf-ctrl-head {
@@ -396,7 +396,7 @@
         }
     }
 
-    /* Hidden coord inputs — visually hidden */
+    /* Hidden coord inputs, visually hidden */
     .rf-hidden { display: none; }
 
     .rf-preset-card { display: grid; gap: 12px; }

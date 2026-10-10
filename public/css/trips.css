@@ -1,4 +1,4 @@
-/* Extracted from resources/views/trips/index.blade.php — page styles, cacheable. */
+/* Extracted from resources/views/trips/index.blade.php. These are the page styles, kept separate so the browser can cache them. */
         /* ── Tab strip ── */
         .tabs {
             display: inline-flex;
@@ -64,7 +64,7 @@
             display: grid;
             gap: 2px;
         }
-        /* Filter stays where it always was — beside the tabs — while New
+        /* Filter stays where it always was, beside the tabs, while New
            Trip is the one that moved up next to the title. The gap above
            was .tabs' own margin-top:18px; moved onto this row instead so it
            does not also push .tabs down out of line with the Filter button
@@ -175,7 +175,7 @@
             background: rgba(42,30,4,.15);
         }
 
-        /* ── Filter form — exact copy of payments-filter-panel ── */
+        /* ── Filter form: exact copy of payments-filter-panel ── */
         .trips-filter-form {
             border: 1px solid var(--hairline);
             border-radius: var(--r-md);
@@ -719,7 +719,7 @@
         .trip-payment-review-actions form {
             margin: 0;
         }
-        /* Rate Your Driver modal — trips/partials/rate-trip-modal.blade.php.
+        /* Rate Your Driver modal, trips/partials/rate-trip-modal.blade.php.
            Fill-state (.is-hover / .is-selected) is applied by JS to this
            star and every star before it, not via a CSS ~ sibling trick, so
            the same logic covers both mouse hover preview and the committed
@@ -1283,7 +1283,7 @@
         }
         .trip-request-risk-score span { font-size: 13px; font-weight: 600; color: var(--muted); }
         /* Score shown as a position on a full red→orange→yellow→green spectrum
-           (not a bare number) — the gradient is continuous on purpose, echoing
+           (not a bare number), the gradient is continuous on purpose, echoing
            the underlying scoring being graded rather than a pass/fail cutoff. */
         .trip-request-risk-gauge {
             display: grid;
@@ -2829,21 +2829,21 @@
 .is-filled.whatsapp-btn { background: #25D366 !important; }
 .is-filled.whatsapp-btn:hover { background: #128C7E !important; }
 
-/* Email: Indigo — the Telegram button it replaced was a blue that read as a
+/* Email: Indigo, the Telegram button it replaced was a blue that read as a
    second Edit; indigo keeps it clearly its own action next to WhatsApp green. */
 .is-filled.email-btn { background: #6366f1 !important; }
 .is-filled.email-btn:hover { background: #4f46e5 !important; }
 
-/* Requests: Purple — matches the passenger map-pin color used in the same feature */
+/* Requests: Purple, matches the passenger map-pin color used in the same feature */
 .is-filled.requests-btn { background: #7c3aed !important; position: relative; }
 .is-filled.requests-btn:hover { background: #6d28d9 !important; }
 
-/* My Request: Blue — the passenger-side counterpart of Requests, deliberately
+/* My Request: Blue, the passenger-side counterpart of Requests, deliberately
    a different color so it never reads as the same (driver-only) action. */
 .is-filled.myrequest-btn { background: #2563eb !important; }
 .is-filled.myrequest-btn:hover { background: #1d4ed8 !important; }
 
-/* Chat: the app's own brand yellow — ties it visually to the rest of the
+/* Chat: the app's own brand yellow, ties it visually to the rest of the
    in-app chat feature (Hexa's bubble, etc.) rather than borrowing a color
    already claimed by WhatsApp/Email/Requests above. */
 .is-filled.chat-btn { background: var(--ch-yellow) !important; color: var(--ch-yellow-ink) !important; }
@@ -2858,12 +2858,12 @@
 
 /* Rate: distinct amber (not the brighter --ch-yellow chat uses) so the two
    sit next to each other in the action row without reading as the same
-   button — star colour family, just a deeper shade. */
+   button, star colour family, just a deeper shade. */
 .is-filled.rate-btn { background: #F59E0B !important; color: #ffffff !important; }
 .is-filled.rate-btn:hover { background: #D97706 !important; }
 .is-filled.rate-btn i { color: #ffffff !important; }
 
-/* Label left, action(s) right — used for both the Chat button (public
+/* Label left, action(s) right, used for both the Chat button (public
    trips) and the Email/WhatsApp icons (private trips) so the explanation
    sits right next to what to do about it. The label wraps freely (it's a
    full sentence, not a short tag) while the action stays put on the right. */
@@ -2913,12 +2913,12 @@
     gap: 8px;
 }
 /* #tripModalContactActions holds label+button .trip-contact-row items
-   (My Request / Chat / external contact / Rate Trip) — up to two can be
+   (My Request / Chat / external contact / Rate Trip), up to two can be
    visible at once (e.g. My Request + Chat), and the default row direction
    above squeezed them side by side into two cramped, unevenly wrapping
    columns. A 2-column grid stacks them instead: label column stays flexible
    (1fr) so text keeps wrapping naturally on the left, and the button column
-   is "auto" — CSS Grid sizes every row's second column to the SAME width,
+   is "auto", CSS Grid sizes every row's second column to the SAME width,
    equal to the widest button among them (fit-to-content, not a hardcoded
    px, so it keeps working if the copy ever changes), snug against the right
    edge rather than stretched. display:contents on each .trip-contact-row
@@ -2929,7 +2929,7 @@
     /* .trip-contact-bar (this element's own parent) is itself a flex row;
        without flex-grow this grid just hugs its own content width and sits
        left-aligned inside that row, leaving a gap on the right where the
-       row still had space — flex:1 makes it actually claim the full row
+       row still had space, flex:1 makes it actually claim the full row
        width first, so the grid's 1fr column below has real space to expand
        into and the button column lands flush against the true right edge. */
     flex: 1 1 auto;
@@ -2942,7 +2942,7 @@
 #tripModalContactActions .trip-contact-row {
     display: contents;
 }
-/* No justify-self override — grid's default justify-items:stretch is what
+/* No justify-self override, grid's default justify-items:stretch is what
    makes a narrower button (e.g. "Chat") actually widen to match the auto
    track's width (set by the widest button, e.g. "My Request"), which is the
    uniform-width part; flex:1 from the .trip-actions-filled rule above is a
@@ -2963,7 +2963,7 @@
     display: inline-flex !important;
     margin: 0;
 }
-/* Edit/Delete collapse to icon-only when Requests is also present — three
+/* Edit/Delete collapse to icon-only when Requests is also present, three
    full-label buttons don't fit and were squeezing/overlapping the Trip ID
    next to them. Fixed-width here (not flex:1) so Requests keeps the room. */
 .trip-actions-filled .trip-action-btn.icon-only {

@@ -1,11 +1,11 @@
-/* SOURCE ONLY — EDITING THIS FILE CHANGES NOTHING BY ITSELF.
+/* SOURCE ONLY, EDITING THIS FILE CHANGES NOTHING BY ITSELF.
  *
  * The app has no Node/npm/Vite toolchain. What the browser actually loads is
  * the pre-compiled public/css/app.css, which the Blade layouts link directly.
  * This file is kept solely as the source that output was generated from.
  *
  * To regenerate public/css/app.css after editing this file, use the standalone
- * Tailwind CLI — a single binary, no Node or npm required. Download the
+ * Tailwind CLI, a single binary, no Node or npm required. Download the
  * tailwindcss release for your platform, then from the project root run:
  *
  *   composer install          # the @source below scans vendor/ for the paginator
@@ -14,7 +14,7 @@
  *
  * Those first two steps are not optional. Both are @source globs, so on a fresh
  * clone they match nothing SILENTLY and the rebuilt file quietly loses every
- * paginator utility — the pagination controls on 8 pages would lose their styling
+ * paginator utility, the pagination controls on 8 pages would lose their styling
  * with no error anywhere.
  *
  * The filemtime() cache-buster in the layouts picks the new file up on its own.

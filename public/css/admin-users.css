@@ -1,4 +1,4 @@
-/* Extracted from resources/views/admin/users/index.blade.php — cacheable. */
+/* Extracted from resources/views/admin/users/index.blade.php. Kept in its own file so the browser can cache it. */
 /* â”€â”€ Page Container â”€â”€ */
 .au-page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 /* â”€â”€ In-page sub-view tabs (e.g. Manage Users / Driver Verification on this
@@ -163,7 +163,7 @@
 .eu-drawer { background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,.18); width: 100%; max-width: 100%; padding: 6px 20px 28px; animation: eu-up .22s cubic-bezier(.34,1.56,.64,1); transition: transform .25s cubic-bezier(.16,1,.3,1); }
 @media (min-width: 641px) { .eu-drawer { max-width: 420px; border-radius: 16px; animation: lr-in .22s cubic-bezier(.34,1.56,.64,1); } }
 @keyframes eu-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
-/* Drag-to-dismiss handle (mobile sheet only — desktop centers this drawer
+/* Drag-to-dismiss handle (mobile sheet only. Desktop centers this drawer
    instead, where dragging wouldn't make sense). */
 @media (max-width: 640px) {
     .eu-drag-handle { touch-action: none; cursor: grab; }
@@ -176,7 +176,7 @@
 .eu-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .eu-select { border: 1.5px solid var(--hairline-strong); border-radius: var(--r-sm); padding: 10px 12px; font-size: 14px; color: var(--ink); background: var(--surface); font-family: var(--font-ui), sans-serif; outline: none; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
 .eu-select:focus { border-color: var(--ch-yellow-deep); box-shadow: 0 0 0 3px rgba(250,204,21,.2); }
-/* Shared with <select> above, but a <textarea> defaults to resize:both —
+/* Shared with <select> above, but a <textarea> defaults to resize:both,
    the sideways handle looks broken inside a fixed-width drawer, and a long
    placeholder wrapped past 3 rows was clipping/scrolling instead of just
    growing. Fixed width, vertical-only resize, and a min-height floor so the

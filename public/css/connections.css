@@ -1,4 +1,4 @@
-/* Extracted from resources/views/connections/index.blade.php — cacheable. */
+/* Extracted from resources/views/connections/index.blade.php. Kept in its own file so the browser can cache it. */
         /* ── Centered Container ── */
         .connections-page-container {
             max-width: 820px;

@@ -1,4 +1,4 @@
-/* Extracted from resources/views/trips/_form.blade.php — cacheable. */
+/* Extracted from resources/views/trips/_form.blade.php. Kept in its own file so the browser can cache it. */
 /* ── Two-column page grid ────────────────────────────────────────── */
 .tf-page-grid {
     display: grid;
@@ -192,7 +192,7 @@
 }
 
 /* Wizard step visibility (create-only). Gated with :has() so that if JS
-   fails to run before this paints, no card is hidden — the left column
+   fails to run before this paints, no card is hidden, the left column
    just falls back to the old "all 4 cards stacked" layout instead of
    going blank. Once goToStep() tags one card .is-active-step, the :has()
    condition becomes true and hide/show activates. */
@@ -477,7 +477,7 @@
 .tf-textarea {
     width: 100%;
     /* .tf-field is a grid container, and grid items default to
-       min-width:auto (not 0) — so a native control with its own intrinsic
+       min-width:auto (not 0). So a native control with its own intrinsic
        minimum width (datetime-local's calendar icon + segmented picker,
        especially on mobile) can overflow straight past width:100% instead
        of shrinking to fit. Plain text inputs never hit this since they have

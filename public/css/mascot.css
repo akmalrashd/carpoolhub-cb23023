@@ -1,4 +1,4 @@
-/* CarpoolHub AI mascot — animated hexagon avatar.
+/* CarpoolHub AI mascot, animated hexagon avatar.
    Body/eye SVG geometry adapted from the MIT-licensed
    https://github.com/jeremy-prt/bloub project; states below are a hand-built
    CSS/JS approximation of its animation set (see public/js/mascot.js),
@@ -23,7 +23,7 @@
 }
 
 /* Utility for a mascot sitting inline next to text (e.g. "AI is analyzing
-   route..." lines) — replaces the old <i class="fa-wand-magic-sparkles">
+   route..." lines). Replaces the old <i class="fa-wand-magic-sparkles">
    pattern used for the same spots. */
 .ai-inline-mascot {
     vertical-align: -3px;
@@ -31,7 +31,7 @@
 }
 
 /* ── Color variants ──────────────────────────────────────────────
-   No badge/circle behind the mascot — it sits directly on the header/panel
+   No badge/circle behind the mascot. It sits directly on the header/panel
    surface, so --yellow (solid yellow body, ink eyes) is the one actually
    used everywhere today. --dark (ink body, yellow eyes) is kept for any
    future spot that needs the mascot on a light/yellow surface instead. */
@@ -90,7 +90,7 @@
                scale(var(--eye-sx, 0.8), 0.08);
 }
 
-/* ── Decor: thinking dots / alert bang / notify dot — hidden by default ── */
+/* ── Decor: thinking dots / alert bang / notify dot: hidden by default ── */
 .mascot-dots, .mascot-bang, .mascot-notif-dot {
     opacity: 0;
     transition: opacity .15s ease;
@@ -103,7 +103,7 @@
 
 /* ══ States ═══════════════════════════════════════════════════════ */
 
-/* idle — resting pose uses Bloub's "excited" expression (bigger, tilted,
+/* idle: resting pose uses Bloub's "excited" expression (bigger, tilted,
    mirrored eyes, gaze up) as the mascot's main/default look. */
 .mascot[data-state="idle"] {
     --eye-tx: 25px; --eye-ty: -10px; --eye-rot: 10deg; --eye-sx: .8; --eye-sy: 1.18;
@@ -131,8 +131,8 @@
     transform: translate(25px, -8px) rotate(-4deg) scale(1.05, .16);
 }
 
-/* typing — straight, lowered eyes: gazing down at the input while it's
-   focused (not tilted like idle/wide — a level downward look). */
+/* typing: straight, lowered eyes: gazing down at the input while it's
+   focused (not tilted like idle/wide, a level downward look). */
 .mascot[data-state="typing"] {
     --eye-tx: 24px; --eye-ty: 0px; --eye-rot: 0deg; --eye-sx: 1; --eye-sy: 1.25;
 }
@@ -181,7 +181,7 @@
     50%      { transform: translateY(4px); }
 }
 
-/* egg / hexagon — static "pose" placeholders for Bloub's body-shape morphs;
+/* egg / hexagon: static "pose" placeholders for Bloub's body-shape morphs;
    approximated as a squeeze rather than a real silhouette morph. */
 .mascot[data-state="egg"] {
     --eye-tx: 16px; --eye-ty: -3px; --eye-sx: .55; --eye-sy: .85;

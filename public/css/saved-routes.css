@@ -1,4 +1,4 @@
-/* Extracted from resources/views/saved-routes/index.blade.php — cacheable. */
+/* Extracted from resources/views/saved-routes/index.blade.php. Kept in its own file so the browser can cache it. */
     /* ── Route card grid ── */
     .sr-grid {
         display: grid;
@@ -132,7 +132,7 @@
         background: #0f172a;
     }
     /* Same overlay bar the route name used to sit in, kept for legibility
-       over the map — only the content changed: plain colored status text,
+       over the map. Only the content changed: plain colored status text,
        no pill/border around it. */
     .sr-thumb-status {
         position: absolute;
@@ -181,7 +181,7 @@
         line-height: 1.25;
     }
     /* Kept at the same slot/shape the old Edit link used, so the card layout
-       is unchanged — only the content (a 6-digit share code) is new. Now a
+       is unchanged. Only the content (a 6-digit share code) is new. Now a
        <button>, not a plain <span>, so it can copy the code on click. */
     .sr-share-code {
         display: inline-flex; align-items: center; gap: 5px;
@@ -198,12 +198,12 @@
         color: var(--ink);
     }
     .sr-share-code-copy-icon { font-size: 11px; color: var(--muted-2); }
-    /* The icon itself swaps to fa-check via JS on copy — this just recolors
+    /* The icon itself swaps to fa-check via JS on copy. This just recolors
        the badge and whichever icon is currently in the slot. */
     .sr-share-code.is-copied { border-color: #86efac; background: #dcfce7; color: #15803d; }
     .sr-share-code.is-copied .sr-share-code-copy-icon { color: #15803d; }
 
-    /* Filled action buttons — Edit, Use in new trip, Delete all share this
+    /* Filled action buttons, Edit, Use in new trip, Delete all share this
        base, sit in one row in the footer, and are all the same height
        regardless of whether they carry a text label or just an icon. */
     .sr-action-btn {

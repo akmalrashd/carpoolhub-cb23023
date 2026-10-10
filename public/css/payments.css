@@ -1,4 +1,4 @@
-/* Extracted from resources/views/payments/index.blade.php — page styles, cacheable. */
+/* Extracted from resources/views/payments/index.blade.php. These are the page styles, kept separate so the browser can cache them. */
         .payments-page { display: grid; gap: 12px; }
 
         /* Grid items default to min-width:auto, so they refuse to shrink below
@@ -654,7 +654,7 @@
             border-color: #fecaca;
         }
         /* Reverse is a destructive, one-way action sitting right next to the
-           routine Receipt button — the soft/light danger style above reads as
+           routine Receipt button, the soft/light danger style above reads as
            just another neutral action next to it. A solid fill (matching
            .btn-solid-reject's convention elsewhere on this page) makes it
            unmistakably the "different" button without touching the Reject
@@ -1494,7 +1494,7 @@
             color: #cbd5e1;
         }
 
-        /* ── Merged QR carousel (Pay Now popup) — DuitNow + Touch 'n Go slide
+        /* ── Merged QR carousel (Pay Now popup): DuitNow + Touch 'n Go slide
            in one card instead of two boxes competing for width. ── */
         .driver-payment-qr-single {
             border: 1px solid #e2e8f0;
@@ -1515,7 +1515,7 @@
             align-items: center;
         }
         /* The dot itself stays a small 6px visual mark, but a real fingertip
-           can't reliably hit a 6px target — the button's actual tap area is
+           can't reliably hit a 6px target, the button's actual tap area is
            32px, drawn via ::before so the visible dot size doesn't change. */
         .qr-dot {
             width: 32px;
@@ -3596,7 +3596,7 @@
                 border-bottom: 0;
             }
             /* .payments-table tbody tr:hover td { background: var(--ch-yellow-tint); }
-               already set unconditionally above — this min-width:768px copy changed
+               already set unconditionally above. This min-width:768px copy changed
                nothing. */
             .payments-table .payment-route-title {
                 margin: 0;
@@ -3712,7 +3712,7 @@
                 width: 100%;
                 white-space: nowrap;
             }
-            /* Receipt + Reverse — stacked top/bottom like the Notify/Mark Paid
+            /* Receipt + Reverse, stacked top/bottom like the Notify/Mark Paid
                pair above, instead of squeezed side by side into a wide button
                plus a cramped icon-only one. */
             .payments-table .payments-action-row.payments-action-col {
@@ -4079,7 +4079,7 @@
                 margin-top: 12px;
             }
             /* .payments-tab-strip::-webkit-scrollbar { display: none; } already
-               set unconditionally above — repeating it in this max-width block
+               set unconditionally above, repeating it in this max-width block
                changes nothing, since the base rule already covers this width. */
             .payments-tab {
                 justify-content: center;
@@ -4244,7 +4244,7 @@
             max-width: 100%;
         }
 
-        /* CH-GRID-TRACK-V4 — MUST stay the last rules in this <style> block.
+        /* CH-GRID-TRACK-V4, MUST stay the last rules in this <style> block.
            Root cause: three nested grids (.payments-page L3423, .payments-main-grid
            L1822, .payments-mobile-list L386) all size on an implicit `auto` track.
            An `auto` track's base size IS the item's min-content contribution, and
@@ -4643,8 +4643,8 @@
         /* .request-modal-compact forces its own 20px/24px padding with
            !important, fighting the bottom-sheet rules above (padding:0,
            width:100%): the head ended up with its own padding stacked on top of
-           the card's, doubling it, while the grid/actions below it — which have
-           no padding of their own — need that reset to actually apply to them. */
+           the card's, doubling it, while the grid/actions below it, which have
+           no padding of their own, need that reset to actually apply to them. */
         @media (max-width: 767px) {
             .request-modal-card.request-modal-compact {
                 max-width: 100% !important;

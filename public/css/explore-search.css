@@ -1,4 +1,4 @@
-/* Extracted from resources/views/explore/search.blade.php — cacheable. */
+/* Extracted from resources/views/explore/search.blade.php. Kept in its own file so the browser can cache it. */
         /* ── Explore Search Page (Grab-style: two-field search + list + map picker) ── */
         .xs2-page {
             max-width: 560px;
@@ -9,7 +9,7 @@
             position: relative;
         }
 
-        /* This page is a focused, full-screen search flow — the persistent
+        /* This page is a focused, full-screen search flow, the persistent
            bottom nav would just compete with it for space. */
         .mobile-bottom-nav { display: none !important; }
 
@@ -273,7 +273,7 @@
 
         /* ── Floating "Choose on map" pill ────────────────────────────
            bottom is a plain px value (not calc()) so the keyboard-avoidance
-           JS can override it inline with a matching unit — see explore-search.js */
+           JS can override it inline with a matching unit. See explore-search.js */
         .xs2-fab {
             position: fixed;
             left: 50%;
@@ -350,7 +350,7 @@
             position: relative;
             min-height: 0;
         }
-        /* z-index:0 here isn't decorative — without it, this element has no
+        /* z-index:0 here isn't decorative. Without it, this element has no
            z-index of its own, so it never forms a stacking context and
            Leaflet's internal panes (tile/marker/popup panes carry z-index up
            to 700) paint directly in xs2-map-container's stacking order
@@ -359,7 +359,7 @@
            hiding both completely behind the map. */
         #exploreSearchMap { position: absolute; inset: 0; z-index: 0; }
         /* Real Leaflet marker now (tap-anywhere-on-map / draggable), not a
-           screen-fixed overlay — Leaflet positions .xs2-map-pin-icon itself via
+           screen-fixed overlay. Leaflet positions .xs2-map-pin-icon itself via
            an inline transform, so the drag/tap feedback below animates the
            inner .xs2-pin-inner span instead; putting a transform on the
            marker's own element would fight Leaflet's positioning and the pin
