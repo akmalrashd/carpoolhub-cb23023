@@ -1,4 +1,4 @@
-{{-- Shared secondary nav for the 5 admin pages — keeps them feeling like one
+{{-- Shared secondary nav for the 5 admin pages. Keeps them feeling like one
      section instead of separate destinations. Source of truth: config/admin_nav.php --}}
 <nav class="admin-subnav">
     @foreach(config('admin_nav') as $adminItem)

@@ -8,7 +8,7 @@
 <title>Reset your CarpoolHub password</title>
 </head>
 {{--
-    Table-based layout with inline styles throughout — email clients (Outlook,
+    Table-based layout with inline styles throughout. Email clients (Outlook,
     Gmail app) strip <style> blocks and ignore flexbox/grid, so anything not
     inlined on the element itself silently disappears in the wild even though
     it renders fine here or in a browser preview.
@@ -20,7 +20,7 @@
 
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
 
-                {{-- Card — logo, body, and footer all live inside so the whole
+                {{-- Card. Logo, body, and footer all live inside so the whole
                      email reads as one card floating on the canvas background,
                      matching the site's own login/register cards. --}}
                 <tr>

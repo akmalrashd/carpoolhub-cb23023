@@ -134,7 +134,7 @@
             </div>
         </div>
 
-        {{-- ── Floating button to pick a location on the map — JS keeps it
+        {{-- ── Floating button to pick a location on the map. JS keeps it
              pinned above the on-screen keyboard when one is open ────────── --}}
         <button type="button" class="xs2-fab" id="openMapPickerBtn">
             <i class="fa-solid fa-map-location-dot"></i> Choose on map
@@ -143,7 +143,7 @@
         {{-- ── Full-screen map picker overlay ───────────────────────── --}}
         <div class="xs2-map-overlay" id="mapOverlay" hidden>
             {{-- Which field this sets (Pickup or Destination) is decided by
-                 whichever field was active before the map opened — not a
+                 whichever field was active before the map opened, not a
                  manual toggle. Tapping this bar (like the back arrow) exits
                  back to the search page without picking a location. --}}
             <div class="xs2-map-overlay-top">

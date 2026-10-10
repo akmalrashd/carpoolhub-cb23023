@@ -1,4 +1,4 @@
-{{-- Shared "Manage requests" popup (+ its Reject/Remove reason sub-popups) —
+{{-- Shared "Manage requests" popup (+ its Reject/Remove reason sub-popups),
      originally trips/index.blade.php only. Reused as-is (same ids/classes,
      same public/js/trip-requests-modal.js) by any page that renders a
      trigger button with class="open-trip-requests-review" and the full set
@@ -63,7 +63,7 @@
     </div>
 </div>
 
-{{-- Remove-participant reason modal — mirrors the reject-request modal above,
+{{-- Remove-participant reason modal. Mirrors the reject-request modal above,
      but targets an already-approved passenger instead of a pending request. --}}
 <div class="trip-payment-review-modal" id="tripRemoveParticipantModal" aria-hidden="true">
     <div class="trip-payment-review-card trip-reject-request-card" role="dialog" aria-modal="true" aria-labelledby="tripRemoveParticipantTitle">

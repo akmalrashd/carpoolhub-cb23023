@@ -99,7 +99,7 @@
                 <div class="sr-grid">
                     {{-- Fixed count, not derived from $savedRoutes: the container this fills
                          renders on the very first (non-AJAX) load, where $savedRoutes is
-                         always empty by design — deriving from its count left the skeleton
+                         always empty by design, deriving from its count left the skeleton
                          with zero cards, i.e. invisible, on exactly the load that needed it. --}}
                     @for($i = 0; $i < 4; $i++)
                         <div class="card" style="padding:0; overflow:hidden;">

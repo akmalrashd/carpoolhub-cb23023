@@ -1,10 +1,10 @@
-{{-- "Invite Connections" picker — replaces the old prompt()-based flow
+{{-- "Invite Connections" picker. Replaces the old prompt()-based flow
      (type comma-separated names into a browser dialog) with a themed
      checkbox list: search by name/email, tick as many as you like, connections
      already in this chat show greyed out and locked rather than disappearing.
      Reuses the same modal shell/classes as trip-requests-modal.blade.php
      (trips.css) instead of duplicating that CSS. Driven by public/js/
-     chats-show.js, populated from a single chats.picker-options fetch —
+     chats-show.js, populated from a single chats.picker-options fetch,
      search filters that already-loaded list client-side, no re-fetching. --}}
 <div class="trip-payment-review-modal" id="inviteConnectionsModal" aria-hidden="true">
     <div class="trip-payment-review-card" role="dialog" aria-modal="true" aria-labelledby="inviteConnectionsTitle">

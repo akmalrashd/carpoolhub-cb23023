@@ -93,11 +93,11 @@
 
 </div>
 
-{{-- ai-chat.css is loaded directly in layouts/app.blade.php's <head> instead —
+{{-- ai-chat.css is loaded directly in layouts/app.blade.php's <head> instead,
      this component is rendered from that same layout's own body, later in the
      SAME top-to-bottom execution, so a @push('styles') called from here would
      run after <head>'s @stack('styles') has already been output. Too late to
-     matter, unlike a page's own @push (that works — see any page view — because
+     matter, unlike a page's own @push (that works. See any page view, because
      @extends fully evaluates the child view into a buffer before the layout
      renders at all). --}}
 
@@ -163,7 +163,7 @@ const aiChat = (() => {
     };
 
     // Escaped because WELCOME is handed to addBubbleHtml(), which assigns it via
-    // innerHTML — a display name containing markup would otherwise execute.
+    // innerHTML, a display name containing markup would otherwise execute.
     const WELCOME = {
         ms: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 Saya Hexa, apa yang boleh saya bantu hari ni?`,
         en: `Hi <strong>${escHtml(FIRST_NAME)}</strong>! 👋 I'm Hexa, what can I help you with today?`,
@@ -186,7 +186,7 @@ const aiChat = (() => {
     const $ = id => document.getElementById(id);
 
     // Header AI button renders once per header variant (desktop topbar +
-    // mobile header), both present in the DOM at once — drive both mascots
+    // mobile header), both present in the DOM at once. Drive both mascots
     // together so whichever is visible reacts.
     const FAB_MASCOT_IDS = ['ai-fab-mascot-desktop', 'ai-fab-mascot-mobile'];
     function fabMascot(fn, ...args) { FAB_MASCOT_IDS.forEach(id => Mascot?.[fn]?.(id, ...args)); }
@@ -198,7 +198,7 @@ const aiChat = (() => {
         isOpen = true;
         // The header's other dropdowns (profile/notifications/bento menu) are
         // native <details> elements with their own separate mutual-exclusion
-        // logic in app.blade.php — this button isn't one of them, so opening
+        // logic in app.blade.php. This button isn't one of them, so opening
         // the AI panel has to close them itself.
         document.querySelectorAll('.notification-wrap, .profile-wrap, .more-menu, .bento-menu-wrap').forEach(function (detail) {
             detail.removeAttribute('open');
@@ -449,7 +449,7 @@ const aiChat = (() => {
         const destName    = data.destination_name || '—';
         const hasRoute    = Boolean(data.route_name);
 
-        // Passengers — prefer names, fallback to count from IDs
+        // Passengers. Prefer names, fallback to count from IDs
         const names   = Array.isArray(data.participant_names) ? data.participant_names.filter(Boolean) : [];
         const ids     = Array.isArray(data.participant_ids)   ? data.participant_ids.filter(Boolean)   : [];
         const hasPassengers = names.length > 0 || ids.length > 0;
@@ -751,7 +751,7 @@ const aiChat = (() => {
     let initialText = '';
     let silenceTimer = null;
     let listenStartedAt = 0;
-    let rapidEndCount = 0; // consecutive sessions that die almost instantly — some browsers (notably Safari) can't sustain continuous recognition
+    let rapidEndCount = 0; // consecutive sessions that die almost instantly. Some browsers (notably Safari) can't sustain continuous recognition
 
     function voiceNotice(msMsg, enMsg) {
         const text = lang === 'ms' ? msMsg : enMsg;
@@ -821,7 +821,7 @@ const aiChat = (() => {
                     inp.value = initialText + transcript;
                     resize(inp);
                 }
-                rapidEndCount = 0; // speech is actually being captured — session is healthy
+                rapidEndCount = 0; // speech is actually being captured. Session is healthy
                 resetSilenceTimer(false);
             };
 
@@ -853,7 +853,7 @@ const aiChat = (() => {
                     const sessionMs = Date.now() - listenStartedAt;
                     if (sessionMs < 800 && ++rapidEndCount >= 3) {
                         // The recognition session is dying almost immediately on every
-                        // restart — retrying forever would just spin silently in the
+                        // restart, retrying forever would just spin silently in the
                         // background instead of actually listening.
                         stopVoice();
                         voiceNotice(

@@ -307,7 +307,7 @@
                 </div>
             </div>
 
-            {{-- Private-only nudge toward Public visibility — lives with the
+            {{-- Private-only nudge toward Public visibility. Lives with the
                  field it's actually about, not in the final-review Summary. --}}
             <div class="tf-tip-box" id="visibilityTipBox">
                 <i class="fa-solid fa-bolt" style="margin-right:4px"></i>
@@ -628,7 +628,7 @@
             <span id="mapDestinationLabel" hidden></span>
         @endif
 
-        {{-- ── Summary card (edit only — create shows the Review step instead) ── --}}
+        {{-- ── Summary card (edit only. Create shows the Review step instead) ── --}}
         @if(!$isCreate)
         <div class="tf-card tf-card-pad">
             <h3 style="margin:0 0 2px;font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ink)">Summary</h3>
@@ -687,7 +687,7 @@
         const routeList = document.getElementById('savedRouteList');
         const routeSearchInput = document.getElementById('savedRouteSearchInput');
         const checkboxes = document.querySelectorAll('input[name="participant_ids[]"]');
-        // Fare display targets — two sets: the card row displays + the preview breakdown
+        // Fare display targets, two sets: the card row displays + the preview breakdown
         const totalFareEl = document.getElementById('fare_total_preview');
         const totalFareDetailEl = document.getElementById('fare_total_preview_detail');
         const participantCountEl = document.getElementById('participant_count_preview');
@@ -798,7 +798,7 @@
         }
 
         // Public trips are open to Explore join requests, so a departure
-        // time that's already passed (or right now) can't accept anyone —
+        // time that's already passed (or right now) can't accept anyone,
         // mirrors the server-side rule in StoreTripRequest/ValidatesTripPayload.
         function isFutureDatetime(value) {
             if (!value) return false;
@@ -1503,7 +1503,7 @@
         }));
 
         // Picking Public with no valid future date would just fail server
-        // validation on submit — block it at the click itself (preventDefault
+        // validation on submit. Block it at the click itself (preventDefault
         // on a radio's click cancels the check) and say why immediately,
         // instead of letting the user click through to a rejected submit.
         const visibilityPublicInput = document.getElementById('visibility_public');
@@ -1576,7 +1576,7 @@
         });
 
         // Fired by trips-create.js once a Hexa trip draft has finished
-        // filling every field — land straight on Review instead of making
+        // filling every field. Land straight on Review instead of making
         // the driver click through steps they didn't just fill in themselves.
         window.addEventListener('carpoolhub:ai-trip-draft-filled', function () {
             if (wizardStepCards.length) goToStep(wizardStepCards.length, { scroll: false });

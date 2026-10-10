@@ -45,7 +45,7 @@
         <i class="fa-solid fa-calendar-xmark"></i> Trip Cancellations <span class="subview-count">{{ $viewCounts['cancellations'] }}</span>
     </a>
     {{-- Own controller/route (AdminConversationController), not a ?view=
-         branch of this one — its data shape (paginated conversations with
+         branch of this one, its data shape (paginated conversations with
          nested messages) doesn't fit this page's per-view stats/table
          layout. Still rendered as the 4th tab here for one continuous
          "oversight" tab strip. --}}

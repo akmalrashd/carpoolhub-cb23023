@@ -591,7 +591,7 @@
                             $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
                             $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                             $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
-                            // Same formula as GatewayPaymentService::computeFee() — FPX (flat)
+                            // Same formula as GatewayPaymentService::computeFee(). FPX (flat)
                             // and DuitNow QR (1% or flat, whichever higher) cost the same in
                             // practice under RM100, so one number covers both channels.
                             $paymentGatewayFee = round(max($gatewayFeeFlatAmount, (float) $payment->amount_due * 0.01), 2);
@@ -953,7 +953,7 @@
                                 $driverAccountNumber = $payment->trip?->driver?->payment_account_number ?: '-';
                                 $driverDuitnowQr = $payment->trip?->driver?->payment_qr_duitnow_url ?: '';
                                 $driverTngQr = $payment->trip?->driver?->payment_qr_tng_url ?: '';
-                                // Same formula as GatewayPaymentService::computeFee() — FPX (flat)
+                                // Same formula as GatewayPaymentService::computeFee(). FPX (flat)
                                 // and DuitNow QR (1% or flat, whichever higher) cost the same in
                                 // practice under RM100, so one number covers both channels.
                                 $paymentGatewayFee = round(max($gatewayFeeFlatAmount, (float) $payment->amount_due * 0.01), 2);
@@ -1261,7 +1261,7 @@
                 {{--
                     Pagination shells. The ledger deliberately renders every record so the
                     tab strip and the filter panel can narrow the list without a round-trip,
-                    so paging has to run on that same client-side result — a server paginator
+                    so paging has to run on that same client-side result, a server paginator
                     here would report "1 to 12" while the page still showed every row and its
                     page links would just re-render the identical list. payments-index.js
                     fills these shells (same markup/classes as before) and slices the rows
@@ -2373,7 +2373,7 @@
                 </div>
 
                 {{-- Shown only when every selected payment is owed to the same
-                     driver — a single bill/transfer can only settle to one
+                     driver, a single bill/transfer can only settle to one
                      wallet, so mixing drivers falls back to the plain form below. --}}
                 <div class="payment-method-tabs" id="bulkPaidMethodTabs" role="tablist" style="display:none;">
                     <button type="button" class="payment-method-tab is-active" data-bulk-tab-target="manual">Bank Transfer</button>

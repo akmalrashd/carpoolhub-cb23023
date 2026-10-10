@@ -69,7 +69,7 @@
     </div>
 
     @if(auth()->check() && auth()->user()->role === 'admin')
-        {{-- ADMIN group: single entry point — the 5 admin tools live behind
+        {{-- ADMIN group: single entry point, the 5 admin tools live behind
              the in-page tab-strip now (admin-subnav.blade.php), not here. --}}
         <div class="desktop-nav-group">
             <div class="desktop-nav-group-label">Admin</div>

@@ -151,7 +151,7 @@
             </div>
         </div>
 
-        {{-- ── Search bar — tap to open the dedicated search page (Grab-style
+        {{-- ── Search bar. Tap to open the dedicated search page (Grab-style
              home screen: one tappable bar, not an inline filter form) ───── --}}
         <a href="{{ route('explore.search', $searchEditQuery) }}" class="xp-search-pill">
             <span class="xp-search-pill-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -364,7 +364,7 @@
                                     </div>
                                     </div>
 
-                                    {{-- Driver's note (not a route point — kept out of the timeline) --}}
+                                    {{-- Driver's note (not a route point. Kept out of the timeline) --}}
                                     @if($trip->public_note)
                                         <div class="xp-card-note">
                                             <span class="xp-card-note-label">Notes</span>
@@ -372,7 +372,7 @@
                                         </div>
                                     @endif
 
-                                    {{-- Vehicle (mobile only — desktop shows this in the footer instead) --}}
+                                    {{-- Vehicle (mobile only. Desktop shows this in the footer instead) --}}
                                     <div class="xp-footer-vehicle-mobile">
                                         <i class="fa-solid fa-car-side"></i>
                                         @if($vehicleText !== '')

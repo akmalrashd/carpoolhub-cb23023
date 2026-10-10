@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     {{-- user-scalable=no stops pinch zoom of the page itself; the Leaflet maps
-         still zoom, they drive it from JS. Deliberately no viewport-fit=cover
-         — see the NOTE in pwa-head.blade.php's <style> block for why: it
+         still zoom, they drive it from JS. There is deliberately no
+         viewport-fit=cover here. The NOTE in pwa-head.blade.php's <style>
+         block explains why: it
          switched env(safe-area-inset-bottom) from 0 to 34px on an iPhone and
          silently grew the bottom nav by a third. Without cover, iOS already
          lays the viewport out inside the safe area, so every env(...) call
@@ -35,24 +36,24 @@
     <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/bg-pattern.css') }}?v={{ filemtime(public_path('css/bg-pattern.css')) }}">
     {{-- Mascot renders in the header (above), so its styles must load before
-         the header paints — not down where <x-ai-chat> lives, or the raw
+         the header paints, not down where <x-ai-chat> lives, or the raw
          unstyled SVG flashes on load. --}}
     <link rel="stylesheet" href="{{ asset('css/mascot.css') }}?v={{ filemtime(public_path('css/mascot.css')) }}">
     {{-- <x-ai-chat /> below is rendered from THIS layout's own body (line ~489),
-         not from a child view — @push('styles') called from inside it would run
+         not from a child view, @push('styles') called from inside it would run
          after @stack('styles') has already been output right here, too late to
          matter. This layout is only ever used behind auth (guest-facing pages
          like legal/terms and auth/login have their own separate <head>s), so
-         <x-ai-chat> always renders — safe to load its CSS unconditionally,
+         <x-ai-chat> always renders. Safe to load its CSS unconditionally,
          same as mascot.css above. --}}
     <link rel="stylesheet" href="{{ asset('css/ai-chat.css') }}?v={{ filemtime(public_path('css/ai-chat.css')) }}">
-    {{-- Same reasoning as ai-chat.css above — the Telegram nudge modal
+    {{-- Same reasoning as ai-chat.css above, the Telegram nudge modal
          renders from this layout's own body too. --}}
     <link rel="stylesheet" href="{{ asset('css/telegram-nudge.css') }}?v={{ filemtime(public_path('css/telegram-nudge.css')) }}">
     {{-- Every other page's own stylesheet pushes its <link> here
          instead of sitting inline in @section('content'). A <link> discovered
          mid-body has no render-blocking guarantee, so the browser can paint
-         that page's markup before its own CSS has even been requested —
+         that page's markup before its own CSS has even been requested,
          raw content flashing before it snaps into its styled form, on every
          navigation, cache or no cache. This is the same reasoning as the
          mascot.css comment above, generalised to every page. --}}
@@ -84,7 +85,7 @@
             ->count();
     }
 
-    // Drives the small unread dot on the bottom-nav/sidebar "Chat" icon — a
+    // Drives the small unread dot on the bottom-nav/sidebar "Chat" icon, a
     // participant row is "unread" once the conversation's latest message id
     // has moved past what they last read (ChatController::show/markRead
     // and ChatService::postMessage keep last_read_message_id current).
@@ -1058,7 +1059,7 @@
         }
 
         // Previously only polled while the dropdown was open or the user was on
-        // /notifications — the badge count (and dropdown list, once opened) sat
+        // /notifications, the badge count (and dropdown list, once opened) sat
         // stale everywhere else until a full page reload. Now it polls the
         // whole time the tab is visible, same 5s interval, so the badge stays
         // live no matter what page you're on.
@@ -1083,7 +1084,7 @@
         }
 
         // The "Chat" nav badge previously only rendered on a fresh page
-        // load — a passenger sitting on an already-open page never saw it
+        // load, a passenger sitting on an already-open page never saw it
         // appear the moment their join request got approved. Piggybacks on
         // this same 5s poll instead of running a second one.
         function updateChatBadge(count) {
@@ -1115,7 +1116,7 @@
             })
                 .then(function (response) {
                     if (!response.ok) {
-                        // Was silently dropped — a 302 (session/login issue),
+                        // Was silently dropped, a 302 (session/login issue),
                         // 419 (CSRF/session expired), or 500 looked identical
                         // to "nothing new" from the badge's point of view.
                         console.error('Notification poll failed: HTTP ' + response.status);
@@ -1147,7 +1148,7 @@
             if (e.target && e.target.classList && e.target.classList.contains('notification-wrap')) {
                 if (e.target.open && notifFirstLoad) { showNotifSkeleton(); }
             }
-            /* Lock background scroll while the bento menu is open — it has no
+            /* Lock background scroll while the bento menu is open. It has no
                backdrop of its own, so without this the page behind it still scrolls. */
             if (e.target && e.target.classList && e.target.classList.contains('bento-menu-wrap')) {
                 document.body.classList.toggle('bento-menu-open', e.target.open);
@@ -1198,7 +1199,7 @@
 </script>
 <script>
     // On real mobile devices, a `position: fixed` bottom nav rides up with
-    // the on-screen keyboard instead of staying put — hiding it the instant
+    // the on-screen keyboard instead of staying put, hiding it the instant
     // a text field is focused (and restoring it once nothing needs typing)
     // is what makes that feel native instead of the nav floating awkwardly
     // above the keyboard.

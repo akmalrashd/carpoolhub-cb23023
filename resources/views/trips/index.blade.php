@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     {{-- explore.css supplies the shared .xp-modal-* "Trip details" card styling,
          reused here for the pending-request read-only view instead of duplicating
-         those ~150 lines of CSS — loaded first so trips.css still wins on any overlap. --}}
+         those ~150 lines of CSS. Loaded first so trips.css still wins on any overlap. --}}
     <link rel="stylesheet" href="{{ asset('css/explore.css') }}?v={{ filemtime(public_path('css/explore.css')) }}">
     {{-- Page styles, extracted to a cacheable static file; link kept at the same position as the <style> block so cascade order is unchanged. --}}
     <link rel="stylesheet" href="{{ asset('css/trips.css') }}?v={{ filemtime(public_path('css/trips.css')) }}">
@@ -316,7 +316,7 @@
                             };
                             // From a requesting passenger's own view (not the driver/admin
                             // managing the trip), a still-pending join request matters more
-                            // than the trip's own scheduled/recorded status — overlay it.
+                            // than the trip's own scheduled/recorded status. Overlay it.
                             $isOwnerView = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
                             $myPendingJoinRequest = ! $isOwnerView
                                 ? $trip->joinRequests->first(fn ($jr) => (int) $jr->user_id === (int) auth()->id() && $jr->status === 'pending')
@@ -468,7 +468,7 @@
                             // Pre-selected participants (added directly by the driver at trip
                             // creation) have a TripParticipant + TripPayment row but no
                             // TripJoinRequest at all, so the lookup above misses them entirely.
-                            // Only applies to public trips — private trips are direct invites,
+                            // Only applies to public trips. Private trips are direct invites,
                             // not "requests", so there's nothing to show here for those.
                             if (! $myRequestRow && ($trip->visibility ?? 'private') === 'public') {
                                 $myParticipant = $trip->participants->first(fn ($p) => (int) $p->user_id === (int) auth()->id() && ! $p->is_driver);
@@ -501,7 +501,7 @@
                             }
                             // Trip-level context for the "My Request" popup (date, route,
                             // fare, seats, other approved passengers' stops for the map
-                            // preview) — same regardless of which branch above built the row.
+                            // preview), same regardless of which branch above built the row.
                             if ($myRequestRow) {
                                 $approvedStopsForMap = $requestPayload
                                     ->where('status', 'approved')
@@ -522,7 +522,7 @@
                                     'approved_count' => $passengerCount,
                                     'approved_stops' => $approvedStopsForMap->toArray(),
                                     // Pending-request card (Explore-style read-only view) only
-                                    // needs these — kept here so both cards share one payload.
+                                    // needs these. Kept here so both cards share one payload.
                                     'driver_name' => $trip->driver?->name ?: 'Driver',
                                     'driver_id' => $trip->driver_id,
                                     'driver_initial' => $trip->driver?->avatar_initial ?? 'D',
@@ -867,7 +867,7 @@
                                 };
                                 // From a requesting passenger's own view (not the driver/admin
                                 // managing the trip), a still-pending join request matters more
-                                // than the trip's own scheduled/recorded status — overlay it.
+                                // than the trip's own scheduled/recorded status. Overlay it.
                                 $isOwnerView = auth()->user()->role === 'admin' || auth()->id() === $trip->driver_id;
                                 $myPendingJoinRequest = ! $isOwnerView
                                     ? $trip->joinRequests->first(fn ($jr) => (int) $jr->user_id === (int) auth()->id() && $jr->status === 'pending')
@@ -1019,7 +1019,7 @@
                                 // Pre-selected participants (added directly by the driver at
                                 // trip creation) have a TripParticipant + TripPayment row but
                                 // no TripJoinRequest at all, so the lookup above misses them.
-                                // Only applies to public trips — private trips are direct
+                                // Only applies to public trips. Private trips are direct
                                 // invites, not "requests", so there's nothing to show here.
                                 if (! $myRequestRow && ($trip->visibility ?? 'private') === 'public') {
                                     $myParticipant = $trip->participants->first(fn ($p) => (int) $p->user_id === (int) auth()->id() && ! $p->is_driver);
@@ -1052,7 +1052,7 @@
                                 }
                                 // Trip-level context for the "My Request" popup (date, route,
                                 // fare, seats, other approved passengers' stops for the map
-                                // preview) — same regardless of which branch above built the row.
+                                // preview), same regardless of which branch above built the row.
                                 if ($myRequestRow) {
                                     $approvedStopsForMap = $requestPayload
                                         ->where('status', 'approved')
@@ -1073,7 +1073,7 @@
                                         'approved_count' => $passengerCount,
                                         'approved_stops' => $approvedStopsForMap->toArray(),
                                         // Pending-request card (Explore-style read-only view) only
-                                        // needs these — kept here so both cards share one payload.
+                                        // needs these. Kept here so both cards share one payload.
                                         'driver_name' => $trip->driver?->name ?: 'Driver',
                                         'driver_initial' => strtoupper(substr($trip->driver?->name ?? '?', 0, 2)),
                                         'driver_rating' => number_format($trip->driver?->rating ?? 5.0, 2),
@@ -1333,7 +1333,7 @@
         {{--
             Always emit the wrapper, even with nothing to page. Paging here is an
             AJAX swap, and the swap needs a node that is always present to write
-            into — when this was wrapped in @if the pager simply stopped being
+            into, when this was wrapped in @if the pager simply stopped being
             replaced, so it kept highlighting the page you had left and its links
             kept pointing at the previous filter. `.pagination-wrap:empty` hides
             it when there is only one page, hence no whitespace inside the tag.
@@ -1391,7 +1391,7 @@
 
     @include('trips.partials.trip-requests-modal')
 
-    {{-- "My Request" — the passenger-side counterpart of "Manage requests" above.
+    {{-- "My Request", the passenger-side counterpart of "Manage requests" above.
          Shows just the viewer's own request on a public trip they don't drive,
          with a Cancel action instead of Reject/Approve/Remove/Absent. --}}
     <div class="trip-payment-review-modal" id="tripMyRequestModal" aria-hidden="true">
@@ -1408,7 +1408,7 @@
         </div>
     </div>
 
-    {{-- Pending-request read-only view — same "Trip details" card style as the
+    {{-- Pending-request read-only view, same "Trip details" card style as the
          Explore page's request modal (reusing its .xp-modal-* CSS), since a
          still-pending request has nothing to manage, just a Cancel action. --}}
     <div class="xp-modal" id="tripPendingRequestModal" aria-hidden="true">

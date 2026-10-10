@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="icon" type="image/png" href="{{ asset('assets/branding/icon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/branding/icon.png') }}">
-    {{-- Same shared classes as the login page (login-shell, login-card, field-row, etc.) — no page-specific CSS needed. --}}
+    {{-- Same shared classes as the login page (login-shell, login-card, field-row, etc.), no page-specific CSS needed. --}}
     <link rel="stylesheet" href="{{ asset('css/auth-login.css') }}?v={{ filemtime(public_path('css/auth-login.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/bg-pattern.css') }}?v={{ filemtime(public_path('css/bg-pattern.css')) }}">
     @include('layouts.partials.pwa-head')

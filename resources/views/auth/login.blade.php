@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/auth-login.css') }}?v={{ filemtime(public_path('css/auth-login.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/bg-pattern.css') }}?v={{ filemtime(public_path('css/bg-pattern.css')) }}">
     @include('layouts.partials.pwa-head')
-    {{-- Only ever does anything inside Telegram's own Mini App webview —
+    {{-- Only ever does anything inside Telegram's own Mini App webview,
          see the inline script before </body>. A no-op everywhere else. --}}
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -239,7 +239,7 @@
     }
 
     // Telegram Mini App auto-login. Landing here at all means the auth
-    // middleware just redirected an unauthenticated request — Telegram's
+    // middleware just redirected an unauthenticated request. Telegram's
     // webview never carries a CarpoolHub session cookie, so every "Open in
     // App" tap would otherwise dead-end on this exact form. Entirely inert
     // outside Telegram: initData is only ever non-empty inside its webview.
@@ -263,7 +263,7 @@
                 if (data && data.success && data.redirect) {
                     window.location.href = data.redirect;
                 }
-                // Any failure (not linked yet, expired, inactive account) —
+                // Any failure (not linked yet, expired, inactive account),
                 // leave the normal login form visible, no special handling.
             })
             .catch(() => { /* fall through to the normal login form */ });

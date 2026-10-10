@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="icon" type="image/png" href="{{ asset('assets/branding/icon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/branding/icon.png') }}">
-    {{-- Reuses the register page's stylesheet — same role-selector, file-upload,
+    {{-- Reuses the register page's stylesheet, same role-selector, file-upload,
          and field-group classes, none of which depend on the wizard markup. --}}
     <link rel="stylesheet" href="{{ asset('css/auth-register.css') }}?v={{ filemtime(public_path('css/auth-register.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/bg-pattern.css') }}?v={{ filemtime(public_path('css/bg-pattern.css')) }}">
@@ -77,7 +77,7 @@
                     </div>
                 @endif
 
-                {{-- Google identity — read-only, comes from the OAuth session, not the form --}}
+                {{-- Google identity. Read-only, comes from the OAuth session, not the form --}}
                 <div class="identity-preview">
                     <span class="identity-preview-icon"><i class="fa-brands fa-google"></i></span>
                     <div class="identity-preview-text">
@@ -317,7 +317,7 @@
 </div>{{-- /.login-shell --}}
 
 {{-- Reuses handleFileUpload/handleLicenseUpload/handleSelfieUpload from the
-     register page's script — it self-guards on #register-form not existing
+     register page's script. It self-guards on #register-form not existing
      here, so only those upload helpers actually run. --}}
 <script src="{{ asset('js/auth-register.js') }}?v={{ filemtime(public_path('js/auth-register.js')) }}"></script>
 <script>

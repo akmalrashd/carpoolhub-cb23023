@@ -112,7 +112,7 @@
                     </span>
                 </div>
 
-                {{-- Actions — tap the card itself to open; this is delete-only. --}}
+                {{-- Actions. Tap the card itself to open; this is delete-only. --}}
                 <div class="notif-row-actions">
                     <button type="button"
                             class="notif-delete-btn"

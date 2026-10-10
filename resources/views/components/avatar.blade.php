@@ -1,7 +1,7 @@
 {{--
     Canonical avatar: real photo when the account has one, otherwise a
     single initial on a colour picked deterministically from the user's id
-    (App\Support\Avatar — see there for why: was ~30 separate ad-hoc
+    (App\Support\Avatar. See there for why: was ~30 separate ad-hoc
     reimplementations before this, with different initial lengths and
     colour rules per page, and two disagreeing hash functions on the same
     admin page).
@@ -45,7 +45,7 @@
     @if($resolvedSrc)
         {{-- Some photo sources (e.g. hotlinked Google account avatars) can
              intermittently fail to load client-side even though the URL is
-             valid — fall back to the initial avatar instead of a broken image icon. --}}
+             valid. Fall back to the initial avatar instead of a broken image icon. --}}
         <img src="{{ $resolvedSrc }}" alt="{{ $resolvedName }}"
              onerror="var p=this.parentElement;this.remove();p.style.background={{ Js::from($color) }};p.style.color='#fff';p.textContent={{ Js::from($initial) }};">
     @else

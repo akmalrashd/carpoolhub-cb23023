@@ -1,14 +1,14 @@
-{{-- Single chat-list row — shared by the initial index render and the
+{{-- Single chat-list row. Shared by the initial index render and the
      refresh.chats.list / refresh.chats.row JSON endpoints (chats-index.js
      replaces/reorders this exact markup live via Ably + a polling fallback,
      so this partial must stay the only place that builds a row).
 
      Two different ids on purpose: data-conversation-id is the route-facing
-     public_id (used to build the refresh.chats.row URL — routes now bind
+     public_id (used to build the refresh.chats.row URL, since routes bind
      Conversation by public_id, see HasPublicId), while
      data-conversation-channel-id is the internal sequential id, since that's
      still what the server broadcasts messages on (private:conversation.{id}
-     in MessageSent/routes/channels.php was left untouched deliberately —
+     in MessageSent/routes/channels.php was left untouched deliberately,
      only the browsable URL needed hiding, not the pub/sub channel name,
      which a valid Ably token already scopes access to). --}}
 @php
@@ -46,7 +46,7 @@
 >
     {{-- Search matches this row's full text (chats-index.js), which
          otherwise only ever contains the trip/route title plus whichever
-         name happened to send the LAST message — searching for a passenger
+         name happened to send the LAST message, searching for a passenger
          who joined but hasn't spoken yet would find nothing. This adds
          every participant's name into that same searchable text, invisibly
          (kept out of layout, not just visually hidden, so it can't shift

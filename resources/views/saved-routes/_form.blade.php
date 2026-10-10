@@ -165,7 +165,7 @@
             </div>
         </div>
 
-        {{-- Leaflet map — full width at bottom of card --}}
+        {{-- Leaflet map. Full width at bottom of card --}}
         <div class="rf-map-map-shell">
             <div class="rf-map-search-row">
                 <div class="rf-map-search-wrap">
@@ -461,7 +461,7 @@
         }).addTo(map);
 
         // The map card is stretched to match the (usually taller) controls
-        // column via CSS, and #routeMap fills that with flex — but Leaflet
+        // column via CSS, and #routeMap fills that with flex, but Leaflet
         // measures its container once at init, before webfonts/icons finish
         // loading and settle that final height, leaving unrendered tiles
         // below the fold until something forces a remeasure.
@@ -1152,7 +1152,7 @@
             return hours + 'h ' + mins + 'm';
         }
 
-        // Instant placeholder shown before the live fetch below resolves —
+        // Instant placeholder shown before the live fetch below resolves,
         // overwritten as soon as real data.gov.my prices arrive, kept only
         // as a network-failure fallback.
         var fuelPricePresets = {
@@ -1333,7 +1333,7 @@
         var fareReasonVehicle = '{{ addslashes(auth()->user()->vehicle_model ?? '') }}';
 
         function suggestionReason(route) {
-            // Fallback — shown instantly while AI loads
+            // Fallback. Shown instantly while AI loads
             var distanceKm = ((route.distance || 0) / 1000);
             var minutes = Math.round((route.duration || 0) / 60);
             return 'Fare based on ' + distanceKm.toFixed(1) + ' km distance and ~' + minutes + ' min travel time.';
@@ -1380,7 +1380,7 @@
 
                 if (routeIndex === selectedRouteIndex) {
                     // A confirmed fuel type is the driver's own choice, not an AI
-                    // guess — km/L and toll must still refresh for it even though
+                    // guess. Km/L and toll must still refresh for it even though
                     // fareAdvisorEdited is already true from picking the dropdown.
                     applyFareAdviceToControls(data, Boolean(forcedFuelType));
                     updateFareBreakdown(route, !fareEditedByUser);
@@ -1409,7 +1409,7 @@
         }
 
         // Compares the now-complete options (real fuel+toll numbers, not just
-        // distance/time) and picks which one to pre-select, with a reason —
+        // distance/time) and picks which one to pre-select, with a reason,
         // a genuine multi-factor trade-off call, not a fixed "always cheapest"
         // or "always fastest" rule.
         function requestRouteRecommendation() {
@@ -1478,7 +1478,7 @@
             return names.slice(0, 3).join(' • ') || 'Main route';
         }
 
-        // Full distinct road-name list (not the 3-name display summary above) —
+        // Full distinct road-name list (not the 3-name display summary above),
         // this is what toll detection needs. A long trip's toll highway (e.g.
         // "Lebuhraya DUKE") often only shows up well past the first 3 named
         // streets leaving the pickup point, so sending the truncated summary
@@ -1562,7 +1562,7 @@
                         fareAdvisorStatus.textContent = (fareAdviceByRoute[selectedRouteIndex].confidence || 'medium') + ' confidence';
                     }
                     syncPresetFares(false);
-                    // Toggle active class only — do NOT re-render, preserves AI reasoning text
+                    // Toggle active class only. Do NOT re-render, preserves AI reasoning text
                     Array.prototype.forEach.call(routeOptionsEl.querySelectorAll('.rf-route-option-btn'), function (b) {
                         b.classList.toggle('active', b === btn);
                     });
@@ -1672,7 +1672,7 @@
         // server has no `exclude=` support and its own alternatives= search
         // frequently returns just one route for anything past ~150km (a long
         // intercity trip on one dominant highway corridor has nothing to find
-        // an alternative against) — routing a candidate via this point is
+        // an alternative against), routing a candidate via this point is
         // what actually produces a second, third option to compare.
         function perpendicularOffset(start, end, sideSign, fraction) {
             var midLat = (start.lat + end.lat) / 2;
@@ -1690,7 +1690,7 @@
             );
         }
 
-        // With custom passenger stops, `points` has more than 2 entries — all
+        // With custom passenger stops, `points` has more than 2 entries. All
         // of them mandatory, in order. The detour point can't replace any of
         // them, so it goes on whichever consecutive pair is furthest apart
         // (that's both where OSRM is most likely to have failed to find a
@@ -2057,7 +2057,7 @@
                     }
                 });
                 // Stay in this same custom-stop capture (pickup or drop-off) so the
-                // next tap can still adjust it — only leave capture mode when the
+                // next tap can still adjust it, only leave capture mode when the
                 // user explicitly clicks Point A / Point B, or picks another
                 // capture button (both already call clearPresetCapture()).
                 updateStepIndicator();
@@ -2110,7 +2110,7 @@
                 if (fareUseBudi) fareUseBudi.disabled = fareFuelType.value !== 'RON95';
                 applyFuelPricePreset(true);
 
-                // The driver just confirmed the actual fuel type — ask the AI to
+                // The driver just confirmed the actual fuel type. Ask the AI to
                 // re-estimate km/L and toll for THAT fuel type instead of reusing
                 // whatever numbers were guessed for the previous one.
                 var selectedRoute = fetchedRoutes[selectedRouteIndex] || fetchedRoutes[0] || null;
@@ -2160,7 +2160,7 @@
             if (!inWrap) renderSearchSuggestions([]);
         });
 
-        // Toolbar ghost buttons — wire up after map is ready
+        // Toolbar ghost buttons. Wire up after map is ready
         if (togglePresetStopsBtn) {
             togglePresetStopsBtn.addEventListener('click', function () {
                 setCustomStopPanel(!presetStopPanel.classList.contains('show'));
@@ -2203,7 +2203,7 @@
             setTimeout(goToCurrentLocation, 350);
         }
 
-        // AI pre-fill bridge — used by sessionStorage draft on create page
+        // AI pre-fill bridge. Used by sessionStorage draft on create page
         window.__chRouteSetPoint = function (target, lat, lng, name) {
             setMarker(target, parseFloat(lat), parseFloat(lng), name || '');
         };

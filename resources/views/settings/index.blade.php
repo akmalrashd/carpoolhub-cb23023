@@ -41,10 +41,10 @@
         // Admin isn't subject to driver verification and can't create trips
         // (see TripController::ensureCanManage), so vehicle/license/payment
         // fields below are driver-only, not "driver or admin" like they used
-        // to be — an admin account never had a legitimate use for them.
+        // to be, an admin account never had a legitimate use for them.
         $isDriver = $user->role === 'driver';
 
-        // Profile completeness — computed from real fields, not a fake trust badge.
+        // Profile completeness. Computed from real fields, not a fake trust badge.
         // Name and email are already required at signup, so they count as done from
         // the start instead of the ring showing a discouraging 0% on every fresh account.
         $completionItems = [
@@ -94,7 +94,7 @@
             <p class="pg-sub">Manage your personal information, payment methods, and account security.</p>
         </div>
 
-        {{-- Success is already announced by the global toast in layouts/app.blade.php —
+        {{-- Success is already announced by the global toast in layouts/app.blade.php,
              a second static banner here just repeated the same message. --}}
         @if($errors->any())
             <div class="settings-alert error" role="alert" aria-live="assertive">
@@ -110,7 +110,7 @@
                     <div class="settings-hero-avatar" onclick="document.getElementById('avatarFileInput').click()" title="Click to upload profile photo" @unless($photoUrl) style="background:{{ $user->avatar_color }};" @endunless>
                         @if($photoUrl)
                             {{-- Hotlinked photo sources (e.g. Google account avatars) can
-                                 intermittently fail to load client-side — fall back to the
+                                 intermittently fail to load client-side. Fall back to the
                                  initial avatar instead of leaving a broken image icon. --}}
                             <img src="{{ $photoUrl }}" alt="{{ $user->name }}"
                                  onerror="var p=this.parentElement;this.remove();p.style.background={{ Js::from($user->avatar_color) }};p.textContent={{ Js::from($user->avatar_initial) }};">
@@ -138,7 +138,7 @@
                         </span>
                         @if($user->role === 'driver' && $user->driver_verification_status)
                             @php
-                                // Same accountStatusLabel() the admin Users table reads — a driver
+                                // Same accountStatusLabel() the admin Users table reads, a driver
                                 // seeing "Verified" here while admin's table said "Active" for the
                                 // identical state was one more inconsistent word for the same thing.
                                 $acctStatus = $user->accountStatusLabel();
@@ -161,7 +161,7 @@
                 </div>
             </div>
 
-            {{-- Profile completeness — real, computed from actual saved fields. --}}
+            {{-- Profile completeness. Real, computed from actual saved fields. --}}
             <div class="settings-hero-completion">
                 <div class="hero-completion-top">
                     <div class="hero-completion-bar-block" role="img" aria-label="Profile {{ $completionPercent }}% complete">
@@ -402,7 +402,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Driver Verification Documents — editable; resubmitting sends the account back for review (see SettingsService::updateProfile). --}}
+                                {{-- Driver Verification Documents. Editable; resubmitting sends the account back for review (see SettingsService::updateProfile). --}}
                                 <div>
                                     <label class="form-label">Required Document Status</label>
                                     <p class="field-hint" style="margin:2px 0 10px;">Uploading a new license or selfie sends your account back for admin review. You'll be notified once it's checked again.</p>
@@ -461,7 +461,7 @@
             </div>
 
             {{-- ─────────────────────────────────────────────────────────────
-                 TAB 2: PAYMENT METHODS & QR (driver only — passengers only
+                 TAB 2: PAYMENT METHODS & QR (driver only. Passengers only
                  ever pay drivers, and admin never drives/collects fares)
             ─────────────────────────────────────────────────────────────── --}}
             @if($isDriver)

@@ -41,14 +41,14 @@
     </div>
 </div>
 
-{{-- Only the KPI grid below is scoped by the date range above — every
+{{-- Only the KPI grid below is scoped by the date range above, every
      other section on this page (top routes, monthly trend, AI/reliability
      summaries, etc.) stays all-time; see ReportService::overview(). --}}
 <p class="t-xs text-muted" style="margin:-8px 0 4px;">
     Overview KPIs: <strong>{{ ($dateFrom || $dateTo) ? ($dateFrom ?: 'earliest') . ' – ' . ($dateTo ?: 'latest') : 'All time' }}</strong> · everything else below is all-time.
 </p>
 
-{{-- KPI Grid: 4 Stat Cards — shares .au-stats/.au-stat-card with Users & Audit Log --}}
+{{-- KPI Grid: 4 Stat Cards. Shares .au-stats/.au-stat-card with Users & Audit Log --}}
 <div class="au-stats">
     <div class="au-stat-card">
         <div class="au-stat-icon" style="background:var(--info-soft);border:1px solid rgba(37,99,235,.2);">
@@ -348,7 +348,7 @@
     </div>
 
     {{-- AI Usage: ai_usage_logs is written on every chat/fare-advice/route-recommendation
-         call but was never surfaced anywhere before this — no dollar estimate here on
+         call but was never surfaced anywhere before this, no dollar estimate here on
          purpose, see ReportService::aiUsageSummary(). --}}
     <div class="rp-chart-card">
         <div class="rp-chart-head">

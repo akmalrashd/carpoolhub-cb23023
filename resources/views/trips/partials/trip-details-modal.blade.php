@@ -1,4 +1,4 @@
-{{-- Shared "Trip Details" popup — originally trips/index.blade.php only.
+{{-- Shared "Trip Details" popup. Originally trips/index.blade.php only.
      Reused as-is (same ids/classes, same public/js/trip-details-modal.js)
      by any page that renders a trigger button with class="open-trip-modal-btn"
      and the full set of data-* attributes it reads (see that JS file for the
@@ -91,7 +91,7 @@
                     <i class="fa-solid fa-inbox"></i> Requests
                 </button>
                 {{-- A driver viewing their own trip here had no way to reach
-                     its chat at all — this covers both "open the chat that
+                     its chat at all. This covers both "open the chat that
                      already exists" (any visibility) and "start/reuse a
                      circle" (private trips only) via the shared chooser. --}}
                 <a href="#" class="trip-action-btn is-filled chat-btn" id="tripModalManageChatBtn" style="display:none;">
@@ -110,13 +110,13 @@
                 </form>
             </div>
             <div class="trip-actions-filled" id="tripModalContactActions" style="display:none;">
-                {{-- The passenger-side counterpart of "Manage requests" — shown first,
+                {{-- The passenger-side counterpart of "Manage requests". Shown first,
                      ahead of Chat, matching the same left-to-right order the trips-list
                      row's own Action-column icons already use for these two buttons.
                      Reuses the exact "My Request" popup/JS from trips/index.blade.php
                      (public/js/trips-index.js binds every .open-my-request-review
                      element present at page load), so it only ever has something to
-                     open on that page — data-request-b64 is simply absent everywhere
+                     open on that page. Data-request-b64 is simply absent everywhere
                      else this modal is reused (e.g. the chat thread page), which
                      keeps this row hidden there instead of opening a dead popup. --}}
                 <div class="trip-contact-row" id="tripModalMyRequestWrap" style="display:none;">
@@ -126,7 +126,7 @@
                     </button>
                 </div>
                 {{-- Public trips: everyone stays in the monitored in-app chat, no
-                     external fallback — see the Hexa welcome message's own "keep
+                     external fallback. See the Hexa welcome message's own "keep
                      it inside this chat" tip. Disabled + a toast (not hidden) once
                      the chat has been purged, since the trip itself can outlive it. --}}
                 <div class="trip-contact-row" id="tripModalChatWrap">
@@ -139,7 +139,7 @@
                 </div>
                 {{-- Private trips: passengers are hand-picked from the driver's own
                      Connections, so the "keep everything monitored" bar doesn't
-                     apply the same way — WhatsApp/Email direct contact stays, with
+                     apply the same way. WhatsApp/Email direct contact stays, with
                      a disclaimer since CarpoolHub has no record of it. --}}
                 <div class="trip-contact-row" id="tripModalExternalContact">
                     <p class="trip-contact-row-label">
@@ -154,7 +154,7 @@
                         </a>
                     </div>
                 </div>
-                {{-- Independent of the chat/external-contact toggle above — a
+                {{-- Independent of the chat/external-contact toggle above, a
                      completed public trip can have both a live chat and a
                      still-unrated driver at once. --}}
                 <div class="trip-contact-row" id="tripModalRateWrap" style="display:none;">

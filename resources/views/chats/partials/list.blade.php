@@ -1,4 +1,4 @@
-{{-- Chat list pane — shared by chats/index.blade.php (full width on mobile,
+{{-- Chat list pane. Shared by chats/index.blade.php (full width on mobile,
      left pane on desktop) and chats/show.blade.php (desktop's left pane
      only; hidden on mobile, where a thread takes the whole screen). Same
      $conversations/$me/$unreadByConversation the controller already builds

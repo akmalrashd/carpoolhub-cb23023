@@ -730,7 +730,7 @@ function openLicenseModal(uid,name,email,phone,vehicle,active,status,reason,lice
 
     // Every button/form defaults hidden, then the branch below shows exactly
     // the actions valid for this driver's actual state (pending / approved /
-    // approved-but-suspended / rejected) — the same 4-way split the table's
+    // approved-but-suspended / rejected), the same 4-way split the table's
     // status pill uses, not just active/inactive.
     approveBtn.style.display = 'none';
     rejectBtn.style.display = 'none';
@@ -789,7 +789,7 @@ function openRejectModalFromLicense(){
 }
 
 // "Suspend" in the license modal used to submit is_active=0 directly with no
-// way to enter a reason — the server then rejects it (reason is required
+// way to enter a reason, the server then rejects it (reason is required
 // when deactivating an active account) with only a generic error banner to
 // show for it. Hands off to the edit drawer instead, which already collects
 // the reason and shows the character count.
@@ -839,7 +839,7 @@ function toggleEditReasonField(){
 }
 
 // datetime-local wants "YYYY-MM-DDTHH:mm" in local time, not the UTC ISO
-// string toISOString() gives — build it from local getters instead so the
+// string toISOString() gives. Build it from local getters instead so the
 // picker shows the same wall-clock time the admin actually picked.
 function setSuspendQuickPick(days, btn){
     var input = document.getElementById('eu-suspended-until');

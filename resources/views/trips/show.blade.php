@@ -37,7 +37,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/trips-show.css') }}?v={{ filemtime(public_path('css/trips-show.css')) }}">
 @if($canStartPrivateChat)
-    {{-- Only for the circle-chooser modal's shell (.trip-payment-review-*) —
+    {{-- Only for the circle-chooser modal's shell (.trip-payment-review-*),
          see circle-chooser-modal.blade.php. --}}
     <link rel="stylesheet" href="{{ asset('css/trips.css') }}?v={{ filemtime(public_path('css/trips.css')) }}">
 @endif
@@ -293,7 +293,7 @@
                 csrf: @json(csrf_token()),
                 circleOptionsUrl: @json(route('trips.chat.circle-options', $trip)),
                 createUrl: @json(route('trips.chat.create', $trip)),
-                // __ID__ is swapped for the real circle id client-side — one
+                // __ID__ is swapped for the real circle id client-side, one
                 // static template instead of a per-circle route() call, same
                 // convention as chats/index.blade.php's rowUrlTemplate.
                 linkCircleUrlTemplate: @json(route('trips.chat.link-circle', [$trip, '__ID__'])),

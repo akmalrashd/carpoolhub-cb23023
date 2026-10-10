@@ -1,4 +1,4 @@
-{{-- "Rate Your Driver" — passenger-facing, public trips only. Reuses the
+{{-- "Rate Your Driver", passenger-facing, public trips only. Reuses the
      same modal shell/classes as chats/partials/invite-modal.blade.php
      (trips.css) instead of duplicating that CSS. Driven by public/js/
      rate-trip-modal.js, opened via any .open-rate-trip-modal-btn trigger

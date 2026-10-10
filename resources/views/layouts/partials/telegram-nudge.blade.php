@@ -1,5 +1,5 @@
 {{--
-    A soft, recurring nudge to connect Telegram — not a hard gate (unlike
+    A soft, recurring nudge to connect Telegram, not a hard gate (unlike
     email verification), just a once-a-day reminder for anyone who hasn't
     connected yet. Shown from the shared layout so it can catch a user on
     any authenticated page, but the 24h cadence itself lives in localStorage

@@ -4,7 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/chats.css') }}?v={{ filemtime(public_path('css/chats.css')) }}">
-{{-- Unconditional now (not per-conversation) — see chats/partials/shared-modals.blade.php's
+{{-- Unconditional now (not per-conversation). See chats/partials/shared-modals.blade.php's
      header comment for why the modals these feed are always loaded too. --}}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <link rel="stylesheet" href="{{ asset('css/trips.css') }}?v={{ filemtime(public_path('css/trips.css')) }}">
@@ -25,7 +25,7 @@
 <script src="https://cdn.ably.com/lib/ably.min-2.js" crossorigin="anonymous"></script>
 
 <div class="chat-split">
-    {{-- Desktop-only left pane ("list on the left, thread on the right") —
+    {{-- Desktop-only left pane ("list on the left, thread on the right"),
          hidden on mobile via CSS, where the thread already fills the whole
          screen (see the immersive @media rules below). --}}
     <div class="chat-split-list">
@@ -35,7 +35,7 @@
     </div>
     {{-- chat-thread-controller.js's mount() replaces this element's entire
          innerHTML (and re-runs whatever <script> tags come with it) on
-         every chat-row click — see that file's header comment. This is the
+         every chat-row click. See that file's header comment. This is the
          one stable id it targets; everything inside is disposable. --}}
     <div class="chat-split-thread-mount" id="chatThreadMount">
         @include('chats.partials.thread', [
@@ -53,7 +53,7 @@
 
 <script>window.CH_CHATS_INDEX = {
     listUrl: @json(route('refresh.chats.list')),
-    // __ID__ is swapped for the real conversation id client-side — one
+    // __ID__ is swapped for the real conversation id client-side, one
     // template covers every row instead of round-tripping a URL per row.
     rowUrlTemplate: @json(route('refresh.chats.row', ['conversation' => '__ID__'])),
     ablyTokenUrl: @json(route('chats.ably-token')),

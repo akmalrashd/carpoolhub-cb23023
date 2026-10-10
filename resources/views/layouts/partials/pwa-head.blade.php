@@ -160,10 +160,10 @@
         'use strict';
 
         /* ---- Service worker --------------------------------------------
-           No explicit `scope` here on purpose — its default is the
+           No explicit `scope` here on purpose, because its default is the
            directory the script itself lives in. Forcing scope:'/' broke
            registration outright (SecurityError) on any deploy where sw.js
-           isn't served from the domain root — e.g. this project's own local
+           is not served from the domain root, such as this project's own local
            dev setup, served from /CarpoolHub-Laravel/public/ with no vhost.
            A failed registration means navigator.serviceWorker.ready never
            resolves, which is what left Settings > Notifications stuck on

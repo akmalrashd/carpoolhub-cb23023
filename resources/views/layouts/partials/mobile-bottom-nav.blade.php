@@ -5,7 +5,7 @@
     $navItems = match ($role) {
         'admin' => [
             ['route' => 'home', 'active' => ['home', 'dashboard'], 'icon_inactive' => 'fa-solid fa-house', 'icon_active' => 'fa-solid fa-house', 'label' => 'Home'],
-            // 'admin.*' minus admin.reports.* — Reports gets its own icon below, so
+            // 'admin.*' minus admin.reports.*. Reports gets its own icon below, so
             // this stays exclusive with it instead of both lighting up on /admin/reports.
             ['route' => 'admin.users.index', 'active' => ['admin.users.*', 'admin.audit-log.*', 'admin.messages.*', 'admin.system-settings.*'], 'icon_inactive' => 'fa-solid fa-user-shield', 'icon_active' => 'fa-solid fa-user-shield', 'label' => 'Admin'],
             ['route' => 'admin.reports.index', 'active' => ['admin.reports.*'], 'icon_inactive' => 'fa-regular fa-chart-bar', 'icon_active' => 'fa-solid fa-chart-bar', 'label' => 'Reports'],
@@ -18,7 +18,7 @@
             ['route' => 'explore.index', 'active' => ['explore.*'], 'icon_inactive' => 'fa-regular fa-compass', 'icon_active' => 'fa-solid fa-compass', 'label' => 'Explore'],
             ['route' => 'payments.index', 'active' => ['payments.*'], 'icon_inactive' => 'fa-regular fa-credit-card', 'icon_active' => 'fa-solid fa-credit-card', 'label' => 'Payments'],
             // Was Connect -> connections.index; that page is still reachable
-            // from the header dropdown, desktop sidebar, and home — freeing
+            // from the header dropdown, desktop sidebar, and home, freeing
             // this slot for Chat.
             ['route' => 'chats.index', 'active' => ['chats.*'], 'icon_inactive' => 'fa-regular fa-comment-dots', 'icon_active' => 'fa-solid fa-comment-dots', 'label' => 'Chat', 'badge' => $chatBadge],
         ],
@@ -28,7 +28,7 @@
             ['route' => 'explore.index', 'active' => ['explore.*'], 'icon_inactive' => 'fa-regular fa-compass', 'icon_active' => 'fa-solid fa-compass', 'label' => 'Explore'],
             ['route' => 'payments.index', 'active' => ['payments.*'], 'icon_inactive' => 'fa-regular fa-credit-card', 'icon_active' => 'fa-solid fa-credit-card', 'label' => 'Payments'],
             // Was New Trip -> trips.create; that button still lives at the top
-            // of the Trips page itself, so this slot goes to Chat — same
+            // of the Trips page itself, so this slot goes to Chat, same
             // order/position as the passenger nav above.
             ['route' => 'chats.index', 'active' => ['chats.*'], 'icon_inactive' => 'fa-regular fa-comment-dots', 'icon_active' => 'fa-solid fa-comment-dots', 'label' => 'Chat', 'badge' => $chatBadge],
         ],

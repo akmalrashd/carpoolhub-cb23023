@@ -5,7 +5,7 @@
     'id' => null,
 ])
 {{-- CarpoolHub AI mascot. Body/eye geometry adapted from the MIT-licensed
-     https://github.com/jeremy-prt/bloub — reimplemented as plain inline SVG
+     https://github.com/jeremy-prt/bloub. Reimplemented as plain inline SVG
      + CSS (no build step) to fit this project's vanilla Blade/JS stack. --}}
 <span
     @if($id) id="{{ $id }}" @endif

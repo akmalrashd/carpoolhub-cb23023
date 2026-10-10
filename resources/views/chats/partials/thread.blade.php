@@ -1,13 +1,13 @@
-{{-- The swappable half of the chat split view — everything that depends on
+{{-- The swappable half of the chat split view, everything that depends on
      which specific conversation is open. Rendered two ways by
      ChatController::show(): as part of the full chats/show.blade.php page
      on a direct URL load, or alone (JSON-wrapped) when
      chat-thread-controller.js's mount() fetches it after a chat-row click,
      to swap in without a page reload (see that file's header comment).
 
-     Everything conversation-agnostic — the shared modals (Trip Details,
+     Everything conversation-agnostic, the shared modals (Trip Details,
      Rate Trip, Manage/My Request, Invite Connections) and the photo
-     lightbox, plus their JS — deliberately live in the page SHELL instead
+     lightbox, plus their JS. Deliberately live in the page SHELL instead
      (chats/index.blade.php / chats/show.blade.php), loaded once, not in
      here: they already delegate their trigger bindings on `document` and
      read everything from the clicked trigger's data-* attributes (same
@@ -34,7 +34,7 @@
         $driverVehicle ? implode(' · ', $driverVehicle) : null,
         $memberCount.' '.\Illuminate\Support\Str::plural('member', $memberCount),
     ]);
-    // Conversation-scoped, not trip-scoped — a circle outlives whichever
+    // Conversation-scoped, not trip-scoped, a circle outlives whichever
     // trip it's currently linked to, so these can't depend on trip_id.
     $pickerOptionsUrl = route('chats.picker-options', $conversation);
     $inviteUrl = route('chats.invite', $conversation);
@@ -142,7 +142,7 @@
         <i class="fa-solid fa-shield-halved chat-thread-banner-icon"></i>
         <p class="chat-thread-banner-headline">
             @if($conversation->is_circle)
-                This is a persistent circle chat and won't be deleted — messages older than {{ $circleMessageRetentionDays }} days are cleared automatically.
+                This is a persistent circle chat and will not be deleted. Only messages older than {{ $circleMessageRetentionDays }} days are cleared automatically.
             @elseif($deletionAt)
                 This chat {{ $deletionIsEstimate ? 'will be deleted around' : 'will be deleted on' }}
                 <strong>{{ $deletionAt->format('d M Y, g:i A') }}</strong>.
@@ -156,7 +156,7 @@
             <summary>Why is this chat monitored?</summary>
             <p>CarpoolHub admin can view this chat to help prevent scams. Please do all trip related communication here, not on other apps such as WhatsApp. Messages sent outside this chat cannot be used as evidence.</p>
             @if($conversation->is_circle)
-                <p>Export this chat and report any issue to admin any time — messages older than {{ $circleMessageRetentionDays }} days are cleared automatically, so export regularly if you need a full record.</p>
+                <p>Export this chat and report any issue to admin any time. Messages older than {{ $circleMessageRetentionDays }} days are cleared automatically, so export regularly if you need a full record.</p>
             @else
                 <p>Export this chat and report any issue to admin before the date above. Once the chat is deleted, admin has nothing left to check, so reports made after that date cannot be investigated.</p>
             @endif
@@ -171,7 +171,7 @@
 <div class="chat-thread-messages" id="chatMessages">
     {{-- margin-top:auto on this inner wrapper (not justify-content:flex-end
          on the scroller above) is what pins a short conversation to the
-         bottom — flex-end + overflow is a known trap: once content
+         bottom. Flex-end + overflow is a known trap: once content
          overflows, the start-side overflow lands in negative scroll
          space browsers won't let you scroll into, permanently hiding
          the earliest messages. auto margins collapse to 0 instead, so a
@@ -194,7 +194,7 @@
             }
             // Marks the first message that was still unread the moment
             // this thread was opened (captured in ChatController::show()
-            // before its own markRead() call moves the watermark) — null
+            // before its own markRead() call moves the watermark). Null
             // only on a participant's very first-ever visit, where
             // there's no "catching up" concept yet. chats-show.js scrolls
             // here instead of the very bottom, WhatsApp-style.
@@ -218,8 +218,8 @@
         @elseif($message->isFromHexa())
             @php
                 // Hexa's body is stored as plain text (bullets marked with
-                // "• ", same as any other message — keeps chat export
-                // readable and the messages table free of HTML) — grouped
+                // "• ", same as any other message. Keeps chat export
+                // readable and the messages table free of HTML). Grouped
                 // here into paragraphs/lists purely for display, so wrapped
                 // bullet lines hang-indent under their own text instead of
                 // under the bullet. The 🚗 stays in the stored text (reads
@@ -269,7 +269,7 @@
                         </a>
                     @elseif($message->type === \App\Models\Message::TYPE_RATING_INVITE && $conversation->trip && (int) $conversation->driver_id !== (int) $me->id)
                         {{-- Gated on driver_id !== viewer so the trip's own driver never
-                             sees a self-rate prompt — unlike Pay Now above (generic and
+                             sees a self-rate prompt. Unlike Pay Now above (generic and
                              safe for anyone), the server would correctly reject this one. --}}
                         <a href="#" class="chat-bubble-hexa-cta is-rating open-rate-trip-modal-btn"
                            data-trip-id="{{ $conversation->trip->id }}"
@@ -349,10 +349,10 @@
     {{-- Trips-list "Rate" action icon links here with ?open_rate=1 so the
          modal opens immediately on arrival, even when the in-chat Hexa
          CTA bubble (TYPE_RATING_INVITE) hasn't been posted to this
-         thread yet — CarpoolRateTrip.openFor() builds its own throwaway
+         thread yet. CarpoolRateTrip.openFor() builds its own throwaway
          trigger rather than depending on one already being in the DOM.
          Server-side eligibility (already rated, window closed, etc.) is
-         still the real gate — a real submit is rejected with the usual
+         still the real gate, a real submit is rejected with the usual
          error toast either way. Re-runs on every AJAX-mounted thread just
          like chats-show.js below, so this still fires when arriving via a
          chat-row click, not only on a direct/full-page load. --}}
