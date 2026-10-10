@@ -4,8 +4,9 @@
  * Single source of truth for the 6 admin tools (Users, Reports, Audit Log,
  * Messages, Settings, Withdrawals). Previously hardcoded separately in the desktop
  * sidebar, the "Create" quick-action menu (desktop + mobile), and the
- * mobile drawer — which had already drifted out of sync (the mobile
- * quick-action menu was missing 3 of the 5). Add/remove an admin tool here
+ * mobile drawer, and those copies had already drifted apart, with the mobile
+ * quick action menu missing three of the five. Adding or removing an admin
+ * tool here
  * and every nav surface picks it up.
  */
 return [

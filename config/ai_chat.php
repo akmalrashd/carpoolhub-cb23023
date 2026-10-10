@@ -15,14 +15,14 @@ return [
     'history_turns' => 4,
 
     // Per-user daily cap shared across /ai/chat, /ai/fare-advice and
-    // /ai/recommend-route (see the 'ai-spend' rate limiter) — every one of
-    // these bills a real Anthropic call, so this is a spend ceiling, not
-    // just an abuse guard.
+    // /ai/recommend-route, enforced by the 'ai-spend' rate limiter. Each of
+    // those bills a real Anthropic call, so this is a spending limit rather
+    // than only an abuse guard.
     'daily_limit' => (int) env('AI_CHAT_DAILY_LIMIT', 150),
 
     // Platform-wide daily ceiling across ALL users combined, checked by the
-    // same 'ai-spend' rate limiter — the per-user cap above bounds one
-    // account, but not total spend if the user base (or fake accounts) grows.
+    // same 'ai-spend' rate limiter. The per user cap above only limits one
+    // account, not the total once the number of accounts grows, real or fake.
     // Starting value is a rough placeholder; retune it once real traffic is
     // visible via the admin Reports page (ReportService::aiUsageSummary()).
     'global_daily_limit' => (int) env('AI_CHAT_GLOBAL_DAILY_LIMIT', 3000),

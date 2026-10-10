@@ -2,16 +2,16 @@
 
 /**
  * Malaysian toll highway rates for Class 1 (cars), compiled from live web
- * research on 2026-08-23 — replaces the old AI-guessed / hardcoded-keyword
- * toll estimate with sourced real rates. Anything not listed here (ELITE,
- * SKVE, WCE, and any road not matched below) still falls through to the AI
- * estimate — nothing is invented to fill those gaps.
+ * research on 2026-08-23. These replace the old AI guessed and keyword based
+ * toll estimate with real sourced rates. Anything not listed here, such as
+ * ELITE, SKVE, WCE and any road the patterns do not match, still falls
+ * through to the AI estimate, and nothing is invented to fill the gaps.
  *
  * 'match' patterns are checked against the route's road-name text (from
  * OSRM/Nominatim), most-specific first. 'type' => 'flat' pays the rate once
  * per matched highway; 'per_km' multiplies distance_km by rate_per_km
- * (capped) — used for the closed-toll long-haul networks where a single
- * flat number doesn't fit a trip of arbitrary length.
+ * (with a cap). That is used for the closed toll long distance networks,
+ * where one flat figure cannot fit a trip of any length.
  *
  * Where sources disagreed, the rate actually fetched from a direct page
  * read (not a search-summary snippet) was kept; see the Fare Advisor
@@ -135,9 +135,10 @@ return [
         'verified_at' => '2026-08-23',
     ],
     // "SEPADU" is the name of an integrated toll-payment ZONE covering several
-    // West Port-area plazas (Bukit Raja/Kapar/MOC), not one road's own name —
-    // OSM tags the underlying road by its real name, which isn't researched
-    // yet, so this pattern realistically won't ever match. Left in rather
+    // West Port area plazas (Bukit Raja, Kapar, MOC) rather than the name of
+    // any one road. OSM tags the underlying road by its real name, which has
+    // not been researched yet, so this pattern is unlikely to ever match. It
+    // is left here rather
     // than deleted so a future pass has the rate ready once a real name is found.
     'sepadu' => [
         'label' => 'SEPADU', 'match' => '/\bsepadu\b/i', 'type' => 'flat', 'rate' => 1.55,

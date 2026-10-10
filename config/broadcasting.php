@@ -7,9 +7,10 @@ return [
     | Default Broadcaster
     |--------------------------------------------------------------------------
     |
-    | Chat realtime delivery uses Ably (hosted) — this app runs on Hostinger
-    | shared hosting (proc_open/symlink disabled, no queue worker, cron-only
-    | scheduling), so a self-hosted WebSocket server (Reverb) can't run here.
+    | Live chat delivery uses Ably, which is hosted for us. This app runs on
+    | shared hosting where proc_open and symlink are disabled, there is no
+    | queue worker and scheduling is cron only, so running a WebSocket server
+    | such as Reverb here is not possible.
     | Ably needs no persistent process on our end: Laravel makes one HTTP
     | call per broadcast, and the browser talks to Ably's cloud directly.
     |

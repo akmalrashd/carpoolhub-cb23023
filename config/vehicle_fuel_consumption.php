@@ -2,25 +2,28 @@
 
 /**
  * Real-world Malaysian fuel consumption per vehicle model, compiled from
- * live web research on 2026-08-23 — replaces AI-guessed km/L for models
+ * live web research on 2026-08-23. These replace the AI guessed km/L for the
+ * models
  * listed here. A vehicle not matched by any pattern below still falls
  * through to the AI estimate / keyword-based emergency fallback exactly as
- * before — nothing here is invented.
+ * before, and nothing here is invented.
  *
  * city_kmpl / highway_kmpl are the midpoint of owner-reported real-world
- * ranges (NOT the manufacturer's official/brochure figure — those run
- * 30-50% better than actual Malaysian mixed driving and would understate
- * fuel cost). 'combined_only' => true means the source only gave one mixed
- * figure, so the same number is used for both — treat those as lower
- * confidence than the split entries.
+ * ranges reported by owners, not the manufacturer's brochure figure. Those
+ * official numbers run 30 to 50 percent better than real Malaysian mixed
+ * driving and would make the fuel cost look too low.
+ *
+ * 'combined_only' => true means the source only published one mixed figure,
+ * so the same number is used for city and highway. Those entries are less
+ * reliable than the ones with separate values.
  *
  * 'match' is checked first (exact, fast). 'fuzzy_tokens', if present, is a
- * safety net for typos/sloppy typing — every word listed must find a
- * near-match (within ~1 edit) among the words the driver actually typed.
+ * safety net for typos and sloppy typing. Every word listed has to find a
+ * close match, within about one edit, among the words the driver typed.
  * Left empty/absent on the 1.5L variant on purpose: a mistyped displacement
  * number is too easy to confuse with a different real variant, so only
- * exact typing selects it — a typo instead falls through to the generic
- * model entry below it, which is still a good approximation.
+ * exact typing selects it. A typo falls through to the generic model entry
+ * below instead, which is still a reasonable approximation.
  *
  * Patterns are checked in order, most-specific variant first.
  */

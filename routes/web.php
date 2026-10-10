@@ -61,22 +61,24 @@ if (app()->environment('local')) {
     })->name('dev.preview.verify-email');
 }
 
-// Public — no auth required, since a prospective user needs to read this
-// before registering (linked from the sign-up form's consent text).
+// Public, with no login required, because someone needs to read this before
+// they register. The sign up form links to it from the consent text.
 Route::view('/legal/terms', 'legal.terms')->name('legal.terms');
 
-// Public — called by Telegram's servers, not the browser. No session to
+// Public, because Telegram's servers call it rather than a browser. There is
+// no session to
 // authenticate against; the X-Telegram-Bot-Api-Secret-Token header (checked
 // inside the controller) is what verifies the caller instead. Excluded from
 // CSRF verification in bootstrap/app.php for the same reason.
 Route::post('/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegram.webhook');
 
-// Public — called by ToyyibPay's servers, not the browser. No session to
+// Public, because ToyyibPay's servers call it rather than a browser. There is
+// no session to
 // authenticate against; the MD5 hash (checked inside GatewayPaymentService)
 // is what verifies the caller instead. Excluded from CSRF verification in
 // bootstrap/app.php for the same reason. Cannot be reached at all while this
-// app only runs on localhost — see GatewayPaymentController::return() for
-// how the flow still works correctly without it locally.
+// app only runs on localhost. GatewayPaymentController::return() explains how
+// the flow still works correctly without it during development.
 Route::post('/payments/gateway/callback', [GatewayPaymentController::class, 'callback'])->name('payments.gateway.callback');
 
 Route::middleware('guest')->group(function (): void {
@@ -90,9 +92,10 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/reset-password', [ResetPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.update');
     Route::post('/telegram/miniapp-auth', [TelegramController::class, 'miniAppAuth'])->middleware('throttle:20,1')->name('telegram.miniapp-auth');
 
-    // Reached only via the Google callback below, for a brand-new email —
-    // Google can't tell us role or (for a driver) vehicle/license, and role
-    // has no edit path once an account exists, so this collects the rest
+    // Only reached from the Google callback below, and only for an email we
+    // have never seen. Google cannot tell us the role, or the vehicle and
+    // licence details a driver needs, and the role cannot be changed once the
+    // account exists, so this page collects the rest
     // before the User row is actually created.
     Route::get('/register/complete', [GoogleRegisterController::class, 'show'])->name('register.complete');
     Route::post('/register/complete', [GoogleRegisterController::class, 'store'])->middleware('throttle:6,1')->name('register.complete.store');
@@ -102,13 +105,13 @@ Route::middleware('guest')->group(function (): void {
 // Google" button sends an already-authenticated user through this exact
 // same redirect/callback pair (with ?purpose=link) to link Google onto
 // their existing account, so a logged-in visitor has to be able to reach it
-// too — not just someone signing in or registering.
+// too, not only someone signing in or registering.
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 // Needs 'auth' (there must be a logged-in user to check/mark verified) but
-// deliberately NOT 'active' or 'verified' — this IS the escape hatch an
-// unverified user is sent to, so it can't itself require being verified.
+// deliberately not 'active' or 'verified', because this is the page an
+// unverified user gets sent to, so it cannot require being verified itself.
 Route::middleware('auth')->group(function (): void {
     Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
@@ -119,9 +122,9 @@ Route::middleware('auth')->group(function (): void {
         ->name('verification.send');
 });
 
-// No 'verified' here — logging out has to work from the verify-email
-// prompt page too, which is exactly where 'verified' would send someone
-// who isn't verified yet.
+// No 'verified' here, because logging out has to work from the verify email
+// page as well, and that is exactly where 'verified' would send anyone who is
+// not verified yet.
 Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
@@ -146,19 +149,21 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::patch('/trip-join-requests/{joinRequest}/cancel', [TripJoinRequestController::class, 'cancel'])->name('trips.join-requests.cancel');
     Route::patch('/trips/{trip}/leave', [TripJoinRequestController::class, 'leave'])->name('trips.leave');
 
-    // Private-trip group chat only — public trips get a conversation
-    // automatically (ChatService::syncParticipants), driven from the approve/
-    // cancel/remove flows above, not from a route a passenger or driver hits
-    // directly. Creates or reuses a driver "circle" (ChatService::
-    // createCircle/linkCircleToTrip) — invite/remove/picker-options are
-    // conversation-scoped (see the chats.* group below), not trip-scoped,
-    // since a circle survives past whichever trip it's currently linked to.
+    // For private trips only. A public trip gets its conversation
+    // automatically from ChatService::syncParticipants, driven by the approve,
+    // cancel and remove flows above rather than by a route anyone visits.
+    //
+    // These create or reuse a driver circle. Inviting, removing and loading
+    // the picker options are keyed by conversation in the chats.* group below
+    // rather than by trip, because a circle outlives whichever trip it is
+    // linked to at the time.
     Route::post('/trips/{trip}/chat', [PrivateChatController::class, 'create'])->name('trips.chat.create');
     Route::get('/trips/{trip}/chat/circle-options', [PrivateChatController::class, 'circleOptions'])->name('trips.chat.circle-options');
     Route::post('/trips/{trip}/chat/circle/{conversation}', [PrivateChatController::class, 'linkCircle'])->name('trips.chat.link-circle');
-    // Passenger-to-driver, public trips only — a passenger rates the driver
-    // of a completed public trip they actually rode on (DriverRatingService::
-    // isEligibleToRate enforces the rest). driver-ratings.show is the
+    // Passengers rating drivers, on public trips only. A passenger can rate
+    // the driver of a finished public trip they actually rode on, and
+    // DriverRatingService::isEligibleToRate enforces the rest.
+    // driver-ratings.show is the
     // aggregate-only read (average + count, never individual scores).
     Route::post('/trips/{trip}/driver-rating', [DriverRatingController::class, 'store'])->name('driver-ratings.store');
     Route::get('/users/{user}/driver-rating', [DriverRatingController::class, 'show'])->name('driver-ratings.show');
@@ -218,8 +223,9 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::post('/settings/google/unlink', [GoogleAuthController::class, 'unlink'])->name('settings.google.unlink');
 
     // Every route below except clearHistory bills a real Anthropic API call, so
-    // they share the 'ai-spend' limiter (registered in AppServiceProvider) —
-    // one bucket per user across all three routes, not one bucket each, plus
+    // they share the 'ai-spend' limiter registered in AppServiceProvider. That
+    // gives one allowance per user across all three routes rather than one
+    // each, plus
     // a daily cap. 30/min is far above interactive use (the chat box is one
     // request per typed message) but caps a scripted loop from draining the
     // API budget.
@@ -230,7 +236,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
         Route::post('/recommend-route', [AiChatController::class, 'recommendRoute'])->middleware('throttle:ai-spend')->name('ai.recommend-route');
     });
 
-    // Live-polled JSON — must never be cached by the browser or an
+    // Polled JSON, which must never be cached by the browser or by an
     // intermediary (Hostinger's CDN sits in front of this app), or every
     // client polling one of these keeps getting the same stale snapshot
     // regardless of how often it actually re-requests it.
@@ -263,8 +269,8 @@ Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
         Route::patch('/withdrawals/{withdrawalRequest}/mark-paid', [AdminWithdrawalController::class, 'markPaid'])->name('admin.withdrawals.mark-paid');
         Route::patch('/withdrawals/{withdrawalRequest}/reject', [AdminWithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
 
-        // Read-only dispute/safety oversight, reached from the Audit Log page
-        // — deliberately not a bottom-nav/admin_nav entry of its own.
+        // Read only oversight for disputes and safety, reached from the Audit
+        // Log page rather than having its own entry in the navigation.
         Route::get('/conversations', [AdminConversationController::class, 'index'])->name('admin.conversations.index');
         Route::get('/conversations/{conversation}', [AdminConversationController::class, 'show'])->name('admin.conversations.show');
     });
