@@ -406,7 +406,7 @@ class ReportService
      * ai_usage_logs is written on every chat/fare-advice/route-recommendation
      * call (app/Services/AiUsageLogger.php) but was never read anywhere
      * outside that write path, so there was no view of spending at all before
-     * this. There is no dollar estimate on purpose. Anthropic pricing changes
+     * this. There is no dollar estimate here. Anthropic pricing changes
      * over time and a hardcoded rate would quietly go out of date, while call
      * and token counts already show whether usage is rising or falling.
      */

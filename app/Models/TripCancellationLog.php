@@ -32,7 +32,7 @@ class TripCancellationLog extends Model
         ];
     }
 
-    /** trip_id is deliberately not a real foreign key. The migration explains why. */
+    /** trip_id is not a real foreign key. The migration explains why. */
     public function driver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'driver_id');

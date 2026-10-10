@@ -2838,7 +2838,7 @@
 .is-filled.requests-btn { background: #7c3aed !important; position: relative; }
 .is-filled.requests-btn:hover { background: #6d28d9 !important; }
 
-/* My Request: Blue, the passenger-side counterpart of Requests, deliberately
+/* My Request: Blue, the passenger-side counterpart of Requests, kept
    a different color so it never reads as the same (driver-only) action. */
 .is-filled.myrequest-btn { background: #2563eb !important; }
 .is-filled.myrequest-btn:hover { background: #1d4ed8 !important; }

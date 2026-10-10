@@ -101,7 +101,7 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/register/complete', [GoogleRegisterController::class, 'store'])->middleware('throttle:6,1')->name('register.complete.store');
 });
 
-// Deliberately NOT inside the 'guest' group above: settings' "Connect
+// This sits outside the 'guest' group above because settings' "Connect
 // Google" button sends an already-authenticated user through this exact
 // same redirect/callback pair (with ?purpose=link) to link Google onto
 // their existing account, so a logged-in visitor has to be able to reach it
@@ -110,7 +110,7 @@ Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 // Needs 'auth' (there must be a logged-in user to check/mark verified) but
-// deliberately not 'active' or 'verified', because this is the page an
+// not 'active' or 'verified' here, because this is the page an
 // unverified user gets sent to, so it cannot require being verified itself.
 Route::middleware('auth')->group(function (): void {
     Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');

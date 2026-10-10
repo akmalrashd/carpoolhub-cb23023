@@ -422,7 +422,7 @@ class TripService
 
     /**
      * The fields worth telling people about when they change. Derived or
-     * internal columns are left out on purpose. Status is one of those, since
+     * internal columns are left out. Status is one of those, since
      * it is worked out from trip_datetime rather than chosen by anyone. The
      * fare and participant count fields are left out too, because they are
      * already covered by the separate "Removed
@@ -992,7 +992,7 @@ class TripService
 
     /**
      * Creates the notifications one row at a time instead of using a bulk
-     * insert, on purpose. UserNotificationObserver listens for Eloquent's
+     * insert. UserNotificationObserver listens for Eloquent's
      * created event, and that observer is what actually sends the push and
      * Telegram message. A bulk insert skips the event entirely, which would
      * leave the row sitting in the app with nothing ever delivered.

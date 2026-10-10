@@ -7,7 +7,7 @@
 
      Everything conversation-agnostic, the shared modals (Trip Details,
      Rate Trip, Manage/My Request, Invite Connections) and the photo
-     lightbox, plus their JS. Deliberately live in the page SHELL instead
+     lightbox, plus their JS, all live in the page SHELL instead
      (chats/index.blade.php / chats/show.blade.php), loaded once, not in
      here: they already delegate their trigger bindings on `document` and
      read everything from the clicked trigger's data-* attributes (same

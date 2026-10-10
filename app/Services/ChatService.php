@@ -539,7 +539,7 @@ class ChatService
     /**
      * Fills in the snapshot columns a conversation keeps about its trip.
      *
-     * opens_at is deliberately left null, which means every chat can be used
+     * opens_at is left null, which means every chat can be used
      * the moment it exists. An earlier version only opened a chat a few days
      * before departure, but that worked against the point of having a chat at
      * all. Settling the pickup point, agreeing whether payment is before or

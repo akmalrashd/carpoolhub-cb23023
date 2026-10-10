@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     {{-- user-scalable=no stops pinch zoom of the page itself; the Leaflet maps
-         still zoom, they drive it from JS. There is deliberately no
-         viewport-fit=cover here. The NOTE in pwa-head.blade.php's <style>
-         block explains why: it
+         still zoom, they drive it from JS. There is no viewport-fit=cover
+         here. The NOTE in pwa-head.blade.php's <style> block explains why: it
          switched env(safe-area-inset-bottom) from 0 to 34px on an iPhone and
          silently grew the bottom nav by a third. Without cover, iOS already
          lays the viewport out inside the safe area, so every env(...) call

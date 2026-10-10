@@ -185,7 +185,7 @@ class AdminUserService
         // its verification status still said pending or rejected, which would
         // leave the badge and the check in TripController disagreeing with what
         // the account is actually allowed to do.
-        // Suspending (is_active -> false) deliberately does NOT touch
+        // Suspending, meaning is_active goes to false, does NOT touch
         // driver_verification_status: that's what lets an already-approved
         // driver's login message correctly read "suspended" instead of
         // reverting to "pending".

@@ -122,7 +122,7 @@
     }
 
     /* `manipulation` removes the double-tap-to-zoom delay while still allowing
-       pan and pinch. Deliberately NOT `none`: that would be inherited by the
+       pan and pinch. It must NOT be `none`, which would be inherited by the
        Leaflet maps and break their gestures. Leaflet sets its own value on
        .leaflet-container and drives zoom from JS, so maps are unaffected. */
     body {
@@ -147,7 +147,7 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    /* NOTE: deliberately no viewport-fit=cover, and no safe-area padding here.
+    /* NOTE: no viewport-fit=cover here, and no safe-area padding either.
        Adding cover switched env(safe-area-inset-bottom) from 0 to 34px on an
        iPhone, and the bottom nav already sizes itself with
        calc(83px + env(safe-area-inset-bottom)) - so the bar silently grew by a

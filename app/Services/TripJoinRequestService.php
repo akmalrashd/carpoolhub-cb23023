@@ -564,7 +564,7 @@ class TripJoinRequestService
     }
 
     /**
-     * The inverse of attachPassengerToTripGroup, but deliberately NOT built on
+     * The opposite of attachPassengerToTripGroup, though it is NOT built on
      * resyncTripSplit. That method deletes and rebuilds the TripPayment row of
      * every participant on the trip, which would wipe out other passengers'
      * paid or awaiting confirmation records just because one person left.

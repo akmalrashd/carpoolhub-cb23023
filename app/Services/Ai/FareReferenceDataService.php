@@ -140,10 +140,11 @@ class FareReferenceDataService
     }
 
     /**
-     * Scans road-name text for known Malaysian toll highways. Matching is
-     * deliberately narrow (highway abbreviations/full names, not a generic
-     * "lebuhraya" catch all). A broad match would wrongly flag toll free roads
-     * such as the Federal Highway just because the name contains that word.
+     * Scans road-name text for known Malaysian toll highways. The matching is
+     * kept narrow. It only looks for highway abbreviations and full names,
+     * never a generic "lebuhraya" catch all. A broad match would wrongly flag
+     * toll free roads such as the Federal Highway just because the name
+     * contains that word.
      *
      * @return array{matched:bool,toll_roads:string[],estimated_toll_cost:float,has_toll:bool}
      */

@@ -31,7 +31,7 @@ class LoginController extends Controller
 
         // The email+IP key alone does not stop credential stuffing: one attempt
         // against each of a thousand different emails never trips it. This
-        // second, per-IP counter does. The ceiling is deliberately high so a
+        // second, per-IP counter does. The ceiling is set high so a
         // shared NAT (campus, office) never sees it, and it is intentionally
         // not cleared on a successful login, because otherwise an attacker
         // could reset it whenever they liked by signing into an account they

@@ -4222,7 +4222,7 @@
         }
 
         /* CH-LAYOUT-CLAMP-V3 */
-        /* Kept last on purpose. .payments-page is declared in three separate
+        /* Has to stay last. .payments-page is declared in three separate
            places in this file (lines ~16, ~1590 and inside a max-width:767px
            block), so anything written earlier loses on source order - that is
            how the previous two attempts were silently defeated.
@@ -4253,7 +4253,7 @@
            attempt was a no-op: the track kept growing to min-content and the card
            was stretched to the grown track. Replacing the track's MIN sizing
            function with 0 (minmax(0,1fr)) is the only lever that stops it.
-           The desktop two-column track is restated here on purpose so this block
+           The desktop two-column track is repeated here so this block
            does not depend on the earlier @media (min-width:768px) at line ~2653
            winning on source order. */
         .payments-page,

@@ -1,7 +1,7 @@
-// Settings > Notifications: enable/disable browser push. Deliberately
-// button-triggered rather than auto-prompted on page load, an unprompted
-// permission dialog is the single biggest cause of users blocking
-// notifications forever and never being asked again.
+// Settings > Notifications: turns browser push on and off. The user has to
+// press a button for it, because a permission dialog that pops up on its own
+// is the single biggest cause of users blocking notifications forever and
+// never being asked again.
 (function () {
     const enableBtn = document.getElementById('pushEnableBtn');
     const disableBtn = document.getElementById('pushDisableBtn');

@@ -99,7 +99,7 @@ class PaymentController extends Controller
 
         // Worked out once here instead of inside the blade loop. Reading
         // SystemSetting for every row would mean one query per row, which this
-        // page deliberately avoids elsewhere too.
+        // page avoids everywhere else too.
         $toyyibPayConfigured = $this->toyyibPayService->isConfigured();
         $gatewayFeeFlatAmount = (float) (SystemSetting::get('gateway_fee_flat_amount') ?? '1.00');
 

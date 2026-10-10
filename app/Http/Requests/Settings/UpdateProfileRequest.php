@@ -17,7 +17,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             // Email is the login identifier and is shown read-only in the UI, so
-            // it is never submitted here. It is deliberately NOT accepted: a
+            // it is never submitted here, and it is not accepted either: a
             // hijacked session could otherwise POST a new email and silently take
             // over the account. Email changes must go through a dedicated,
             // password-gated flow if ever added. SettingsService also forces the

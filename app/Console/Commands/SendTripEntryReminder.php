@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  * so there's real time to add anything missed before that summary reads
  * whatever's in the system as final.
  *
- * Deliberately a blanket reminder to every driver, not targeted at drivers
+ * This goes to every driver rather than only to drivers
  * with zero trips logged this month: someone who logged trips early in the
  * month and then forgot partway through would have a non-zero count and
  * never get flagged by that kind of check, so it would miss exactly the
